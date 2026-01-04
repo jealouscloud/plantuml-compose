@@ -512,6 +512,73 @@ class TestStateDiagramStyle:
         assert "FontSize 12" in output
         assert "FontStyle bold" in output
 
+    def test_empty_style_no_output(self):
+        """Empty StateDiagramStyle should not emit style block."""
+        with state_diagram(style=StateDiagramStyle()) as d:
+            d.state("S1")
+
+        output = render(d.build())
+        assert "<style>" not in output
+        assert "stateDiagram {" not in output
+
+    def test_empty_element_style_no_nested_block(self):
+        """Empty ElementStyle should not emit nested block."""
+        with state_diagram(
+            style=StateDiagramStyle(
+                background=Color.named("white"),
+                state=ElementStyle(),  # Empty - should not emit state {}
+            )
+        ) as d:
+            d.state("S1")
+
+        output = render(d.build())
+        assert "BackgroundColor white" in output
+        # Should not have empty state block
+        assert "state {\n  }" not in output
+        assert "state {}" not in output
+
+    def test_title_uses_document_selector(self):
+        """Title styling should use document selector, not stateDiagram."""
+        with state_diagram(
+            style=StateDiagramStyle(
+                title=ElementStyle(font_color=Color.named("red"))
+            )
+        ) as d:
+            d.state("S1")
+
+        output = render(d.build())
+        # Title must be under document, not stateDiagram
+        assert "document {" in output
+        assert "title {" in output
+        assert "FontColor red" in output
+        # Verify it's NOT under stateDiagram (which would style states, not title)
+        lines = output.split("\n")
+        in_document = False
+        title_in_document = False
+        for line in lines:
+            if "document {" in line:
+                in_document = True
+            if in_document and "title {" in line:
+                title_in_document = True
+                break
+            if in_document and "}" in line and "title" not in line:
+                in_document = False
+        assert title_in_document, "title block should be inside document block"
+
+    def test_gradient_in_style_background(self):
+        """Gradient should work in style block background."""
+        from plantuml_compose import Gradient
+
+        with state_diagram(
+            style=StateDiagramStyle(
+                background=Gradient(Color.named("red"), Color.named("green"))
+            )
+        ) as d:
+            d.state("S1")
+
+        output = render(d.build())
+        assert "BackgroundColor red|green" in output
+
 
 class TestPlantUMLValidation:
     """Integration tests that validate output with PlantUML and generate SVGs."""
