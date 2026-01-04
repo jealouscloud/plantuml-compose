@@ -43,6 +43,78 @@ class TestStateNode:
         assert "Idle : Waiting for input" in output
 
 
+class TestEdgeCases:
+    """Tests for edge cases and boundary conditions."""
+
+    def test_empty_state_name(self):
+        """Empty state names are accepted (PlantUML handles gracefully)."""
+        with state_diagram() as d:
+            s = d.state("")
+            d.arrow(d.start(), s)
+        output = render(d.build())
+        assert "@startuml" in output
+        assert "@enduml" in output
+
+    def test_state_name_with_special_characters(self):
+        """State names with special characters use alias for safety."""
+        with state_diagram() as d:
+            s = d.state("State: Loading...", alias="loading")
+            d.arrow(d.start(), s)
+        output = render(d.build())
+        assert 'state "State: Loading..." as loading' in output
+        assert "[*] --> loading" in output
+
+    def test_self_transition(self):
+        """Self-transitions (state to itself) are valid."""
+        with state_diagram() as d:
+            s = d.state("Retry")
+            d.arrow(s, s, "retry")
+        output = render(d.build())
+        assert "Retry --> Retry : retry" in output
+
+    def test_unicode_state_name(self, validate_plantuml):
+        """Unicode characters in state names render correctly."""
+        with state_diagram() as d:
+            s = d.state("待機中", alias="waiting")
+            d.arrow(d.start(), s)
+        output = render(d.build())
+        assert '待機中' in output
+        assert validate_plantuml(output, "unicode")
+
+    def test_multiline_description(self):
+        """Multi-line descriptions use \\n separator."""
+        with state_diagram() as d:
+            d.state("Complex", description="Line 1\\nLine 2")
+        output = render(d.build())
+        assert "Line 1\\nLine 2" in output
+
+    def test_empty_diagram(self):
+        """Empty diagram with no elements is valid."""
+        with state_diagram() as d:
+            pass
+        output = render(d.build())
+        assert "@startuml" in output
+        assert "@enduml" in output
+
+    def test_transition_to_undeclared_state(self, validate_plantuml):
+        """Transitions can reference states by string name (auto-created by PlantUML)."""
+        with state_diagram() as d:
+            d.arrow("A", "B", "go")
+        output = render(d.build())
+        assert "A --> B : go" in output
+        assert validate_plantuml(output, "undeclared")
+
+    def test_duplicate_state_names(self):
+        """Duplicate state names create separate state declarations."""
+        with state_diagram() as d:
+            s1 = d.state("Same")
+            s2 = d.state("Same")
+            d.arrow(s1, s2)
+        output = render(d.build())
+        # Both declarations appear
+        assert output.count("state Same") == 2
+
+
 class TestTransition:
     """Tests for transitions between states."""
 
