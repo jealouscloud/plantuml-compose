@@ -29,18 +29,51 @@ class TestStateNode:
     def test_state_ref_uses_alias_when_provided(self):
         with state_diagram() as d:
             s = d.state("My State", alias="ms")
-        assert s.ref == "ms"
+        assert s._ref == "ms"
 
     def test_state_ref_replaces_spaces(self):
         with state_diagram() as d:
             s = d.state("My State")
-        assert s.ref == "My_State"
+        assert s._ref == "My_State"
 
     def test_state_with_description(self):
         with state_diagram() as d:
             d.state("Idle", description="Waiting for input")
         output = render(d.build())
         assert "Idle : Waiting for input" in output
+
+
+class TestBulkStates:
+    """Tests for states() bulk state creation."""
+
+    def test_states_creates_multiple(self):
+        """states() creates multiple StateNodes at once."""
+        with state_diagram() as d:
+            a, b, c = d.states("A", "B", "C")
+        assert a._ref == "A"
+        assert b._ref == "B"
+        assert c._ref == "C"
+
+    def test_states_with_style(self):
+        """states() applies style to all created states."""
+        with state_diagram() as d:
+            a, b = d.states("A", "B", style=Style(background=Color.named("lightblue")))
+        output = render(d.build())
+        assert "A #lightblue" in output
+        assert "B #lightblue" in output
+
+    def test_states_returns_tuple(self):
+        """states() returns a tuple for unpacking."""
+        with state_diagram() as d:
+            result = d.states("X", "Y")
+        assert isinstance(result, tuple)
+        assert len(result) == 2
+
+    def test_states_empty(self):
+        """states() with no args returns empty tuple."""
+        with state_diagram() as d:
+            result = d.states()
+        assert result == ()
 
 
 class TestEdgeCases:
@@ -68,7 +101,7 @@ class TestEdgeCases:
         """Self-transitions (state to itself) are valid."""
         with state_diagram() as d:
             s = d.state("Retry")
-            d.arrow(s, s, "retry")
+            d.arrow(s, s, label="retry")
         output = render(d.build())
         assert "Retry --> Retry : retry" in output
 
@@ -99,7 +132,7 @@ class TestEdgeCases:
     def test_transition_to_undeclared_state(self, validate_plantuml):
         """Transitions can reference states by string name (auto-created by PlantUML)."""
         with state_diagram() as d:
-            d.arrow("A", "B", "go")
+            d.arrow("A", "B", label="go")
         output = render(d.build())
         assert "A --> B : go" in output
         assert validate_plantuml(output, "undeclared")
@@ -122,7 +155,7 @@ class TestTransition:
         with state_diagram() as d:
             a = d.state("A")
             b = d.state("B")
-            d.arrow(a, b, "go")
+            d.arrow(a, b, label="go")
         output = render(d.build())
         assert "A --> B : go" in output
 
@@ -182,7 +215,7 @@ class TestTransition:
         with state_diagram() as d:
             a = d.state("A")
             b = d.state("B")
-            d.arrow(a, b, "go", note="This is a note")
+            d.arrow(a, b, label="go", note="This is a note")
         output = render(d.build())
         assert "A --> B : go" in output
         assert "note on link: This is a note" in output
@@ -218,6 +251,73 @@ class TestTransition:
         assert "S --> [*]" in output
 
 
+class TestVariadicArrow:
+    """Tests for variadic arrow() method (chain transitions)."""
+
+    def test_arrow_chain_three_states(self):
+        """arrow(a, b, c) creates two transitions."""
+        with state_diagram() as d:
+            a, b, c = d.states("A", "B", "C")
+            transitions = d.arrow(a, b, c)
+        assert len(transitions) == 2
+        output = render(d.build())
+        assert "A --> B" in output
+        assert "B --> C" in output
+
+    def test_arrow_chain_with_label(self):
+        """Label is applied to all transitions in chain."""
+        with state_diagram() as d:
+            a, b, c = d.states("A", "B", "C")
+            d.arrow(a, b, c, label="next")
+        output = render(d.build())
+        assert "A --> B : next" in output
+        assert "B --> C : next" in output
+
+    def test_arrow_chain_four_states(self):
+        """arrow(a, b, c, d) creates three transitions."""
+        with state_diagram() as d:
+            a, b, c, e = d.states("A", "B", "C", "D")
+            transitions = d.arrow(a, b, c, e)
+        assert len(transitions) == 3
+
+    def test_arrow_returns_list(self):
+        """arrow() now returns list[Transition]."""
+        with state_diagram() as d:
+            a, b = d.states("A", "B")
+            result = d.arrow(a, b)
+        assert isinstance(result, list)
+        assert len(result) == 1
+
+    def test_arrow_requires_two_states(self):
+        """arrow() with less than 2 states raises ValueError."""
+        import pytest
+        with state_diagram() as d:
+            a = d.state("A")
+            with pytest.raises(ValueError, match="at least 2 states"):
+                d.arrow(a)
+
+
+class TestRenderMethod:
+    """Tests for StateDiagramBuilder.render() convenience method."""
+
+    def test_render_returns_plantuml_text(self):
+        """render() returns PlantUML text without calling build() explicitly."""
+        with state_diagram(title="Test") as d:
+            d.state("Idle")
+        output = d.render()
+        assert "@startuml" in output
+        assert "title Test" in output
+        assert "state Idle" in output
+        assert "@enduml" in output
+
+    def test_render_equivalent_to_render_build(self):
+        """render() produces same output as render(d.build())."""
+        with state_diagram() as d:
+            a, b = d.states("A", "B")
+            d.arrow(a, b)
+        assert d.render() == render(d.build())
+
+
 class TestCompositeState:
     """Tests for composite (nested) states."""
 
@@ -236,7 +336,7 @@ class TestCompositeState:
         with state_diagram() as d:
             with d.composite("My Composite", alias="mc") as comp:
                 comp.state("Sub")
-            d.arrow(d.start(), comp.ref)
+            d.arrow(d.start(), comp)
         output = render(d.build())
         assert 'state "My Composite" as mc {' in output
         assert "[*] --> mc" in output
@@ -278,7 +378,7 @@ class TestConcurrentState:
                 with par.region() as r2:
                     x = r2.state("X")
                     r2.arrow(r2.start(), x)
-            d.arrow(d.start(), par.ref)
+            d.arrow(d.start(), par)
         output = render(d.build())
         assert "[*] --> A" in output
         assert "[*] --> X" in output
@@ -292,9 +392,111 @@ class TestConcurrentState:
                     r1.state("NumLockOff")
                 with active.region() as r2:
                     r2.state("CapsLockOff")
-            d.arrow(d.start(), active.ref)
+            d.arrow(d.start(), active)
         output = render(d.build())
         assert "||" in output
+
+
+class TestParallel:
+    """Tests for parallel() fork/join builder."""
+
+    def test_parallel_basic(self):
+        """parallel() creates fork, branches, and join."""
+        with state_diagram() as d:
+            with d.parallel("P") as p:
+                with p.branch() as b1:
+                    b1.state("A")
+                with p.branch() as b2:
+                    b2.state("B")
+        output = render(d.build())
+        assert "P_fork <<fork>>" in output
+        assert "P_join <<join>>" in output
+        assert "P_fork --> A" in output
+        assert "P_fork --> B" in output
+        assert "A --> P_join" in output
+        assert "B --> P_join" in output
+
+    def test_parallel_with_multi_step_branch(self):
+        """Branch can have multiple states and transitions."""
+        with state_diagram() as d:
+            with d.parallel("Flow") as p:
+                with p.branch() as b:
+                    a = b.state("A")
+                    middle = b.state("B")
+                    c = b.state("C")
+                    b.arrow(a, middle, c)
+        output = render(d.build())
+        # Entry is A, exit is C (no outgoing transitions)
+        assert "Flow_fork --> A" in output
+        assert "A --> B" in output
+        assert "B --> C" in output
+        assert "C --> Flow_join" in output
+
+    def test_parallel_fork_join_accessible_after_block(self):
+        """p.fork and p.join are accessible after parallel block exits."""
+        with state_diagram() as d:
+            start = d.state("Start")
+            done = d.state("Done")
+
+            with d.parallel("P") as p:
+                with p.branch() as b:
+                    b.state("Work")
+
+            d.arrow(start, p.fork)
+            d.arrow(p.join, done)
+        output = render(d.build())
+        assert "Start --> P_fork" in output
+        assert "P_join --> Done" in output
+
+    def test_parallel_unnamed(self):
+        """parallel() without name uses default fork/join names."""
+        with state_diagram() as d:
+            with d.parallel() as p:
+                with p.branch() as b:
+                    b.state("X")
+        output = render(d.build())
+        assert "fork <<fork>>" in output
+        assert "join <<join>>" in output
+
+    def test_parallel_requires_at_least_one_branch(self):
+        """parallel() with no branches raises ValueError."""
+        import pytest
+        with state_diagram() as d:
+            with pytest.raises(ValueError, match="at least one branch"):
+                with d.parallel() as p:
+                    pass  # No branches
+
+    def test_parallel_branch_requires_element(self):
+        """Branch with no elements raises ValueError."""
+        import pytest
+        with state_diagram() as d:
+            with pytest.raises(ValueError, match="at least one element"):
+                with d.parallel() as p:
+                    with p.branch() as b:
+                        pass  # No elements
+
+    def test_parallel_integration(self, validate_plantuml):
+        """Full parallel example validates with PlantUML."""
+        with state_diagram(title="Parallel Processing") as d:
+            start = d.state("Start")
+            done = d.state("Done")
+
+            with d.parallel("Process") as p:
+                with p.branch() as b1:
+                    b1.state("TaskA")
+                with p.branch() as b2:
+                    b2.state("TaskB")
+                with p.branch() as b3:
+                    step1 = b3.state("Step1")
+                    step2 = b3.state("Step2")
+                    b3.arrow(step1, step2)
+
+            d.arrow(d.start(), start)
+            d.arrow(start, p.fork)
+            d.arrow(p.join, done)
+            d.arrow(done, d.end())
+
+        assert validate_plantuml(d.render(), "parallel")
 
 
 class TestPseudoStates:
@@ -346,8 +548,8 @@ class TestHistory:
                 s3.state("ProcessData")
             d.arrow(d.start(), s1)
             d.arrow(s1, s2)
-            d.arrow(s2, s3.ref)
-            d.arrow(s2, d.history(), "Resume")
+            d.arrow(s2, s3)
+            d.arrow(s2, d.history(), label="Resume")
         output = render(d.build())
         assert "State2 --> [H]" in output
 
@@ -357,7 +559,7 @@ class TestHistory:
             s2 = d.state("State2")
             with d.composite("State3") as s3:
                 s3.state("ProcessData")
-            d.arrow(s2, d.deep_history(), "DeepResume")
+            d.arrow(s2, d.deep_history(), label="DeepResume")
         output = render(d.build())
         assert "State2 --> [H*]" in output
 
@@ -787,7 +989,7 @@ class TestPlantUMLValidation:
             a = d.state("A")
             b = d.state("B")
             d.arrow(d.start(), a)
-            d.arrow(a, b, "transition")
+            d.arrow(a, b, label="transition")
             d.arrow(b, d.end())
         assert validate_plantuml(render(d.build()), "basic")
 
@@ -801,8 +1003,8 @@ class TestPlantUMLValidation:
                 active.arrow(sub1, sub2)
                 active.arrow(sub2, active.end())
             d.arrow(d.start(), idle)
-            d.arrow(idle, active.ref, "activate")
-            d.arrow(active.ref, idle, "done")
+            d.arrow(idle, active, label="activate")
+            d.arrow(active, idle, label="done")
         assert validate_plantuml(render(d.build()), "composite")
 
     def test_concurrent_diagram(self, validate_plantuml):
@@ -818,8 +1020,8 @@ class TestPlantUMLValidation:
                     y = r2.state("Y")
                     r2.arrow(r2.start(), x)
                     r2.arrow(x, y)
-            d.arrow(d.start(), par.ref)
-            d.arrow(par.ref, d.end())
+            d.arrow(d.start(), par)
+            d.arrow(par, d.end())
         assert validate_plantuml(render(d.build()), "concurrent")
 
     def test_styled_states(self, validate_plantuml):
@@ -905,8 +1107,8 @@ class TestPlantUMLValidation:
                 comp.arrow(comp.start(), inner)
                 comp.arrow(inner, comp.end())
 
-            d.arrow(d.start(), comp.ref)
-            d.arrow(comp.ref, d.end())
+            d.arrow(d.start(), comp)
+            d.arrow(comp, d.end())
 
         assert validate_plantuml(render(d.build()), "styled_composite")
 
@@ -919,10 +1121,10 @@ class TestPlantUMLValidation:
             s5 = d.state("S5")
 
             d.arrow(d.start(), s1)
-            d.arrow(s1, s2, "dashed red", style=LineStyle(pattern=LinePattern.DASHED, color=Color.named("red")))
-            d.arrow(s2, s3, "dotted blue", style=LineStyle(pattern=LinePattern.DOTTED, color=Color.named("blue")))
-            d.arrow(s3, s4, "thick", style=LineStyle(thickness=3))
-            d.arrow(s4, s5, "bold green", style=LineStyle(bold=True, color=Color.named("green")))
+            d.arrow(s1, s2, label="dashed red", style=LineStyle(pattern=LinePattern.DASHED, color=Color.named("red")))
+            d.arrow(s2, s3, label="dotted blue", style=LineStyle(pattern=LinePattern.DOTTED, color=Color.named("blue")))
+            d.arrow(s3, s4, label="thick", style=LineStyle(thickness=3))
+            d.arrow(s4, s5, label="bold green", style=LineStyle(bold=True, color=Color.named("green")))
             d.arrow(s5, d.end())
 
         assert validate_plantuml(render(d.build()), "styled_arrows")
@@ -940,8 +1142,8 @@ class TestPlantUMLValidation:
                 init = proc.state("Init", style=Style(background=Color.named("lightgreen")))
                 working = proc.state("Working")
                 proc.arrow(proc.start(), init)
-                proc.arrow(init, working, "start")
-                proc.arrow(working, proc.end(), "done")
+                proc.arrow(init, working, label="start")
+                proc.arrow(working, proc.end(), label="done")
 
             with d.concurrent("Monitoring", alias="mon", note="Runs in parallel") as mon:
                 with mon.region() as r1:
@@ -955,11 +1157,11 @@ class TestPlantUMLValidation:
             choice = d.choice("validate")  # No style - PlantUML doesn't render it
 
             d.arrow(d.start(), idle)
-            d.arrow(idle, choice, "submit")
-            d.arrow(choice, proc.ref, guard="valid")
+            d.arrow(idle, choice, label="submit")
+            d.arrow(choice, proc, guard="valid")
             d.arrow(choice, error, guard="invalid", style=LineStyle(color=Color.named("red")))
-            d.arrow(proc.ref, mon.ref, "monitor")
-            d.arrow(mon.ref, d.end(), "complete")
-            d.arrow(error, idle, "retry", direction=Direction.UP)
+            d.arrow(proc, mon, label="monitor")
+            d.arrow(mon, d.end(), label="complete")
+            d.arrow(error, idle, label="retry", direction=Direction.UP)
 
         assert validate_plantuml(render(d.build()), "full_featured")

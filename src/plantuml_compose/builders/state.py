@@ -81,38 +81,60 @@ class _BaseStateBuilder:
         self._elements.append(node)
         return node
 
+    def states(
+        self,
+        *names: str,
+        style: Style | None = None,
+    ) -> tuple[StateNode, ...]:
+        """Create and register multiple state nodes at once.
+
+        Args:
+            *names: Display names of the states
+            style: Optional visual styling applied to all states
+
+        Returns:
+            Tuple of created StateNodes in order
+
+        Example:
+            fraud, balance, credit = d.states("FraudCheck", "BalanceCheck", "CreditCheck")
+        """
+        return tuple(self.state(name, style=style) for name in names)
+
     def arrow(
         self,
-        source: StateNode | PseudoState | str,
-        target: StateNode | PseudoState | str,
+        *states: StateNode | PseudoState | CompositeState | "_CompositeBuilder" | "_ConcurrentBuilder" | str,
         label: str | Label | None = None,
-        *,
         trigger: str | None = None,
         guard: str | None = None,
         effect: str | None = None,
         style: LineStyle | None = None,
         direction: Direction | None = None,
         note: str | Label | None = None,
-    ) -> Transition:
-        """Create and register a transition between states.
+    ) -> list[Transition]:
+        """Create and register transitions between consecutive states.
 
         Args:
-            source: Source state (StateNode, PseudoState, or ref string)
-            target: Target state (StateNode, PseudoState, or ref string)
-            label: Optional transition label
-            trigger: Optional event/trigger name
-            guard: Optional guard condition (without brackets)
-            effect: Optional effect/action (without leading /)
-            style: Optional line styling
-            direction: Optional layout direction hint
-            note: Optional note attached to the transition (note on link)
+            *states: Two or more states to connect (StateNode, PseudoState, builder, or ref string).
+                     Creates transitions: states[0]->states[1], states[1]->states[2], etc.
+            label: Optional transition label (applied to all transitions)
+            trigger: Optional event/trigger name (applied to all transitions)
+            guard: Optional guard condition without brackets (applied to all transitions)
+            effect: Optional effect/action without leading / (applied to all transitions)
+            style: Optional line styling (applied to all transitions)
+            direction: Optional layout direction hint (applied to all transitions)
+            note: Optional note attached to transitions (applied to all transitions)
 
         Returns:
-            The created Transition
+            List of created Transitions
+
+        Examples:
+            d.arrow(a, b)           # Single transition: a -> b
+            d.arrow(a, b, c)        # Chain: a -> b -> c (2 transitions)
+            d.arrow(a, b, c, d)     # Chain: a -> b -> c -> d (3 transitions)
+            d.arrow(a, b, label="go")  # All transitions labeled "go"
         """
-        # Convert sources/targets to reference strings
-        src_ref = self._to_ref(source)
-        tgt_ref = self._to_ref(target)
+        if len(states) < 2:
+            raise ValueError("arrow() requires at least 2 states")
 
         # Convert string label to Label
         label_obj = Label(label) if isinstance(label, str) else label
@@ -120,19 +142,23 @@ class _BaseStateBuilder:
         # Convert string note to Label
         note_obj = Label(note) if isinstance(note, str) else note
 
-        trans = Transition(
-            source=src_ref,
-            target=tgt_ref,
-            label=label_obj,
-            trigger=trigger,
-            guard=guard,
-            effect=effect,
-            style=style,
-            direction=direction,
-            note=note_obj,
-        )
-        self._elements.append(trans)
-        return trans
+        transitions: list[Transition] = []
+        for source, target in zip(states[:-1], states[1:]):
+            trans = Transition(
+                source=self._to_ref(source),
+                target=self._to_ref(target),
+                label=label_obj,
+                trigger=trigger,
+                guard=guard,
+                effect=effect,
+                style=style,
+                direction=direction,
+                note=note_obj,
+            )
+            self._elements.append(trans)
+            transitions.append(trans)
+
+        return transitions
 
     def choice(self, name: str) -> PseudoState:
         """Create and register a choice pseudo-state (diamond).
@@ -296,18 +322,64 @@ class _BaseStateBuilder:
         yield builder
         self._elements.append(builder._build())
 
-    def _to_ref(self, state: StateNode | PseudoState | CompositeState | str) -> str:
-        """Convert a state to its reference string."""
+    @contextmanager
+    def parallel(
+        self,
+        name: str | None = None,
+    ) -> Iterator["_ParallelBuilder"]:
+        """Create a fork/join parallel structure with branches.
+
+        Automatically creates a fork pseudo-state, connects each branch's entry
+        state from the fork, connects each branch's exit state to the join, and
+        creates the join pseudo-state.
+
+        Usage:
+            with d.parallel("Payment") as p:
+                with p.branch() as b1:
+                    fraud = b1.state("FraudCheck")
+                with p.branch() as b2:
+                    balance = b2.state("BalanceCheck")
+                    hold = b2.state("Hold")
+                    b2.arrow(balance, hold)
+
+            d.arrow(validate, p.fork)
+            d.arrow(p.join, next_state)
+
+        Args:
+            name: Optional name prefix for fork/join (creates "{name}_fork" and "{name}_join")
+
+        Yields:
+            A ParallelBuilder for adding branches
+        """
+        builder = _ParallelBuilder(name)
+        yield builder
+        elements = builder._build()
+        self._elements.extend(elements)
+
+    def _to_ref(
+        self,
+        state: StateNode | PseudoState | CompositeState | "_CompositeBuilder" | "_ConcurrentBuilder" | str,
+    ) -> str:
+        """Convert a state to its reference string.
+
+        Automatically resolves references, so users can pass builders directly:
+            d.arrow(composite_builder, other_state)
+        """
         if isinstance(state, str):
             return state
         if isinstance(state, StateNode):
-            return state.ref
+            return state._ref
         if isinstance(state, CompositeState):
-            return state.ref
+            return state._ref
         if isinstance(state, PseudoState):
             if state.name:
                 return state.name
             return state.kind.value
+        # Handle builder types with ._ref property (e.g., _CompositeBuilder, _ConcurrentBuilder)
+        if hasattr(state, "_ref"):
+            ref = getattr(state, "_ref")
+            if isinstance(ref, str):
+                return ref
         return str(state)
 
 
@@ -330,8 +402,8 @@ class _CompositeBuilder(_BaseStateBuilder):
         self._note_position = note_position
 
     @property
-    def ref(self) -> str:
-        """Reference name for use in transitions."""
+    def _ref(self) -> str:
+        """Internal: Reference name for use in transitions."""
         if self._alias:
             return self._alias
         return self._name.replace(" ", "_")
@@ -373,8 +445,8 @@ class _ConcurrentBuilder:
         self._regions: list[Region] = []
 
     @property
-    def ref(self) -> str:
-        """Reference name for use in transitions."""
+    def _ref(self) -> str:
+        """Internal: Reference name for use in transitions."""
         if self._alias:
             return self._alias
         return self._name.replace(" ", "_")
@@ -417,6 +489,160 @@ class _RegionBuilder(_BaseStateBuilder):
         return Region(elements=tuple(self._elements))
 
 
+class _BranchBuilder(_BaseStateBuilder):
+    """Builder for a single branch within a parallel structure.
+
+    Inherits from _BaseStateBuilder for full capabilities (state creation,
+    transitions, etc.) within each branch.
+    """
+
+    def _analyze(self) -> tuple[str, str, list[StateDiagramElement]]:
+        """Analyze branch to find entry and exit points.
+
+        Returns:
+            Tuple of (entry_ref, exit_ref, elements)
+
+        The entry point is the first state created.
+        The exit point is the state with no outgoing transitions within this branch.
+        """
+        # Find all StateNodes (not pseudo-states, not composites for now)
+        states = [e for e in self._elements if isinstance(e, StateNode)]
+        if not states:
+            raise ValueError("Branch must have at least one state")
+
+        # Entry: first state created
+        entry = states[0]._ref
+
+        # Exit: state with no outgoing transition within this branch
+        transitions = [e for e in self._elements if isinstance(e, Transition)]
+        sources = {t.source for t in transitions}
+        exits = [s for s in states if s._ref not in sources]
+
+        if not exits:
+            # All states have outgoing transitions - use last state as exit
+            exit_ref = states[-1]._ref
+        elif len(exits) == 1:
+            exit_ref = exits[0]._ref
+        else:
+            # Multiple exits - error for now
+            exit_names = [s._ref for s in exits]
+            raise ValueError(
+                f"Branch has {len(exits)} exit states (states with no outgoing transition). "
+                f"Expected exactly one. Exits: {exit_names}"
+            )
+
+        return entry, exit_ref, list(self._elements)
+
+
+class _ParallelBuilder:
+    """Builder for fork/join parallel execution.
+
+    Composition-based like _ConcurrentBuilder - does not inherit from _BaseStateBuilder
+    because it manages branches rather than accumulating elements directly.
+
+    Usage:
+        with d.parallel("Payment") as p:
+            with p.branch() as b1:
+                fraud = b1.state("FraudCheck")
+            with p.branch() as b2:
+                balance = b2.state("BalanceCheck")
+
+        d.arrow(validate, p.fork)
+        d.arrow(p.join, next_state)
+    """
+
+    def __init__(self, name: str | None = None) -> None:
+        self._name = name
+        self._branches: list[_BranchBuilder] = []
+        self._fork: PseudoState | None = None
+        self._join: PseudoState | None = None
+        self._built = False
+
+    @property
+    def _ref(self) -> str:
+        """Internal: Reference name for use in transitions (uses fork name)."""
+        if self._name:
+            return f"{self._name}_fork"
+        return "parallel_fork"
+
+    @property
+    def fork(self) -> PseudoState:
+        """The fork pseudo-state. Only accessible after parallel block exits."""
+        if not self._built:
+            raise RuntimeError("Cannot access .fork before parallel block exits")
+        if self._fork is None:
+            raise RuntimeError("Fork was not created")
+        return self._fork
+
+    @property
+    def join(self) -> PseudoState:
+        """The join pseudo-state. Only accessible after parallel block exits."""
+        if not self._built:
+            raise RuntimeError("Cannot access .join before parallel block exits")
+        if self._join is None:
+            raise RuntimeError("Join was not created")
+        return self._join
+
+    @contextmanager
+    def branch(self) -> Iterator[_BranchBuilder]:
+        """Create a branch within this parallel structure.
+
+        Each branch can contain states and transitions. The first state
+        becomes the entry point (connected from fork), and the state with
+        no outgoing transitions becomes the exit point (connected to join).
+
+        Usage:
+            with p.branch() as b:
+                a = b.state("A")
+                b_state = b.state("B")
+                b.arrow(a, b_state)  # B has no outgoing, becomes exit
+        """
+        b = _BranchBuilder()
+        yield b
+        if not b._elements:
+            raise ValueError("Branch must have at least one element")
+        self._branches.append(b)
+
+    def _build(self) -> list[StateDiagramElement]:
+        """Build all elements: fork, transitions to branches, branch contents, transitions to join, join.
+
+        Returns:
+            List of all elements to add to the parent builder
+        """
+        if not self._branches:
+            raise ValueError("parallel() must have at least one branch")
+
+        fork_name = f"{self._name}_fork" if self._name else "fork"
+        join_name = f"{self._name}_join" if self._name else "join"
+
+        self._fork = PseudoState(kind=PseudoStateKind.FORK, name=fork_name)
+        self._join = PseudoState(kind=PseudoStateKind.JOIN, name=join_name)
+        self._built = True
+
+        elements: list[StateDiagramElement] = [self._fork]
+
+        for branch in self._branches:
+            entry, exit_ref, branch_elements = branch._analyze()
+
+            # Fork → entry
+            elements.append(Transition(
+                source=fork_name,
+                target=entry,
+            ))
+
+            # Branch contents
+            elements.extend(branch_elements)
+
+            # Exit → join
+            elements.append(Transition(
+                source=exit_ref,
+                target=join_name,
+            ))
+
+        elements.append(self._join)
+        return elements
+
+
 class StateDiagramBuilder(_BaseStateBuilder):
     """Builder for complete state diagrams.
 
@@ -452,6 +678,17 @@ class StateDiagramBuilder(_BaseStateBuilder):
             hide_empty_description=self._hide_empty_description,
             style=self._style,
         )
+
+    def render(self) -> str:
+        """Build and render the diagram to PlantUML text.
+
+        Convenience method combining build() and render() in one call.
+
+        Returns:
+            PlantUML text representation of the diagram
+        """
+        from ..renderers import render
+        return render(self.build())
 
 
 @contextmanager

@@ -7,22 +7,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TypeAlias
 
 from .common import Direction, Label, LineStyle, Note, RegionSeparator, StateDiagramStyle, Style
-
-if TYPE_CHECKING:
-    from typing import Union
-
-    # Forward reference for recursive types
-    StateDiagramElement = Union[
-        "StateNode",
-        "PseudoState",
-        "Transition",
-        "CompositeState",
-        "ConcurrentState",
-        Note,
-    ]
 
 
 class PseudoStateKind(Enum):
@@ -57,8 +44,8 @@ class StateNode:
     note: Note | None = None
 
     @property
-    def ref(self) -> str:
-        """Reference name for use in transitions."""
+    def _ref(self) -> str:
+        """Internal: Reference name for use in transitions."""
         if self.alias:
             return self.alias
         # Replace spaces with underscores for PlantUML compatibility
@@ -107,8 +94,8 @@ class CompositeState:
     note: Note | None = None
 
     @property
-    def ref(self) -> str:
-        """Reference name for use in transitions."""
+    def _ref(self) -> str:
+        """Internal: Reference name for use in transitions."""
         if self.alias:
             return self.alias
         return self.name.replace(" ", "_")
@@ -126,8 +113,8 @@ class ConcurrentState:
     separator: RegionSeparator = RegionSeparator.HORIZONTAL
 
     @property
-    def ref(self) -> str:
-        """Reference name for use in transitions."""
+    def _ref(self) -> str:
+        """Internal: Reference name for use in transitions."""
         if self.alias:
             return self.alias
         return self.name.replace(" ", "_")
@@ -143,7 +130,7 @@ class StateDiagram:
     style: StateDiagramStyle | None = None
 
 
-# Re-export for type hints
-StateDiagramElement = (
+# Type alias for elements that can appear in a state diagram
+StateDiagramElement: TypeAlias = (
     StateNode | PseudoState | Transition | CompositeState | ConcurrentState | Note
 )

@@ -169,7 +169,7 @@ def _render_element(
 def _render_state_node(state: StateNode) -> list[str]:
     """Render a state node declaration."""
     lines: list[str] = []
-    ref = state.ref
+    ref = state._ref
 
     # Build declaration
     if state.alias or " " in state.name:
@@ -313,7 +313,7 @@ def _build_transition_label(trans: Transition) -> str:
 def _render_composite_state(comp: CompositeState) -> list[str]:
     """Render a composite state with nested elements."""
     lines: list[str] = []
-    ref = comp.ref
+    ref = comp._ref
 
     # Build opening line
     if comp.alias or " " in comp.name:
@@ -352,7 +352,7 @@ def _render_composite_state(comp: CompositeState) -> list[str]:
 def _render_concurrent_state(conc: ConcurrentState) -> list[str]:
     """Render a concurrent state with parallel regions."""
     lines: list[str] = []
-    ref = conc.ref
+    ref = conc._ref
 
     # Build opening line
     if conc.alias or " " in conc.name:
