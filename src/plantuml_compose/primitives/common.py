@@ -41,6 +41,13 @@ class NotePosition(Enum):
     FLOATING = "floating"  # Detached
 
 
+class RegionSeparator(Enum):
+    """Separator style for concurrent regions in state diagrams."""
+
+    HORIZONTAL = "--"  # Stacks regions vertically (default)
+    VERTICAL = "||"  # Arranges regions horizontally
+
+
 @dataclass(frozen=True)
 class Color:
     """Immutable color value.

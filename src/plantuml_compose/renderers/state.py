@@ -244,10 +244,11 @@ def _render_concurrent_state(conc: ConcurrentState) -> list[str]:
 
     lines.append(f"{opening} {{")
 
-    # Regions (separated by --)
+    # Regions (separated by -- or ||)
+    separator = conc.separator.value
     for i, region in enumerate(conc.regions):
         if i > 0:
-            lines.append("  --")
+            lines.append(f"  {separator}")
         lines.extend(_render_region(region))
 
     # Closing

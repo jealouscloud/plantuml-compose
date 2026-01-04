@@ -17,7 +17,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Iterator
 
-from ..primitives.common import Direction, Label, LineStyle, Note, NotePosition, Style
+from ..primitives.common import Direction, Label, LineStyle, Note, NotePosition, RegionSeparator, Style
 from ..primitives.state import (
     CompositeState,
     ConcurrentState,
@@ -155,6 +155,48 @@ class _BaseStateBuilder:
         self._elements.append(pseudo)
         return pseudo
 
+    def entry_point(self, name: str) -> PseudoState:
+        """Create and register an entry point pseudo-state (small circle on boundary)."""
+        pseudo = PseudoState(kind=PseudoStateKind.ENTRY_POINT, name=name)
+        self._elements.append(pseudo)
+        return pseudo
+
+    def exit_point(self, name: str) -> PseudoState:
+        """Create and register an exit point pseudo-state (circle with X on boundary)."""
+        pseudo = PseudoState(kind=PseudoStateKind.EXIT_POINT, name=name)
+        self._elements.append(pseudo)
+        return pseudo
+
+    def input_pin(self, name: str) -> PseudoState:
+        """Create and register an input pin pseudo-state (small square on boundary)."""
+        pseudo = PseudoState(kind=PseudoStateKind.INPUT_PIN, name=name)
+        self._elements.append(pseudo)
+        return pseudo
+
+    def output_pin(self, name: str) -> PseudoState:
+        """Create and register an output pin pseudo-state (small square on boundary)."""
+        pseudo = PseudoState(kind=PseudoStateKind.OUTPUT_PIN, name=name)
+        self._elements.append(pseudo)
+        return pseudo
+
+    def sdl_receive(self, name: str) -> PseudoState:
+        """Create and register an SDL receive pseudo-state (concave polygon)."""
+        pseudo = PseudoState(kind=PseudoStateKind.SDL_RECEIVE, name=name)
+        self._elements.append(pseudo)
+        return pseudo
+
+    def expansion_input(self, name: str) -> PseudoState:
+        """Create and register an expansion input pseudo-state."""
+        pseudo = PseudoState(kind=PseudoStateKind.EXPANSION_INPUT, name=name)
+        self._elements.append(pseudo)
+        return pseudo
+
+    def expansion_output(self, name: str) -> PseudoState:
+        """Create and register an expansion output pseudo-state."""
+        pseudo = PseudoState(kind=PseudoStateKind.EXPANSION_OUTPUT, name=name)
+        self._elements.append(pseudo)
+        return pseudo
+
     def note(
         self,
         content: str | Label,
@@ -222,6 +264,7 @@ class _BaseStateBuilder:
         style: Style | None = None,
         note: str | Note | None = None,
         note_position: NotePosition = NotePosition.RIGHT,
+        separator: RegionSeparator = RegionSeparator.HORIZONTAL,
     ) -> Iterator[_ConcurrentBuilder]:
         """Create a concurrent state with parallel regions.
 
@@ -238,11 +281,12 @@ class _BaseStateBuilder:
             style: Optional visual styling
             note: Optional note content
             note_position: Position of note if note is a string
+            separator: Region separator style (HORIZONTAL: --, VERTICAL: ||)
 
         Yields:
             A ConcurrentBuilder for adding parallel regions
         """
-        builder = _ConcurrentBuilder(name, alias, style, note, note_position)
+        builder = _ConcurrentBuilder(name, alias, style, note, note_position, separator)
         yield builder
         self._elements.append(builder._build())
 
@@ -312,12 +356,14 @@ class _ConcurrentBuilder:
         style: Style | None,
         note: str | Note | None,
         note_position: NotePosition,
+        separator: RegionSeparator,
     ) -> None:
         self._name = name
         self._alias = alias
         self._style = style
         self._note = note
         self._note_position = note_position
+        self._separator = separator
         self._regions: list[Region] = []
 
     @property
@@ -353,6 +399,7 @@ class _ConcurrentBuilder:
             regions=tuple(self._regions),
             style=self._style,
             note=note_obj,
+            separator=self._separator,
         )
 
 

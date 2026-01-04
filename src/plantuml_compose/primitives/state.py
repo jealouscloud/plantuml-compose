@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from .common import Direction, Label, LineStyle, Note, Style
+from .common import Direction, Label, LineStyle, Note, RegionSeparator, Style
 
 if TYPE_CHECKING:
     from typing import Union
@@ -37,6 +37,13 @@ class PseudoStateKind(Enum):
     DEEP_HISTORY = "deep_history"  # [H*]
     ENTRY_POINT = "entryPoint"
     EXIT_POINT = "exitPoint"
+    INPUT_PIN = "inputPin"
+    OUTPUT_PIN = "outputPin"
+    SDL_RECEIVE = "sdlreceive"
+    EXPANSION_INPUT = "expansionInput"
+    EXPANSION_OUTPUT = "expansionOutput"
+    START = "start"  # Explicit <<start>> stereotype
+    END = "end"  # Explicit <<end>> stereotype
 
 
 @dataclass(frozen=True)
@@ -115,6 +122,7 @@ class ConcurrentState:
     regions: tuple[Region, ...] = field(default_factory=tuple)
     style: Style | None = None
     note: Note | None = None
+    separator: RegionSeparator = RegionSeparator.HORIZONTAL
 
     @property
     def ref(self) -> str:
