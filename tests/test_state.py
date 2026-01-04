@@ -1,7 +1,5 @@
 """Tests for state diagram primitives, builders, and renderers."""
 
-import pytest
-
 # validate_plantuml fixture is provided by conftest.py
 
 from plantuml_compose import (
@@ -379,6 +377,20 @@ class TestDiagramOptions:
         output = render(d.build())
         assert "note" in output
         assert "This is a floating note" in output
+
+    def test_note_on_state(self):
+        """Notes attached to states with position control."""
+        with state_diagram() as d:
+            active = d.state("Active", note="this is a short note")
+            inactive = d.state(
+                "Inactive",
+                note=Note(Label("A longer note"), NotePosition.LEFT),
+            )
+            d.arrow(d.start(), active)
+            d.arrow(active, inactive)
+        output = render(d.build())
+        assert "note right of Active: this is a short note" in output
+        assert "note left of Inactive: A longer note" in output
 
 
 class TestStateStyles:
@@ -836,18 +848,18 @@ class TestPlantUMLValidation:
 
     def test_styled_arrows(self, validate_plantuml):
         with state_diagram(title="Styled Arrows") as d:
-            a = d.state("A")
-            b = d.state("B")
-            c = d.state("C")
-            e = d.state("D")
-            f = d.state("E")
+            s1 = d.state("S1")
+            s2 = d.state("S2")
+            s3 = d.state("S3")
+            s4 = d.state("S4")
+            s5 = d.state("S5")
 
-            d.arrow(d.start(), a)
-            d.arrow(a, b, "dashed red", style=LineStyle(pattern=LinePattern.DASHED, color=Color.named("red")))
-            d.arrow(b, c, "dotted blue", style=LineStyle(pattern=LinePattern.DOTTED, color=Color.named("blue")))
-            d.arrow(c, e, "thick", style=LineStyle(thickness=3))
-            d.arrow(e, f, "bold green", style=LineStyle(bold=True, color=Color.named("green")))
-            d.arrow(f, d.end())
+            d.arrow(d.start(), s1)
+            d.arrow(s1, s2, "dashed red", style=LineStyle(pattern=LinePattern.DASHED, color=Color.named("red")))
+            d.arrow(s2, s3, "dotted blue", style=LineStyle(pattern=LinePattern.DOTTED, color=Color.named("blue")))
+            d.arrow(s3, s4, "thick", style=LineStyle(thickness=3))
+            d.arrow(s4, s5, "bold green", style=LineStyle(bold=True, color=Color.named("green")))
+            d.arrow(s5, d.end())
 
         assert validate_plantuml(render(d.build()), "styled_arrows")
 
