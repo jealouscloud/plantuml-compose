@@ -62,30 +62,22 @@ class TestTransition:
         output = render(d.build())
         assert "A --> B : event [x > 0] / doAction()" in output
 
-    def test_arrow_with_direction(self):
+    def test_arrow_directions(self):
+        """Arrow direction hints for layout control (up, down, left, right)."""
         with state_diagram() as d:
-            a = d.state("A")
-            b = d.state("B")
-            d.arrow(a, b, direction=Direction.DOWN)
+            s1 = d.state("S1")
+            s2 = d.state("S2")
+            s3 = d.state("S3")
+            s4 = d.state("S4")
+            d.arrow(d.start(), s1, direction=Direction.UP)
+            d.arrow(s1, s2, direction=Direction.RIGHT)
+            d.arrow(s2, s3, direction=Direction.DOWN)
+            d.arrow(s3, s4, direction=Direction.LEFT)
         output = render(d.build())
-        assert "A -d-> B" in output
-
-    def test_arrow_all_directions(self):
-        """All four arrow direction hints."""
-        with state_diagram() as d:
-            first = d.state("First")
-            second = d.state("Second")
-            third = d.state("Third")
-            last = d.state("Last")
-            d.arrow(d.start(), first, direction=Direction.UP)
-            d.arrow(first, second, direction=Direction.RIGHT)
-            d.arrow(second, third, direction=Direction.DOWN)
-            d.arrow(third, last, direction=Direction.LEFT)
-        output = render(d.build())
-        assert "-u->" in output
-        assert "-r->" in output
-        assert "-d->" in output
-        assert "-l->" in output
+        assert "[*] -u-> S1" in output
+        assert "S1 -r-> S2" in output
+        assert "S2 -d-> S3" in output
+        assert "S3 -l-> S4" in output
 
     def test_arrow_with_style(self):
         with state_diagram() as d:
