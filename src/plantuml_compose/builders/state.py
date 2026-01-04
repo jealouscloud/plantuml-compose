@@ -128,21 +128,30 @@ class _BaseStateBuilder:
         self._elements.append(trans)
         return trans
 
-    def choice(self, name: str, *, style: Style | None = None) -> PseudoState:
-        """Create and register a choice pseudo-state (diamond)."""
-        pseudo = PseudoState(kind=PseudoStateKind.CHOICE, name=name, style=style)
+    def choice(self, name: str) -> PseudoState:
+        """Create and register a choice pseudo-state (diamond).
+
+        Note: PlantUML does not support styling choice diamonds - they always render gray.
+        """
+        pseudo = PseudoState(kind=PseudoStateKind.CHOICE, name=name)
         self._elements.append(pseudo)
         return pseudo
 
-    def fork(self, name: str, *, style: Style | None = None) -> PseudoState:
-        """Create and register a fork pseudo-state (horizontal bar)."""
-        pseudo = PseudoState(kind=PseudoStateKind.FORK, name=name, style=style)
+    def fork(self, name: str) -> PseudoState:
+        """Create and register a fork pseudo-state (horizontal bar).
+
+        Note: PlantUML does not support styling fork bars - they always render gray.
+        """
+        pseudo = PseudoState(kind=PseudoStateKind.FORK, name=name)
         self._elements.append(pseudo)
         return pseudo
 
-    def join(self, name: str, *, style: Style | None = None) -> PseudoState:
-        """Create and register a join pseudo-state (horizontal bar)."""
-        pseudo = PseudoState(kind=PseudoStateKind.JOIN, name=name, style=style)
+    def join(self, name: str) -> PseudoState:
+        """Create and register a join pseudo-state (horizontal bar).
+
+        Note: PlantUML does not support styling join bars - they always render gray.
+        """
+        pseudo = PseudoState(kind=PseudoStateKind.JOIN, name=name)
         self._elements.append(pseudo)
         return pseudo
 

@@ -260,17 +260,17 @@ class TestStateStyles:
         output = render(d.build())
         assert "<< (!,#red) critical >>" in output
 
-    def test_fork_with_style(self):
+    def test_fork_basic(self):
         with state_diagram() as d:
-            d.fork("f1", style=Style(background=Color.named("red")))
+            d.fork("f1")
         output = render(d.build())
-        assert "state f1 <<fork>> #red" in output
+        assert "state f1 <<fork>>" in output
 
-    def test_choice_with_style(self):
+    def test_choice_basic(self):
         with state_diagram() as d:
-            d.choice("c1", style=Style(background=Color.named("yellow")))
+            d.choice("c1")
         output = render(d.build())
-        assert "state c1 <<choice>> #yellow" in output
+        assert "state c1 <<choice>>" in output
 
     def test_composite_with_style(self):
         with state_diagram() as d:
@@ -427,19 +427,23 @@ class TestPlantUMLValidation:
 
         assert render_svg(render(d.build()), "04_styled_states")
 
-    def test_styled_pseudo_states(self, render_svg):
-        with state_diagram(title="Styled Pseudo-States") as d:
+    def test_pseudo_states(self, render_svg):
+        """Test pseudo-states (fork, join, choice).
+
+        Note: PlantUML does not support styling any pseudo-states.
+        Fork/join bars and choice diamonds always render in default gray.
+        We don't expose style parameters on these methods.
+        """
+        with state_diagram(title="Pseudo-States") as d:
             s1 = d.state("S1")
             s2 = d.state("S2")
             s3 = d.state("S3")
             s4 = d.state("S4")
 
-            # Styled fork/join
-            fork = d.fork("fork1", style=Style(background=Color.named("red")))
-            join = d.join("join1", style=Style(background=Color.named("green")))
-
-            # Styled choice
-            choice = d.choice("check", style=Style(background=Color.named("yellow")))
+            # No style parameters - PlantUML doesn't render them
+            fork = d.fork("fork1")
+            join = d.join("join1")
+            choice = d.choice("check")
 
             d.arrow(d.start(), s1)
             d.arrow(s1, fork)
@@ -514,7 +518,7 @@ class TestPlantUMLValidation:
                     r2.arrow(r2.start(), log)
 
             error = d.state("Error", style=Style(background=Color.named("salmon")))
-            choice = d.choice("validate", style=Style(background=Color.named("lightyellow")))
+            choice = d.choice("validate")  # No style - PlantUML doesn't render it
 
             d.arrow(d.start(), idle)
             d.arrow(idle, choice, "submit")
