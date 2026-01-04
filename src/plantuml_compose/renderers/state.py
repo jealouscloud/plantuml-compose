@@ -47,78 +47,104 @@ def render_state_diagram(diagram: StateDiagram) -> str:
 
 def _render_diagram_style(style: StateDiagramStyle) -> list[str]:
     """Render a typed StateDiagramStyle to PlantUML <style> block."""
-    lines: list[str] = ["<style>"]
-    lines.append("stateDiagram {")
+    # Collect stateDiagram block content
+    diagram_props: list[str] = []
 
     # Root-level properties
     if style.background:
-        lines.append(f"  BackgroundColor {render_color(style.background)}")
+        diagram_props.append(f"  BackgroundColor {render_color(style.background)}")
     if style.font_name:
-        lines.append(f"  FontName {style.font_name}")
+        diagram_props.append(f"  FontName {style.font_name}")
     if style.font_size:
-        lines.append(f"  FontSize {style.font_size}")
+        diagram_props.append(f"  FontSize {style.font_size}")
     if style.font_color:
-        lines.append(f"  FontColor {render_color(style.font_color)}")
+        diagram_props.append(f"  FontColor {render_color(style.font_color)}")
 
     # State element styles
     if style.state:
-        lines.extend(_render_element_style("state", style.state))
+        diagram_props.extend(_render_element_style("state", style.state, indent=2))
 
     # Arrow styles
     if style.arrow:
-        lines.extend(_render_arrow_style(style.arrow))
+        diagram_props.extend(_render_arrow_style(style.arrow))
 
     # Note element styles
     if style.note:
-        lines.extend(_render_element_style("note", style.note))
+        diagram_props.extend(_render_element_style("note", style.note, indent=2))
 
-    # Title element styles
+    # Collect document block content (for title)
+    document_props: list[str] = []
     if style.title:
-        lines.extend(_render_element_style("title", style.title))
+        document_props.extend(_render_element_style("title", style.title, indent=2))
 
-    lines.append("}")
+    # Only emit style block if there's content
+    if not diagram_props and not document_props:
+        return []
+
+    lines: list[str] = ["<style>"]
+
+    # Emit stateDiagram block if it has content
+    if diagram_props:
+        lines.append("stateDiagram {")
+        lines.extend(diagram_props)
+        lines.append("}")
+
+    # Emit document block for title styling (separate from stateDiagram)
+    if document_props:
+        lines.append("document {")
+        lines.extend(document_props)
+        lines.append("}")
+
     lines.append("</style>")
     return lines
 
 
-def _render_element_style(selector: str, style: ElementStyle) -> list[str]:
-    """Render an ElementStyle as a nested block."""
-    lines: list[str] = [f"  {selector} {{"]
+def _render_element_style(selector: str, style: ElementStyle, indent: int = 2) -> list[str]:
+    """Render an ElementStyle as a nested block. Returns empty list if no properties."""
+    props: list[str] = []
+    prefix = " " * indent
+    inner_prefix = " " * (indent + 2)
 
     if style.background:
-        lines.append(f"    BackgroundColor {render_color(style.background)}")
+        props.append(f"{inner_prefix}BackgroundColor {render_color(style.background)}")
     if style.line_color:
-        lines.append(f"    LineColor {render_color(style.line_color)}")
+        props.append(f"{inner_prefix}LineColor {render_color(style.line_color)}")
     if style.font_color:
-        lines.append(f"    FontColor {render_color(style.font_color)}")
+        props.append(f"{inner_prefix}FontColor {render_color(style.font_color)}")
     if style.font_name:
-        lines.append(f"    FontName {style.font_name}")
+        props.append(f"{inner_prefix}FontName {style.font_name}")
     if style.font_size:
-        lines.append(f"    FontSize {style.font_size}")
+        props.append(f"{inner_prefix}FontSize {style.font_size}")
     if style.font_style:
-        lines.append(f"    FontStyle {style.font_style.value}")
-    if style.round_corner:
-        lines.append(f"    RoundCorner {style.round_corner}")
-    if style.line_thickness:
-        lines.append(f"    LineThickness {style.line_thickness}")
+        props.append(f"{inner_prefix}FontStyle {style.font_style.value}")
+    if style.round_corner is not None:
+        props.append(f"{inner_prefix}RoundCorner {style.round_corner}")
+    if style.line_thickness is not None:
+        props.append(f"{inner_prefix}LineThickness {style.line_thickness}")
 
-    lines.append("  }")
-    return lines
+    # Only return block if there are properties
+    if not props:
+        return []
+
+    return [f"{prefix}{selector} {{"] + props + [f"{prefix}}}"]
 
 
 def _render_arrow_style(style: DiagramArrowStyle) -> list[str]:
-    """Render a DiagramArrowStyle as a nested block."""
-    lines: list[str] = ["  arrow {"]
+    """Render a DiagramArrowStyle as a nested block. Returns empty list if no properties."""
+    props: list[str] = []
 
     if style.line_color:
-        lines.append(f"    LineColor {render_color(style.line_color)}")
-    if style.line_thickness:
-        lines.append(f"    LineThickness {style.line_thickness}")
+        props.append(f"    LineColor {render_color(style.line_color)}")
+    if style.line_thickness is not None:
+        props.append(f"    LineThickness {style.line_thickness}")
     if style.line_pattern:
-        lines.append(f"    LineStyle {style.line_pattern.value}")
+        props.append(f"    LineStyle {style.line_pattern.value}")
 
-    lines.append("  }")
-    return lines
+    # Only return block if there are properties
+    if not props:
+        return []
+
+    return ["  arrow {"] + props + ["  }"]
 
 
 def _render_element(

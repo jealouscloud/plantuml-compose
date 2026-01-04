@@ -238,7 +238,7 @@ class StateDiagramStyle:
     """
 
     # Root-level properties
-    background: Color | None = None
+    background: Color | Gradient | None = None
     font_name: str | None = None
     font_size: int | None = None
     font_color: Color | None = None
