@@ -17,7 +17,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Iterator
 
-from ..primitives.common import Direction, Label, LineStyle, Note, NotePosition, RegionSeparator, Style
+from ..primitives.common import Direction, Label, LineStyle, Note, NotePosition, RegionSeparator, StateDiagramStyle, Style
 from ..primitives.state import (
     CompositeState,
     ConcurrentState,
@@ -92,6 +92,7 @@ class _BaseStateBuilder:
         effect: str | None = None,
         style: LineStyle | None = None,
         direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> Transition:
         """Create and register a transition between states.
 
@@ -104,6 +105,7 @@ class _BaseStateBuilder:
             effect: Optional effect/action (without leading /)
             style: Optional line styling
             direction: Optional layout direction hint
+            note: Optional note attached to the transition (note on link)
 
         Returns:
             The created Transition
@@ -115,6 +117,9 @@ class _BaseStateBuilder:
         # Convert string label to Label
         label_obj = Label(label) if isinstance(label, str) else label
 
+        # Convert string note to Label
+        note_obj = Label(note) if isinstance(note, str) else note
+
         trans = Transition(
             source=src_ref,
             target=tgt_ref,
@@ -124,6 +129,7 @@ class _BaseStateBuilder:
             effect=effect,
             style=style,
             direction=direction,
+            note=note_obj,
         )
         self._elements.append(trans)
         return trans
@@ -431,10 +437,12 @@ class StateDiagramBuilder(_BaseStateBuilder):
         *,
         title: str | None = None,
         hide_empty_description: bool = False,
+        style: StateDiagramStyle | None = None,
     ) -> None:
         super().__init__()
         self._title = title
         self._hide_empty_description = hide_empty_description
+        self._style = style
 
     def build(self) -> StateDiagram:
         """Build the complete state diagram."""
@@ -442,6 +450,7 @@ class StateDiagramBuilder(_BaseStateBuilder):
             elements=tuple(self._elements),
             title=self._title,
             hide_empty_description=self._hide_empty_description,
+            style=self._style,
         )
 
 
@@ -450,6 +459,7 @@ def state_diagram(
     *,
     title: str | None = None,
     hide_empty_description: bool = False,
+    style: StateDiagramStyle | None = None,
 ) -> Iterator[StateDiagramBuilder]:
     """Create a state diagram with context manager syntax.
 
@@ -466,9 +476,21 @@ def state_diagram(
 
         print(render(d.build()))
 
+    With typed CSS-like styling:
+        from plantuml_compose import StateDiagramStyle, ElementStyle, Color
+
+        with state_diagram(
+            style=StateDiagramStyle(
+                background=Color.named("white"),
+                state=ElementStyle(background=Color.hex("#E3F2FD")),
+            )
+        ) as d:
+            d.state("Styled")
+
     Args:
         title: Optional diagram title
         hide_empty_description: Whether to hide empty state descriptions
+        style: Optional typed style (StateDiagramStyle)
 
     Yields:
         A StateDiagramBuilder for adding diagram elements
@@ -476,5 +498,6 @@ def state_diagram(
     builder = StateDiagramBuilder(
         title=title,
         hide_empty_description=hide_empty_description,
+        style=style,
     )
     yield builder

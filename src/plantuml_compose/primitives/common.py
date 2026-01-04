@@ -160,3 +160,91 @@ class Note:
 
     content: Label
     position: NotePosition = NotePosition.RIGHT
+
+
+class FontStyle(Enum):
+    """Font style options."""
+
+    NORMAL = "normal"
+    BOLD = "bold"
+    ITALIC = "italic"
+    BOLD_ITALIC = "bold italic"
+
+
+@dataclass(frozen=True)
+class ElementStyle:
+    """Style properties for diagram elements (states, notes, etc.).
+
+    Used within StateDiagramStyle to define element-specific styling.
+    """
+
+    background: Color | None = None
+    line_color: Color | None = None
+    font_color: Color | None = None
+    font_name: str | None = None
+    font_size: int | None = None
+    font_style: FontStyle | None = None
+    round_corner: int | None = None
+    line_thickness: int | None = None
+
+
+@dataclass(frozen=True)
+class DiagramArrowStyle:
+    """Style properties for arrows in diagram-wide styles.
+
+    Note: This is different from LineStyle which is for individual arrows.
+    This is for the <style> block's arrow { } section.
+    """
+
+    line_color: Color | None = None
+    line_thickness: int | None = None
+    line_pattern: LinePattern | None = None
+
+
+@dataclass(frozen=True)
+class StateDiagramStyle:
+    """Typed CSS-like style for state diagrams.
+
+    Usage:
+        with state_diagram(
+            style=StateDiagramStyle(
+                background=Color.named("white"),
+                font_name="Arial",
+                state=ElementStyle(
+                    background=Color.hex("#E3F2FD"),
+                    line_color=Color.hex("#1976D2"),
+                ),
+                arrow=DiagramArrowStyle(
+                    line_color=Color.hex("#757575"),
+                ),
+            )
+        ) as d:
+            ...
+
+    Generates:
+        <style>
+        stateDiagram {
+            BackgroundColor white
+            FontName Arial
+            state {
+                BackgroundColor #E3F2FD
+                LineColor #1976D2
+            }
+            arrow {
+                LineColor #757575
+            }
+        }
+        </style>
+    """
+
+    # Root-level properties
+    background: Color | None = None
+    font_name: str | None = None
+    font_size: int | None = None
+    font_color: Color | None = None
+
+    # Element-specific styles
+    state: ElementStyle | None = None
+    arrow: DiagramArrowStyle | None = None
+    note: ElementStyle | None = None
+    title: ElementStyle | None = None

@@ -5,7 +5,12 @@ Pure functions that transform state diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
-from ..primitives.common import Note
+from ..primitives.common import (
+    DiagramArrowStyle,
+    ElementStyle,
+    Note,
+    StateDiagramStyle,
+)
 from ..primitives.state import (
     CompositeState,
     ConcurrentState,
@@ -16,12 +21,16 @@ from ..primitives.state import (
     StateNode,
     Transition,
 )
-from .common import render_label, render_line_style_bracket, render_state_style, render_stereotype
+from .common import render_color, render_label, render_line_style_bracket, render_state_style, render_stereotype
 
 
 def render_state_diagram(diagram: StateDiagram) -> str:
     """Render a complete state diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
+
+    # Style block comes first (after @startuml)
+    if diagram.style:
+        lines.extend(_render_diagram_style(diagram.style))
 
     if diagram.title:
         lines.append(f"title {diagram.title}")
@@ -34,6 +43,82 @@ def render_state_diagram(diagram: StateDiagram) -> str:
 
     lines.append("@enduml")
     return "\n".join(lines)
+
+
+def _render_diagram_style(style: StateDiagramStyle) -> list[str]:
+    """Render a typed StateDiagramStyle to PlantUML <style> block."""
+    lines: list[str] = ["<style>"]
+    lines.append("stateDiagram {")
+
+    # Root-level properties
+    if style.background:
+        lines.append(f"  BackgroundColor {render_color(style.background)}")
+    if style.font_name:
+        lines.append(f"  FontName {style.font_name}")
+    if style.font_size:
+        lines.append(f"  FontSize {style.font_size}")
+    if style.font_color:
+        lines.append(f"  FontColor {render_color(style.font_color)}")
+
+    # State element styles
+    if style.state:
+        lines.extend(_render_element_style("state", style.state))
+
+    # Arrow styles
+    if style.arrow:
+        lines.extend(_render_arrow_style(style.arrow))
+
+    # Note element styles
+    if style.note:
+        lines.extend(_render_element_style("note", style.note))
+
+    # Title element styles
+    if style.title:
+        lines.extend(_render_element_style("title", style.title))
+
+    lines.append("}")
+    lines.append("</style>")
+    return lines
+
+
+def _render_element_style(selector: str, style: ElementStyle) -> list[str]:
+    """Render an ElementStyle as a nested block."""
+    lines: list[str] = [f"  {selector} {{"]
+
+    if style.background:
+        lines.append(f"    BackgroundColor {render_color(style.background)}")
+    if style.line_color:
+        lines.append(f"    LineColor {render_color(style.line_color)}")
+    if style.font_color:
+        lines.append(f"    FontColor {render_color(style.font_color)}")
+    if style.font_name:
+        lines.append(f"    FontName {style.font_name}")
+    if style.font_size:
+        lines.append(f"    FontSize {style.font_size}")
+    if style.font_style:
+        lines.append(f"    FontStyle {style.font_style.value}")
+    if style.round_corner:
+        lines.append(f"    RoundCorner {style.round_corner}")
+    if style.line_thickness:
+        lines.append(f"    LineThickness {style.line_thickness}")
+
+    lines.append("  }")
+    return lines
+
+
+def _render_arrow_style(style: DiagramArrowStyle) -> list[str]:
+    """Render a DiagramArrowStyle as a nested block."""
+    lines: list[str] = ["  arrow {"]
+
+    if style.line_color:
+        lines.append(f"    LineColor {render_color(style.line_color)}")
+    if style.line_thickness:
+        lines.append(f"    LineThickness {style.line_thickness}")
+    if style.line_pattern:
+        lines.append(f"    LineStyle {style.line_pattern.value}")
+
+    lines.append("  }")
+    return lines
 
 
 def _render_element(
@@ -114,6 +199,8 @@ def _render_pseudo_state(pseudo: PseudoState) -> list[str]:
 
 def _render_transition(trans: Transition) -> list[str]:
     """Render a transition between states."""
+    lines: list[str] = []
+
     # Convert source/target to PlantUML syntax
     src = _state_ref_to_plantuml(trans.source)
     tgt = _state_ref_to_plantuml(trans.target)
@@ -125,7 +212,22 @@ def _render_transition(trans: Transition) -> list[str]:
     label = _build_transition_label(trans)
     label_str = f" : {label}" if label else ""
 
-    return [f"{src} {arrow} {tgt}{label_str}"]
+    lines.append(f"{src} {arrow} {tgt}{label_str}")
+
+    # Note on link (if any)
+    if trans.note:
+        note_text = render_label(trans.note)
+        if "\n" in note_text:
+            # Multi-line note
+            lines.append("note on link")
+            for note_line in note_text.split("\n"):
+                lines.append(f"  {note_line}")
+            lines.append("end note")
+        else:
+            # Single-line note
+            lines.append(f"note on link: {note_text}")
+
+    return lines
 
 
 def _state_ref_to_plantuml(ref: str) -> str:

@@ -6,13 +6,17 @@ import pytest
 
 from plantuml_compose import (
     Color,
+    DiagramArrowStyle,
     Direction,
+    ElementStyle,
+    FontStyle,
     Label,
     LinePattern,
     LineStyle,
     Note,
     NotePosition,
     Spot,
+    StateDiagramStyle,
     Stereotype,
     Style,
     render,
@@ -74,6 +78,55 @@ class TestTransition:
             d.arrow(a, b, style=LineStyle(pattern=LinePattern.DASHED, color=Color.named("red")))
         output = render(d.build())
         assert "-[#red,dashed]->" in output
+
+    def test_hidden_arrow(self):
+        """Hidden arrows for layout control."""
+        with state_diagram() as d:
+            a = d.state("A")
+            b = d.state("B")
+            d.arrow(a, b, style=LineStyle(pattern=LinePattern.HIDDEN))
+        output = render(d.build())
+        assert "A -[hidden]-> B" in output
+
+    def test_hidden_arrow_with_direction(self):
+        """Hidden arrows can have direction hints."""
+        with state_diagram() as d:
+            a = d.state("A")
+            b = d.state("B")
+            d.arrow(a, b, style=LineStyle(pattern=LinePattern.HIDDEN), direction=Direction.DOWN)
+        output = render(d.build())
+        assert "A -[hidden]d-> B" in output
+
+    def test_note_on_link(self):
+        """Note attached to a transition."""
+        with state_diagram() as d:
+            a = d.state("A")
+            b = d.state("B")
+            d.arrow(a, b, "go", note="This is a note")
+        output = render(d.build())
+        assert "A --> B : go" in output
+        assert "note on link: This is a note" in output
+
+    def test_note_on_link_multiline(self):
+        """Multi-line note on a transition."""
+        with state_diagram() as d:
+            a = d.state("A")
+            b = d.state("B")
+            d.arrow(a, b, note="Line 1\nLine 2")
+        output = render(d.build())
+        assert "note on link" in output
+        assert "Line 1" in output
+        assert "Line 2" in output
+        assert "end note" in output
+
+    def test_note_on_link_with_label_object(self):
+        """Note can be passed as Label object."""
+        with state_diagram() as d:
+            a = d.state("A")
+            b = d.state("B")
+            d.arrow(a, b, note=Label("Custom note"))
+        output = render(d.build())
+        assert "note on link: Custom note" in output
 
     def test_initial_and_final(self):
         with state_diagram() as d:
@@ -314,6 +367,150 @@ class TestStateStyles:
         assert "<<important>>" in output
         # Uses semicolon format when text color is present
         assert "#pink;line.dashed;line:red;text:blue" in output
+
+
+class TestStateDiagramStyle:
+    """Tests for typed CSS-like style block support."""
+
+    def test_style_with_background(self):
+        """Style with root-level background color."""
+        with state_diagram(
+            style=StateDiagramStyle(background=Color.named("white"))
+        ) as d:
+            d.state("S1")
+
+        output = render(d.build())
+        assert "<style>" in output
+        assert "stateDiagram {" in output
+        assert "BackgroundColor white" in output
+        assert "</style>" in output
+
+    def test_style_with_font_properties(self):
+        """Style with font properties."""
+        with state_diagram(
+            style=StateDiagramStyle(
+                font_name="Arial",
+                font_size=14,
+                font_color=Color.named("black"),
+            )
+        ) as d:
+            d.state("S1")
+
+        output = render(d.build())
+        assert "FontName Arial" in output
+        assert "FontSize 14" in output
+        assert "FontColor black" in output
+
+    def test_style_block_appears_before_title(self):
+        """Style block should appear before title in the output."""
+        with state_diagram(
+            title="My Diagram",
+            style=StateDiagramStyle(background=Color.named("white")),
+        ) as d:
+            d.state("S1")
+
+        output = render(d.build())
+        style_pos = output.find("<style>")
+        title_pos = output.find("title My Diagram")
+        assert style_pos < title_pos, "Style block should appear before title"
+
+    def test_no_style_block_when_none(self):
+        """No style block when not specified."""
+        with state_diagram() as d:
+            d.state("S1")
+
+        output = render(d.build())
+        assert "<style>" not in output
+
+    def test_state_element_style(self):
+        """Style for state elements."""
+        with state_diagram(
+            style=StateDiagramStyle(
+                state=ElementStyle(
+                    background=Color.hex("#E3F2FD"),
+                    line_color=Color.hex("#1976D2"),
+                    font_color=Color.hex("#0D47A1"),
+                    round_corner=10,
+                )
+            )
+        ) as d:
+            d.state("S1")
+
+        output = render(d.build())
+        assert "state {" in output
+        assert "BackgroundColor #E3F2FD" in output
+        assert "LineColor #1976D2" in output
+        assert "FontColor #0D47A1" in output
+        assert "RoundCorner 10" in output
+
+    def test_arrow_style(self):
+        """Style for arrows."""
+        with state_diagram(
+            style=StateDiagramStyle(
+                arrow=DiagramArrowStyle(
+                    line_color=Color.hex("#757575"),
+                    line_thickness=2,
+                    line_pattern=LinePattern.DASHED,
+                )
+            )
+        ) as d:
+            s1 = d.state("S1")
+            s2 = d.state("S2")
+            d.arrow(s1, s2)
+
+        output = render(d.build())
+        assert "arrow {" in output
+        assert "LineColor #757575" in output
+        assert "LineThickness 2" in output
+        assert "LineStyle dashed" in output
+
+    def test_full_style_block(self):
+        """Complete style block with all element types."""
+        with state_diagram(
+            style=StateDiagramStyle(
+                background=Color.named("white"),
+                font_name="Arial",
+                state=ElementStyle(
+                    background=Color.hex("#E3F2FD"),
+                    line_color=Color.hex("#1976D2"),
+                ),
+                arrow=DiagramArrowStyle(
+                    line_color=Color.hex("#757575"),
+                ),
+                note=ElementStyle(
+                    background=Color.named("lightyellow"),
+                ),
+            )
+        ) as d:
+            s1 = d.state("S1")
+            s2 = d.state("S2")
+            d.arrow(s1, s2)
+
+        output = render(d.build())
+        assert "BackgroundColor white" in output
+        assert "FontName Arial" in output
+        assert "state {" in output
+        assert "arrow {" in output
+        assert "note {" in output
+        assert "BackgroundColor lightyellow" in output
+
+    def test_element_style_font_properties(self):
+        """Element style with font properties."""
+        with state_diagram(
+            style=StateDiagramStyle(
+                state=ElementStyle(
+                    font_name="Courier",
+                    font_size=12,
+                    font_style=FontStyle.BOLD,
+                )
+            )
+        ) as d:
+            d.state("S1")
+
+        output = render(d.build())
+        assert "FontName Courier" in output
+        assert "FontSize 12" in output
+        assert "FontStyle bold" in output
 
 
 class TestPlantUMLValidation:

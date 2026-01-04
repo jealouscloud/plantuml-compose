@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from .common import Direction, Label, LineStyle, Note, RegionSeparator, Style
+from .common import Direction, Label, LineStyle, Note, RegionSeparator, StateDiagramStyle, Style
 
 if TYPE_CHECKING:
     from typing import Union
@@ -86,6 +86,7 @@ class Transition:
     effect: str | None = None  # Action after /
     style: LineStyle | None = None
     direction: Direction | None = None
+    note: Label | None = None  # Note attached to the transition (note on link)
 
 
 @dataclass(frozen=True)
@@ -139,6 +140,7 @@ class StateDiagram:
     elements: tuple["StateDiagramElement", ...] = field(default_factory=tuple)
     title: str | None = None
     hide_empty_description: bool = False
+    style: StateDiagramStyle | None = None
 
 
 # Re-export for type hints

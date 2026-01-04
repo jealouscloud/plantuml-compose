@@ -5,7 +5,10 @@ All types are frozen dataclasses - immutable data with no behavior.
 
 from .common import (
     Color,
+    DiagramArrowStyle,
     Direction,
+    ElementStyle,
+    FontStyle,
     Gradient,
     Label,
     LinePattern,
@@ -14,6 +17,7 @@ from .common import (
     NotePosition,
     RegionSeparator,
     Spot,
+    StateDiagramStyle,
     Stereotype,
     Style,
 )
@@ -32,7 +36,10 @@ from .state import (
 __all__ = [
     # Common
     "Color",
+    "DiagramArrowStyle",
     "Direction",
+    "ElementStyle",
+    "FontStyle",
     "Gradient",
     "Label",
     "LinePattern",
@@ -41,6 +48,7 @@ __all__ = [
     "NotePosition",
     "RegionSeparator",
     "Spot",
+    "StateDiagramStyle",
     "Stereotype",
     "Style",
     # State
