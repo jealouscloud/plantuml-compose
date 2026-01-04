@@ -16,7 +16,7 @@ from ..primitives.state import (
     StateNode,
     Transition,
 )
-from .common import render_label, render_line_style_bracket
+from .common import render_label, render_line_style_bracket, render_state_style, render_stereotype
 
 
 def render_state_diagram(diagram: StateDiagram) -> str:
@@ -60,11 +60,23 @@ def _render_state_node(state: StateNode) -> list[str]:
     lines: list[str] = []
     ref = state.ref
 
-    # State declaration
+    # Build declaration
     if state.alias or " " in state.name:
-        lines.append(f'state "{state.name}" as {ref}')
+        decl = f'state "{state.name}" as {ref}'
     else:
-        lines.append(f"state {state.name}")
+        decl = f"state {state.name}"
+
+    # Add stereotype if present
+    if state.style and state.style.stereotype:
+        decl += f" {render_stereotype(state.style.stereotype)}"
+
+    # Add inline style if present
+    if state.style:
+        style_str = render_state_style(state.style)
+        if style_str:
+            decl += f" {style_str}"
+
+    lines.append(decl)
 
     # Description (if any)
     if state.description:
@@ -90,7 +102,12 @@ def _render_pseudo_state(pseudo: PseudoState) -> list[str]:
 
     # Other pseudo-states need explicit declarations with stereotypes
     if pseudo.name:
-        return [f"state {pseudo.name} <<{pseudo.kind.value}>>"]
+        decl = f"state {pseudo.name} <<{pseudo.kind.value}>>"
+        if pseudo.style:
+            style_str = render_state_style(pseudo.style)
+            if style_str:
+                decl += f" {style_str}"
+        return [decl]
 
     return []
 
@@ -170,11 +187,23 @@ def _render_composite_state(comp: CompositeState) -> list[str]:
     lines: list[str] = []
     ref = comp.ref
 
-    # Opening
+    # Build opening line
     if comp.alias or " " in comp.name:
-        lines.append(f'state "{comp.name}" as {ref} {{')
+        opening = f'state "{comp.name}" as {ref}'
     else:
-        lines.append(f"state {ref} {{")
+        opening = f"state {ref}"
+
+    # Add stereotype
+    if comp.style and comp.style.stereotype:
+        opening += f" {render_stereotype(comp.style.stereotype)}"
+
+    # Add inline style
+    if comp.style:
+        style_str = render_state_style(comp.style)
+        if style_str:
+            opening += f" {style_str}"
+
+    lines.append(f"{opening} {{")
 
     # Nested elements (indented)
     for elem in comp.elements:
@@ -197,11 +226,23 @@ def _render_concurrent_state(conc: ConcurrentState) -> list[str]:
     lines: list[str] = []
     ref = conc.ref
 
-    # Opening
+    # Build opening line
     if conc.alias or " " in conc.name:
-        lines.append(f'state "{conc.name}" as {ref} {{')
+        opening = f'state "{conc.name}" as {ref}'
     else:
-        lines.append(f"state {ref} {{")
+        opening = f"state {ref}"
+
+    # Add stereotype
+    if conc.style and conc.style.stereotype:
+        opening += f" {render_stereotype(conc.style.stereotype)}"
+
+    # Add inline style
+    if conc.style:
+        style_str = render_state_style(conc.style)
+        if style_str:
+            opening += f" {style_str}"
+
+    lines.append(f"{opening} {{")
 
     # Regions (separated by --)
     for i, region in enumerate(conc.regions):
@@ -211,6 +252,11 @@ def _render_concurrent_state(conc: ConcurrentState) -> list[str]:
 
     # Closing
     lines.append("}")
+
+    # Note (if any)
+    if conc.note:
+        pos = conc.note.position.value
+        lines.append(f"note {pos} of {ref}: {render_label(conc.note.content)}")
 
     return lines
 
