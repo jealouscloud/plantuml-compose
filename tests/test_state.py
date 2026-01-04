@@ -1,8 +1,8 @@
 """Tests for state diagram primitives, builders, and renderers."""
 
-import subprocess
-
 import pytest
+
+# validate_plantuml fixture is provided by conftest.py
 
 from plantuml_compose import (
     Color,
@@ -15,6 +15,7 @@ from plantuml_compose import (
     LineStyle,
     Note,
     NotePosition,
+    RegionSeparator,
     Spot,
     StateDiagramStyle,
     Stereotype,
@@ -70,6 +71,23 @@ class TestTransition:
             d.arrow(a, b, direction=Direction.DOWN)
         output = render(d.build())
         assert "A -d-> B" in output
+
+    def test_arrow_all_directions(self):
+        """All four arrow direction hints."""
+        with state_diagram() as d:
+            first = d.state("First")
+            second = d.state("Second")
+            third = d.state("Third")
+            last = d.state("Last")
+            d.arrow(d.start(), first, direction=Direction.UP)
+            d.arrow(first, second, direction=Direction.RIGHT)
+            d.arrow(second, third, direction=Direction.DOWN)
+            d.arrow(third, last, direction=Direction.LEFT)
+        output = render(d.build())
+        assert "-u->" in output
+        assert "-r->" in output
+        assert "-d->" in output
+        assert "-l->" in output
 
     def test_arrow_with_style(self):
         with state_diagram() as d:
@@ -204,6 +222,18 @@ class TestConcurrentState:
         assert "[*] --> X" in output
         assert "[*] --> p" in output
 
+    def test_concurrent_vertical_separator(self):
+        """Concurrent regions with vertical separator (||)."""
+        with state_diagram() as d:
+            with d.concurrent("Active", separator=RegionSeparator.VERTICAL) as active:
+                with active.region() as r1:
+                    r1.state("NumLockOff")
+                with active.region() as r2:
+                    r2.state("CapsLockOff")
+            d.arrow(d.start(), active.ref)
+        output = render(d.build())
+        assert "||" in output
+
 
 class TestPseudoStates:
     """Tests for pseudo-states (choice, fork, join)."""
@@ -242,6 +272,90 @@ class TestPseudoStates:
         assert "state join1 <<join>>" in output
 
 
+class TestHistory:
+    """Tests for history pseudo-states [H] and [H*]."""
+
+    def test_history_state(self):
+        """History pseudo-state [H] for returning to previous state."""
+        with state_diagram() as d:
+            s1 = d.state("State1")
+            s2 = d.state("State2")
+            with d.composite("State3") as s3:
+                s3.state("ProcessData")
+            d.arrow(d.start(), s1)
+            d.arrow(s1, s2)
+            d.arrow(s2, s3.ref)
+            d.arrow(s2, d.history(), "Resume")
+        output = render(d.build())
+        assert "State2 --> [H]" in output
+
+    def test_deep_history_state(self):
+        """Deep history pseudo-state [H*]."""
+        with state_diagram() as d:
+            s2 = d.state("State2")
+            with d.composite("State3") as s3:
+                s3.state("ProcessData")
+            d.arrow(s2, d.deep_history(), "DeepResume")
+        output = render(d.build())
+        assert "State2 --> [H*]" in output
+
+
+class TestStereotypes:
+    """Tests for all available pseudo-state stereotypes."""
+
+    def test_entry_exit_points(self):
+        """Entry and exit point pseudo-states."""
+        with state_diagram() as d:
+            with d.composite("Somp") as somp:
+                entry1 = somp.entry_point("entry1")
+                entry2 = somp.entry_point("entry2")
+                sin = somp.state("sin")
+                sin2 = somp.state("sin2")
+                exit_a = somp.exit_point("exitA")
+                somp.arrow(entry1, sin)
+                somp.arrow(entry2, sin)
+                somp.arrow(sin, sin2)
+                somp.arrow(sin2, exit_a)
+            d.arrow(d.start(), "entry1")
+            d.arrow("exitA", "Foo")
+        output = render(d.build())
+        assert "state entry1 <<entryPoint>>" in output
+        assert "state exitA <<exitPoint>>" in output
+
+    def test_input_output_pins(self):
+        """Input and output pin pseudo-states."""
+        with state_diagram() as d:
+            with d.composite("Somp") as somp:
+                input1 = somp.input_pin("input1")
+                output1 = somp.output_pin("output1")
+                process = somp.state("process")
+                somp.arrow(input1, process)
+                somp.arrow(process, output1)
+            d.arrow(d.start(), "input1")
+            d.arrow("output1", "Foo")
+        output = render(d.build())
+        assert "state input1 <<inputPin>>" in output
+        assert "state output1 <<outputPin>>" in output
+
+    def test_sdl_receive(self):
+        """SDL receive pseudo-state."""
+        with state_diagram() as d:
+            receive = d.sdl_receive("ReqId")
+            d.arrow("Idle", receive)
+        output = render(d.build())
+        assert "state ReqId <<sdlreceive>>" in output
+
+    def test_expansion_points(self):
+        """Expansion input/output pseudo-states."""
+        with state_diagram() as d:
+            exp_in = d.expansion_input("expIn")
+            exp_out = d.expansion_output("expOut")
+            d.arrow(exp_in, exp_out)
+        output = render(d.build())
+        assert "state expIn <<expansionInput>>" in output
+        assert "state expOut <<expansionOutput>>" in output
+
+
 class TestDiagramOptions:
     """Tests for diagram-level options."""
 
@@ -256,6 +370,15 @@ class TestDiagramOptions:
             d.state("S")
         output = render(d.build())
         assert "hide empty description" in output
+
+    def test_floating_note(self):
+        """Floating notes not attached to any element."""
+        with state_diagram() as d:
+            d.state("foo")
+            d.note("This is a floating note")
+        output = render(d.build())
+        assert "note" in output
+        assert "This is a floating note" in output
 
 
 class TestStateStyles:
@@ -581,47 +704,18 @@ class TestStateDiagramStyle:
 
 
 class TestPlantUMLValidation:
-    """Integration tests that validate output with PlantUML and generate SVGs."""
+    """Integration tests that validate output with PlantUML."""
 
-    @pytest.fixture
-    def render_svg(self, request):
-        """Fixture that validates PlantUML and renders to SVG in tests/output/."""
-        from pathlib import Path
-
-        output_dir = Path(__file__).parent / "output"
-        output_dir.mkdir(exist_ok=True)
-
-        def _render(puml_text: str, name: str) -> bool:
-            puml_file = output_dir / f"{name}.puml"
-            svg_file = output_dir / f"{name}.svg"
-
-            puml_file.write_text(puml_text)
-
-            # Generate SVG
-            result = subprocess.run(
-                ["plantuml", "-tsvg", str(puml_file)],
-                capture_output=True,
-                text=True,
-            )
-
-            if result.returncode != 0:
-                print(f"PlantUML error: {result.stderr}")
-                return False
-
-            return svg_file.exists()
-
-        return _render
-
-    def test_basic_diagram(self, render_svg):
+    def test_basic_diagram(self, validate_plantuml):
         with state_diagram(title="Basic State Diagram") as d:
             a = d.state("A")
             b = d.state("B")
             d.arrow(d.start(), a)
             d.arrow(a, b, "transition")
             d.arrow(b, d.end())
-        assert render_svg(render(d.build()), "01_basic")
+        assert validate_plantuml(render(d.build()), "basic")
 
-    def test_composite_diagram(self, render_svg):
+    def test_composite_diagram(self, validate_plantuml):
         with state_diagram(title="Composite State") as d:
             idle = d.state("Idle")
             with d.composite("Active") as active:
@@ -633,9 +727,9 @@ class TestPlantUMLValidation:
             d.arrow(d.start(), idle)
             d.arrow(idle, active.ref, "activate")
             d.arrow(active.ref, idle, "done")
-        assert render_svg(render(d.build()), "02_composite")
+        assert validate_plantuml(render(d.build()), "composite")
 
-    def test_concurrent_diagram(self, render_svg):
+    def test_concurrent_diagram(self, validate_plantuml):
         with state_diagram(title="Concurrent State") as d:
             with d.concurrent("Parallel") as par:
                 with par.region() as r1:
@@ -650,9 +744,9 @@ class TestPlantUMLValidation:
                     r2.arrow(x, y)
             d.arrow(d.start(), par.ref)
             d.arrow(par.ref, d.end())
-        assert render_svg(render(d.build()), "03_concurrent")
+        assert validate_plantuml(render(d.build()), "concurrent")
 
-    def test_styled_states(self, render_svg):
+    def test_styled_states(self, validate_plantuml):
         from plantuml_compose import Gradient
 
         with state_diagram(title="Styled States") as d:
@@ -689,9 +783,9 @@ class TestPlantUMLValidation:
             d.arrow(service, critical)
             d.arrow(critical, d.end())
 
-        assert render_svg(render(d.build()), "04_styled_states")
+        assert validate_plantuml(render(d.build()), "styled_states")
 
-    def test_pseudo_states(self, render_svg):
+    def test_pseudo_states(self, validate_plantuml):
         """Test pseudo-states (fork, join, choice).
 
         Note: PlantUML does not support styling any pseudo-states.
@@ -720,9 +814,9 @@ class TestPlantUMLValidation:
             d.arrow(choice, d.end(), guard="fail")
             d.arrow(s4, d.end())
 
-        assert render_svg(render(d.build()), "05_styled_pseudo")
+        assert validate_plantuml(render(d.build()), "pseudo_states")
 
-    def test_styled_composite(self, render_svg):
+    def test_styled_composite(self, validate_plantuml):
         with state_diagram(title="Styled Composite") as d:
             with d.composite(
                 "StyledComposite",
@@ -738,9 +832,9 @@ class TestPlantUMLValidation:
             d.arrow(d.start(), comp.ref)
             d.arrow(comp.ref, d.end())
 
-        assert render_svg(render(d.build()), "06_styled_composite")
+        assert validate_plantuml(render(d.build()), "styled_composite")
 
-    def test_styled_arrows(self, render_svg):
+    def test_styled_arrows(self, validate_plantuml):
         with state_diagram(title="Styled Arrows") as d:
             a = d.state("A")
             b = d.state("B")
@@ -755,9 +849,9 @@ class TestPlantUMLValidation:
             d.arrow(e, f, "bold green", style=LineStyle(bold=True, color=Color.named("green")))
             d.arrow(f, d.end())
 
-        assert render_svg(render(d.build()), "07_styled_arrows")
+        assert validate_plantuml(render(d.build()), "styled_arrows")
 
-    def test_full_featured(self, render_svg):
+    def test_full_featured(self, validate_plantuml):
         """Comprehensive test with all features."""
         with state_diagram(title="Full Featured State Diagram", hide_empty_description=True) as d:
             idle = d.state("Idle", description="Waiting for input")
@@ -792,4 +886,4 @@ class TestPlantUMLValidation:
             d.arrow(mon.ref, d.end(), "complete")
             d.arrow(error, idle, "retry", direction=Direction.UP)
 
-        assert render_svg(render(d.build()), "08_full_featured")
+        assert validate_plantuml(render(d.build()), "full_featured")

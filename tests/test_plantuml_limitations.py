@@ -11,34 +11,8 @@ See CLAUDE.md "Only Expose What PlantUML Actually Renders" for context.
 """
 
 import re
-import subprocess
-from pathlib import Path
 
-import pytest
-
-
-@pytest.fixture
-def render_and_parse_svg(tmp_path: Path):
-    """Fixture that renders PlantUML to SVG and returns the SVG content."""
-
-    def _render(puml_text: str) -> str:
-        puml_file = tmp_path / "test.puml"
-        svg_file = tmp_path / "test.svg"
-
-        puml_file.write_text(puml_text)
-
-        result = subprocess.run(
-            ["plantuml", "-tsvg", str(puml_file)],
-            capture_output=True,
-            text=True,
-        )
-
-        if result.returncode != 0:
-            pytest.fail(f"PlantUML failed: {result.stderr}")
-
-        return svg_file.read_text()
-
-    return _render
+# render_and_parse_svg fixture is provided by conftest.py
 
 
 def svg_contains_color(svg_content: str, color: str) -> bool:
