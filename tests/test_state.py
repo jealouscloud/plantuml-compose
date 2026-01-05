@@ -1535,7 +1535,7 @@ class TestStyleLike:
         with state_diagram() as d:
             d.state("Colored", style={"text_color": "blue"})
         output = render(d.build())
-        assert ";text:blue" in output
+        assert "#text:blue" in output
 
     def test_states_with_style_dict(self):
         """Bulk states() accepts style as dict."""

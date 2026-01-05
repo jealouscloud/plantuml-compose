@@ -78,8 +78,8 @@ def render_state_style(style: StyleLike) -> str:
     2. Line only: ##[pattern]color or ##color
     3. Multiple properties: #back;line:color;text:color (semicolon-separated)
 
-    The semicolon format requires a background color. If we have other
-    properties without a background, we use the individual syntaxes.
+    When only background and/or line are specified, uses space-separated format.
+    When text_color is specified, uses semicolon format (background optional).
     """
     style = coerce_style(style)
 
@@ -99,8 +99,8 @@ def render_state_style(style: StyleLike) -> str:
     if not has_text:
         parts: list[str] = []
 
-        if has_background and background is not None:
-            bg = render_color(background)
+        if has_background:
+            bg = render_color(background)  # type: ignore[arg-type]
             if not bg.startswith("#"):
                 bg = f"#{bg}"
             parts.append(bg)
@@ -118,14 +118,14 @@ def render_state_style(style: StyleLike) -> str:
 
         return " ".join(parts)
 
-    # If we have text color, we need semicolon format which requires background
-    # Use white as default if no background specified
-    bg_source = background if background is not None else "white"
-    bg = render_color(bg_source)
-    if not bg.startswith("#"):
-        bg = f"#{bg}"
+    # Use semicolon format for text color (with optional background/line)
+    props: list[str] = []
 
-    props = [bg]
+    if has_background:
+        bg = render_color(background)  # type: ignore[arg-type]
+        if not bg.startswith("#"):
+            bg = f"#{bg}"
+        props.append(bg)
 
     if has_line and line:
         if line.pattern != "solid":
@@ -134,11 +134,17 @@ def render_state_style(style: StyleLike) -> str:
             color = render_color(line.color)
             props.append(f"line:{color}")
 
-    if has_text and text_color is not None:
+    if text_color is not None:
         tc = render_color(text_color)
         props.append(f"text:{tc}")
 
-    return ";".join(props)
+    # Join with semicolons, prefix with # if we have background, else just #
+    if props:
+        result = ";".join(props)
+        if not result.startswith("#"):
+            result = f"#{result}"
+        return result
+    return ""
 
 
 def render_stereotype(stereotype: Stereotype) -> str:

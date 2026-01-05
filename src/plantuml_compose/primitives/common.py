@@ -6,7 +6,7 @@ All types here are frozen dataclasses - immutable data with no behavior.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Final, Literal, TypeAlias, TypedDict, get_args
+from typing import Literal, TypeAlias, TypedDict
 
 # All color names supported by PlantUML (extracted via test_codegen.py)
 # fmt: off

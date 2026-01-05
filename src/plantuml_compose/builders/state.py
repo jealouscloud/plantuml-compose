@@ -14,8 +14,9 @@ Provides a fluent API for constructing state diagrams:
 
 from __future__ import annotations
 
+import uuid
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Iterator
+from typing import Iterator
 
 from ..primitives.common import (
     Direction,
@@ -45,9 +46,6 @@ from ..primitives.state import (
     Transition,
     _sanitize_ref,
 )
-
-if TYPE_CHECKING:
-    pass
 
 
 class _BaseStateBuilder:
@@ -691,15 +689,10 @@ class _ParallelBuilder:
         d.arrow(p.join, next_state)
     """
 
-    _counter: int = 0  # Class-level counter for unique unnamed parallel IDs
-
     def __init__(self, name: str | None = None) -> None:
         self._name = name
-        if name is None:
-            _ParallelBuilder._counter += 1
-            self._generated_id = _ParallelBuilder._counter
-        else:
-            self._generated_id = None
+        # Use UUID for unnamed parallel blocks to ensure uniqueness and thread-safety
+        self._generated_id = uuid.uuid4().hex[:8] if name is None else None
         self._branches: list[_BranchBuilder] = []
         self._fork: PseudoState | None = None
         self._join: PseudoState | None = None

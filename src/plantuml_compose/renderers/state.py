@@ -243,7 +243,7 @@ def _render_element(
         return _render_concurrent_state(elem)
     if isinstance(elem, Note):
         return _render_floating_note(elem)
-    return []
+    raise TypeError(f"Unknown element type: {type(elem).__name__}")
 
 
 def _render_state_node(state: StateNode) -> list[str]:
