@@ -43,6 +43,7 @@ from ..primitives.state import (
     StateDiagramElement,
     StateNode,
     Transition,
+    _sanitize_ref,
 )
 
 if TYPE_CHECKING:
@@ -508,7 +509,7 @@ class _BaseStateBuilder:
             return state._ref
         if isinstance(state, PseudoState):
             if state.name:
-                return state.name
+                return _sanitize_ref(state.name)
             return state.kind.value
         # Handle builder types with ._ref property (e.g., _CompositeBuilder, _ConcurrentBuilder)
         if hasattr(state, "_ref"):
@@ -541,7 +542,7 @@ class _CompositeBuilder(_BaseStateBuilder):
         """Internal: Reference name for use in transitions."""
         if self._alias:
             return self._alias
-        return self._name.replace(" ", "_")
+        return _sanitize_ref(self._name)
 
     def _build(self) -> CompositeState:
         """Build the composite state primitive."""
@@ -584,7 +585,7 @@ class _ConcurrentBuilder:
         """Internal: Reference name for use in transitions."""
         if self._alias:
             return self._alias
-        return self._name.replace(" ", "_")
+        return _sanitize_ref(self._name)
 
     @contextmanager
     def region(self) -> Iterator[_RegionBuilder]:

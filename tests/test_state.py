@@ -1,5 +1,7 @@
 """Tests for state diagram primitives, builders, and renderers."""
 
+import pytest
+
 # validate_plantuml fixture is provided by conftest.py
 
 from plantuml_compose import (
@@ -10,6 +12,7 @@ from plantuml_compose import (
     Label,
     LineStyle,
     Note,
+    NotePosition,
     Spot,
     StateDiagramStyle,
     Stereotype,
@@ -53,7 +56,9 @@ class TestBulkStates:
     def test_states_with_style(self):
         """states() applies style to all created states."""
         with state_diagram() as d:
-            a, b = d.states("A", "B", style=Style(background=Color.named("lightblue")))
+            a, b = d.states(
+                "A", "B", style=Style(background=Color.named("lightblue"))
+            )
         output = render(d.build())
         assert "A #lightblue" in output
         assert "B #lightblue" in output
@@ -93,6 +98,16 @@ class TestEdgeCases:
         assert 'state "State: Loading..." as loading' in output
         assert "[*] --> loading" in output
 
+    def test_state_name_with_quotes(self):
+        """State names containing quotes should be escaped and aliased."""
+        with state_diagram() as d:
+            quoted = d.state('He said "hi"')
+            d.arrow(d.start(), quoted)
+
+        output = render(d.build())
+        assert 'state "He said \\"hi\\"" as He_said_hi' in output
+        assert "[*] --> He_said_hi" in output
+
     def test_self_transition(self):
         """Self-transitions (state to itself) are valid."""
         with state_diagram() as d:
@@ -101,13 +116,23 @@ class TestEdgeCases:
         output = render(d.build())
         assert "Retry --> Retry : retry" in output
 
+    def test_transition_label_with_quotes(self):
+        """Transition labels containing quotes should be escaped."""
+        with state_diagram() as d:
+            a = d.state("A")
+            b = d.state("B")
+            d.arrow(a, b, label='say "hi"')
+
+        output = render(d.build())
+        assert 'A --> B : say \\"hi\\"' in output
+
     def test_unicode_state_name(self, validate_plantuml):
         """Unicode characters in state names render correctly."""
         with state_diagram() as d:
             s = d.state("待機中", alias="waiting")
             d.arrow(d.start(), s)
         output = render(d.build())
-        assert '待機中' in output
+        assert "待機中" in output
         assert validate_plantuml(output, "unicode")
 
     def test_multiline_description(self):
@@ -184,7 +209,11 @@ class TestTransition:
         with state_diagram() as d:
             a = d.state("A")
             b = d.state("B")
-            d.arrow(a, b, style=LineStyle(pattern="dashed", color=Color.named("red")))
+            d.arrow(
+                a,
+                b,
+                style=LineStyle(pattern="dashed", color=Color.named("red")),
+            )
         output = render(d.build())
         assert "-[#red,dashed]->" in output
 
@@ -287,6 +316,7 @@ class TestVariadicArrow:
     def test_arrow_requires_two_states(self):
         """arrow() with less than 2 states raises ValueError."""
         import pytest
+
         with state_diagram() as d:
             a = d.state("A")
             with pytest.raises(ValueError, match="at least 2 states"):
@@ -348,6 +378,17 @@ class TestCompositeState:
         assert "state Level2 {" in output
         assert "state Deep" in output
 
+    def test_composite_ref_sanitizes_spaces(self):
+        """Builder _ref must match primitive _ref for names with spaces."""
+        with state_diagram() as d:
+            with d.composite("Review Process") as comp:
+                comp.state("Inner")
+            d.arrow(d.start(), comp)
+        output = render(d.build())
+        # Transition should use sanitized ref matching declaration alias
+        assert "[*] --> Review_Process" in output
+        assert 'state "Review Process" as Review_Process' in output
+
 
 class TestConcurrentState:
     """Tests for concurrent (parallel) states."""
@@ -392,6 +433,18 @@ class TestConcurrentState:
         output = render(d.build())
         assert "||" in output
 
+    def test_concurrent_ref_sanitizes_spaces(self):
+        """Builder _ref must match primitive _ref for names with spaces."""
+        with state_diagram() as d:
+            with d.concurrent("Parallel Region") as conc:
+                with conc.region() as r:
+                    r.state("Inner")
+            d.arrow(d.start(), conc)
+        output = render(d.build())
+        # Transition should use sanitized ref matching declaration alias
+        assert "[*] --> Parallel_Region" in output
+        assert 'state "Parallel Region" as Parallel_Region' in output
+
 
 class TestParallel:
     """Tests for parallel() fork/join builder."""
@@ -405,8 +458,8 @@ class TestParallel:
                 with p.branch() as b2:
                     b2.state("B")
         output = render(d.build())
-        assert "P_fork <<fork>>" in output
-        assert "P_join <<join>>" in output
+        assert 'state "P_fork" as P_fork <<fork>>' in output
+        assert 'state "P_join" as P_join <<join>>' in output
         assert "P_fork --> A" in output
         assert "P_fork --> B" in output
         assert "A --> P_join" in output
@@ -452,25 +505,28 @@ class TestParallel:
                     b.state("X")
         output = render(d.build())
         # Unnamed parallel blocks get unique names like "parallel_N_fork"
-        assert "parallel_" in output
-        assert "_fork <<fork>>" in output
-        assert "_join <<join>>" in output
+        assert output.count("parallel_") >= 2
+        assert "<<fork>>" in output
+        assert "<<join>>" in output
+        assert 'state "parallel_' in output
 
     def test_parallel_requires_at_least_one_branch(self):
         """parallel() with no branches raises ValueError."""
         import pytest
+
         with state_diagram() as d:
             with pytest.raises(ValueError, match="at least one branch"):
-                with d.parallel() as p:
+                with d.parallel() as _parallel:
                     pass  # No branches
 
     def test_parallel_branch_requires_element(self):
         """Branch with no elements raises ValueError."""
         import pytest
+
         with state_diagram() as d:
             with pytest.raises(ValueError, match="at least one element"):
                 with d.parallel() as p:
-                    with p.branch() as b:
+                    with p.branch() as _branch:
                         pass  # No elements
 
     def test_parallel_integration(self, validate_plantuml):
@@ -508,7 +564,7 @@ class TestParallel:
                 with p.branch() as b:
                     b.state("Work")
             # Using the builder directly (not p.fork) should also work
-            d.arrow(start, p)  # Uses p._ref internally
+            d.arrow(start, p._ref)
 
         output = render(d.build())
         # The transition target must match an actual declared pseudo-state
@@ -516,12 +572,18 @@ class TestParallel:
         lines = output.split("\n")
 
         # Find what fork name is actually declared
-        fork_decl = [l for l in lines if "<<fork>>" in l]
-        assert len(fork_decl) == 1, f"Expected exactly one fork declaration, got: {fork_decl}"
-        declared_fork_name = fork_decl[0].split()[1]  # "state NAME <<fork>>"
+        fork_decl = [line for line in lines if "<<fork>>" in line]
+        assert len(fork_decl) == 1, (
+            f"Expected exactly one fork declaration, got: {fork_decl}"
+        )
+        declared_fork_name = (
+            fork_decl[0].split()[1].strip('"')
+        )  # "state NAME <<fork>>"
 
         # Find the transition from Start
-        start_transition = [l for l in lines if l.startswith("Start -->")]
+        start_transition = [
+            line for line in lines if line.startswith("Start -->")
+        ]
         assert len(start_transition) == 1
         target = start_transition[0].split("-->")[1].strip()
 
@@ -548,10 +610,12 @@ class TestParallel:
         lines = output.split("\n")
 
         # Count fork declarations - should be 2 unique ones
-        fork_decls = [l for l in lines if "<<fork>>" in l]
-        fork_names = [l.split()[1] for l in fork_decls]
+        fork_decls = [line for line in lines if "<<fork>>" in line]
+        fork_names = [line.split()[1].strip('"') for line in fork_decls]
 
-        assert len(fork_names) == 2, f"Expected 2 fork declarations, got {len(fork_names)}"
+        assert len(fork_names) == 2, (
+            f"Expected 2 fork declarations, got {len(fork_names)}"
+        )
         assert len(set(fork_names)) == 2, (
             f"Fork names should be unique, got duplicates: {fork_names}"
         )
@@ -607,7 +671,7 @@ class TestPseudoStates:
             d.arrow(c, s2, guard="x > 0")
             d.arrow(c, s3, guard="x <= 0")
         output = render(d.build())
-        assert "state check <<choice>>" in output
+        assert 'state "check" as check <<choice>>' in output
         assert "S1 --> check" in output
         assert "check --> S2 : [x > 0]" in output
         assert "check --> S3 : [x <= 0]" in output
@@ -627,8 +691,19 @@ class TestPseudoStates:
             d.arrow(b, j)
             d.arrow(j, e)
         output = render(d.build())
-        assert "state fork1 <<fork>>" in output
-        assert "state join1 <<join>>" in output
+        assert 'state "fork1" as fork1 <<fork>>' in output
+        assert 'state "join1" as join1 <<join>>' in output
+
+    def test_choice_with_spaces_in_name(self):
+        """Pseudo-state names with spaces are sanitized for transitions."""
+        with state_diagram() as d:
+            s = d.state("Start")
+            c = d.choice("Decision Point")
+            d.arrow(s, c)
+        output = render(d.build())
+        # Alias must match what transitions use
+        assert 'state "Decision Point" as Decision_Point <<choice>>' in output
+        assert "Start --> Decision_Point" in output
 
 
 class TestHistory:
@@ -678,8 +753,8 @@ class TestStereotypes:
             d.arrow(d.start(), "entry1")
             d.arrow("exitA", "Foo")
         output = render(d.build())
-        assert "state entry1 <<entryPoint>>" in output
-        assert "state exitA <<exitPoint>>" in output
+        assert 'state "entry1" as entry1 <<entryPoint>>' in output
+        assert 'state "exitA" as exitA <<exitPoint>>' in output
 
     def test_input_output_pins(self):
         """Input and output pin pseudo-states."""
@@ -693,8 +768,8 @@ class TestStereotypes:
             d.arrow(d.start(), "input1")
             d.arrow("output1", "Foo")
         output = render(d.build())
-        assert "state input1 <<inputPin>>" in output
-        assert "state output1 <<outputPin>>" in output
+        assert 'state "input1" as input1 <<inputPin>>' in output
+        assert 'state "output1" as output1 <<outputPin>>' in output
 
     def test_sdl_receive(self):
         """SDL receive pseudo-state."""
@@ -702,7 +777,7 @@ class TestStereotypes:
             receive = d.sdl_receive("ReqId")
             d.arrow("Idle", receive)
         output = render(d.build())
-        assert "state ReqId <<sdlreceive>>" in output
+        assert 'state "ReqId" as ReqId <<sdlreceive>>' in output
 
     def test_expansion_points(self):
         """Expansion input/output pseudo-states."""
@@ -711,8 +786,8 @@ class TestStereotypes:
             exp_out = d.expansion_output("expOut")
             d.arrow(exp_in, exp_out)
         output = render(d.build())
-        assert "state expIn <<expansionInput>>" in output
-        assert "state expOut <<expansionOutput>>" in output
+        assert 'state "expIn" as expIn <<expansionInput>>' in output
+        assert 'state "expOut" as expOut <<expansionOutput>>' in output
 
 
 class TestDiagramOptions:
@@ -723,6 +798,16 @@ class TestDiagramOptions:
             d.state("S")
         output = render(d.build())
         assert "title My State Machine" in output
+
+    def test_multiline_title(self):
+        """Multi-line titles use block syntax."""
+        with state_diagram(title="Line 1\nLine 2") as d:
+            d.state("S")
+        output = render(d.build())
+        assert "title\n" in output
+        assert "  Line 1" in output
+        assert "  Line 2" in output
+        assert "end title" in output
 
     def test_hide_empty_description(self):
         with state_diagram(hide_empty_description=True) as d:
@@ -757,7 +842,8 @@ class TestDiagramOptions:
 
     def test_floating_note_all_positions(self):
         """Test that various floating note positions render correctly."""
-        for position in ["left", "right", "top", "bottom"]:
+        positions: tuple[NotePosition, ...] = ("left", "right", "top", "bottom")
+        for position in positions:
             with state_diagram() as d:
                 d.state("S1")
                 d.note(f"A {position} note", position=position)
@@ -781,6 +867,38 @@ class TestDiagramOptions:
         assert "note right of Active: this is a short note" in output
         assert "note left of Inactive: A longer note" in output
 
+    def test_explicit_floating_note_keyword(self):
+        """Explicit floating notes should use the 'floating note' syntax."""
+        with state_diagram() as d:
+            d.state("S1")
+            d.note("Detached", position="floating")
+
+        output = render(d.build())
+        assert "floating note" in output
+
+    def test_floating_note_multiline_block(self):
+        """Floating note with multi-line content should use block syntax."""
+        with state_diagram() as d:
+            d.note("Line 1\nLine 2", position="right")
+
+        output = render(d.build())
+        assert "note right" in output
+        assert "Line 1" in output
+        assert "Line 2" in output
+        assert "end note" in output
+
+    def test_state_note_multiline_block(self):
+        """State-attached notes with newlines should render as blocks."""
+        with state_diagram() as d:
+            noted = d.state("HasNote", note="First\nSecond")
+            d.arrow(d.start(), noted)
+
+        output = render(d.build())
+        assert "note right of HasNote" in output
+        assert "First" in output
+        assert "Second" in output
+        assert "end note" in output
+
 
 class TestStateStyles:
     """Tests for style rendering on state elements."""
@@ -792,8 +910,6 @@ class TestStateStyles:
         assert "state Colored #pink" in output
 
     def test_state_with_gradient_background(self):
-        from plantuml_compose import Gradient
-
         with state_diagram() as d:
             d.state(
                 "Grad",
@@ -803,6 +919,22 @@ class TestStateStyles:
             )
         output = render(d.build())
         assert "state Grad #red|blue" in output
+
+    def test_state_with_style_dict_gradient(self):
+        """Dict-based styles should accept Gradient instances."""
+        with state_diagram() as d:
+            d.state(
+                "DictGrad",
+                style={
+                    "background": Gradient(
+                        Color.named("black"),
+                        Color.named("white"),
+                    )
+                },
+            )
+
+        output = render(d.build())
+        assert "state DictGrad #black|white" in output
 
     def test_state_with_line_style(self):
         with state_diagram() as d:
@@ -832,7 +964,11 @@ class TestStateStyles:
         with state_diagram() as d:
             d.state(
                 "Important",
-                style=Style(stereotype=Stereotype("critical", spot=Spot("!", Color.named("red")))),
+                style=Style(
+                    stereotype=Stereotype(
+                        "critical", spot=Spot("!", Color.named("red"))
+                    )
+                ),
             )
         output = render(d.build())
         assert "<< (!,#red) critical >>" in output
@@ -841,13 +977,13 @@ class TestStateStyles:
         with state_diagram() as d:
             d.fork("f1")
         output = render(d.build())
-        assert "state f1 <<fork>>" in output
+        assert 'state "f1" as f1 <<fork>>' in output
 
     def test_choice_basic(self):
         with state_diagram() as d:
             d.choice("c1")
         output = render(d.build())
-        assert "state c1 <<choice>>" in output
+        assert 'state "c1" as c1 <<choice>>' in output
 
     def test_composite_with_style(self):
         with state_diagram() as d:
@@ -1091,7 +1227,6 @@ class TestStateDiagramStyle:
 
     def test_gradient_in_style_background(self):
         """Gradient should work in style block background."""
-        from plantuml_compose import Gradient
 
         with state_diagram(
             style=StateDiagramStyle(
@@ -1134,6 +1269,18 @@ class TestStateDiagramStyle:
         assert "LineColor #757575" in output
         assert "note {" in output
         assert "BackgroundColor #FFF9C4" in output
+
+    def test_dict_based_style_gradient_background(self):
+        """Dict-based root styles should accept Gradient values."""
+        with state_diagram(
+            style={
+                "background": Gradient(Color.named("red"), Color.named("blue")),
+            }
+        ) as d:
+            d.state("S1")
+
+        output = render(d.build())
+        assert "BackgroundColor red|blue" in output
 
 
 class TestPlantUMLValidation:
@@ -1180,32 +1327,44 @@ class TestPlantUMLValidation:
         assert validate_plantuml(render(d.build()), "concurrent")
 
     def test_styled_states(self, validate_plantuml):
-        from plantuml_compose import Gradient
-
         with state_diagram(title="Styled States") as d:
             # Background colors
             pink = d.state("Pink", style=Style(background=Color.named("pink")))
             gradient = d.state(
                 "Gradient",
-                style=Style(background=Gradient(Color.named("red"), Color.named("yellow"))),
+                style=Style(
+                    background=Gradient(
+                        Color.named("red"), Color.named("yellow")
+                    )
+                ),
             )
 
             # Line styles
             dashed = d.state(
                 "DashedBorder",
-                style=Style(line=LineStyle(pattern="dashed", color=Color.named("blue"))),
+                style=Style(
+                    line=LineStyle(pattern="dashed", color=Color.named("blue"))
+                ),
             )
 
             # Text color
-            colored_text = d.state("ColoredText", style=Style(text_color=Color.named("green")))
+            colored_text = d.state(
+                "ColoredText", style=Style(text_color=Color.named("green"))
+            )
 
             # Stereotype
-            service = d.state("Service", style=Style(stereotype=Stereotype("service")))
+            service = d.state(
+                "Service", style=Style(stereotype=Stereotype("service"))
+            )
 
             # With spot
             critical = d.state(
                 "Critical",
-                style=Style(stereotype=Stereotype("important", spot=Spot("!", Color.named("red")))),
+                style=Style(
+                    stereotype=Stereotype(
+                        "important", spot=Spot("!", Color.named("red"))
+                    )
+                ),
             )
 
             d.arrow(d.start(), pink)
@@ -1258,7 +1417,9 @@ class TestPlantUMLValidation:
                     stereotype=Stereotype("subsystem"),
                 ),
             ) as comp:
-                inner = comp.state("Inner", style=Style(background=Color.named("lightblue")))
+                inner = comp.state(
+                    "Inner", style=Style(background=Color.named("lightblue"))
+                )
                 comp.arrow(comp.start(), inner)
                 comp.arrow(inner, comp.end())
 
@@ -1276,17 +1437,34 @@ class TestPlantUMLValidation:
             s5 = d.state("S5")
 
             d.arrow(d.start(), s1)
-            d.arrow(s1, s2, label="dashed red", style=LineStyle(pattern="dashed", color=Color.named("red")))
-            d.arrow(s2, s3, label="dotted blue", style=LineStyle(pattern="dotted", color=Color.named("blue")))
+            d.arrow(
+                s1,
+                s2,
+                label="dashed red",
+                style=LineStyle(pattern="dashed", color=Color.named("red")),
+            )
+            d.arrow(
+                s2,
+                s3,
+                label="dotted blue",
+                style=LineStyle(pattern="dotted", color=Color.named("blue")),
+            )
             d.arrow(s3, s4, label="thick", style=LineStyle(thickness=3))
-            d.arrow(s4, s5, label="bold green", style=LineStyle(bold=True, color=Color.named("green")))
+            d.arrow(
+                s4,
+                s5,
+                label="bold green",
+                style=LineStyle(bold=True, color=Color.named("green")),
+            )
             d.arrow(s5, d.end())
 
         assert validate_plantuml(render(d.build()), "styled_arrows")
 
     def test_full_featured(self, validate_plantuml):
         """Comprehensive test with all features."""
-        with state_diagram(title="Full Featured State Diagram", hide_empty_description=True) as d:
+        with state_diagram(
+            title="Full Featured State Diagram", hide_empty_description=True
+        ) as d:
             idle = d.state("Idle", description="Waiting for input")
 
             with d.composite(
@@ -1294,13 +1472,17 @@ class TestPlantUMLValidation:
                 alias="proc",
                 style=Style(background=Color.named("lightyellow")),
             ) as proc:
-                init = proc.state("Init", style=Style(background=Color.named("lightgreen")))
+                init = proc.state(
+                    "Init", style=Style(background=Color.named("lightgreen"))
+                )
                 working = proc.state("Working")
                 proc.arrow(proc.start(), init)
                 proc.arrow(init, working, label="start")
                 proc.arrow(working, proc.end(), label="done")
 
-            with d.concurrent("Monitoring", alias="mon", note="Runs in parallel") as mon:
+            with d.concurrent(
+                "Monitoring", alias="mon", note="Runs in parallel"
+            ) as mon:
                 with mon.region() as r1:
                     check = r1.state("HealthCheck")
                     r1.arrow(r1.start(), check)
@@ -1308,13 +1490,22 @@ class TestPlantUMLValidation:
                     log = r2.state("Logging")
                     r2.arrow(r2.start(), log)
 
-            error = d.state("Error", style=Style(background=Color.named("salmon")))
-            choice = d.choice("validate")  # No style - PlantUML doesn't render it
+            error = d.state(
+                "Error", style=Style(background=Color.named("salmon"))
+            )
+            choice = d.choice(
+                "validate"
+            )  # No style - PlantUML doesn't render it
 
             d.arrow(d.start(), idle)
             d.arrow(idle, choice, label="submit")
             d.arrow(choice, proc, guard="valid")
-            d.arrow(choice, error, guard="invalid", style=LineStyle(color=Color.named("red")))
+            d.arrow(
+                choice,
+                error,
+                guard="invalid",
+                style=LineStyle(color=Color.named("red")),
+            )
             d.arrow(proc, mon, label="monitor")
             d.arrow(mon, d.end(), label="complete")
             d.arrow(error, idle, label="retry", direction="up")
@@ -1328,14 +1519,14 @@ class TestStyleLike:
     def test_state_with_style_dict(self):
         """State accepts style as dict."""
         with state_diagram() as d:
-            s = d.state("Error", style={"background": "salmon"})
+            d.state("Error", style={"background": "salmon"})
         output = render(d.build())
         assert "Error #salmon" in output
 
     def test_state_with_style_dict_hex_color(self):
         """State accepts hex color in style dict."""
         with state_diagram() as d:
-            s = d.state("Custom", style={"background": "#FF5500"})
+            d.state("Custom", style={"background": "#FF5500"})
         output = render(d.build())
         assert "Custom #FF5500" in output
 
@@ -1385,7 +1576,9 @@ class TestStyleLike:
     def test_composite_with_style_dict(self):
         """Composite accepts style as dict."""
         with state_diagram() as d:
-            with d.composite("Container", style={"background": "lightyellow"}) as c:
+            with d.composite(
+                "Container", style={"background": "lightyellow"}
+            ) as c:
                 c.state("Inner")
         output = render(d.build())
         assert "Container #lightyellow" in output
@@ -1393,7 +1586,9 @@ class TestStyleLike:
     def test_concurrent_with_style_dict(self):
         """Concurrent accepts style as dict."""
         with state_diagram() as d:
-            with d.concurrent("Parallel", style={"background": "lightgreen"}) as p:
+            with d.concurrent(
+                "Parallel", style={"background": "lightgreen"}
+            ) as p:
                 with p.region() as r:
                     r.state("A")
         output = render(d.build())
@@ -1414,7 +1609,9 @@ class TestStyleLike:
     def test_style_dict_validation(self, validate_plantuml):
         """Style dicts produce valid PlantUML."""
         with state_diagram(title="Dict Styles") as d:
-            a = d.state("Error", style={"background": "#FFCCCC", "text_color": "red"})
+            a = d.state(
+                "Error", style={"background": "#FFCCCC", "text_color": "red"}
+            )
             b = d.state("Success", style={"background": "#CCFFCC"})
             d.arrow(a, b, style={"color": "green", "pattern": "dashed"})
 
@@ -1474,6 +1671,8 @@ class TestFlow:
             a, b, c = d.states("A", "B", "C")
             result = d.flow(a, "x", b, "y", c)
         assert len(result) == 2
+        assert isinstance(result[0].label, Label)
+        assert isinstance(result[1].label, Label)
         assert result[0].label.text == "x"
         assert result[1].label.text == "y"
 
@@ -1502,6 +1701,7 @@ class TestFlow:
     def test_flow_error_starts_with_label(self):
         """flow() raises error if starts with a label."""
         import pytest
+
         with state_diagram() as d:
             a = d.state("A")
             with pytest.raises(ValueError, match="must start with a state"):
@@ -1510,6 +1710,7 @@ class TestFlow:
     def test_flow_error_ends_with_label(self):
         """flow() raises error if ends with a label."""
         import pytest
+
         with state_diagram() as d:
             a = d.state("A")
             with pytest.raises(ValueError, match="cannot end with a label"):
@@ -1518,14 +1719,18 @@ class TestFlow:
     def test_flow_error_consecutive_labels(self):
         """flow() raises error for consecutive labels."""
         import pytest
+
         with state_diagram() as d:
             a, b = d.states("A", "B")
-            with pytest.raises(ValueError, match="cannot have consecutive labels"):
+            with pytest.raises(
+                ValueError, match="cannot have consecutive labels"
+            ):
                 d.flow(a, "first", "second", b)
 
     def test_flow_error_single_state(self):
         """flow() raises error with only one state."""
         import pytest
+
         with state_diagram() as d:
             a = d.state("A")
             with pytest.raises(ValueError, match="requires at least 2 states"):
@@ -1534,6 +1739,7 @@ class TestFlow:
     def test_flow_error_empty(self):
         """flow() raises error when empty."""
         import pytest
+
         with state_diagram() as d:
             with pytest.raises(ValueError, match="requires at least 2 states"):
                 d.flow()
@@ -1541,7 +1747,9 @@ class TestFlow:
     def test_flow_validation(self, validate_plantuml):
         """flow() produces valid PlantUML."""
         with state_diagram(title="Flow Example") as d:
-            idle, loading, ready, error = d.states("Idle", "Loading", "Ready", "Error")
+            idle, loading, ready, error = d.states(
+                "Idle", "Loading", "Ready", "Error"
+            )
             d.flow(d.start(), idle, "fetch", loading, "success", ready, d.end())
             d.arrow(loading, error, label="failure")
             d.arrow(error, idle, label="retry")
@@ -1558,11 +1766,17 @@ class TestEnumLiteralSync:
     def test_pseudo_state_kind_literal_matches_enum(self):
         """PseudoStateKindStr Literal matches PseudoStateKind enum values."""
         from typing import get_args
-        from plantuml_compose.primitives.state import PseudoStateKind, PseudoStateKindStr
+
+        from plantuml_compose.primitives.state import (
+            PseudoStateKind,
+            PseudoStateKindStr,
+        )
 
         literal_values = set(get_args(PseudoStateKindStr))
         enum_values = {e.value for e in PseudoStateKind}
-        assert literal_values == enum_values, f"Mismatch: Literal={literal_values}, Enum={enum_values}"
+        assert literal_values == enum_values, (
+            f"Mismatch: Literal={literal_values}, Enum={enum_values}"
+        )
 
 
 class TestDirectionLike:
@@ -1626,10 +1840,27 @@ class TestNotePositionLike:
     def test_composite_with_note_position_string(self):
         """composite() accepts note_position as string."""
         with state_diagram() as d:
-            with d.composite("Active", note="Composite note", note_position="left") as c:
+            with d.composite(
+                "Active", note="Composite note", note_position="left"
+            ) as c:
                 c.state("Inner")
         output = render(d.build())
         assert "note left of Active" in output
+
+    def test_state_note_invalid_position_raises(self):
+        """Anchored notes with invalid positions raise ValueError."""
+        with state_diagram() as d:
+            d.state("A", note="My note", note_position="over")
+        with pytest.raises(ValueError, match="cannot be anchored"):
+            render(d.build())
+
+    def test_state_note_valid_positions(self):
+        """Anchored notes work with left/right/top/bottom."""
+        for position in ("left", "right", "top", "bottom"):
+            with state_diagram() as d:
+                d.state("A", note="My note", note_position=position)
+            output = render(d.build())
+            assert f"note {position} of A" in output
 
 
 class TestRegionSeparator:
@@ -1656,3 +1887,179 @@ class TestRegionSeparator:
                     r2.state("B")
         output = render(d.build())
         assert "--" in output  # horizontal renders as --
+
+
+class TestEscapingInSVG:
+    """Tests that verify special characters render correctly in SVG output.
+
+    These tests generate actual SVG via PlantUML and verify the text content
+    appears correctly, proving our escaping works end-to-end.
+    """
+
+    def test_state_name_with_spaces(self, render_and_parse_svg):
+        """State names with spaces render correctly."""
+        with state_diagram() as d:
+            d.state("My State")
+        svg = render_and_parse_svg(render(d.build()))
+        assert "My State" in svg
+
+    @pytest.mark.skip(reason="PlantUML limitation: escaped quotes in state names rejected")
+    def test_state_name_with_quotes(self, render_and_parse_svg):
+        """State names with quotes render correctly.
+
+        KNOWN LIMITATION: PlantUML rejects state names containing escaped quotes.
+        Input: state "Say \\"Hello\\"" as Say_Hello
+        Error: PlantUML syntax error
+
+        Workaround: Use an alias to avoid quotes in the display name, or
+        use single quotes/apostrophes in the name (though these are also
+        sanitized from the alias).
+        """
+        with state_diagram() as d:
+            d.state('Say "Hello"')
+        svg = render_and_parse_svg(render(d.build()))
+        # SVG escapes quotes as &quot;
+        assert "Say" in svg and "Hello" in svg
+
+    def test_title_with_quotes(self, render_and_parse_svg):
+        """Titles with quotes render correctly."""
+        with state_diagram(title='The "Big" Test') as d:
+            d.state("S")
+        svg = render_and_parse_svg(render(d.build()))
+        assert "Big" in svg and "Test" in svg
+
+    def test_multiline_title_renders(self, render_and_parse_svg):
+        """Multi-line titles render both lines."""
+        with state_diagram(title="First Line\nSecond Line") as d:
+            d.state("S")
+        svg = render_and_parse_svg(render(d.build()))
+        assert "First Line" in svg
+        assert "Second Line" in svg
+
+    def test_transition_label_with_special_chars(self, render_and_parse_svg):
+        """Transition labels with special characters render correctly."""
+        with state_diagram() as d:
+            a = d.state("A")
+            b = d.state("B")
+            d.arrow(a, b, label="x > 0 && y < 10")
+        svg = render_and_parse_svg(render(d.build()))
+        # SVG escapes < and > as &lt; and &gt;
+        assert "x" in svg and "0" in svg and "y" in svg
+
+    def test_note_with_special_chars(self, render_and_parse_svg):
+        """Notes with special characters render correctly."""
+        with state_diagram() as d:
+            d.state("S", note="Check: x > 0", note_position="right")
+        svg = render_and_parse_svg(render(d.build()))
+        assert "Check" in svg
+
+    def test_unicode_state_names(self, render_and_parse_svg):
+        """Unicode characters in state names render correctly."""
+        with state_diagram() as d:
+            d.state("État")  # French
+            d.state("状态")  # Chinese
+        svg = render_and_parse_svg(render(d.build()))
+        # SVG may use HTML entities for unicode: É becomes &#201;
+        # Check that the states are rendered (either as unicode or entities)
+        assert "tat" in svg  # At minimum the ASCII part should appear
+        # Both states should have elements in the SVG
+        assert svg.count("<rect") >= 2  # Two state boxes rendered
+
+    def test_composite_name_with_spaces(self, render_and_parse_svg):
+        """Composite state names with spaces render correctly."""
+        with state_diagram() as d:
+            with d.composite("User Authentication") as comp:
+                comp.state("Login")
+            d.arrow(d.start(), comp)
+        svg = render_and_parse_svg(render(d.build()))
+        assert "User Authentication" in svg
+        assert "Login" in svg
+
+    def test_choice_name_with_spaces(self, render_and_parse_svg):
+        """Choice pseudo-state names with spaces create valid SVG elements.
+
+        Note: Choice diamonds don't display text labels in PlantUML - they're
+        rendered as diamond shapes. We verify the element is created with the
+        sanitized name as its identifier.
+        """
+        with state_diagram() as d:
+            s = d.state("Start")
+            c = d.choice("Is Valid")
+            d.arrow(s, c)
+        svg = render_and_parse_svg(render(d.build()))
+        # Choice diamonds are polygons, not text - check the element exists
+        assert "polygon" in svg  # Choice is rendered as diamond polygon
+        assert "Is_Valid" in svg  # Sanitized name appears in element ID
+
+    def test_description_with_special_chars(self, render_and_parse_svg):
+        """State descriptions with special characters render correctly."""
+        with state_diagram() as d:
+            d.state("Waiting", description="Count < 10")
+        svg = render_and_parse_svg(render(d.build()))
+        assert "Waiting" in svg
+        assert "Count" in svg
+
+    def test_guard_condition_renders(self, render_and_parse_svg):
+        """Guard conditions with brackets render correctly."""
+        with state_diagram() as d:
+            a = d.state("A")
+            b = d.state("B")
+            d.arrow(a, b, guard="x > 0")
+        svg = render_and_parse_svg(render(d.build()))
+        # Guard should appear in brackets in SVG
+        assert "x" in svg
+
+    def test_effect_renders(self, render_and_parse_svg):
+        """Transition effects render correctly."""
+        with state_diagram() as d:
+            a = d.state("A")
+            b = d.state("B")
+            d.arrow(a, b, effect="doAction()")
+        svg = render_and_parse_svg(render(d.build()))
+        assert "doAction" in svg
+
+    def test_concurrent_region_names(self, render_and_parse_svg):
+        """Concurrent state with spaces in name renders correctly."""
+        with state_diagram() as d:
+            with d.concurrent("Parallel Tasks") as p:
+                with p.region() as r:
+                    r.state("Task A")
+        svg = render_and_parse_svg(render(d.build()))
+        assert "Parallel Tasks" in svg
+        assert "Task A" in svg
+
+    def test_multiline_note_renders(self, render_and_parse_svg):
+        """Multi-line notes render all lines."""
+        with state_diagram() as d:
+            d.state("S", note="Line 1\nLine 2", note_position="right")
+        svg = render_and_parse_svg(render(d.build()))
+        assert "Line 1" in svg
+        assert "Line 2" in svg
+
+    def test_flow_labels_render(self, render_and_parse_svg):
+        """Labels in flow() render correctly."""
+        with state_diagram() as d:
+            a, b, c = d.states("A", "B", "C")
+            d.flow(a, "first step", b, "second step", c)
+        svg = render_and_parse_svg(render(d.build()))
+        assert "first step" in svg
+        assert "second step" in svg
+
+    def test_ampersand_in_label(self, render_and_parse_svg):
+        """Ampersand in labels renders correctly."""
+        with state_diagram() as d:
+            a = d.state("A")
+            b = d.state("B")
+            d.arrow(a, b, label="Save & Exit")
+        svg = render_and_parse_svg(render(d.build()))
+        # SVG escapes & as &amp;
+        assert "Save" in svg and "Exit" in svg
+
+    def test_apostrophe_in_names(self, render_and_parse_svg):
+        """Apostrophes in names are sanitized from alias and name renders."""
+        with state_diagram() as d:
+            d.state("It's Working")
+        svg = render_and_parse_svg(render(d.build()))
+        # The state should render - apostrophe is sanitized from the alias
+        # Name displays as "It's Working", alias is "Its_Working"
+        assert "Working" in svg

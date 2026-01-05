@@ -23,6 +23,21 @@ from .common import (
 )
 
 
+def _sanitize_ref(name: str) -> str:
+    """Create a PlantUML-friendly identifier from a state name.
+
+    Removes/replaces characters that are invalid in PlantUML identifiers:
+    - Spaces become underscores
+    - Quotes, apostrophes, and other special chars are removed
+    """
+    # Replace spaces with underscores
+    sanitized = name.replace(" ", "_")
+    # Remove characters that break PlantUML identifiers
+    for char in "\"'`()[]{}:;,.<>!@#$%^&*+=|\\/?~":
+        sanitized = sanitized.replace(char, "")
+    return sanitized or "_"
+
+
 class PseudoStateKind(Enum):
     """Pseudo-state types that affect rendering."""
 
@@ -78,8 +93,8 @@ class StateNode:
         """Internal: Reference name for use in transitions."""
         if self.alias:
             return self.alias
-        # Replace spaces with underscores for PlantUML compatibility
-        return self.name.replace(" ", "_")
+        # Replace spaces and double quotes for PlantUML compatibility
+        return _sanitize_ref(self.name)
 
 
 @dataclass(frozen=True)
@@ -103,7 +118,9 @@ class Transition:
     effect: str | None = None  # Action after /
     style: LineStyleLike | None = None
     direction: Direction | None = None
-    note: LabelLike | None = None  # Note attached to the transition (note on link)
+    note: LabelLike | None = (
+        None  # Note attached to the transition (note on link)
+    )
 
 
 @dataclass(frozen=True)
@@ -128,7 +145,7 @@ class CompositeState:
         """Internal: Reference name for use in transitions."""
         if self.alias:
             return self.alias
-        return self.name.replace(" ", "_")
+        return _sanitize_ref(self.name)
 
 
 @dataclass(frozen=True)
@@ -147,7 +164,7 @@ class ConcurrentState:
         """Internal: Reference name for use in transitions."""
         if self.alias:
             return self.alias
-        return self.name.replace(" ", "_")
+        return _sanitize_ref(self.name)
 
 
 @dataclass(frozen=True)
@@ -162,5 +179,10 @@ class StateDiagram:
 
 # Type alias for elements that can appear in a state diagram
 StateDiagramElement: TypeAlias = (
-    StateNode | PseudoState | Transition | CompositeState | ConcurrentState | Note
+    StateNode
+    | PseudoState
+    | Transition
+    | CompositeState
+    | ConcurrentState
+    | Note
 )

@@ -6,7 +6,7 @@ All types here are frozen dataclasses - immutable data with no behavior.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Final, Literal, TypeAlias, get_args
+from typing import Final, Literal, TypeAlias, TypedDict, get_args
 
 # All color names supported by PlantUML (extracted via test_codegen.py)
 # fmt: off
@@ -50,7 +50,9 @@ LinePattern = Literal["solid", "dashed", "dotted", "hidden"]
 
 
 # Note positioning options (superset - validated per diagram type)
-NotePosition = Literal["left", "right", "top", "bottom", "over", "across", "on link", "floating"]
+NotePosition = Literal[
+    "left", "right", "top", "bottom", "over", "across", "on link", "floating"
+]
 
 
 # Separator style for concurrent regions in state diagrams
@@ -122,6 +124,17 @@ def coerce_color(value: ColorLike) -> Color:
     return Color.named(value)
 
 
+def _coerce_color_or_gradient(
+    value: ColorLike | Gradient | None,
+) -> Color | Gradient | None:
+    """Normalize dict inputs that may include Gradient objects."""
+    if value is None:
+        return None
+    if isinstance(value, Gradient):
+        return value
+    return coerce_color(value)
+
+
 @dataclass(frozen=True)
 class Gradient:
     """Two-color gradient.
@@ -135,9 +148,9 @@ class Gradient:
 
     start: ColorLike
     end: ColorLike
-    direction: Literal["horizontal", "vertical", "diagonal_down", "diagonal_up"] = (
-        "horizontal"
-    )
+    direction: Literal[
+        "horizontal", "vertical", "diagonal_down", "diagonal_up"
+    ] = "horizontal"
 
 
 @dataclass(frozen=True)
@@ -284,10 +297,6 @@ class StateDiagramStyle:
     title: ElementStyle | None = None
 
 
-# TypedDict for dict-style LineStyle specification
-from typing import TypedDict
-
-
 class LineStyleDict(TypedDict, total=False):
     """Dict form of LineStyle for convenience.
 
@@ -324,7 +333,7 @@ class StyleDict(TypedDict, total=False):
         d.state("Error", style={"background": "#FFCDD2", "text_color": "red"})
     """
 
-    background: ColorLike
+    background: ColorLike | Gradient
     line: LineStyleLike
     text_color: ColorLike
     stereotype: Stereotype
@@ -339,9 +348,11 @@ def coerce_style(value: StyleLike) -> Style:
     if isinstance(value, Style):
         return value
     return Style(
-        background=coerce_color(value["background"]) if "background" in value else None,
+        background=_coerce_color_or_gradient(value.get("background")),
         line=coerce_line_style(value["line"]) if "line" in value else None,
-        text_color=coerce_color(value["text_color"]) if "text_color" in value else None,
+        text_color=coerce_color(value["text_color"])
+        if "text_color" in value
+        else None,
         stereotype=value.get("stereotype"),
     )
 
@@ -372,9 +383,15 @@ def coerce_element_style(value: ElementStyleLike) -> ElementStyle:
     if isinstance(value, ElementStyle):
         return value
     return ElementStyle(
-        background=coerce_color(value["background"]) if "background" in value else None,
-        line_color=coerce_color(value["line_color"]) if "line_color" in value else None,
-        font_color=coerce_color(value["font_color"]) if "font_color" in value else None,
+        background=coerce_color(value["background"])
+        if "background" in value
+        else None,
+        line_color=coerce_color(value["line_color"])
+        if "line_color" in value
+        else None,
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
         font_name=value.get("font_name"),
         font_size=value.get("font_size"),
         font_style=value.get("font_style"),
@@ -399,12 +416,16 @@ class DiagramArrowStyleDict(TypedDict, total=False):
 DiagramArrowStyleLike: TypeAlias = DiagramArrowStyle | DiagramArrowStyleDict
 
 
-def coerce_diagram_arrow_style(value: DiagramArrowStyleLike) -> DiagramArrowStyle:
+def coerce_diagram_arrow_style(
+    value: DiagramArrowStyleLike,
+) -> DiagramArrowStyle:
     """Convert a DiagramArrowStyleLike value to a DiagramArrowStyle object."""
     if isinstance(value, DiagramArrowStyle):
         return value
     return DiagramArrowStyle(
-        line_color=coerce_color(value["line_color"]) if "line_color" in value else None,
+        line_color=coerce_color(value["line_color"])
+        if "line_color" in value
+        else None,
         line_thickness=value.get("line_thickness"),
         line_pattern=value.get("line_pattern"),
     )
@@ -425,7 +446,7 @@ class StateDiagramStyleDict(TypedDict, total=False):
             ...
     """
 
-    background: ColorLike
+    background: ColorLike | Gradient
     font_name: str
     font_size: int
     font_color: ColorLike
@@ -439,17 +460,27 @@ class StateDiagramStyleDict(TypedDict, total=False):
 StateDiagramStyleLike: TypeAlias = StateDiagramStyle | StateDiagramStyleDict
 
 
-def coerce_state_diagram_style(value: StateDiagramStyleLike) -> StateDiagramStyle:
+def coerce_state_diagram_style(
+    value: StateDiagramStyleLike,
+) -> StateDiagramStyle:
     """Convert a StateDiagramStyleLike value to a StateDiagramStyle object."""
     if isinstance(value, StateDiagramStyle):
         return value
     return StateDiagramStyle(
-        background=coerce_color(value["background"]) if "background" in value else None,
+        background=_coerce_color_or_gradient(value.get("background")),
         font_name=value.get("font_name"),
         font_size=value.get("font_size"),
-        font_color=coerce_color(value["font_color"]) if "font_color" in value else None,
-        state=coerce_element_style(value["state"]) if "state" in value else None,
-        arrow=coerce_diagram_arrow_style(value["arrow"]) if "arrow" in value else None,
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
+        state=coerce_element_style(value["state"])
+        if "state" in value
+        else None,
+        arrow=coerce_diagram_arrow_style(value["arrow"])
+        if "arrow" in value
+        else None,
         note=coerce_element_style(value["note"]) if "note" in value else None,
-        title=coerce_element_style(value["title"]) if "title" in value else None,
+        title=coerce_element_style(value["title"])
+        if "title" in value
+        else None,
     )

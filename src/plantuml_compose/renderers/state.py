@@ -10,6 +10,7 @@ from ..primitives.common import (
     ElementStyle,
     Note,
     StateDiagramStyle,
+    Style,
 )
 from ..primitives.state import (
     CompositeState,
@@ -20,8 +21,60 @@ from ..primitives.state import (
     StateDiagram,
     StateNode,
     Transition,
+    _sanitize_ref,
 )
-from .common import render_color, render_label, render_line_style_bracket, render_state_style, render_stereotype
+from .common import (
+    escape_quotes,
+    render_color,
+    render_label,
+    render_line_style_bracket,
+    render_state_style,
+    render_stereotype,
+)
+
+
+def _state_declaration(name: str, ref: str, alias: str | None) -> str:
+    """Create a state declaration, quoting when needed."""
+    escaped = escape_quotes(name)
+    needs_alias = alias is not None or ref != name
+    if needs_alias:
+        return f'state "{escaped}" as {ref}'
+    return f"state {escaped}"
+
+
+def _note_prefix(position: str, anchor: str | None = None) -> str:
+    """Map Note.position to the correct PlantUML prefix."""
+    if anchor:
+        # Only these positions support anchoring in state diagrams
+        if position in ("left", "right", "top", "bottom"):
+            return f"note {position} of {anchor}"
+        raise ValueError(
+            f"Note position '{position}' cannot be anchored to a state. "
+            f"Use 'left', 'right', 'top', or 'bottom'."
+        )
+    # Unanchored notes
+    if position == "floating":
+        return "floating note"
+    if position == "on link":
+        return "note on link"
+    return f"note {position}"
+
+
+def _render_note_lines(prefix: str, text: str) -> list[str]:
+    """Render either single-line or block note syntax."""
+    if "\n" in text:
+        lines = [prefix]
+        lines.extend(f"  {line}" for line in text.split("\n"))
+        lines.append("end note")
+        return lines
+    return [f"{prefix}: {text}"]
+
+
+def _render_floating_note(note: Note) -> list[str]:
+    """Render a top-level note element."""
+    prefix = _note_prefix(note.position)
+    text = render_label(note.content)
+    return _render_note_lines(prefix, text)
 
 
 def render_state_diagram(diagram: StateDiagram) -> str:
@@ -33,7 +86,13 @@ def render_state_diagram(diagram: StateDiagram) -> str:
         lines.extend(_render_diagram_style(diagram.style))
 
     if diagram.title:
-        lines.append(f"title {diagram.title}")
+        if "\n" in diagram.title:
+            lines.append("title")
+            for title_line in diagram.title.split("\n"):
+                lines.append(f"  {escape_quotes(title_line)}")
+            lines.append("end title")
+        else:
+            lines.append(f"title {escape_quotes(diagram.title)}")
 
     if diagram.hide_empty_description:
         lines.append("hide empty description")
@@ -52,7 +111,9 @@ def _render_diagram_style(style: StateDiagramStyle) -> list[str]:
 
     # Root-level properties
     if style.background:
-        diagram_props.append(f"  BackgroundColor {render_color(style.background)}")
+        diagram_props.append(
+            f"  BackgroundColor {render_color(style.background)}"
+        )
     if style.font_name:
         diagram_props.append(f"  FontName {style.font_name}")
     if style.font_size:
@@ -62,7 +123,9 @@ def _render_diagram_style(style: StateDiagramStyle) -> list[str]:
 
     # State element styles
     if style.state:
-        diagram_props.extend(_render_element_style("state", style.state, indent=2))
+        diagram_props.extend(
+            _render_element_style("state", style.state, indent=2)
+        )
 
     # Arrow styles
     if style.arrow:
@@ -70,12 +133,16 @@ def _render_diagram_style(style: StateDiagramStyle) -> list[str]:
 
     # Note element styles
     if style.note:
-        diagram_props.extend(_render_element_style("note", style.note, indent=2))
+        diagram_props.extend(
+            _render_element_style("note", style.note, indent=2)
+        )
 
     # Collect document block content (for title)
     document_props: list[str] = []
     if style.title:
-        document_props.extend(_render_element_style("title", style.title, indent=2))
+        document_props.extend(
+            _render_element_style("title", style.title, indent=2)
+        )
 
     # Only emit style block if there's content
     if not diagram_props and not document_props:
@@ -99,18 +166,26 @@ def _render_diagram_style(style: StateDiagramStyle) -> list[str]:
     return lines
 
 
-def _render_element_style(selector: str, style: ElementStyle, indent: int = 2) -> list[str]:
+def _render_element_style(
+    selector: str, style: ElementStyle, indent: int = 2
+) -> list[str]:
     """Render an ElementStyle as a nested block. Returns empty list if no properties."""
     props: list[str] = []
     prefix = " " * indent
     inner_prefix = " " * (indent + 2)
 
     if style.background:
-        props.append(f"{inner_prefix}BackgroundColor {render_color(style.background)}")
+        props.append(
+            f"{inner_prefix}BackgroundColor {render_color(style.background)}"
+        )
     if style.line_color:
-        props.append(f"{inner_prefix}LineColor {render_color(style.line_color)}")
+        props.append(
+            f"{inner_prefix}LineColor {render_color(style.line_color)}"
+        )
     if style.font_color:
-        props.append(f"{inner_prefix}FontColor {render_color(style.font_color)}")
+        props.append(
+            f"{inner_prefix}FontColor {render_color(style.font_color)}"
+        )
     if style.font_name:
         props.append(f"{inner_prefix}FontName {style.font_name}")
     if style.font_size:
@@ -148,7 +223,12 @@ def _render_arrow_style(style: DiagramArrowStyle) -> list[str]:
 
 
 def _render_element(
-    elem: StateNode | PseudoState | Transition | CompositeState | ConcurrentState | Note,
+    elem: StateNode
+    | PseudoState
+    | Transition
+    | CompositeState
+    | ConcurrentState
+    | Note,
 ) -> list[str]:
     """Render a single diagram element."""
     if isinstance(elem, StateNode):
@@ -162,7 +242,7 @@ def _render_element(
     if isinstance(elem, ConcurrentState):
         return _render_concurrent_state(elem)
     if isinstance(elem, Note):
-        return [f"note {elem.position}: {render_label(elem.content)}"]
+        return _render_floating_note(elem)
     return []
 
 
@@ -170,16 +250,14 @@ def _render_state_node(state: StateNode) -> list[str]:
     """Render a state node declaration."""
     lines: list[str] = []
     ref = state._ref
+    style_obj = state.style if isinstance(state.style, Style) else None
 
     # Build declaration
-    if state.alias or " " in state.name:
-        decl = f'state "{state.name}" as {ref}'
-    else:
-        decl = f"state {state.name}"
+    decl = _state_declaration(state.name, ref, state.alias)
 
     # Add stereotype if present
-    if state.style and state.style.stereotype:
-        decl += f" {render_stereotype(state.style.stereotype)}"
+    if style_obj and style_obj.stereotype:
+        decl += f" {render_stereotype(style_obj.stereotype)}"
 
     # Add inline style if present
     if state.style:
@@ -195,7 +273,12 @@ def _render_state_node(state: StateNode) -> list[str]:
 
     # Note (if any)
     if state.note:
-        lines.append(f"note {state.note.position} of {ref}: {render_label(state.note.content)}")
+        lines.extend(
+            _render_note_lines(
+                _note_prefix(state.note.position, ref),
+                render_label(state.note.content),
+            )
+        )
 
     return lines
 
@@ -212,7 +295,10 @@ def _render_pseudo_state(pseudo: PseudoState) -> list[str]:
 
     # Other pseudo-states need explicit declarations with stereotypes
     if pseudo.name:
-        decl = f"state {pseudo.name} <<{pseudo.kind.value}>>"
+        escaped_name = escape_quotes(pseudo.name)
+        sanitized = _sanitize_ref(pseudo.name)
+        # Use alias syntax so transitions can reference the sanitized name
+        decl = f'state "{escaped_name}" as {sanitized} <<{pseudo.kind.value}>>'
         if pseudo.style:
             style_str = render_state_style(pseudo.style)
             if style_str:
@@ -313,16 +399,14 @@ def _render_composite_state(comp: CompositeState) -> list[str]:
     """Render a composite state with nested elements."""
     lines: list[str] = []
     ref = comp._ref
+    style_obj = comp.style if isinstance(comp.style, Style) else None
 
     # Build opening line
-    if comp.alias or " " in comp.name:
-        opening = f'state "{comp.name}" as {ref}'
-    else:
-        opening = f"state {ref}"
+    opening = _state_declaration(comp.name, ref, comp.alias)
 
     # Add stereotype
-    if comp.style and comp.style.stereotype:
-        opening += f" {render_stereotype(comp.style.stereotype)}"
+    if style_obj and style_obj.stereotype:
+        opening += f" {render_stereotype(style_obj.stereotype)}"
 
     # Add inline style
     if comp.style:
@@ -342,7 +426,12 @@ def _render_composite_state(comp: CompositeState) -> list[str]:
 
     # Note (if any)
     if comp.note:
-        lines.append(f"note {comp.note.position} of {ref}: {render_label(comp.note.content)}")
+        lines.extend(
+            _render_note_lines(
+                _note_prefix(comp.note.position, ref),
+                render_label(comp.note.content),
+            )
+        )
 
     return lines
 
@@ -351,16 +440,14 @@ def _render_concurrent_state(conc: ConcurrentState) -> list[str]:
     """Render a concurrent state with parallel regions."""
     lines: list[str] = []
     ref = conc._ref
+    style_obj = conc.style if isinstance(conc.style, Style) else None
 
     # Build opening line
-    if conc.alias or " " in conc.name:
-        opening = f'state "{conc.name}" as {ref}'
-    else:
-        opening = f"state {ref}"
+    opening = _state_declaration(conc.name, ref, conc.alias)
 
     # Add stereotype
-    if conc.style and conc.style.stereotype:
-        opening += f" {render_stereotype(conc.style.stereotype)}"
+    if style_obj and style_obj.stereotype:
+        opening += f" {render_stereotype(style_obj.stereotype)}"
 
     # Add inline style
     if conc.style:
@@ -383,7 +470,12 @@ def _render_concurrent_state(conc: ConcurrentState) -> list[str]:
 
     # Note (if any)
     if conc.note:
-        lines.append(f"note {conc.note.position} of {ref}: {render_label(conc.note.content)}")
+        lines.extend(
+            _render_note_lines(
+                _note_prefix(conc.note.position, ref),
+                render_label(conc.note.content),
+            )
+        )
 
     return lines
 

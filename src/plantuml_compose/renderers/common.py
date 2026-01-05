@@ -16,6 +16,11 @@ from ..primitives.common import (
 )
 
 
+def escape_quotes(text: str) -> str:
+    """Escape double quotes for safe PlantUML output."""
+    return text.replace('"', '\\"')
+
+
 def render_color(color: Color | Gradient | str) -> str:
     """Convert a color to PlantUML string."""
     if isinstance(color, str):
@@ -38,8 +43,8 @@ def render_label(label: Label | str | None) -> str:
     if label is None:
         return ""
     if isinstance(label, str):
-        return label
-    return label.text
+        return escape_quotes(label)
+    return escape_quotes(label.text)
 
 
 def render_line_style_bracket(style: LineStyleLike) -> str:
@@ -82,18 +87,20 @@ def render_state_style(style: StyleLike) -> str:
     line = coerce_line_style(style.line) if style.line else None
 
     # Check what we have
-    has_background = style.background is not None
+    background = style.background
+    text_color = style.text_color
+    has_background = background is not None
     has_line = line is not None and (
         line.color is not None or line.pattern != "solid"
     )
-    has_text = style.text_color is not None
+    has_text = text_color is not None
 
     # If we only have background and/or line, use space-separated format
     if not has_text:
         parts: list[str] = []
 
-        if has_background:
-            bg = render_color(style.background)
+        if has_background and background is not None:
+            bg = render_color(background)
             if not bg.startswith("#"):
                 bg = f"#{bg}"
             parts.append(bg)
@@ -113,7 +120,8 @@ def render_state_style(style: StyleLike) -> str:
 
     # If we have text color, we need semicolon format which requires background
     # Use white as default if no background specified
-    bg = render_color(style.background) if style.background else "white"
+    bg_source = background if background is not None else "white"
+    bg = render_color(bg_source)
     if not bg.startswith("#"):
         bg = f"#{bg}"
 
@@ -126,8 +134,8 @@ def render_state_style(style: StyleLike) -> str:
             color = render_color(line.color)
             props.append(f"line:{color}")
 
-    if has_text:
-        tc = render_color(style.text_color)
+    if has_text and text_color is not None:
+        tc = render_color(text_color)
         props.append(f"text:{tc}")
 
     return ";".join(props)
