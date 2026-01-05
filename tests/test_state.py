@@ -108,6 +108,20 @@ class TestEdgeCases:
         assert 'state "He said \\"hi\\"" as He_said_hi' in output
         assert "[*] --> He_said_hi" in output
 
+    def test_state_name_with_hyphen(self, validate_plantuml):
+        """State names with hyphens must be sanitized - PlantUML treats - as arrow syntax."""
+        with state_diagram() as d:
+            api = d.state("pxe-api")
+            client = d.state("pxe-client")
+            d.arrow(client, api)
+
+        output = render(d.build())
+        # Hyphens removed from refs to avoid PlantUML arrow syntax conflicts
+        assert 'state "pxe-api" as pxeapi' in output
+        assert 'state "pxe-client" as pxeclient' in output
+        assert "pxeclient --> pxeapi" in output
+        assert validate_plantuml(output, "hyphen_state")
+
     def test_self_transition(self):
         """Self-transitions (state to itself) are valid."""
         with state_diagram() as d:

@@ -33,7 +33,8 @@ def _sanitize_ref(name: str) -> str:
     # Replace spaces with underscores
     sanitized = name.replace(" ", "_")
     # Remove characters that break PlantUML identifiers
-    for char in "\"'`()[]{}:;,.<>!@#$%^&*+=|\\/?~":
+    # Hyphen must be removed - PlantUML interprets it as arrow syntax
+    for char in "\"'`()[]{}:;,.<>!@#$%^&*+=|\\/?~-":
         sanitized = sanitized.replace(char, "")
     return sanitized or "_"
 
