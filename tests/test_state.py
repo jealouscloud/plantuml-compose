@@ -445,14 +445,16 @@ class TestParallel:
         assert "P_join --> Done" in output
 
     def test_parallel_unnamed(self):
-        """parallel() without name uses default fork/join names."""
+        """parallel() without name generates unique fork/join names."""
         with state_diagram() as d:
             with d.parallel() as p:
                 with p.branch() as b:
                     b.state("X")
         output = render(d.build())
-        assert "fork <<fork>>" in output
-        assert "join <<join>>" in output
+        # Unnamed parallel blocks get unique names like "parallel_N_fork"
+        assert "parallel_" in output
+        assert "_fork <<fork>>" in output
+        assert "_join <<join>>" in output
 
     def test_parallel_requires_at_least_one_branch(self):
         """parallel() with no branches raises ValueError."""
@@ -493,6 +495,103 @@ class TestParallel:
             d.arrow(done, d.end())
 
         assert validate_plantuml(d.render(), "parallel")
+
+    def test_parallel_unnamed_ref_matches_actual_name(self):
+        """Bug: _ref returns 'parallel_fork' but pseudo-state is named 'fork'.
+
+        When using an unnamed parallel builder directly in arrow(), the
+        generated transition should point to a valid pseudo-state name.
+        """
+        with state_diagram() as d:
+            start = d.state("Start")
+            with d.parallel() as p:
+                with p.branch() as b:
+                    b.state("Work")
+            # Using the builder directly (not p.fork) should also work
+            d.arrow(start, p)  # Uses p._ref internally
+
+        output = render(d.build())
+        # The transition target must match an actual declared pseudo-state
+        # Currently _ref returns "parallel_fork" but the state is named "fork"
+        lines = output.split("\n")
+
+        # Find what fork name is actually declared
+        fork_decl = [l for l in lines if "<<fork>>" in l]
+        assert len(fork_decl) == 1, f"Expected exactly one fork declaration, got: {fork_decl}"
+        declared_fork_name = fork_decl[0].split()[1]  # "state NAME <<fork>>"
+
+        # Find the transition from Start
+        start_transition = [l for l in lines if l.startswith("Start -->")]
+        assert len(start_transition) == 1
+        target = start_transition[0].split("-->")[1].strip()
+
+        assert target == declared_fork_name, (
+            f"Transition target '{target}' doesn't match declared fork '{declared_fork_name}'"
+        )
+
+    def test_parallel_multiple_unnamed_unique_names(self):
+        """Bug: Multiple unnamed parallel() blocks create duplicate 'fork'/'join' names.
+
+        Each parallel block should generate unique pseudo-state names to avoid
+        PlantUML rendering duplicate nodes.
+        """
+        with state_diagram() as d:
+            # Two unnamed parallel blocks
+            with d.parallel() as p1:
+                with p1.branch() as b:
+                    b.state("A")
+            with d.parallel() as p2:
+                with p2.branch() as b:
+                    b.state("B")
+
+        output = render(d.build())
+        lines = output.split("\n")
+
+        # Count fork declarations - should be 2 unique ones
+        fork_decls = [l for l in lines if "<<fork>>" in l]
+        fork_names = [l.split()[1] for l in fork_decls]
+
+        assert len(fork_names) == 2, f"Expected 2 fork declarations, got {len(fork_names)}"
+        assert len(set(fork_names)) == 2, (
+            f"Fork names should be unique, got duplicates: {fork_names}"
+        )
+
+    def test_parallel_branch_with_composite_state(self):
+        """Bug: Branch containing only CompositeState raises ValueError.
+
+        _BranchBuilder._analyze() only looks at StateNode instances,
+        so branches with composite states fail even though they're valid.
+        """
+        with state_diagram() as d:
+            with d.parallel("P") as p:
+                with p.branch() as b:
+                    # Branch contains only a composite state
+                    with b.composite("Inner") as inner:
+                        inner.state("Nested")
+
+        output = render(d.build())
+        # Should successfully render with composite as the branch entry/exit
+        assert "P_fork" in output
+        assert "P_join" in output
+        assert "Inner" in output
+
+    def test_parallel_branch_with_concurrent_state(self):
+        """Bug: Branch containing only ConcurrentState raises ValueError.
+
+        Similar to composite - concurrent states should work as branch content.
+        """
+        with state_diagram() as d:
+            with d.parallel("P") as p:
+                with p.branch() as b:
+                    # Branch contains only a concurrent state
+                    with b.concurrent("Regions") as conc:
+                        with conc.region() as r:
+                            r.state("R1")
+
+        output = render(d.build())
+        assert "P_fork" in output
+        assert "P_join" in output
+        assert "Regions" in output
 
 
 class TestPseudoStates:
@@ -639,6 +738,34 @@ class TestDiagramOptions:
         output = render(d.build())
         assert "note" in output
         assert "This is a floating note" in output
+
+    def test_floating_note_position_respected(self):
+        """Bug: Floating note position is ignored in rendering.
+
+        The renderer outputs 'note: content' but ignores the position,
+        so 'note left: content' or 'note right: content' never appears.
+        """
+        with state_diagram() as d:
+            d.state("S1")
+            d.note("Left note", position="left")
+
+        output = render(d.build())
+        # Position should be included in the output
+        assert "note left" in output, (
+            f"Expected 'note left' in output, got: {output}"
+        )
+
+    def test_floating_note_all_positions(self):
+        """Test that various floating note positions render correctly."""
+        for position in ["left", "right", "top", "bottom"]:
+            with state_diagram() as d:
+                d.state("S1")
+                d.note(f"A {position} note", position=position)
+
+            output = render(d.build())
+            assert f"note {position}" in output, (
+                f"Expected 'note {position}' for position={position}, got: {output}"
+            )
 
     def test_note_on_state(self):
         """Notes attached to states with position control."""

@@ -637,25 +637,29 @@ class _BranchBuilder(_BaseStateBuilder):
         Returns:
             Tuple of (entry_ref, exit_ref, elements)
 
-        The entry point is the first state created.
+        The entry point is the first state-like element created.
         The exit point is the state with no outgoing transitions within this branch.
         """
-        # Find all StateNodes (not pseudo-states, not composites for now)
-        states = [e for e in self._elements if isinstance(e, StateNode)]
-        if not states:
+        # Find all state-like elements (StateNode, CompositeState, ConcurrentState)
+        # These are elements that can serve as entry/exit points for the branch
+        state_likes = [
+            e for e in self._elements
+            if isinstance(e, (StateNode, CompositeState, ConcurrentState))
+        ]
+        if not state_likes:
             raise ValueError("Branch must have at least one state")
 
-        # Entry: first state created
-        entry = states[0]._ref
+        # Entry: first state-like element created
+        entry = state_likes[0]._ref
 
         # Exit: state with no outgoing transition within this branch
         transitions = [e for e in self._elements if isinstance(e, Transition)]
         sources = {t.source for t in transitions}
-        exits = [s for s in states if s._ref not in sources]
+        exits = [s for s in state_likes if s._ref not in sources]
 
         if not exits:
             # All states have outgoing transitions - use last state as exit
-            exit_ref = states[-1]._ref
+            exit_ref = state_likes[-1]._ref
         elif len(exits) == 1:
             exit_ref = exits[0]._ref
         else:
@@ -686,19 +690,36 @@ class _ParallelBuilder:
         d.arrow(p.join, next_state)
     """
 
+    _counter: int = 0  # Class-level counter for unique unnamed parallel IDs
+
     def __init__(self, name: str | None = None) -> None:
         self._name = name
+        if name is None:
+            _ParallelBuilder._counter += 1
+            self._generated_id = _ParallelBuilder._counter
+        else:
+            self._generated_id = None
         self._branches: list[_BranchBuilder] = []
         self._fork: PseudoState | None = None
         self._join: PseudoState | None = None
         self._built = False
 
+    def _fork_name(self) -> str:
+        """Get the fork pseudo-state name."""
+        if self._name:
+            return f"{self._name}_fork"
+        return f"parallel_{self._generated_id}_fork"
+
+    def _join_name(self) -> str:
+        """Get the join pseudo-state name."""
+        if self._name:
+            return f"{self._name}_join"
+        return f"parallel_{self._generated_id}_join"
+
     @property
     def _ref(self) -> str:
         """Internal: Reference name for use in transitions (uses fork name)."""
-        if self._name:
-            return f"{self._name}_fork"
-        return "parallel_fork"
+        return self._fork_name()
 
     @property
     def fork(self) -> PseudoState:
@@ -747,8 +768,8 @@ class _ParallelBuilder:
         if not self._branches:
             raise ValueError("parallel() must have at least one branch")
 
-        fork_name = f"{self._name}_fork" if self._name else "fork"
-        join_name = f"{self._name}_join" if self._name else "join"
+        fork_name = self._fork_name()
+        join_name = self._join_name()
 
         self._fork = PseudoState(kind=PseudoStateKind.FORK, name=fork_name)
         self._join = PseudoState(kind=PseudoStateKind.JOIN, name=join_name)

@@ -162,7 +162,7 @@ def _render_element(
     if isinstance(elem, ConcurrentState):
         return _render_concurrent_state(elem)
     if isinstance(elem, Note):
-        return [f"note: {render_label(elem.content)}"]
+        return [f"note {elem.position}: {render_label(elem.content)}"]
     return []
 
 
