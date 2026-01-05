@@ -7,9 +7,20 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TypeAlias
+from typing import Literal, TypeAlias
 
-from .common import Direction, Label, LineStyle, Note, RegionSeparator, StateDiagramStyle, Style
+from .common import (
+    Direction,
+    Label,
+    LabelLike,
+    LineStyle,
+    LineStyleLike,
+    Note,
+    RegionSeparator,
+    StateDiagramStyle,
+    Style,
+    StyleLike,
+)
 
 
 class PseudoStateKind(Enum):
@@ -33,14 +44,33 @@ class PseudoStateKind(Enum):
     END = "end"  # Explicit <<end>> stereotype
 
 
+# Ergonomic string alternative to PseudoStateKind enum.
+# We support both enum and string for convenience; kept in sync via test.
+# fmt: off
+PseudoStateKindStr = Literal[
+    "initial", "final", "choice", "fork", "join", "history", "deep_history",
+    "entryPoint", "exitPoint", "inputPin", "outputPin", "sdlreceive",
+    "expansionInput", "expansionOutput", "start", "end",
+]
+# fmt: on
+PseudoStateKindLike: TypeAlias = PseudoStateKind | PseudoStateKindStr
+
+
+def coerce_pseudo_state_kind(value: PseudoStateKindLike) -> PseudoStateKind:
+    """Convert a PseudoStateKindLike value to a PseudoStateKind enum."""
+    if isinstance(value, PseudoStateKind):
+        return value
+    return PseudoStateKind(value)
+
+
 @dataclass(frozen=True)
 class StateNode:
     """A state in a state diagram."""
 
     name: str
     alias: str | None = None
-    description: Label | None = None
-    style: Style | None = None
+    description: LabelLike | None = None
+    style: StyleLike | None = None
     note: Note | None = None
 
     @property
@@ -58,7 +88,7 @@ class PseudoState:
 
     kind: PseudoStateKind
     name: str | None = None  # For fork/join/choice that need identifiers
-    style: Style | None = None
+    style: StyleLike | None = None
 
 
 @dataclass(frozen=True)
@@ -67,13 +97,13 @@ class Transition:
 
     source: str  # State name, alias, "initial", or "final"
     target: str  # State name, alias, "initial", or "final"
-    label: Label | None = None
+    label: LabelLike | None = None
     trigger: str | None = None  # Event name
     guard: str | None = None  # Condition in [brackets]
     effect: str | None = None  # Action after /
-    style: LineStyle | None = None
+    style: LineStyleLike | None = None
     direction: Direction | None = None
-    note: Label | None = None  # Note attached to the transition (note on link)
+    note: LabelLike | None = None  # Note attached to the transition (note on link)
 
 
 @dataclass(frozen=True)
@@ -90,7 +120,7 @@ class CompositeState:
     name: str
     alias: str | None = None
     elements: tuple["StateDiagramElement", ...] = field(default_factory=tuple)
-    style: Style | None = None
+    style: StyleLike | None = None
     note: Note | None = None
 
     @property
@@ -108,9 +138,9 @@ class ConcurrentState:
     name: str
     alias: str | None = None
     regions: tuple[Region, ...] = field(default_factory=tuple)
-    style: Style | None = None
+    style: StyleLike | None = None
     note: Note | None = None
-    separator: RegionSeparator = RegionSeparator.HORIZONTAL
+    separator: RegionSeparator = "horizontal"
 
     @property
     def _ref(self) -> str:

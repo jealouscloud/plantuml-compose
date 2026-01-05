@@ -5,15 +5,11 @@
 from plantuml_compose import (
     Color,
     DiagramArrowStyle,
-    Direction,
     ElementStyle,
-    FontStyle,
+    Gradient,
     Label,
-    LinePattern,
     LineStyle,
     Note,
-    NotePosition,
-    RegionSeparator,
     Spot,
     StateDiagramStyle,
     Stereotype,
@@ -174,10 +170,10 @@ class TestTransition:
             s2 = d.state("S2")
             s3 = d.state("S3")
             s4 = d.state("S4")
-            d.arrow(d.start(), s1, direction=Direction.UP)
-            d.arrow(s1, s2, direction=Direction.RIGHT)
-            d.arrow(s2, s3, direction=Direction.DOWN)
-            d.arrow(s3, s4, direction=Direction.LEFT)
+            d.arrow(d.start(), s1, direction="up")
+            d.arrow(s1, s2, direction="right")
+            d.arrow(s2, s3, direction="down")
+            d.arrow(s3, s4, direction="left")
         output = render(d.build())
         assert "[*] -u-> S1" in output
         assert "S1 -r-> S2" in output
@@ -188,7 +184,7 @@ class TestTransition:
         with state_diagram() as d:
             a = d.state("A")
             b = d.state("B")
-            d.arrow(a, b, style=LineStyle(pattern=LinePattern.DASHED, color=Color.named("red")))
+            d.arrow(a, b, style=LineStyle(pattern="dashed", color=Color.named("red")))
         output = render(d.build())
         assert "-[#red,dashed]->" in output
 
@@ -197,7 +193,7 @@ class TestTransition:
         with state_diagram() as d:
             a = d.state("A")
             b = d.state("B")
-            d.arrow(a, b, style=LineStyle(pattern=LinePattern.HIDDEN))
+            d.arrow(a, b, style=LineStyle(pattern="hidden"))
         output = render(d.build())
         assert "A -[hidden]-> B" in output
 
@@ -206,7 +202,7 @@ class TestTransition:
         with state_diagram() as d:
             a = d.state("A")
             b = d.state("B")
-            d.arrow(a, b, style=LineStyle(pattern=LinePattern.HIDDEN), direction=Direction.DOWN)
+            d.arrow(a, b, style=LineStyle(pattern="hidden"), direction="down")
         output = render(d.build())
         assert "A -[hidden]d-> B" in output
 
@@ -385,9 +381,9 @@ class TestConcurrentState:
         assert "[*] --> p" in output
 
     def test_concurrent_vertical_separator(self):
-        """Concurrent regions with vertical separator (||)."""
+        """Concurrent regions with vertical separator (side-by-side)."""
         with state_diagram() as d:
-            with d.concurrent("Active", separator=RegionSeparator.VERTICAL) as active:
+            with d.concurrent("Active", separator="vertical") as active:
                 with active.region() as r1:
                     r1.state("NumLockOff")
                 with active.region() as r2:
@@ -650,7 +646,7 @@ class TestDiagramOptions:
             active = d.state("Active", note="this is a short note")
             inactive = d.state(
                 "Inactive",
-                note=Note(Label("A longer note"), NotePosition.LEFT),
+                note=Note(Label("A longer note"), "left"),
             )
             d.arrow(d.start(), active)
             d.arrow(active, inactive)
@@ -686,7 +682,7 @@ class TestStateStyles:
             d.state(
                 "Bordered",
                 style=Style(
-                    line=LineStyle(color=Color.named("blue"), pattern=LinePattern.DASHED)
+                    line=LineStyle(color=Color.named("blue"), pattern="dashed")
                 ),
             )
         output = render(d.build())
@@ -759,7 +755,7 @@ class TestStateStyles:
                 "FullStyle",
                 style=Style(
                     background=Color.named("pink"),
-                    line=LineStyle(color=Color.named("red"), pattern=LinePattern.DASHED),
+                    line=LineStyle(color=Color.named("red"), pattern="dashed"),
                     text_color=Color.named("blue"),
                     stereotype=Stereotype("important"),
                 ),
@@ -851,7 +847,7 @@ class TestStateDiagramStyle:
                 arrow=DiagramArrowStyle(
                     line_color=Color.hex("#757575"),
                     line_thickness=2,
-                    line_pattern=LinePattern.DASHED,
+                    line_pattern="dashed",
                 )
             )
         ) as d:
@@ -902,7 +898,7 @@ class TestStateDiagramStyle:
                 state=ElementStyle(
                     font_name="Courier",
                     font_size=12,
-                    font_style=FontStyle.BOLD,
+                    font_style="bold",
                 )
             )
         ) as d:
@@ -980,6 +976,38 @@ class TestStateDiagramStyle:
         output = render(d.build())
         assert "BackgroundColor red|green" in output
 
+    def test_dict_based_style(self):
+        """Dict-based styling for minimal imports."""
+        # No need to import StateDiagramStyle, ElementStyle, DiagramArrowStyle
+        with state_diagram(
+            style={
+                "background": "white",
+                "font_name": "Arial",
+                "state": {
+                    "background": "#E3F2FD",
+                    "line_color": "#1976D2",
+                    "round_corner": 5,
+                },
+                "arrow": {"line_color": "#757575"},
+                "note": {"background": "#FFF9C4"},
+            }
+        ) as d:
+            s1 = d.state("S1")
+            s2 = d.state("S2")
+            d.arrow(s1, s2)
+
+        output = render(d.build())
+        assert "BackgroundColor white" in output
+        assert "FontName Arial" in output
+        assert "state {" in output
+        assert "BackgroundColor #E3F2FD" in output
+        assert "LineColor #1976D2" in output
+        assert "RoundCorner 5" in output
+        assert "arrow {" in output
+        assert "LineColor #757575" in output
+        assert "note {" in output
+        assert "BackgroundColor #FFF9C4" in output
+
 
 class TestPlantUMLValidation:
     """Integration tests that validate output with PlantUML."""
@@ -1038,7 +1066,7 @@ class TestPlantUMLValidation:
             # Line styles
             dashed = d.state(
                 "DashedBorder",
-                style=Style(line=LineStyle(pattern=LinePattern.DASHED, color=Color.named("blue"))),
+                style=Style(line=LineStyle(pattern="dashed", color=Color.named("blue"))),
             )
 
             # Text color
@@ -1121,8 +1149,8 @@ class TestPlantUMLValidation:
             s5 = d.state("S5")
 
             d.arrow(d.start(), s1)
-            d.arrow(s1, s2, label="dashed red", style=LineStyle(pattern=LinePattern.DASHED, color=Color.named("red")))
-            d.arrow(s2, s3, label="dotted blue", style=LineStyle(pattern=LinePattern.DOTTED, color=Color.named("blue")))
+            d.arrow(s1, s2, label="dashed red", style=LineStyle(pattern="dashed", color=Color.named("red")))
+            d.arrow(s2, s3, label="dotted blue", style=LineStyle(pattern="dotted", color=Color.named("blue")))
             d.arrow(s3, s4, label="thick", style=LineStyle(thickness=3))
             d.arrow(s4, s5, label="bold green", style=LineStyle(bold=True, color=Color.named("green")))
             d.arrow(s5, d.end())
@@ -1162,6 +1190,342 @@ class TestPlantUMLValidation:
             d.arrow(choice, error, guard="invalid", style=LineStyle(color=Color.named("red")))
             d.arrow(proc, mon, label="monitor")
             d.arrow(mon, d.end(), label="complete")
-            d.arrow(error, idle, label="retry", direction=Direction.UP)
+            d.arrow(error, idle, label="retry", direction="up")
 
         assert validate_plantuml(render(d.build()), "full_featured")
+
+
+class TestStyleLike:
+    """Tests for dict-style styling with StyleLike and LineStyleLike."""
+
+    def test_state_with_style_dict(self):
+        """State accepts style as dict."""
+        with state_diagram() as d:
+            s = d.state("Error", style={"background": "salmon"})
+        output = render(d.build())
+        assert "Error #salmon" in output
+
+    def test_state_with_style_dict_hex_color(self):
+        """State accepts hex color in style dict."""
+        with state_diagram() as d:
+            s = d.state("Custom", style={"background": "#FF5500"})
+        output = render(d.build())
+        assert "Custom #FF5500" in output
+
+    def test_state_with_style_dict_text_color(self):
+        """State accepts text_color in style dict."""
+        with state_diagram() as d:
+            d.state("Colored", style={"text_color": "blue"})
+        output = render(d.build())
+        assert ";text:blue" in output
+
+    def test_states_with_style_dict(self):
+        """Bulk states() accepts style as dict."""
+        with state_diagram() as d:
+            a, b, c = d.states("A", "B", "C", style={"background": "lightblue"})
+        output = render(d.build())
+        assert "A #lightblue" in output
+        assert "B #lightblue" in output
+        assert "C #lightblue" in output
+
+    def test_arrow_with_style_dict(self):
+        """Arrow accepts style as dict."""
+        with state_diagram() as d:
+            a = d.state("A")
+            b = d.state("B")
+            d.arrow(a, b, style={"color": "red", "pattern": "dashed"})
+        output = render(d.build())
+        assert "[#red,dashed]" in output
+
+    def test_arrow_with_style_dict_thickness(self):
+        """Arrow accepts thickness in style dict."""
+        with state_diagram() as d:
+            a = d.state("A")
+            b = d.state("B")
+            d.arrow(a, b, style={"thickness": 3})
+        output = render(d.build())
+        assert "[thickness=3]" in output
+
+    def test_arrow_with_style_dict_bold(self):
+        """Arrow accepts bold in style dict."""
+        with state_diagram() as d:
+            a = d.state("A")
+            b = d.state("B")
+            d.arrow(a, b, style={"bold": True, "color": "green"})
+        output = render(d.build())
+        assert "[#green,bold]" in output
+
+    def test_composite_with_style_dict(self):
+        """Composite accepts style as dict."""
+        with state_diagram() as d:
+            with d.composite("Container", style={"background": "lightyellow"}) as c:
+                c.state("Inner")
+        output = render(d.build())
+        assert "Container #lightyellow" in output
+
+    def test_concurrent_with_style_dict(self):
+        """Concurrent accepts style as dict."""
+        with state_diagram() as d:
+            with d.concurrent("Parallel", style={"background": "lightgreen"}) as p:
+                with p.region() as r:
+                    r.state("A")
+        output = render(d.build())
+        assert "Parallel #lightgreen" in output
+
+    def test_style_dict_coexists_with_style_object(self):
+        """Style objects and dicts can be used together in same diagram."""
+        with state_diagram() as d:
+            # Style object
+            a = d.state("A", style=Style(background=Color.named("pink")))
+            # Style dict
+            b = d.state("B", style={"background": "lightblue"})
+            d.arrow(a, b)
+        output = render(d.build())
+        assert "A #pink" in output
+        assert "B #lightblue" in output
+
+    def test_style_dict_validation(self, validate_plantuml):
+        """Style dicts produce valid PlantUML."""
+        with state_diagram(title="Dict Styles") as d:
+            a = d.state("Error", style={"background": "#FFCCCC", "text_color": "red"})
+            b = d.state("Success", style={"background": "#CCFFCC"})
+            d.arrow(a, b, style={"color": "green", "pattern": "dashed"})
+
+        assert validate_plantuml(render(d.build()), "dict_styles")
+
+
+class TestFlow:
+    """Tests for flow() method - interleaved states and labels."""
+
+    def test_flow_basic_with_labels(self):
+        """flow() creates transitions with interleaved labels."""
+        with state_diagram() as d:
+            a, b, c = d.states("A", "B", "C")
+            d.flow(a, "go", b, "stop", c)
+        output = render(d.build())
+        assert "A --> B : go" in output
+        assert "B --> C : stop" in output
+
+    def test_flow_without_labels(self):
+        """flow() works without labels (like arrow)."""
+        with state_diagram() as d:
+            a, b, c = d.states("A", "B", "C")
+            d.flow(a, b, c)
+        output = render(d.build())
+        assert "A --> B" in output
+        assert "B --> C" in output
+
+    def test_flow_mixed_labeled_unlabeled(self):
+        """flow() handles mix of labeled and unlabeled transitions."""
+        with state_diagram() as d:
+            a, b, c, e = d.states("A", "B", "C", "E")
+            d.flow(a, "go", b, c, "end", e)
+        output = render(d.build())
+        assert "A --> B : go" in output
+        assert "B --> C" in output
+        assert "C --> E : end" in output
+
+    def test_flow_with_style(self):
+        """flow() accepts style dict."""
+        with state_diagram() as d:
+            a, b, c = d.states("A", "B", "C")
+            d.flow(a, "go", b, "stop", c, style={"color": "red"})
+        output = render(d.build())
+        assert "[#red]" in output
+
+    def test_flow_with_direction(self):
+        """flow() accepts direction hint."""
+        with state_diagram() as d:
+            a, b = d.states("A", "B")
+            d.flow(a, "up", b, direction="up")
+        output = render(d.build())
+        assert "-u->" in output
+
+    def test_flow_returns_transitions(self):
+        """flow() returns list of Transition objects."""
+        with state_diagram() as d:
+            a, b, c = d.states("A", "B", "C")
+            result = d.flow(a, "x", b, "y", c)
+        assert len(result) == 2
+        assert result[0].label.text == "x"
+        assert result[1].label.text == "y"
+
+    def test_flow_with_pseudo_states(self):
+        """flow() works with start/end pseudo-states."""
+        with state_diagram() as d:
+            a, b = d.states("A", "B")
+            d.flow(d.start(), a, "go", b, d.end())
+        output = render(d.build())
+        assert "[*] --> A" in output
+        assert "A --> B : go" in output
+        assert "B --> [*]" in output
+
+    def test_flow_with_composite(self):
+        """flow() works with composite state builders."""
+        with state_diagram() as d:
+            before = d.state("Before")
+            with d.composite("Active") as active:
+                active.state("Inner")
+            after = d.state("After")
+            d.flow(before, "enter", active, "exit", after)
+        output = render(d.build())
+        assert "Before --> Active : enter" in output
+        assert "Active --> After : exit" in output
+
+    def test_flow_error_starts_with_label(self):
+        """flow() raises error if starts with a label."""
+        import pytest
+        with state_diagram() as d:
+            a = d.state("A")
+            with pytest.raises(ValueError, match="must start with a state"):
+                d.flow("label", a)
+
+    def test_flow_error_ends_with_label(self):
+        """flow() raises error if ends with a label."""
+        import pytest
+        with state_diagram() as d:
+            a = d.state("A")
+            with pytest.raises(ValueError, match="cannot end with a label"):
+                d.flow(a, "label")
+
+    def test_flow_error_consecutive_labels(self):
+        """flow() raises error for consecutive labels."""
+        import pytest
+        with state_diagram() as d:
+            a, b = d.states("A", "B")
+            with pytest.raises(ValueError, match="cannot have consecutive labels"):
+                d.flow(a, "first", "second", b)
+
+    def test_flow_error_single_state(self):
+        """flow() raises error with only one state."""
+        import pytest
+        with state_diagram() as d:
+            a = d.state("A")
+            with pytest.raises(ValueError, match="requires at least 2 states"):
+                d.flow(a)
+
+    def test_flow_error_empty(self):
+        """flow() raises error when empty."""
+        import pytest
+        with state_diagram() as d:
+            with pytest.raises(ValueError, match="requires at least 2 states"):
+                d.flow()
+
+    def test_flow_validation(self, validate_plantuml):
+        """flow() produces valid PlantUML."""
+        with state_diagram(title="Flow Example") as d:
+            idle, loading, ready, error = d.states("Idle", "Loading", "Ready", "Error")
+            d.flow(d.start(), idle, "fetch", loading, "success", ready, d.end())
+            d.arrow(loading, error, label="failure")
+            d.arrow(error, idle, label="retry")
+        assert validate_plantuml(render(d.build()), "flow_example")
+
+
+class TestEnumLiteralSync:
+    """Test to verify PseudoStateKindStr Literal matches PseudoStateKind enum.
+
+    PseudoStateKind is the only remaining enum. We keep it for internal use
+    since users don't construct PseudoState directly - they use builder methods.
+    """
+
+    def test_pseudo_state_kind_literal_matches_enum(self):
+        """PseudoStateKindStr Literal matches PseudoStateKind enum values."""
+        from typing import get_args
+        from plantuml_compose.primitives.state import PseudoStateKind, PseudoStateKindStr
+
+        literal_values = set(get_args(PseudoStateKindStr))
+        enum_values = {e.value for e in PseudoStateKind}
+        assert literal_values == enum_values, f"Mismatch: Literal={literal_values}, Enum={enum_values}"
+
+
+class TestDirectionLike:
+    """Tests for string direction values."""
+
+    def test_arrow_with_direction_string(self):
+        """arrow() accepts direction as string."""
+        with state_diagram() as d:
+            a, b = d.states("A", "B")
+            d.arrow(a, b, direction="up")
+        output = render(d.build())
+        assert "-u->" in output
+
+    def test_flow_with_direction_string(self):
+        """flow() accepts direction as string."""
+        with state_diagram() as d:
+            a, b = d.states("A", "B")
+            d.flow(a, "go", b, direction="down")
+        output = render(d.build())
+        assert "-d->" in output
+
+
+class TestLinePatternLike:
+    """Tests for string line pattern values."""
+
+    def test_arrow_style_dict_with_pattern_string(self):
+        """Arrow style dict accepts pattern as string."""
+        with state_diagram() as d:
+            a, b = d.states("A", "B")
+            d.arrow(a, b, style={"pattern": "dashed", "color": "red"})
+        output = render(d.build())
+        assert "[#red,dashed]" in output
+
+    def test_arrow_style_dict_with_pattern_dotted(self):
+        """Arrow style dict accepts 'dotted' pattern string."""
+        with state_diagram() as d:
+            a, b = d.states("A", "B")
+            d.arrow(a, b, style={"pattern": "dotted"})
+        output = render(d.build())
+        assert "[dotted]" in output
+
+
+class TestNotePositionLike:
+    """Tests for string note position values."""
+
+    def test_state_with_note_position_string(self):
+        """state() accepts note_position as string."""
+        with state_diagram() as d:
+            d.state("A", note="My note", note_position="left")
+        output = render(d.build())
+        assert "note left of A" in output
+
+    def test_note_with_position_string(self):
+        """note() accepts position as string."""
+        with state_diagram() as d:
+            d.note("Floating note", position="top")
+        # Note: floating notes render differently, just verify no crash
+        output = render(d.build())
+        assert "note" in output
+
+    def test_composite_with_note_position_string(self):
+        """composite() accepts note_position as string."""
+        with state_diagram() as d:
+            with d.composite("Active", note="Composite note", note_position="left") as c:
+                c.state("Inner")
+        output = render(d.build())
+        assert "note left of Active" in output
+
+
+class TestRegionSeparator:
+    """Tests for region separator values."""
+
+    def test_concurrent_with_vertical_separator(self):
+        """concurrent() accepts 'vertical' separator (side-by-side regions)."""
+        with state_diagram() as d:
+            with d.concurrent("Parallel", separator="vertical") as p:
+                with p.region() as r1:
+                    r1.state("A")
+                with p.region() as r2:
+                    r2.state("B")
+        output = render(d.build())
+        assert "||" in output  # vertical renders as ||
+
+    def test_concurrent_with_horizontal_separator(self):
+        """concurrent() accepts 'horizontal' separator (stacked regions)."""
+        with state_diagram() as d:
+            with d.concurrent("Parallel", separator="horizontal") as p:
+                with p.region() as r1:
+                    r1.state("A")
+                with p.region() as r2:
+                    r2.state("B")
+        output = render(d.build())
+        assert "--" in output  # horizontal renders as --

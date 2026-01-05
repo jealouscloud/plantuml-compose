@@ -17,7 +17,22 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Iterator
 
-from ..primitives.common import Direction, Label, LineStyle, Note, NotePosition, RegionSeparator, StateDiagramStyle, Style
+from ..primitives.common import (
+    Direction,
+    Label,
+    LineStyle,
+    LineStyleLike,
+    Note,
+    NotePosition,
+    RegionSeparator,
+    StateDiagramStyle,
+    StateDiagramStyleLike,
+    Style,
+    StyleLike,
+    coerce_line_style,
+    coerce_state_diagram_style,
+    coerce_style,
+)
 from ..primitives.state import (
     CompositeState,
     ConcurrentState,
@@ -46,9 +61,9 @@ class _BaseStateBuilder:
         *,
         alias: str | None = None,
         description: str | Label | None = None,
-        style: Style | None = None,
+        style: StyleLike | None = None,
         note: str | Note | None = None,
-        note_position: NotePosition = NotePosition.RIGHT,
+        note_position: NotePosition = "right",
     ) -> StateNode:
         """Create and register a state node.
 
@@ -56,9 +71,9 @@ class _BaseStateBuilder:
             name: Display name of the state
             alias: Optional short name for referencing in transitions
             description: Optional description text
-            style: Optional visual styling
+            style: Optional visual styling (Style object or dict)
             note: Optional note content (string or Note)
-            note_position: Position of note if note is a string
+            note_position: Position of note if note is a string (e.g., "left", "right")
 
         Returns:
             The created StateNode for use in transitions
@@ -71,11 +86,14 @@ class _BaseStateBuilder:
             Note(Label(note), note_position) if isinstance(note, str) else note
         )
 
+        # Coerce style dict to Style object
+        style_obj = coerce_style(style) if style is not None else None
+
         node = StateNode(
             name=name,
             alias=alias,
             description=desc_label,
-            style=style,
+            style=style_obj,
             note=note_obj,
         )
         self._elements.append(node)
@@ -84,7 +102,7 @@ class _BaseStateBuilder:
     def states(
         self,
         *names: str,
-        style: Style | None = None,
+        style: StyleLike | None = None,
     ) -> tuple[StateNode, ...]:
         """Create and register multiple state nodes at once.
 
@@ -107,7 +125,7 @@ class _BaseStateBuilder:
         trigger: str | None = None,
         guard: str | None = None,
         effect: str | None = None,
-        style: LineStyle | None = None,
+        style: LineStyleLike | None = None,
         direction: Direction | None = None,
         note: str | Label | None = None,
     ) -> list[Transition]:
@@ -120,8 +138,8 @@ class _BaseStateBuilder:
             trigger: Optional event/trigger name (applied to all transitions)
             guard: Optional guard condition without brackets (applied to all transitions)
             effect: Optional effect/action without leading / (applied to all transitions)
-            style: Optional line styling (applied to all transitions)
-            direction: Optional layout direction hint (applied to all transitions)
+            style: Optional line styling (LineStyle object or dict)
+            direction: Optional layout direction hint ("up", "down", "left", "right")
             note: Optional note attached to transitions (applied to all transitions)
 
         Returns:
@@ -142,6 +160,9 @@ class _BaseStateBuilder:
         # Convert string note to Label
         note_obj = Label(note) if isinstance(note, str) else note
 
+        # Coerce style dict to LineStyle object
+        style_obj = coerce_line_style(style) if style is not None else None
+
         transitions: list[Transition] = []
         for source, target in zip(states[:-1], states[1:]):
             trans = Transition(
@@ -151,12 +172,122 @@ class _BaseStateBuilder:
                 trigger=trigger,
                 guard=guard,
                 effect=effect,
-                style=style,
+                style=style_obj,
                 direction=direction,
                 note=note_obj,
             )
             self._elements.append(trans)
             transitions.append(trans)
+
+        return transitions
+
+    # Special string values that are state references, not labels
+    _STATE_REF_STRINGS = frozenset({"initial", "final", "history", "deep_history", "[*]", "[H]", "[H*]"})
+
+    def _is_state_ref(self, item: object) -> bool:
+        """Check if item is a state reference (not a label)."""
+        if isinstance(item, (StateNode, PseudoState, CompositeState)):
+            return True
+        if hasattr(item, "_ref"):  # Builders
+            return True
+        if isinstance(item, str) and item in self._STATE_REF_STRINGS:
+            return True
+        return False
+
+    def flow(
+        self,
+        *items: StateNode | PseudoState | CompositeState | "_CompositeBuilder" | "_ConcurrentBuilder" | str,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> list[Transition]:
+        """Create transitions with interleaved labels.
+
+        A more ergonomic way to define a sequence of states with labels.
+        States are objects (StateNode, PseudoState, builders), labels are strings.
+        Special strings like "initial", "final", "history", "deep_history" are treated as states.
+
+        Args:
+            *items: Alternating states and labels. States are required between labels.
+                    Labels between states become transition labels.
+            style: Optional line styling applied to all transitions
+            direction: Optional layout direction hint ("up", "down", "left", "right")
+
+        Returns:
+            List of created Transitions
+
+        Examples:
+            # Simple chain with labels
+            d.flow(idle, "start", running, "stop", stopped)
+            # Creates: idle --start--> running --stop--> stopped
+
+            # Can omit labels for unlabeled transitions
+            d.flow(a, b, c)  # Same as d.arrow(a, b, c)
+
+            # Mix labeled and unlabeled
+            d.flow(a, "go", b, c, "end", d)
+            # Creates: a --go--> b --> c --end--> d
+
+            # Works with start/end
+            d.flow(d.start(), a, "go", b, d.end())
+
+        Raises:
+            ValueError: If items doesn't start with a state or has consecutive labels
+        """
+        if not items:
+            raise ValueError("flow() requires at least 2 states")
+
+        # Coerce style dict to LineStyle object
+        style_obj = coerce_line_style(style) if style is not None else None
+
+        # Parse items into (source, label, target) tuples
+        transitions: list[Transition] = []
+        i = 0
+        current_state = None
+
+        while i < len(items):
+            item = items[i]
+
+            if self._is_state_ref(item):
+                # This is a state
+                if current_state is not None:
+                    # Create unlabeled transition from previous state
+                    trans = Transition(
+                        source=self._to_ref(current_state),
+                        target=self._to_ref(item),
+                        style=style_obj,
+                        direction=direction,
+                    )
+                    self._elements.append(trans)
+                    transitions.append(trans)
+                current_state = item
+                i += 1
+            elif isinstance(item, str):
+                # This is a label - must have a current state and next item must be a state
+                if current_state is None:
+                    raise ValueError("flow() must start with a state, not a label")
+                if i + 1 >= len(items):
+                    raise ValueError("flow() cannot end with a label")
+                next_item = items[i + 1]
+                if isinstance(next_item, str) and not self._is_state_ref(next_item):
+                    raise ValueError("flow() cannot have consecutive labels")
+
+                # Create transition with label
+                trans = Transition(
+                    source=self._to_ref(current_state),
+                    target=self._to_ref(next_item),
+                    label=Label(item),
+                    style=style_obj,
+                    direction=direction,
+                )
+                self._elements.append(trans)
+                transitions.append(trans)
+                current_state = next_item
+                i += 2  # Skip both label and next state
+            else:
+                raise ValueError(f"flow() received unexpected item type: {type(item)}")
+
+        if len(transitions) == 0:
+            raise ValueError("flow() requires at least 2 states")
 
         return transitions
 
@@ -232,7 +363,7 @@ class _BaseStateBuilder:
     def note(
         self,
         content: str | Label,
-        position: NotePosition = NotePosition.RIGHT,
+        position: NotePosition = "right",
     ) -> Note:
         """Create and register a floating note."""
         content_label = Label(content) if isinstance(content, str) else content
@@ -262,9 +393,9 @@ class _BaseStateBuilder:
         name: str,
         *,
         alias: str | None = None,
-        style: Style | None = None,
+        style: StyleLike | None = None,
         note: str | Note | None = None,
-        note_position: NotePosition = NotePosition.RIGHT,
+        note_position: NotePosition = "right",
     ) -> Iterator[_CompositeBuilder]:
         """Create a composite state with nested elements.
 
@@ -276,14 +407,16 @@ class _BaseStateBuilder:
         Args:
             name: Display name of the composite state
             alias: Optional short name for referencing
-            style: Optional visual styling
+            style: Optional visual styling (Style object or dict)
             note: Optional note content
-            note_position: Position of note if note is a string
+            note_position: Position of note if note is a string (e.g., "left", "right")
 
         Yields:
             A CompositeBuilder for adding nested elements
         """
-        builder = _CompositeBuilder(name, alias, style, note, note_position)
+        # Coerce style dict to Style object
+        style_obj = coerce_style(style) if style is not None else None
+        builder = _CompositeBuilder(name, alias, style_obj, note, note_position)
         yield builder
         self._elements.append(builder._build())
 
@@ -293,10 +426,10 @@ class _BaseStateBuilder:
         name: str,
         *,
         alias: str | None = None,
-        style: Style | None = None,
+        style: StyleLike | None = None,
         note: str | Note | None = None,
-        note_position: NotePosition = NotePosition.RIGHT,
-        separator: RegionSeparator = RegionSeparator.HORIZONTAL,
+        note_position: NotePosition = "right",
+        separator: RegionSeparator = "horizontal",
     ) -> Iterator[_ConcurrentBuilder]:
         """Create a concurrent state with parallel regions.
 
@@ -310,15 +443,17 @@ class _BaseStateBuilder:
         Args:
             name: Display name of the concurrent state
             alias: Optional short name for referencing
-            style: Optional visual styling
+            style: Optional visual styling (Style object or dict)
             note: Optional note content
-            note_position: Position of note if note is a string
-            separator: Region separator style (HORIZONTAL: --, VERTICAL: ||)
+            note_position: Position of note if note is a string (e.g., "left", "right")
+            separator: Region separator style ("--" for horizontal, "||" for vertical)
 
         Yields:
             A ConcurrentBuilder for adding parallel regions
         """
-        builder = _ConcurrentBuilder(name, alias, style, note, note_position, separator)
+        # Coerce style dict to Style object
+        style_obj = coerce_style(style) if style is not None else None
+        builder = _ConcurrentBuilder(name, alias, style_obj, note, note_position, separator)
         yield builder
         self._elements.append(builder._build())
 
@@ -663,12 +798,13 @@ class StateDiagramBuilder(_BaseStateBuilder):
         *,
         title: str | None = None,
         hide_empty_description: bool = False,
-        style: StateDiagramStyle | None = None,
+        style: StateDiagramStyleLike | None = None,
     ) -> None:
         super().__init__()
         self._title = title
         self._hide_empty_description = hide_empty_description
-        self._style = style
+        # Coerce style dict to StateDiagramStyle object
+        self._style = coerce_state_diagram_style(style) if style is not None else None
 
     def build(self) -> StateDiagram:
         """Build the complete state diagram."""
@@ -696,7 +832,7 @@ def state_diagram(
     *,
     title: str | None = None,
     hide_empty_description: bool = False,
-    style: StateDiagramStyle | None = None,
+    style: StateDiagramStyleLike | None = None,
 ) -> Iterator[StateDiagramBuilder]:
     """Create a state diagram with context manager syntax.
 
@@ -713,21 +849,21 @@ def state_diagram(
 
         print(render(d.build()))
 
-    With typed CSS-like styling:
-        from plantuml_compose import StateDiagramStyle, ElementStyle, Color
-
+    With dict-based styling (no extra imports needed):
         with state_diagram(
-            style=StateDiagramStyle(
-                background=Color.named("white"),
-                state=ElementStyle(background=Color.hex("#E3F2FD")),
-            )
+            style={
+                "background": "white",
+                "font_name": "Arial",
+                "state": {"background": "#E3F2FD", "line_color": "#1976D2"},
+                "arrow": {"line_color": "#757575"},
+            }
         ) as d:
             d.state("Styled")
 
     Args:
         title: Optional diagram title
         hide_empty_description: Whether to hide empty state descriptions
-        style: Optional typed style (StateDiagramStyle)
+        style: Optional styling (dict or StateDiagramStyle object)
 
     Yields:
         A StateDiagramBuilder for adding diagram elements

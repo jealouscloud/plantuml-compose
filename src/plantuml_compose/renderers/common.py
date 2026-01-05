@@ -6,10 +6,13 @@ from ..primitives.common import (
     Color,
     Gradient,
     Label,
-    LinePattern,
     LineStyle,
+    LineStyleLike,
     Stereotype,
     Style,
+    StyleLike,
+    coerce_line_style,
+    coerce_style,
 )
 
 
@@ -39,8 +42,9 @@ def render_label(label: Label | str | None) -> str:
     return label.text
 
 
-def render_line_style_bracket(style: LineStyle) -> str:
+def render_line_style_bracket(style: LineStyleLike) -> str:
     """Render line style as bracket modifier: [#red,dashed,thickness=2]"""
+    style = coerce_line_style(style)
     parts: list[str] = []
 
     if style.color:
@@ -49,8 +53,8 @@ def render_line_style_bracket(style: LineStyle) -> str:
             color_str = f"#{color_str}"
         parts.append(color_str)
 
-    if style.pattern != LinePattern.SOLID:
-        parts.append(style.pattern.value)
+    if style.pattern != "solid":
+        parts.append(style.pattern)
 
     if style.bold:
         parts.append("bold")
@@ -61,7 +65,7 @@ def render_line_style_bracket(style: LineStyle) -> str:
     return f"[{','.join(parts)}]" if parts else ""
 
 
-def render_state_style(style: Style) -> str:
+def render_state_style(style: StyleLike) -> str:
     """Render Style as PlantUML inline format.
 
     PlantUML state style syntax options:
@@ -72,10 +76,15 @@ def render_state_style(style: Style) -> str:
     The semicolon format requires a background color. If we have other
     properties without a background, we use the individual syntaxes.
     """
+    style = coerce_style(style)
+
+    # Coerce line style if present
+    line = coerce_line_style(style.line) if style.line else None
+
     # Check what we have
     has_background = style.background is not None
-    has_line = style.line is not None and (
-        style.line.color is not None or style.line.pattern != LinePattern.SOLID
+    has_line = line is not None and (
+        line.color is not None or line.pattern != "solid"
     )
     has_text = style.text_color is not None
 
@@ -89,11 +98,11 @@ def render_state_style(style: Style) -> str:
                 bg = f"#{bg}"
             parts.append(bg)
 
-        if has_line:
-            color = render_color(style.line.color) if style.line.color else ""
+        if has_line and line:
+            color = render_color(line.color) if line.color else ""
             pattern = ""
-            if style.line.pattern != LinePattern.SOLID:
-                pattern = f"[{style.line.pattern.value}]"
+            if line.pattern != "solid":
+                pattern = f"[{line.pattern}]"
 
             if color or pattern:
                 if color.startswith("#"):
@@ -110,11 +119,11 @@ def render_state_style(style: Style) -> str:
 
     props = [bg]
 
-    if has_line:
-        if style.line.pattern != LinePattern.SOLID:
-            props.append(f"line.{style.line.pattern.value}")
-        if style.line.color:
-            color = render_color(style.line.color)
+    if has_line and line:
+        if line.pattern != "solid":
+            props.append(f"line.{line.pattern}")
+        if line.color:
+            color = render_color(line.color)
             props.append(f"line:{color}")
 
     if has_text:

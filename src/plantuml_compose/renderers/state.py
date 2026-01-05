@@ -116,7 +116,7 @@ def _render_element_style(selector: str, style: ElementStyle, indent: int = 2) -
     if style.font_size:
         props.append(f"{inner_prefix}FontSize {style.font_size}")
     if style.font_style:
-        props.append(f"{inner_prefix}FontStyle {style.font_style.value}")
+        props.append(f"{inner_prefix}FontStyle {style.font_style}")
     if style.round_corner is not None:
         props.append(f"{inner_prefix}RoundCorner {style.round_corner}")
     if style.line_thickness is not None:
@@ -138,7 +138,7 @@ def _render_arrow_style(style: DiagramArrowStyle) -> list[str]:
     if style.line_thickness is not None:
         props.append(f"    LineThickness {style.line_thickness}")
     if style.line_pattern:
-        props.append(f"    LineStyle {style.line_pattern.value}")
+        props.append(f"    LineStyle {style.line_pattern}")
 
     # Only return block if there are properties
     if not props:
@@ -195,8 +195,7 @@ def _render_state_node(state: StateNode) -> list[str]:
 
     # Note (if any)
     if state.note:
-        pos = state.note.position.value
-        lines.append(f"note {pos} of {ref}: {render_label(state.note.content)}")
+        lines.append(f"note {state.note.position} of {ref}: {render_label(state.note.content)}")
 
     return lines
 
@@ -272,7 +271,7 @@ def _build_arrow(trans: Transition) -> str:
     # Direction modifier
     dir_mod = ""
     if trans.direction:
-        dir_mod = trans.direction.value[0]  # First letter: u, d, l, r
+        dir_mod = trans.direction[0]  # First letter: u, d, l, r
 
     # Style modifier
     style_mod = ""
@@ -343,8 +342,7 @@ def _render_composite_state(comp: CompositeState) -> list[str]:
 
     # Note (if any)
     if comp.note:
-        pos = comp.note.position.value
-        lines.append(f"note {pos} of {ref}: {render_label(comp.note.content)}")
+        lines.append(f"note {comp.note.position} of {ref}: {render_label(comp.note.content)}")
 
     return lines
 
@@ -373,7 +371,8 @@ def _render_concurrent_state(conc: ConcurrentState) -> list[str]:
     lines.append(f"{opening} {{")
 
     # Regions (separated by -- or ||)
-    separator = conc.separator.value
+    # Convert user-friendly names to PlantUML syntax
+    separator = "--" if conc.separator == "horizontal" else "||"
     for i, region in enumerate(conc.regions):
         if i > 0:
             lines.append(f"  {separator}")
@@ -384,8 +383,7 @@ def _render_concurrent_state(conc: ConcurrentState) -> list[str]:
 
     # Note (if any)
     if conc.note:
-        pos = conc.note.position.value
-        lines.append(f"note {pos} of {ref}: {render_label(conc.note.content)}")
+        lines.append(f"note {conc.note.position} of {ref}: {render_label(conc.note.content)}")
 
     return lines
 
