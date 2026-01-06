@@ -9,9 +9,9 @@ Usage:
         green = d.state("Green")
 
         d.arrow(d.start(), red)
-        d.arrow(red, green, "timer")
-        d.arrow(green, yellow, "timer")
-        d.arrow(yellow, red, "timer")
+        d.arrow(red, green, label="timer")
+        d.arrow(green, yellow, label="timer")
+        d.arrow(yellow, red, label="timer")
 
     print(render(d.build()))
 """

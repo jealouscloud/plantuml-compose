@@ -6,8 +6,8 @@ Provides a fluent API for constructing state diagrams:
         idle = d.state("Idle")
         running = d.state("Running")
         d.arrow(d.start(), idle)
-        d.arrow(idle, running, "begin")
-        d.arrow(running, d.end(), "finish")
+        d.arrow(idle, running, label="begin")
+        d.arrow(running, d.end(), label="finish")
 
     print(render(d.build()))
 """
@@ -818,8 +818,8 @@ class StateDiagramBuilder(_BaseStateBuilder):
             idle = d.state("Idle")
             active = d.state("Active")
             d.arrow(d.start(), idle)
-            d.arrow(idle, active, "activate")
-            d.arrow(active, d.end(), "done")
+            d.arrow(idle, active, label="activate")
+            d.arrow(active, d.end(), label="done")
 
         diagram = d.build()
         print(render(diagram))
@@ -875,9 +875,9 @@ def state_diagram(
             green = d.state("Green")
 
             d.arrow(d.start(), red)
-            d.arrow(red, green, "timer")
-            d.arrow(green, yellow, "timer")
-            d.arrow(yellow, red, "timer")
+            d.arrow(red, green, label="timer")
+            d.arrow(green, yellow, label="timer")
+            d.arrow(yellow, red, label="timer")
 
         print(render(d.build()))
 
