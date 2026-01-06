@@ -70,10 +70,26 @@ def _render_note_lines(prefix: str, text: str) -> list[str]:
     return [f"{prefix}: {text}"]
 
 
-def _render_floating_note(note: Note) -> list[str]:
-    """Render a top-level note element."""
-    prefix = _note_prefix(note.position)
+def _render_floating_note(note: Note, note_id: int = 0) -> list[str]:
+    """Render a top-level note element.
+
+    For position="floating", uses PlantUML's `note "content" as N1` syntax.
+    For other positions (left, right, etc.), uses `note position: content`.
+    """
     text = render_label(note.content)
+
+    if note.position == "floating":
+        # PlantUML floating note syntax: note "content" as alias
+        # or for multiline: note as alias\n...\nend note
+        alias = f"N{note_id}"
+        if "\n" in text:
+            lines = [f"note as {alias}"]
+            lines.extend(f"  {line}" for line in text.split("\n"))
+            lines.append("end note")
+            return lines
+        return [f'note "{escape_quotes(text)}" as {alias}']
+
+    prefix = _note_prefix(note.position)
     return _render_note_lines(prefix, text)
 
 
@@ -97,8 +113,14 @@ def render_state_diagram(diagram: StateDiagram) -> str:
     if diagram.hide_empty_description:
         lines.append("hide empty description")
 
+    floating_note_id = 0
     for elem in diagram.elements:
-        lines.extend(_render_element(elem))
+        if isinstance(elem, Note):
+            lines.extend(_render_floating_note(elem, floating_note_id))
+            if elem.position == "floating":
+                floating_note_id += 1
+        else:
+            lines.extend(_render_element(elem))
 
     lines.append("@enduml")
     return "\n".join(lines)
@@ -223,14 +245,9 @@ def _render_arrow_style(style: DiagramArrowStyle) -> list[str]:
 
 
 def _render_element(
-    elem: StateNode
-    | PseudoState
-    | Transition
-    | CompositeState
-    | ConcurrentState
-    | Note,
+    elem: StateNode | PseudoState | Transition | CompositeState | ConcurrentState,
 ) -> list[str]:
-    """Render a single diagram element."""
+    """Render a single diagram element (except Note, handled separately)."""
     if isinstance(elem, StateNode):
         return _render_state_node(elem)
     if isinstance(elem, PseudoState):
@@ -241,8 +258,6 @@ def _render_element(
         return _render_composite_state(elem)
     if isinstance(elem, ConcurrentState):
         return _render_concurrent_state(elem)
-    if isinstance(elem, Note):
-        return _render_floating_note(elem)
     raise TypeError(f"Unknown element type: {type(elem).__name__}")
 
 

@@ -334,7 +334,15 @@ class _BaseStateBuilder:
         content: str | Label,
         position: NotePosition = "right",
     ) -> Note:
-        """Create and register a floating note."""
+        """Create and register a floating note.
+
+        Raises:
+            ValueError: If content is empty (PlantUML rejects empty notes)
+        """
+        text = content.text if isinstance(content, Label) else content
+        if not text:
+            raise ValueError("Note content cannot be empty")
+
         content_label = Label(content) if isinstance(content, str) else content
         note_obj = Note(content=content_label, position=position)
         self._elements.append(note_obj)

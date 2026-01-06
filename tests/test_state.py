@@ -888,13 +888,13 @@ class TestDiagramOptions:
         assert "note left of Inactive: A longer note" in output
 
     def test_explicit_floating_note_keyword(self):
-        """Explicit floating notes should use the 'floating note' syntax."""
+        """Explicit floating notes use 'note "content" as alias' syntax."""
         with state_diagram() as d:
             d.state("S1")
             d.note("Detached", position="floating")
 
         output = render(d.build())
-        assert "floating note" in output
+        assert 'note "Detached" as N0' in output
 
     def test_floating_note_multiline_block(self):
         """Floating note with multi-line content should use block syntax."""
@@ -906,6 +906,13 @@ class TestDiagramOptions:
         assert "Line 1" in output
         assert "Line 2" in output
         assert "end note" in output
+
+    def test_empty_note_rejected(self):
+        """Empty note content is rejected (PlantUML doesn't accept it)."""
+        with state_diagram() as d:
+            d.state("S1")
+            with pytest.raises(ValueError, match="Note content cannot be empty"):
+                d.note("")
 
     def test_state_note_multiline_block(self):
         """State-attached notes with newlines should render as blocks."""
