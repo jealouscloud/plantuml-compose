@@ -98,15 +98,17 @@ class TestEdgeCases:
         assert 'state "State: Loading..." as loading' in output
         assert "[*] --> loading" in output
 
-    def test_state_name_with_quotes(self):
-        """State names containing quotes should be escaped and aliased."""
+    def test_state_name_with_quotes(self, validate_plantuml):
+        """State names containing quotes use Unicode escape."""
         with state_diagram() as d:
             quoted = d.state('He said "hi"')
             d.arrow(d.start(), quoted)
 
         output = render(d.build())
-        assert 'state "He said \\"hi\\"" as He_said_hi' in output
+        # Double quotes escaped as <U+0022> for PlantUML compatibility
+        assert 'state "He said <U+0022>hi<U+0022>" as He_said_hi' in output
         assert "[*] --> He_said_hi" in output
+        assert validate_plantuml(output, "quotes")
 
     def test_state_name_with_hyphen(self, validate_plantuml):
         """State names with hyphens must be sanitized - PlantUML treats - as arrow syntax."""
@@ -130,15 +132,17 @@ class TestEdgeCases:
         output = render(d.build())
         assert "Retry --> Retry : retry" in output
 
-    def test_transition_label_with_quotes(self):
-        """Transition labels containing quotes should be escaped."""
+    def test_transition_label_with_quotes(self, validate_plantuml):
+        """Transition labels containing quotes use Unicode escape."""
         with state_diagram() as d:
             a = d.state("A")
             b = d.state("B")
             d.arrow(a, b, label='say "hi"')
 
         output = render(d.build())
-        assert 'A --> B : say \\"hi\\"' in output
+        # Double quotes escaped as <U+0022> for PlantUML compatibility
+        assert "A --> B : say <U+0022>hi<U+0022>" in output
+        assert validate_plantuml(output, "label_quotes")
 
     def test_unicode_state_name(self, validate_plantuml):
         """Unicode characters in state names render correctly."""
@@ -1917,22 +1921,15 @@ class TestEscapingInSVG:
         svg = render_and_parse_svg(render(d.build()))
         assert "My State" in svg
 
-    @pytest.mark.skip(reason="PlantUML limitation: escaped quotes in state names rejected")
     def test_state_name_with_quotes(self, render_and_parse_svg):
         """State names with quotes render correctly.
 
-        KNOWN LIMITATION: PlantUML rejects state names containing escaped quotes.
-        Input: state "Say \\"Hello\\"" as Say_Hello
-        Error: PlantUML syntax error
-
-        Workaround: Use an alias to avoid quotes in the display name, or
-        use single quotes/apostrophes in the name (though these are also
-        sanitized from the alias).
+        Double quotes are escaped as <U+0022> and render as actual quotes.
         """
         with state_diagram() as d:
             d.state('Say "Hello"')
         svg = render_and_parse_svg(render(d.build()))
-        # SVG escapes quotes as &quot;
+        # Unicode escape renders as actual quote in SVG
         assert "Say" in svg and "Hello" in svg
 
     def test_title_with_quotes(self, render_and_parse_svg):

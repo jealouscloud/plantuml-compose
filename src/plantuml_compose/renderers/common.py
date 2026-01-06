@@ -17,8 +17,11 @@ from ..primitives.common import (
 
 
 def escape_quotes(text: str) -> str:
-    """Escape double quotes for safe PlantUML output."""
-    return text.replace('"', '\\"')
+    """Replace double quotes with Unicode escape for PlantUML compatibility.
+
+    We use <U+0022> which PlantUML renders as a literal double quote.
+    """
+    return text.replace('"', "<U+0022>")
 
 
 def render_color(color: Color | Gradient | str) -> str:
