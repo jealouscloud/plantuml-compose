@@ -798,11 +798,16 @@ class TestStereotypes:
         assert 'state "ReqId" as ReqId <<sdlreceive>>' in output
 
     def test_expansion_points(self):
-        """Expansion input/output pseudo-states."""
+        """Expansion input/output pseudo-states (must be inside composite)."""
         with state_diagram() as d:
-            exp_in = d.expansion_input("expIn")
-            exp_out = d.expansion_output("expOut")
-            d.arrow(exp_in, exp_out)
+            with d.composite("Somp") as somp:
+                exp_in = somp.expansion_input("expIn")
+                exp_out = somp.expansion_output("expOut")
+                process = somp.state("process")
+                somp.arrow(exp_in, process)
+                somp.arrow(process, exp_out)
+            d.arrow(d.start(), "expIn")
+            d.arrow("expOut", "Foo")
         output = render(d.build())
         assert 'state "expIn" as expIn <<expansionInput>>' in output
         assert 'state "expOut" as expOut <<expansionOutput>>' in output

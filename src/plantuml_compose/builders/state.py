@@ -317,45 +317,9 @@ class _BaseStateBuilder:
         self._elements.append(pseudo)
         return pseudo
 
-    def entry_point(self, name: str) -> PseudoState:
-        """Create and register an entry point pseudo-state (small circle on boundary)."""
-        pseudo = PseudoState(kind=PseudoStateKind.ENTRY_POINT, name=name)
-        self._elements.append(pseudo)
-        return pseudo
-
-    def exit_point(self, name: str) -> PseudoState:
-        """Create and register an exit point pseudo-state (circle with X on boundary)."""
-        pseudo = PseudoState(kind=PseudoStateKind.EXIT_POINT, name=name)
-        self._elements.append(pseudo)
-        return pseudo
-
-    def input_pin(self, name: str) -> PseudoState:
-        """Create and register an input pin pseudo-state (small square on boundary)."""
-        pseudo = PseudoState(kind=PseudoStateKind.INPUT_PIN, name=name)
-        self._elements.append(pseudo)
-        return pseudo
-
-    def output_pin(self, name: str) -> PseudoState:
-        """Create and register an output pin pseudo-state (small square on boundary)."""
-        pseudo = PseudoState(kind=PseudoStateKind.OUTPUT_PIN, name=name)
-        self._elements.append(pseudo)
-        return pseudo
-
     def sdl_receive(self, name: str) -> PseudoState:
         """Create and register an SDL receive pseudo-state (concave polygon)."""
         pseudo = PseudoState(kind=PseudoStateKind.SDL_RECEIVE, name=name)
-        self._elements.append(pseudo)
-        return pseudo
-
-    def expansion_input(self, name: str) -> PseudoState:
-        """Create and register an expansion input pseudo-state."""
-        pseudo = PseudoState(kind=PseudoStateKind.EXPANSION_INPUT, name=name)
-        self._elements.append(pseudo)
-        return pseudo
-
-    def expansion_output(self, name: str) -> PseudoState:
-        """Create and register an expansion output pseudo-state."""
-        pseudo = PseudoState(kind=PseudoStateKind.EXPANSION_OUTPUT, name=name)
         self._elements.append(pseudo)
         return pseudo
 
@@ -541,6 +505,45 @@ class _CompositeBuilder(_BaseStateBuilder):
         if self._alias:
             return self._alias
         return _sanitize_ref(self._name)
+
+    # Boundary pseudo-states: these stereotypes only work inside composite states.
+    # PlantUML crashes with IndexOutOfBoundsException if used at top level.
+
+    def entry_point(self, name: str) -> PseudoState:
+        """Create an entry point pseudo-state (small circle on boundary)."""
+        pseudo = PseudoState(kind=PseudoStateKind.ENTRY_POINT, name=name)
+        self._elements.append(pseudo)
+        return pseudo
+
+    def exit_point(self, name: str) -> PseudoState:
+        """Create an exit point pseudo-state (circle with X on boundary)."""
+        pseudo = PseudoState(kind=PseudoStateKind.EXIT_POINT, name=name)
+        self._elements.append(pseudo)
+        return pseudo
+
+    def input_pin(self, name: str) -> PseudoState:
+        """Create an input pin pseudo-state (small square on boundary)."""
+        pseudo = PseudoState(kind=PseudoStateKind.INPUT_PIN, name=name)
+        self._elements.append(pseudo)
+        return pseudo
+
+    def output_pin(self, name: str) -> PseudoState:
+        """Create an output pin pseudo-state (small square on boundary)."""
+        pseudo = PseudoState(kind=PseudoStateKind.OUTPUT_PIN, name=name)
+        self._elements.append(pseudo)
+        return pseudo
+
+    def expansion_input(self, name: str) -> PseudoState:
+        """Create an expansion input pseudo-state."""
+        pseudo = PseudoState(kind=PseudoStateKind.EXPANSION_INPUT, name=name)
+        self._elements.append(pseudo)
+        return pseudo
+
+    def expansion_output(self, name: str) -> PseudoState:
+        """Create an expansion output pseudo-state."""
+        pseudo = PseudoState(kind=PseudoStateKind.EXPANSION_OUTPUT, name=name)
+        self._elements.append(pseudo)
+        return pseudo
 
     def _build(self) -> CompositeState:
         """Build the composite state primitive."""
