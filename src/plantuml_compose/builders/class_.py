@@ -240,7 +240,10 @@ class _BaseClassBuilder:
         composition: bool = False,
         source_card: str | None = None,
         target_card: str | None = None,
+        source_label: str | None = None,
+        target_label: str | None = None,
         label: str | Label | None = None,
+        style: LineStyleLike | None = None,
         direction: Direction | None = None,
     ) -> Relationship:
         """Create a has-a relationship (aggregation or composition).
@@ -251,7 +254,10 @@ class _BaseClassBuilder:
             composition: If True, uses composition (*--); if False, aggregation (o--)
             source_card: Cardinality at container end (e.g., "1")
             target_card: Cardinality at contained end (e.g., "*", "0..*")
+            source_label: Role name at container end
+            target_label: Role name at contained end
             label: Relationship label
+            style: Line style (color, pattern, thickness)
             direction: Layout direction hint
 
         Example:
@@ -264,7 +270,10 @@ class _BaseClassBuilder:
             rel_type,
             source_card=source_card,
             target_card=target_card,
+            source_label=source_label,
+            target_label=target_label,
             label=label,
+            style=style,
             direction=direction,
         )
 
@@ -291,12 +300,26 @@ class _BaseClassBuilder:
         *,
         source_card: str | None = None,
         target_card: str | None = None,
+        source_label: str | None = None,
+        target_label: str | None = None,
         label: str | Label | None = None,
+        style: LineStyleLike | None = None,
         direction: Direction | None = None,
     ) -> Relationship:
         """Create an association relationship.
 
         Rendered as: source --> target
+
+        Args:
+            source: Source class
+            target: Target class
+            source_card: Cardinality at source end
+            target_card: Cardinality at target end
+            source_label: Role name at source end
+            target_label: Role name at target end
+            label: Relationship label
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint
         """
         return self._relationship(
             source,
@@ -304,7 +327,10 @@ class _BaseClassBuilder:
             "association",
             source_card=source_card,
             target_card=target_card,
+            source_label=source_label,
+            target_label=target_label,
             label=label,
+            style=style,
             direction=direction,
         )
 
@@ -316,12 +342,27 @@ class _BaseClassBuilder:
         *,
         source_card: str | None = None,
         target_card: str | None = None,
+        source_label: str | None = None,
+        target_label: str | None = None,
         label: str | Label | None = None,
+        style: LineStyleLike | None = None,
         direction: Direction | None = None,
     ) -> Relationship:
         """Create a custom relationship.
 
         For when the convenience methods don't fit your needs.
+
+        Args:
+            source: Source class
+            target: Target class
+            type: Relationship type
+            source_card: Cardinality at source end (e.g., "1")
+            target_card: Cardinality at target end (e.g., "*")
+            source_label: Role name at source end
+            target_label: Role name at target end
+            label: Relationship label
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint
         """
         return self._relationship(
             source,
@@ -329,7 +370,10 @@ class _BaseClassBuilder:
             type,
             source_card=source_card,
             target_card=target_card,
+            source_label=source_label,
+            target_label=target_label,
             label=label,
+            style=style,
             direction=direction,
         )
 
@@ -341,7 +385,10 @@ class _BaseClassBuilder:
         *,
         source_card: str | None = None,
         target_card: str | None = None,
+        source_label: str | None = None,
+        target_label: str | None = None,
         label: str | Label | None = None,
+        style: LineStyleLike | None = None,
         direction: Direction | None = None,
     ) -> Relationship:
         """Internal: Create and register a relationship."""
@@ -352,7 +399,10 @@ class _BaseClassBuilder:
             type=type,
             source_cardinality=source_card,
             target_cardinality=target_card,
+            source_label=source_label,
+            target_label=target_label,
             label=label_obj,
+            style=style,
             direction=direction,
         )
         self._elements.append(rel)

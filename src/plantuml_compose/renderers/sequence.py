@@ -181,8 +181,24 @@ def _render_message(msg: Message) -> str:
 
 def _build_message_arrow(msg: Message) -> str:
     """Build the arrow string for a message."""
-    # Line style
-    line = "-" if msg.line_style == "solid" else "--"
+    # Build bracket styling if any style options are set
+    # Note: thickness is in the primitive but not rendered - PlantUML doesn't support it
+    bracket_parts: list[str] = []
+    if msg.color:
+        color = render_color(msg.color)
+        if not color.startswith("#"):
+            color = f"#{color}"
+        bracket_parts.append(color)
+    if msg.bold:
+        bracket_parts.append("bold")
+
+    # Bracket syntax: -[style]-> (brackets go between dashes)
+    bracket = f"[{','.join(bracket_parts)}]" if bracket_parts else ""
+
+    # Line style: solid uses single dash, dotted uses double dash
+    line_left = "-" if msg.line_style == "solid" else "--"
+    # With bracket syntax, need closing dash before head: -[style]-> or --[style]->
+    line_right = "-" if bracket else ""
 
     # Arrow head
     head_map = {
@@ -197,9 +213,9 @@ def _build_message_arrow(msg: Message) -> str:
 
     # Handle bidirectional - always add < on left side
     if msg.bidirectional:
-        return f"<{line}{head}"
+        return f"<{line_left}{bracket}{line_right}{head}"
 
-    return f"{line}{head}"
+    return f"{line_left}{bracket}{line_right}{head}"
 
 
 def _render_return(ret: Return) -> str:

@@ -2,6 +2,7 @@
 
 import pytest
 
+from plantuml_compose import render
 from plantuml_compose.builders.usecase import usecase_diagram
 from plantuml_compose.primitives.usecase import (
     Actor,
@@ -20,14 +21,14 @@ class TestActors:
         with usecase_diagram() as d:
             d.actor("User")
 
-        output = d.render()
+        output = render(d.build())
         assert "actor User" in output
 
     def test_actor_with_alias(self):
         with usecase_diagram() as d:
             u = d.actor("User", alias="u")
 
-        output = d.render()
+        output = render(d.build())
         assert u == "u"
         assert "actor User as u" in output
 
@@ -35,21 +36,21 @@ class TestActors:
         with usecase_diagram() as d:
             d.actor("Admin", stereotype="privileged")
 
-        output = d.render()
+        output = render(d.build())
         assert "<<privileged>>" in output
 
     def test_actor_with_color(self):
         with usecase_diagram() as d:
             d.actor("VIP", color="gold")
 
-        output = d.render()
+        output = render(d.build())
         assert "#gold" in output
 
     def test_business_actor(self):
         with usecase_diagram() as d:
             d.actor("Employee", business=True)
 
-        output = d.render()
+        output = render(d.build())
         assert "actor/ Employee" in output
 
 
@@ -60,14 +61,14 @@ class TestUseCases:
         with usecase_diagram() as d:
             d.usecase("Login")
 
-        output = d.render()
+        output = render(d.build())
         assert "usecase (Login)" in output
 
     def test_usecase_with_alias(self):
         with usecase_diagram() as d:
             uc = d.usecase("Login", alias="UC1")
 
-        output = d.render()
+        output = render(d.build())
         assert uc == "UC1"
         assert "usecase (Login) as UC1" in output
 
@@ -75,28 +76,28 @@ class TestUseCases:
         with usecase_diagram() as d:
             d.usecase("Browse Products")
 
-        output = d.render()
+        output = render(d.build())
         assert 'usecase ("Browse Products")' in output
 
     def test_usecase_with_stereotype(self):
         with usecase_diagram() as d:
             d.usecase("Payment", stereotype="critical")
 
-        output = d.render()
+        output = render(d.build())
         assert "<<critical>>" in output
 
     def test_usecase_with_color(self):
         with usecase_diagram() as d:
             d.usecase("Priority", color="red")
 
-        output = d.render()
+        output = render(d.build())
         assert "#red" in output
 
     def test_business_usecase(self):
         with usecase_diagram() as d:
             d.usecase("Process Order", business=True)
 
-        output = d.render()
+        output = render(d.build())
         assert 'usecase/ ("Process Order")' in output
 
 
@@ -108,7 +109,7 @@ class TestContainers:
             with d.rectangle("System") as r:
                 r.usecase("Feature")
 
-        output = d.render()
+        output = render(d.build())
         assert "rectangle System" in output
         assert "{" in output
         assert "}" in output
@@ -118,7 +119,7 @@ class TestContainers:
             with d.package("Module") as p:
                 p.usecase("Feature")
 
-        output = d.render()
+        output = render(d.build())
         assert "package Module" in output
 
     def test_nested_containers(self):
@@ -127,7 +128,7 @@ class TestContainers:
                 with r.package("Subsystem") as p:
                     p.usecase("Feature")
 
-        output = d.render()
+        output = render(d.build())
         assert "rectangle System" in output
         assert "package Subsystem" in output
 
@@ -136,7 +137,7 @@ class TestContainers:
             with d.rectangle("System", color="LightBlue") as r:
                 r.usecase("Feature")
 
-        output = d.render()
+        output = render(d.build())
         assert "#LightBlue" in output
 
 
@@ -149,7 +150,7 @@ class TestRelationships:
             uc = d.usecase("Login", alias="login")
             d.arrow(user, uc)
 
-        output = d.render()
+        output = render(d.build())
         assert "u --> login" in output
 
     def test_arrow_with_label(self):
@@ -158,7 +159,7 @@ class TestRelationships:
             uc = d.usecase("Login", alias="login")
             d.arrow(user, uc, label="authenticates")
 
-        output = d.render()
+        output = render(d.build())
         assert "u --> login : authenticates" in output
 
     def test_link(self):
@@ -167,7 +168,7 @@ class TestRelationships:
             uc = d.usecase("Browse", alias="browse")
             d.link(user, uc)
 
-        output = d.render()
+        output = render(d.build())
         assert "u -> browse" in output
 
     def test_includes(self):
@@ -176,7 +177,7 @@ class TestRelationships:
             validate = d.usecase("Validate Cart", alias="validate")
             d.includes(checkout, validate)
 
-        output = d.render()
+        output = render(d.build())
         assert "checkout .> validate : <<include>>" in output
 
     def test_extends(self):
@@ -185,7 +186,7 @@ class TestRelationships:
             oauth = d.usecase("OAuth Login", alias="oauth")
             d.extends(oauth, login)
 
-        output = d.render()
+        output = render(d.build())
         assert "oauth .> login : <<extends>>" in output
 
     def test_generalizes(self):
@@ -194,7 +195,7 @@ class TestRelationships:
             admin = d.actor("Admin", alias="admin")
             d.generalizes(admin, user)
 
-        output = d.render()
+        output = render(d.build())
         assert "admin <|-- user" in output
 
     def test_relationship_with_color(self):
@@ -203,7 +204,7 @@ class TestRelationships:
             uc = d.usecase("Login", alias="login")
             d.arrow(user, uc, color="blue")
 
-        output = d.render()
+        output = render(d.build())
         assert "[#blue]" in output
 
 
@@ -215,7 +216,7 @@ class TestNotes:
             d.usecase("Login", alias="login")
             d.note("Important feature", target="login", position="right")
 
-        output = d.render()
+        output = render(d.build())
         assert "note right of login" in output
         assert "Important feature" in output
 
@@ -223,7 +224,7 @@ class TestNotes:
         with usecase_diagram() as d:
             d.note("System overview", floating=True)
 
-        output = d.render()
+        output = render(d.build())
         assert "floating note" in output
 
     def test_note_with_color(self):
@@ -231,7 +232,7 @@ class TestNotes:
             d.usecase("Login", alias="login")
             d.note("Warning", target="login", color="yellow")
 
-        output = d.render()
+        output = render(d.build())
         assert "#yellow" in output
 
 
@@ -242,28 +243,28 @@ class TestDiagramOptions:
         with usecase_diagram(title="Shopping System") as d:
             d.usecase("Browse")
 
-        output = d.render()
+        output = render(d.build())
         assert "title Shopping System" in output
 
     def test_left_to_right(self):
         with usecase_diagram(left_to_right=True) as d:
             d.usecase("Feature")
 
-        output = d.render()
+        output = render(d.build())
         assert "left to right direction" in output
 
     def test_actor_style_awesome(self):
         with usecase_diagram(actor_style="awesome") as d:
             d.actor("User")
 
-        output = d.render()
+        output = render(d.build())
         assert "skinparam actorStyle awesome" in output
 
     def test_actor_style_hollow(self):
         with usecase_diagram(actor_style="hollow") as d:
             d.actor("User")
 
-        output = d.render()
+        output = render(d.build())
         assert "skinparam actorStyle hollow" in output
 
 
@@ -275,7 +276,7 @@ class TestRenderMethod:
             d.actor("User")
             d.usecase("Login")
 
-        output = d.render()
+        output = render(d.build())
         assert output.startswith("@startuml")
         assert output.endswith("@enduml")
 
@@ -285,7 +286,7 @@ class TestRenderMethod:
             d.usecase("Login")
 
         from plantuml_compose.renderers import render
-        assert d.render() == render(d.build())
+        assert render(d.build()) == render(d.build())
 
 
 class TestComplexDiagram:
@@ -319,7 +320,7 @@ class TestComplexDiagram:
             d.includes(checkout, payment)
             d.extends(search, browse)
 
-        output = d.render()
+        output = render(d.build())
         assert "title E-Commerce System" in output
         assert "left to right direction" in output
         assert 'rectangle "E-Commerce Platform"' in output

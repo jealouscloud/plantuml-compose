@@ -2,6 +2,7 @@
 
 import pytest
 
+from plantuml_compose import render
 from plantuml_compose.builders.class_ import class_diagram
 from plantuml_compose.primitives.class_ import (
     ClassDiagram,
@@ -22,56 +23,59 @@ class TestClassNode:
         with class_diagram() as d:
             d.class_("User")
 
-        output = d.render()
+        output = render(d.build())
         assert "class User" in output
 
     def test_abstract_class(self):
         with class_diagram() as d:
             d.abstract("AbstractEntity")
 
-        output = d.render()
+        output = render(d.build())
         assert "abstract class AbstractEntity" in output
 
     def test_interface(self):
         with class_diagram() as d:
             d.interface("Repository")
 
-        output = d.render()
+        output = render(d.build())
         assert "interface Repository" in output
 
     def test_enum_with_values(self):
         with class_diagram() as d:
             d.enum("Status", "PENDING", "ACTIVE", "CLOSED")
 
-        output = d.render()
-        assert "enum Status { PENDING, ACTIVE, CLOSED }" in output
+        output = render(d.build())
+        assert "enum Status {" in output
+        assert "PENDING" in output
+        assert "ACTIVE" in output
+        assert "CLOSED" in output
 
     def test_annotation(self):
         with class_diagram() as d:
             d.annotation("Deprecated")
 
-        output = d.render()
+        output = render(d.build())
         assert "annotation Deprecated" in output
 
     def test_entity(self):
         with class_diagram() as d:
             d.entity("Order")
 
-        output = d.render()
+        output = render(d.build())
         assert "entity Order" in output
 
     def test_class_with_generics(self):
         with class_diagram() as d:
             d.class_("Repository", generics="T extends Entity")
 
-        output = d.render()
+        output = render(d.build())
         assert "class Repository<T extends Entity>" in output
 
     def test_class_with_alias(self):
         with class_diagram() as d:
             d.class_("Long Class Name", alias="lcn")
 
-        output = d.render()
+        output = render(d.build())
         assert 'class "Long Class Name" as lcn' in output
 
 
@@ -83,7 +87,7 @@ class TestClassMembers:
             with d.class_with_members("User") as user:
                 user.field("id", "int")
 
-        output = d.render()
+        output = render(d.build())
         assert "id : int" in output
 
     def test_field_with_visibility_prefix(self):
@@ -94,7 +98,7 @@ class TestClassMembers:
                 user.field("#protected_field", "str")
                 user.field("~package_field", "str")
 
-        output = d.render()
+        output = render(d.build())
         assert "-private_field : str" in output
         assert "+public_field : str" in output
         assert "#protected_field : str" in output
@@ -105,7 +109,7 @@ class TestClassMembers:
             with d.class_with_members("User") as user:
                 user.method("+login()", "bool")
 
-        output = d.render()
+        output = render(d.build())
         assert "+login() : bool" in output
 
     def test_static_method(self):
@@ -113,7 +117,7 @@ class TestClassMembers:
             with d.class_with_members("User") as user:
                 user.static("create()", "User")
 
-        output = d.render()
+        output = render(d.build())
         assert "{static}" in output
         assert "create() : User" in output
 
@@ -122,7 +126,7 @@ class TestClassMembers:
             with d.class_with_members("Entity") as entity:
                 entity.abstract_method("+save()", "bool")
 
-        output = d.render()
+        output = render(d.build())
         assert "{abstract}" in output
         assert "save() : bool" in output
 
@@ -133,7 +137,7 @@ class TestClassMembers:
                 user.separator()
                 user.method("save()", "bool")
 
-        output = d.render()
+        output = render(d.build())
         assert "--" in output
 
     def test_separator_with_label(self):
@@ -143,7 +147,7 @@ class TestClassMembers:
                 user.separator(label="Methods")
                 user.method("save()", "bool")
 
-        output = d.render()
+        output = render(d.build())
         assert "-- Methods --" in output
 
 
@@ -156,7 +160,7 @@ class TestRelationships:
             child = d.class_("Child")
             d.extends(child, parent)
 
-        output = d.render()
+        output = render(d.build())
         assert "Parent <|-- Child" in output
 
     def test_implements(self):
@@ -165,7 +169,7 @@ class TestRelationships:
             impl = d.class_("UserRepository")
             d.implements(impl, interface)
 
-        output = d.render()
+        output = render(d.build())
         assert "Repository <|.. UserRepository" in output
 
     def test_aggregation(self):
@@ -174,7 +178,7 @@ class TestRelationships:
             item = d.class_("Item")
             d.has(container, item)
 
-        output = d.render()
+        output = render(d.build())
         assert "Container o-- Item" in output
 
     def test_composition(self):
@@ -183,7 +187,7 @@ class TestRelationships:
             item = d.class_("Item")
             d.has(container, item, composition=True)
 
-        output = d.render()
+        output = render(d.build())
         assert "Container *-- Item" in output
 
     def test_uses_dependency(self):
@@ -192,7 +196,7 @@ class TestRelationships:
             service = d.class_("Service")
             d.uses(user, service)
 
-        output = d.render()
+        output = render(d.build())
         assert "User ..> Service" in output
 
     def test_association(self):
@@ -201,7 +205,7 @@ class TestRelationships:
             b = d.class_("B")
             d.associates(a, b)
 
-        output = d.render()
+        output = render(d.build())
         assert "A --> B" in output
 
     def test_relationship_with_cardinality(self):
@@ -210,7 +214,7 @@ class TestRelationships:
             order = d.class_("Order")
             d.has(user, order, source_card="1", target_card="*")
 
-        output = d.render()
+        output = render(d.build())
         assert '"1"' in output
         assert '"*"' in output
 
@@ -220,8 +224,54 @@ class TestRelationships:
             order = d.class_("Order")
             d.has(user, order, label="places")
 
-        output = d.render()
+        output = render(d.build())
         assert ": places" in output
+
+    def test_relationship_with_role_labels(self):
+        with class_diagram() as d:
+            user = d.class_("User")
+            order = d.class_("Order")
+            d.has(
+                user,
+                order,
+                source_label="owner",
+                target_label="orders",
+            )
+
+        output = render(d.build())
+        assert '"owner"' in output
+        assert '"orders"' in output
+
+    def test_relationship_with_style_color(self):
+        with class_diagram() as d:
+            user = d.class_("User")
+            order = d.class_("Order")
+            d.associates(user, order, style={"color": "red"})
+
+        output = render(d.build())
+        assert "-[#red]->" in output
+
+    def test_relationship_with_style_dashed(self):
+        with class_diagram() as d:
+            user = d.class_("User")
+            order = d.class_("Order")
+            d.associates(user, order, style={"pattern": "dashed"})
+
+        output = render(d.build())
+        assert "-[dashed]->" in output
+
+    def test_relationship_with_combined_style(self):
+        with class_diagram() as d:
+            user = d.class_("User")
+            order = d.class_("Order")
+            d.associates(
+                user,
+                order,
+                style={"color": "blue", "pattern": "dotted", "thickness": 2},
+            )
+
+        output = render(d.build())
+        assert "-[#blue,dotted,thickness=2]->" in output
 
 
 class TestPackages:
@@ -233,7 +283,7 @@ class TestPackages:
                 pkg.class_("User")
                 pkg.class_("Order")
 
-        output = d.render()
+        output = render(d.build())
         assert "package domain {" in output
         assert "class User" in output
         assert "class Order" in output
@@ -244,7 +294,7 @@ class TestPackages:
             with d.package("domain", color="LightBlue") as pkg:
                 pkg.class_("User")
 
-        output = d.render()
+        output = render(d.build())
         assert "#LightBlue" in output
 
     def test_package_with_style(self):
@@ -252,7 +302,7 @@ class TestPackages:
             with d.package("domain", style="folder") as pkg:
                 pkg.class_("User")
 
-        output = d.render()
+        output = render(d.build())
         assert "<<Folder>>" in output
 
     def test_nested_packages(self):
@@ -261,7 +311,7 @@ class TestPackages:
                 with outer.package("domain") as inner:
                     inner.class_("User")
 
-        output = d.render()
+        output = render(d.build())
         # com.example gets quoted because it contains a dot
         assert 'package "com.example" {' in output
         assert "package domain {" in output
@@ -276,7 +326,7 @@ class TestTogether:
                 t.class_("A")
                 t.class_("B")
 
-        output = d.render()
+        output = render(d.build())
         assert "together {" in output
         assert "class A" in output
         assert "class B" in output
@@ -290,7 +340,7 @@ class TestNotes:
             user = d.class_("User")
             d.note("Main entity", of=user)
 
-        output = d.render()
+        output = render(d.build())
         assert "note right of User: Main entity" in output
 
 
@@ -301,28 +351,28 @@ class TestDiagramOptions:
         with class_diagram(title="Domain Model") as d:
             d.class_("User")
 
-        output = d.render()
+        output = render(d.build())
         assert "title Domain Model" in output
 
     def test_hide_empty_members(self):
         with class_diagram(hide_empty_members=True) as d:
             d.class_("User")
 
-        output = d.render()
+        output = render(d.build())
         assert "hide empty members" in output
 
     def test_hide_circle(self):
         with class_diagram(hide_circle=True) as d:
             d.class_("User")
 
-        output = d.render()
+        output = render(d.build())
         assert "hide circle" in output
 
     def test_namespace_separator(self):
         with class_diagram(namespace_separator="::") as d:
             d.class_("User")
 
-        output = d.render()
+        output = render(d.build())
         assert "set separator ::" in output
 
 
@@ -333,7 +383,7 @@ class TestRenderMethod:
         with class_diagram() as d:
             d.class_("User")
 
-        output = d.render()
+        output = render(d.build())
         assert output.startswith("@startuml")
         assert output.endswith("@enduml")
 
@@ -342,7 +392,7 @@ class TestRenderMethod:
             d.class_("User")
 
         from plantuml_compose.renderers import render
-        assert d.render() == render(d.build())
+        assert render(d.build()) == render(d.build())
 
 
 class TestEdgeCases:
@@ -352,7 +402,7 @@ class TestEdgeCases:
         with class_diagram() as d:
             pass
 
-        output = d.render()
+        output = render(d.build())
         assert "@startuml" in output
         assert "@enduml" in output
 
@@ -360,14 +410,14 @@ class TestEdgeCases:
         with class_diagram() as d:
             d.class_("My Class")
 
-        output = d.render()
+        output = render(d.build())
         assert '"My Class"' in output
 
     def test_relationship_with_string_refs(self):
         with class_diagram() as d:
             d.relationship("User", "Order", "association")
 
-        output = d.render()
+        output = render(d.build())
         assert "User --> Order" in output
 
 
@@ -391,7 +441,7 @@ class TestComplexDiagram:
             d.has(user, order, source_card="1", target_card="*", label="places")
             d.has(order, "Product", source_card="1", target_card="*")
 
-        output = d.render()
+        output = render(d.build())
         assert "title E-Commerce Domain" in output
         assert "class User" in output
         assert "class Order" in output

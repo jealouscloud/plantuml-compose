@@ -144,6 +144,55 @@ def generate_color_literal() -> str:
     return "\n".join(lines)
 
 
+def test_all_builders_importable():
+    """Smoke test: verify all diagram builders are importable from package root."""
+    from plantuml_compose import (
+        activity_diagram,
+        class_diagram,
+        component_diagram,
+        deployment_diagram,
+        object_diagram,
+        sequence_diagram,
+        state_diagram,
+        usecase_diagram,
+        render,
+    )
+
+    # Verify each is callable (they are context managers)
+    assert callable(activity_diagram)
+    assert callable(class_diagram)
+    assert callable(component_diagram)
+    assert callable(deployment_diagram)
+    assert callable(object_diagram)
+    assert callable(sequence_diagram)
+    assert callable(state_diagram)
+    assert callable(usecase_diagram)
+    assert callable(render)
+
+
+def test_subpackage_imports():
+    """Verify builders can also be imported from subpackages."""
+    from plantuml_compose.builders import (
+        activity_diagram,
+        class_diagram,
+        component_diagram,
+        deployment_diagram,
+        object_diagram,
+        sequence_diagram,
+        state_diagram,
+        usecase_diagram,
+    )
+
+    assert callable(activity_diagram)
+    assert callable(class_diagram)
+    assert callable(component_diagram)
+    assert callable(deployment_diagram)
+    assert callable(object_diagram)
+    assert callable(sequence_diagram)
+    assert callable(state_diagram)
+    assert callable(usecase_diagram)
+
+
 if __name__ == "__main__":
     # When run directly, output the Literal type definition
     print(generate_color_literal())

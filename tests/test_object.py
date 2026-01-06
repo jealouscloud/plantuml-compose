@@ -2,6 +2,7 @@
 
 import pytest
 
+from plantuml_compose import render
 from plantuml_compose.builders.object_ import object_diagram
 from plantuml_compose.primitives.object_ import (
     Field,
@@ -22,36 +23,36 @@ class TestObjects:
         with object_diagram() as d:
             d.object("Customer")
 
-        output = d.render()
+        output = render(d.build())
         assert "object Customer" in output
 
     def test_object_with_alias(self):
         with object_diagram() as d:
             c = d.object("Customer", alias="cust")
 
-        output = d.render()
+        output = render(d.build())
         assert c == "cust"
-        assert "object Customer as cust" in output
+        assert 'object "Customer" as cust' in output
 
     def test_object_with_spaces(self):
         with object_diagram() as d:
             d.object("My Customer")
 
-        output = d.render()
+        output = render(d.build())
         assert 'object "My Customer"' in output
 
     def test_object_with_stereotype(self):
         with object_diagram() as d:
             d.object("Customer", stereotype="entity")
 
-        output = d.render()
+        output = render(d.build())
         assert "<<entity>>" in output
 
     def test_object_with_color(self):
         with object_diagram() as d:
             d.object("VIP", color="gold")
 
-        output = d.render()
+        output = render(d.build())
         assert "#gold" in output
 
     def test_object_with_fields(self):
@@ -62,8 +63,8 @@ class TestObjects:
                 fields={"id": "12345", "status": "pending"}
             )
 
-        output = d.render()
-        assert "object Order as ord {" in output
+        output = render(d.build())
+        assert 'object "Order" as ord {' in output
         assert "id = 12345" in output
         assert "status = pending" in output
         assert "}" in output
@@ -76,7 +77,7 @@ class TestMaps:
         with object_diagram() as d:
             d.map("Products", entries={"item1": "Widget", "item2": "Gadget"})
 
-        output = d.render()
+        output = render(d.build())
         assert "map Products {" in output
         assert "item1 => Widget" in output
         assert "item2 => Gadget" in output
@@ -85,23 +86,23 @@ class TestMaps:
         with object_diagram() as d:
             p = d.map("Products", alias="prod", entries={"x": "y"})
 
-        output = d.render()
+        output = render(d.build())
         assert p == "prod"
-        assert "map Products as prod" in output
+        assert 'map "Products" as prod' in output
 
     def test_map_with_links(self):
         with object_diagram() as d:
             d.object("Widget", alias="widget")
             d.map("Products", links={"item1": "widget"})
 
-        output = d.render()
+        output = render(d.build())
         assert "item1 *-> widget" in output
 
     def test_map_with_color(self):
         with object_diagram() as d:
             d.map("Config", color="LightBlue", entries={"key": "value"})
 
-        output = d.render()
+        output = render(d.build())
         assert "#LightBlue" in output
 
 
@@ -114,7 +115,7 @@ class TestRelationships:
             b = d.object("B", alias="b")
             d.arrow(a, b)
 
-        output = d.render()
+        output = render(d.build())
         assert "a --> b" in output
 
     def test_arrow_with_label(self):
@@ -123,7 +124,7 @@ class TestRelationships:
             b = d.object("B", alias="b")
             d.arrow(a, b, label="creates")
 
-        output = d.render()
+        output = render(d.build())
         assert "a --> b : creates" in output
 
     def test_link(self):
@@ -132,7 +133,7 @@ class TestRelationships:
             b = d.object("B", alias="b")
             d.link(a, b)
 
-        output = d.render()
+        output = render(d.build())
         assert "a -- b" in output
 
     def test_composition(self):
@@ -141,7 +142,7 @@ class TestRelationships:
             b = d.object("B", alias="b")
             d.composition(a, b)
 
-        output = d.render()
+        output = render(d.build())
         assert "a *-- b" in output
 
     def test_aggregation(self):
@@ -150,7 +151,7 @@ class TestRelationships:
             b = d.object("B", alias="b")
             d.aggregation(a, b)
 
-        output = d.render()
+        output = render(d.build())
         assert "a o-- b" in output
 
     def test_extension(self):
@@ -159,7 +160,7 @@ class TestRelationships:
             b = d.object("B", alias="b")
             d.extension(a, b)
 
-        output = d.render()
+        output = render(d.build())
         assert "a <|-- b" in output
 
     def test_implementation(self):
@@ -168,7 +169,7 @@ class TestRelationships:
             b = d.object("B", alias="b")
             d.implementation(a, b)
 
-        output = d.render()
+        output = render(d.build())
         assert "a <|.. b" in output
 
     def test_extension_with_label(self):
@@ -177,7 +178,7 @@ class TestRelationships:
             b = d.object("B", alias="b")
             d.extension(a, b, label="extends")
 
-        output = d.render()
+        output = render(d.build())
         assert "a <|-- b : extends" in output
 
     def test_relationship_with_color(self):
@@ -186,7 +187,7 @@ class TestRelationships:
             b = d.object("B", alias="b")
             d.arrow(a, b, color="blue")
 
-        output = d.render()
+        output = render(d.build())
         assert "[#blue]" in output
 
 
@@ -198,7 +199,7 @@ class TestNotes:
             d.object("Order", alias="ord")
             d.note("Important", target="ord", position="right")
 
-        output = d.render()
+        output = render(d.build())
         assert "note right of ord" in output
         assert "Important" in output
 
@@ -206,7 +207,7 @@ class TestNotes:
         with object_diagram() as d:
             d.note("System overview", floating=True)
 
-        output = d.render()
+        output = render(d.build())
         assert "floating note" in output
 
     def test_note_with_color(self):
@@ -214,7 +215,7 @@ class TestNotes:
             d.object("Order", alias="ord")
             d.note("Warning", target="ord", color="yellow")
 
-        output = d.render()
+        output = render(d.build())
         assert "#yellow" in output
 
 
@@ -225,7 +226,7 @@ class TestDiagramOptions:
         with object_diagram(title="Order Example") as d:
             d.object("Order")
 
-        output = d.render()
+        output = render(d.build())
         assert "title Order Example" in output
 
 
@@ -236,7 +237,7 @@ class TestRenderMethod:
         with object_diagram() as d:
             d.object("Order")
 
-        output = d.render()
+        output = render(d.build())
         assert output.startswith("@startuml")
         assert output.endswith("@enduml")
 
@@ -246,7 +247,7 @@ class TestRenderMethod:
             d.object("Customer")
 
         from plantuml_compose.renderers import render
-        assert d.render() == render(d.build())
+        assert render(d.build()) == render(d.build())
 
 
 class TestComplexDiagram:
@@ -282,11 +283,11 @@ class TestComplexDiagram:
             # Note
             d.note("Pending payment verification", target=order, position="right")
 
-        output = d.render()
+        output = render(d.build())
         assert "title Order System" in output
-        assert "object Customer as cust {" in output
+        assert 'object "Customer" as cust {' in output
         assert 'name = John Doe' in output
-        assert "object Order as ord {" in output
+        assert 'object "Order" as ord {' in output
         assert 'id = ORD-123' in output
         assert 'map "Order Items" as items {' in output
         assert "cust --> ord : places" in output

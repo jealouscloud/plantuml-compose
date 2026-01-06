@@ -68,6 +68,8 @@ class _BaseSequenceBuilder:
         line_style: MessageLineStyle = "solid",
         arrow_head: MessageArrowHead = "normal",
         bidirectional: bool = False,
+        color: ColorLike | None = None,
+        bold: bool = False,
         activate: ActivationAction | None = None,
         activate_color: ColorLike | None = None,
     ) -> Message:
@@ -80,6 +82,8 @@ class _BaseSequenceBuilder:
             line_style: "solid" or "dotted"
             arrow_head: Arrow head style
             bidirectional: If True, arrow points both directions
+            color: Arrow color (bracket syntax)
+            bold: If True, use bold arrow (bracket syntax)
             activate: Activation shorthand (++, --, **, !!)
             activate_color: Color for activation bar
 
@@ -94,6 +98,8 @@ class _BaseSequenceBuilder:
             line_style=line_style,
             arrow_head=arrow_head,
             bidirectional=bidirectional,
+            color=color,
+            bold=bold,
             activation=activate,
             activation_color=activate_color,
         )
@@ -455,6 +461,7 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         type: ParticipantType = "participant",
         order: int | None = None,
         color: ColorLike | None = None,
+        description: str | Label | None = None,
     ) -> Participant:
         """Create and register a participant.
 
@@ -464,18 +471,21 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
             type: Participant shape type
             order: Display order (lower = leftmost)
             color: Background color
+            description: Multiline description shown under the participant
 
         Returns:
             The created Participant
         """
         if not name:
             raise ValueError("Participant name cannot be empty")
+        desc_label = Label(description) if isinstance(description, str) else description
         p = Participant(
             name=name,
             alias=alias,
             type=type,
             order=order,
             color=color,
+            description=desc_label,
         )
         self._participants.append(p)
         return p
@@ -503,9 +513,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         alias: str | None = None,
         order: int | None = None,
         color: ColorLike | None = None,
+        description: str | Label | None = None,
     ) -> Participant:
         """Create an actor participant (stick figure)."""
-        return self.participant(name, alias=alias, type="actor", order=order, color=color)
+        return self.participant(
+            name, alias=alias, type="actor", order=order, color=color, description=description
+        )
 
     def boundary(
         self,
@@ -514,9 +527,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         alias: str | None = None,
         order: int | None = None,
         color: ColorLike | None = None,
+        description: str | Label | None = None,
     ) -> Participant:
         """Create a boundary participant."""
-        return self.participant(name, alias=alias, type="boundary", order=order, color=color)
+        return self.participant(
+            name, alias=alias, type="boundary", order=order, color=color, description=description
+        )
 
     def control(
         self,
@@ -525,9 +541,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         alias: str | None = None,
         order: int | None = None,
         color: ColorLike | None = None,
+        description: str | Label | None = None,
     ) -> Participant:
         """Create a control participant."""
-        return self.participant(name, alias=alias, type="control", order=order, color=color)
+        return self.participant(
+            name, alias=alias, type="control", order=order, color=color, description=description
+        )
 
     def entity(
         self,
@@ -536,9 +555,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         alias: str | None = None,
         order: int | None = None,
         color: ColorLike | None = None,
+        description: str | Label | None = None,
     ) -> Participant:
         """Create an entity participant."""
-        return self.participant(name, alias=alias, type="entity", order=order, color=color)
+        return self.participant(
+            name, alias=alias, type="entity", order=order, color=color, description=description
+        )
 
     def database(
         self,
@@ -547,9 +569,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         alias: str | None = None,
         order: int | None = None,
         color: ColorLike | None = None,
+        description: str | Label | None = None,
     ) -> Participant:
         """Create a database participant (cylinder)."""
-        return self.participant(name, alias=alias, type="database", order=order, color=color)
+        return self.participant(
+            name, alias=alias, type="database", order=order, color=color, description=description
+        )
 
     def collections(
         self,
@@ -558,9 +583,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         alias: str | None = None,
         order: int | None = None,
         color: ColorLike | None = None,
+        description: str | Label | None = None,
     ) -> Participant:
         """Create a collections participant."""
-        return self.participant(name, alias=alias, type="collections", order=order, color=color)
+        return self.participant(
+            name, alias=alias, type="collections", order=order, color=color, description=description
+        )
 
     def queue(
         self,
@@ -569,9 +597,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         alias: str | None = None,
         order: int | None = None,
         color: ColorLike | None = None,
+        description: str | Label | None = None,
     ) -> Participant:
         """Create a queue participant."""
-        return self.participant(name, alias=alias, type="queue", order=order, color=color)
+        return self.participant(
+            name, alias=alias, type="queue", order=order, color=color, description=description
+        )
 
     @contextmanager
     def box(
@@ -635,16 +666,19 @@ class _BoxBuilder:
         type: ParticipantType = "participant",
         order: int | None = None,
         color: ColorLike | None = None,
+        description: str | Label | None = None,
     ) -> Participant:
         """Create a participant within this box."""
         if not name:
             raise ValueError("Participant name cannot be empty")
+        desc_label = Label(description) if isinstance(description, str) else description
         p = Participant(
             name=name,
             alias=alias,
             type=type,
             order=order,
             color=color,
+            description=desc_label,
         )
         self._participants.append(p)
         return p

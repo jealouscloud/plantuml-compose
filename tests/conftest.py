@@ -9,9 +9,17 @@ import pytest
 OUTPUT_DIR = Path(__file__).parent / "output"
 
 
+def _get_module_output_dir(request) -> Path:
+    """Get output directory for test module (e.g., tests/output/test_state/)."""
+    module_name = request.node.module.__name__
+    module_dir = OUTPUT_DIR / module_name
+    module_dir.mkdir(parents=True, exist_ok=True)
+    return module_dir
+
+
 @pytest.fixture(autouse=True)
 def auto_save_puml(request, monkeypatch):
-    """Automatically save all rendered PlantUML diagrams to tests/output/.
+    """Automatically save all rendered PlantUML diagrams to tests/output/<module>/.
 
     Wraps the render() function to capture output and save it with the test name.
     Handles multiple renders per test by appending a counter suffix.
@@ -44,14 +52,14 @@ def auto_save_puml(request, monkeypatch):
         else:
             base_name = test_name
 
-        OUTPUT_DIR.mkdir(exist_ok=True)
+        module_dir = _get_module_output_dir(request)
 
         for i, output in enumerate(captured_outputs):
             if len(captured_outputs) == 1:
                 output_name = base_name
             else:
                 output_name = f"{base_name}__{i}"
-            (OUTPUT_DIR / f"{output_name}.puml").write_text(output)
+            (module_dir / f"{output_name}.puml").write_text(output)
 
 
 @pytest.fixture
@@ -60,7 +68,7 @@ def validate_plantuml(tmp_path: Path, request):
 
     Returns a function that takes PlantUML text and an optional name,
     writes it to a temp file, runs PlantUML, and returns True if successful.
-    Also saves the .puml file to tests/output/ with the test name for verification.
+    Also saves the .puml file to tests/output/<module>/ with the test name.
     """
 
     def _validate(puml_text: str, name: str = "test") -> bool:
@@ -69,15 +77,15 @@ def validate_plantuml(tmp_path: Path, request):
 
         puml_file.write_text(puml_text)
 
-        # Also save to tests/output/ for visual verification
+        # Also save to tests/output/<module>/ for visual verification
         test_name = request.node.name
         class_name = request.node.parent.name if request.node.parent else ""
         if class_name and class_name.startswith("Test"):
             output_name = f"{class_name}__{test_name}__{name}"
         else:
             output_name = f"{test_name}__{name}"
-        OUTPUT_DIR.mkdir(exist_ok=True)
-        (OUTPUT_DIR / f"{output_name}.puml").write_text(puml_text)
+        module_dir = _get_module_output_dir(request)
+        (module_dir / f"{output_name}.puml").write_text(puml_text)
 
         result = subprocess.run(
             ["plantuml", "-tsvg", str(puml_file)],
@@ -100,7 +108,7 @@ def render_and_parse_svg(tmp_path: Path, request):
 
     Used for inspecting SVG output to verify styling is applied.
     Fails the test if PlantUML returns an error.
-    Also saves the .puml file to tests/output/ with the test name for verification.
+    Also saves the .puml file to tests/output/<module>/ with the test name.
     """
     call_count = [0]  # Mutable counter to track multiple calls in same test
 
@@ -110,7 +118,7 @@ def render_and_parse_svg(tmp_path: Path, request):
 
         puml_file.write_text(puml_text)
 
-        # Also save to tests/output/ for visual verification
+        # Also save to tests/output/<module>/ for visual verification
         test_name = request.node.name
         class_name = request.node.parent.name if request.node.parent else ""
         if class_name and class_name.startswith("Test"):
@@ -121,8 +129,8 @@ def render_and_parse_svg(tmp_path: Path, request):
         if call_count[0] > 0:
             output_name = f"{output_name}__{call_count[0]}"
         call_count[0] += 1
-        OUTPUT_DIR.mkdir(exist_ok=True)
-        (OUTPUT_DIR / f"{output_name}.puml").write_text(puml_text)
+        module_dir = _get_module_output_dir(request)
+        (module_dir / f"{output_name}.puml").write_text(puml_text)
 
         result = subprocess.run(
             ["plantuml", "-tsvg", str(puml_file)],

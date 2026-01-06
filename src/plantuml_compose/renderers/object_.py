@@ -58,12 +58,14 @@ def _render_object(obj: Object, indent: int = 0) -> list[str]:
 
     parts: list[str] = ["object"]
 
-    # Name with possible alias
-    name = f'"{escape_quotes(obj.name)}"' if _needs_quotes(obj.name) else obj.name
-    parts.append(name)
-
+    # Name with possible alias - PlantUML requires quotes when using alias
     if obj.alias:
+        name = f'"{escape_quotes(obj.name)}"'
+        parts.append(name)
         parts.append(f"as {obj.alias}")
+    else:
+        name = f'"{escape_quotes(obj.name)}"' if _needs_quotes(obj.name) else obj.name
+        parts.append(name)
 
     if obj.stereotype:
         parts.append(render_stereotype(obj.stereotype))
@@ -93,12 +95,14 @@ def _render_map(map_obj: Map, indent: int = 0) -> list[str]:
 
     parts: list[str] = ["map"]
 
-    # Name with possible alias
-    name = f'"{escape_quotes(map_obj.name)}"' if _needs_quotes(map_obj.name) else map_obj.name
-    parts.append(name)
-
+    # Name with possible alias - PlantUML requires quotes when using alias
     if map_obj.alias:
+        name = f'"{escape_quotes(map_obj.name)}"'
+        parts.append(name)
         parts.append(f"as {map_obj.alias}")
+    else:
+        name = f'"{escape_quotes(map_obj.name)}"' if _needs_quotes(map_obj.name) else map_obj.name
+        parts.append(name)
 
     if map_obj.color:
         color = render_color(map_obj.color)

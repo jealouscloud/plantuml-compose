@@ -133,18 +133,22 @@ def _render_action(action: Action) -> str:
 
 def _render_arrow(arrow: Arrow) -> str:
     """Render an arrow."""
-    style_part = ""
-    if arrow.color or arrow.style != "solid":
-        parts = []
-        if arrow.color:
-            color = render_color(arrow.color)
-            if not color.startswith("#"):
-                color = f"#{color}"
-            parts.append(color)
-        if arrow.style != "solid":
-            parts.append(arrow.style)
-        style_part = f"[{','.join(parts)}]"
+    # Build bracket styling if any style options are set
+    # Note: thickness is in the primitive but not rendered - PlantUML doesn't support it
+    parts: list[str] = []
+    if arrow.color:
+        color = render_color(arrow.color)
+        if not color.startswith("#"):
+            color = f"#{color}"
+        parts.append(color)
+    if arrow.style != "solid":
+        parts.append(arrow.style)
+    if arrow.bold:
+        parts.append("bold")
+    if arrow.plain:
+        parts.append("plain")
 
+    style_part = f"[{','.join(parts)}]" if parts else ""
     arrow_str = f"-{style_part}->"
 
     if arrow.label:

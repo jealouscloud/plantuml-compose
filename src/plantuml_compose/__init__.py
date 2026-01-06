@@ -16,7 +16,16 @@ Usage:
     print(render(d.build()))
 """
 
-from .builders import component_diagram, state_diagram
+from .builders import (
+    activity_diagram,
+    class_diagram,
+    component_diagram,
+    deployment_diagram,
+    object_diagram,
+    sequence_diagram,
+    state_diagram,
+    usecase_diagram,
+)
 from .primitives import (
     Color,
     ColorLike,
@@ -54,7 +63,14 @@ from .renderers import render
 
 __all__ = [
     # Builders
+    "activity_diagram",
+    "class_diagram",
+    "component_diagram",
+    "deployment_diagram",
+    "object_diagram",
+    "sequence_diagram",
     "state_diagram",
+    "usecase_diagram",
     # Renderers
     "render",
     # Common primitives

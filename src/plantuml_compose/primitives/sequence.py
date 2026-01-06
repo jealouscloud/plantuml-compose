@@ -104,6 +104,10 @@ class Message:
     line_style: MessageLineStyle = "solid"
     arrow_head: MessageArrowHead = "normal"
     bidirectional: bool = False
+    # Arrow styling (bracket syntax: -[#red,bold]->)
+    color: ColorLike | None = None
+    thickness: int | None = None  # Pixels
+    bold: bool = False
     # Activation shorthand
     activation: ActivationAction | None = None
     activation_color: ColorLike | None = None

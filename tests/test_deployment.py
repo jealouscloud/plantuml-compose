@@ -2,6 +2,7 @@
 
 import pytest
 
+from plantuml_compose import render
 from plantuml_compose.builders.deployment import deployment_diagram
 from plantuml_compose.primitives.deployment import (
     DeploymentDiagram,
@@ -20,7 +21,7 @@ class TestBasicElements:
             with d.node_nested("Server") as server:
                 server.component("App")
 
-        output = d.render()
+        output = render(d.build())
         assert "node Server" in output
         assert "component App" in output
 
@@ -28,77 +29,77 @@ class TestBasicElements:
         with deployment_diagram() as d:
             d.actor("User")
 
-        output = d.render()
+        output = render(d.build())
         assert "actor User" in output
 
     def test_artifact(self):
         with deployment_diagram() as d:
             d.artifact("app.jar")
 
-        output = d.render()
+        output = render(d.build())
         assert 'artifact "app.jar"' in output
 
     def test_component(self):
         with deployment_diagram() as d:
             d.component("WebApp")
 
-        output = d.render()
+        output = render(d.build())
         assert "component WebApp" in output
 
     def test_database(self):
         with deployment_diagram() as d:
             d.database("PostgreSQL")
 
-        output = d.render()
+        output = render(d.build())
         assert "database PostgreSQL" in output
 
     def test_cloud(self):
         with deployment_diagram() as d:
             d.cloud("AWS")
 
-        output = d.render()
+        output = render(d.build())
         assert "cloud AWS" in output
 
     def test_file(self):
         with deployment_diagram() as d:
             d.file("config.yml")
 
-        output = d.render()
+        output = render(d.build())
         assert 'file "config.yml"' in output
 
     def test_folder(self):
         with deployment_diagram() as d:
             d.folder("Documents")
 
-        output = d.render()
+        output = render(d.build())
         assert "folder Documents" in output
 
     def test_queue(self):
         with deployment_diagram() as d:
             d.queue("MessageQueue")
 
-        output = d.render()
+        output = render(d.build())
         assert "queue MessageQueue" in output
 
     def test_storage(self):
         with deployment_diagram() as d:
             d.storage("S3Bucket")
 
-        output = d.render()
+        output = render(d.build())
         assert "storage S3Bucket" in output
 
     def test_stack(self):
         with deployment_diagram() as d:
             d.stack("TechStack")
 
-        output = d.render()
+        output = render(d.build())
         assert "stack TechStack" in output
 
     def test_element_with_alias(self):
         with deployment_diagram() as d:
             srv = d.component("Web Server", alias="srv")
 
-        output = d.render()
+        output = render(d.build())
         assert srv == "srv"
         assert 'component "Web Server" as srv' in output
 
@@ -106,14 +107,14 @@ class TestBasicElements:
         with deployment_diagram() as d:
             d.component("API", stereotype="service")
 
-        output = d.render()
+        output = render(d.build())
         assert "<<service>>" in output
 
     def test_element_with_color(self):
         with deployment_diagram() as d:
             d.component("Critical", color="red")
 
-        output = d.render()
+        output = render(d.build())
         assert "#red" in output
 
 
@@ -127,7 +128,7 @@ class TestNestedElements:
                 node.component("Backend")
                 node.database("Cache")
 
-        output = d.render()
+        output = render(d.build())
         assert "node AppServer" in output
         assert "component Frontend" in output
         assert "component Backend" in output
@@ -139,7 +140,7 @@ class TestNestedElements:
                 cloud.component("Lambda")
                 cloud.database("DynamoDB")
 
-        output = d.render()
+        output = render(d.build())
         assert "cloud AWS" in output
         assert "component Lambda" in output
         assert "database DynamoDB" in output
@@ -149,7 +150,7 @@ class TestNestedElements:
             with d.database_nested("PostgreSQL") as db:
                 db.artifact("users_table")
 
-        output = d.render()
+        output = render(d.build())
         assert "database PostgreSQL" in output
         assert "artifact users_table" in output
 
@@ -159,7 +160,7 @@ class TestNestedElements:
                 with cloud.node_nested("EC2") as node:
                     node.component("App")
 
-        output = d.render()
+        output = render(d.build())
         assert "cloud AWS" in output
         assert "node EC2" in output
         assert "component App" in output
@@ -174,7 +175,7 @@ class TestRelationships:
             b = d.component("B", alias="b")
             d.arrow(a, b)
 
-        output = d.render()
+        output = render(d.build())
         assert "a --> b" in output
 
     def test_arrow_with_label(self):
@@ -183,7 +184,7 @@ class TestRelationships:
             b = d.component("B", alias="b")
             d.arrow(a, b, label="connects")
 
-        output = d.render()
+        output = render(d.build())
         assert "a --> b : connects" in output
 
     def test_dotted_arrow(self):
@@ -192,7 +193,7 @@ class TestRelationships:
             b = d.component("B", alias="b")
             d.arrow(a, b, dotted=True)
 
-        output = d.render()
+        output = render(d.build())
         assert "a ..> b" in output
 
     def test_link(self):
@@ -201,7 +202,7 @@ class TestRelationships:
             b = d.component("B", alias="b")
             d.link(a, b)
 
-        output = d.render()
+        output = render(d.build())
         assert "a -- b" in output
 
     def test_dotted_link(self):
@@ -210,7 +211,7 @@ class TestRelationships:
             b = d.component("B", alias="b")
             d.link(a, b, dotted=True)
 
-        output = d.render()
+        output = render(d.build())
         assert "a .. b" in output
 
     def test_relationship_with_color(self):
@@ -219,7 +220,7 @@ class TestRelationships:
             b = d.component("B", alias="b")
             d.arrow(a, b, color="blue")
 
-        output = d.render()
+        output = render(d.build())
         assert "[#blue]" in output
 
 
@@ -231,7 +232,7 @@ class TestNotes:
             d.component("API", alias="api")
             d.note("Main entry point", target="api", position="right")
 
-        output = d.render()
+        output = render(d.build())
         assert "note right of api" in output
         assert "Main entry point" in output
 
@@ -239,7 +240,7 @@ class TestNotes:
         with deployment_diagram() as d:
             d.note("System overview", floating=True)
 
-        output = d.render()
+        output = render(d.build())
         assert "floating note" in output
 
     def test_note_with_color(self):
@@ -247,7 +248,7 @@ class TestNotes:
             d.component("API", alias="api")
             d.note("Important", target="api", color="yellow")
 
-        output = d.render()
+        output = render(d.build())
         assert "#yellow" in output
 
 
@@ -258,7 +259,7 @@ class TestDiagramOptions:
         with deployment_diagram(title="Infrastructure") as d:
             d.component("API")
 
-        output = d.render()
+        output = render(d.build())
         assert "title Infrastructure" in output
 
 
@@ -269,7 +270,7 @@ class TestRenderMethod:
         with deployment_diagram() as d:
             d.component("API")
 
-        output = d.render()
+        output = render(d.build())
         assert output.startswith("@startuml")
         assert output.endswith("@enduml")
 
@@ -279,7 +280,7 @@ class TestRenderMethod:
             d.database("DB")
 
         from plantuml_compose.renderers import render
-        assert d.render() == render(d.build())
+        assert render(d.build()) == render(d.build())
 
 
 class TestComplexDiagram:
@@ -314,7 +315,7 @@ class TestComplexDiagram:
             d.arrow("api2", "mq")
             d.link("primary", "replica", label="replicates")
 
-        output = d.render()
+        output = render(d.build())
         assert "title Microservices Deployment" in output
         assert 'component "Load Balancer" as lb' in output
         assert 'node "App Server 1"' in output
@@ -352,7 +353,7 @@ class TestComplexDiagram:
             d.storage("Storage")
             d.usecase("Usecase")
 
-        output = d.render()
+        output = render(d.build())
         assert "actor User" in output
         assert "agent Agent" in output
         assert "database Database" in output

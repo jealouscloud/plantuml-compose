@@ -18,7 +18,13 @@ from ..primitives.class_ import (
     Together,
 )
 from ..primitives.common import Note
-from .common import escape_quotes, render_color, render_label, render_stereotype
+from .common import (
+    escape_quotes,
+    render_color,
+    render_label,
+    render_line_style_bracket,
+    render_stereotype,
+)
 
 
 def render_class_diagram(diagram: ClassDiagram) -> str:
@@ -103,11 +109,12 @@ def _render_class_node(node: ClassNode) -> list[str]:
     if node.stereotype:
         decl += f" {render_stereotype(node.stereotype)}"
 
-    # Enum values (shorthand syntax)
+    # Enum values (multiline syntax required by PlantUML)
     if node.type == "enum" and node.enum_values and not node.members:
-        values = ", ".join(node.enum_values)
-        decl += f" {{ {values} }}"
-        lines.append(decl)
+        lines.append(f"{decl} {{")
+        for value in node.enum_values:
+            lines.append(f"  {value}")
+        lines.append("}")
         return lines
 
     # Members
@@ -172,8 +179,13 @@ def _render_relationship(rel: Relationship) -> str:
     # Build arrow based on relationship type
     arrow = _build_relationship_arrow(rel)
 
-    # Build with cardinalities and label
+    # Build with labels, cardinalities and relationship label
+    # PlantUML syntax: source "src_label" "src_card" --> "tgt_card" "tgt_label" target : label
     parts: list[str] = [rel.source]
+
+    # Source label (role name)
+    if rel.source_label:
+        parts.append(f'"{rel.source_label}"')
 
     # Source cardinality
     if rel.source_cardinality:
@@ -185,9 +197,13 @@ def _render_relationship(rel: Relationship) -> str:
     if rel.target_cardinality:
         parts.append(f'"{rel.target_cardinality}"')
 
+    # Target label (role name)
+    if rel.target_label:
+        parts.append(f'"{rel.target_label}"')
+
     parts.append(rel.target)
 
-    # Label
+    # Relationship label
     if rel.label:
         label_text = render_label(rel.label)
         if rel.label_direction:
@@ -204,6 +220,11 @@ def _build_relationship_arrow(rel: Relationship) -> str:
     if rel.direction:
         dir_mod = rel.direction[0]  # First letter: u, d, l, r
 
+    # Style modifier (bracket syntax)
+    style_mod = ""
+    if rel.style:
+        style_mod = render_line_style_bracket(rel.style)
+
     # Relationship type to arrow mapping
     arrow_map = {
         "extension": "<|--",
@@ -217,14 +238,39 @@ def _build_relationship_arrow(rel: Relationship) -> str:
     }
     base_arrow = arrow_map[rel.type]
 
-    # Insert direction modifier if present
-    if dir_mod and "--" in base_arrow:
-        # For arrows like "<|--" or "*--", insert direction after first part
+    # Build arrow with direction and style modifiers
+    # PlantUML syntax: A -[style,dir]-> B
+    if "--" in base_arrow:
         idx = base_arrow.index("--")
-        return base_arrow[:idx] + f"-{dir_mod}-"
-    elif dir_mod and ".." in base_arrow:
+        head = base_arrow[:idx]  # e.g., "<|", "*", "o", "", "-"
+        tail = base_arrow[idx + 2 :]  # e.g., "", ">", ""
+        # Build middle part with style and direction
+        if style_mod and dir_mod:
+            # Both: -[style,dir]-
+            middle = f"-{style_mod}{dir_mod}-"
+        elif style_mod:
+            # Style only: -[style]-
+            middle = f"-{style_mod}-"
+        elif dir_mod:
+            # Direction only: -dir-
+            middle = f"-{dir_mod}-"
+        else:
+            middle = "--"
+        return f"{head}{middle}{tail}"
+    elif ".." in base_arrow:
         idx = base_arrow.index("..")
-        return base_arrow[:idx] + f".{dir_mod}."
+        head = base_arrow[:idx]  # e.g., "<|", ""
+        tail = base_arrow[idx + 2 :]  # e.g., "", ">"
+        # Build middle part with style and direction
+        if style_mod and dir_mod:
+            middle = f".{style_mod}{dir_mod}."
+        elif style_mod:
+            middle = f".{style_mod}."
+        elif dir_mod:
+            middle = f".{dir_mod}."
+        else:
+            middle = ".."
+        return f"{head}{middle}{tail}"
 
     return base_arrow
 

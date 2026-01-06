@@ -2,6 +2,7 @@
 
 import pytest
 
+from plantuml_compose import render
 from plantuml_compose.builders.sequence import sequence_diagram
 from plantuml_compose.primitives.sequence import (
     Activation,
@@ -29,77 +30,77 @@ class TestParticipant:
         with sequence_diagram() as d:
             user = d.participant("User")
 
-        output = d.render()
+        output = render(d.build())
         assert "participant User" in output
 
     def test_participant_with_alias(self):
         with sequence_diagram() as d:
             d.participant("Long User Name", alias="user")
 
-        output = d.render()
+        output = render(d.build())
         assert 'participant "Long User Name" as user' in output
 
     def test_actor(self):
         with sequence_diagram() as d:
             d.actor("User")
 
-        output = d.render()
+        output = render(d.build())
         assert "actor User" in output
 
     def test_database(self):
         with sequence_diagram() as d:
             d.database("MySQL")
 
-        output = d.render()
+        output = render(d.build())
         assert "database MySQL" in output
 
     def test_boundary(self):
         with sequence_diagram() as d:
             d.boundary("API")
 
-        output = d.render()
+        output = render(d.build())
         assert "boundary API" in output
 
     def test_control(self):
         with sequence_diagram() as d:
             d.control("Controller")
 
-        output = d.render()
+        output = render(d.build())
         assert "control Controller" in output
 
     def test_entity(self):
         with sequence_diagram() as d:
             d.entity("Order")
 
-        output = d.render()
+        output = render(d.build())
         assert "entity Order" in output
 
     def test_queue(self):
         with sequence_diagram() as d:
             d.queue("MessageQueue")
 
-        output = d.render()
+        output = render(d.build())
         assert "queue MessageQueue" in output
 
     def test_collections(self):
         with sequence_diagram() as d:
             d.collections("Users")
 
-        output = d.render()
+        output = render(d.build())
         assert "collections Users" in output
 
     def test_participant_with_order(self):
         with sequence_diagram() as d:
             d.participant("User", order=10)
 
-        output = d.render()
+        output = render(d.build())
         assert "participant User order 10" in output
 
     def test_participant_with_color(self):
         with sequence_diagram() as d:
             d.participant("User", color="red")
 
-        output = d.render()
+        output = render(d.build())
         assert "participant User #red" in output
 
     def test_participants_bulk_creation(self):
@@ -109,10 +110,21 @@ class TestParticipant:
         assert user.name == "User"
         assert api.name == "API"
         assert db.name == "Database"
-        output = d.render()
+        output = render(d.build())
         assert "participant User" in output
         assert "participant API" in output
         assert "participant Database" in output
+
+    def test_participant_with_multiline_description(self):
+        with sequence_diagram() as d:
+            d.participant("User", description="Primary user\ninterface")
+
+        output = render(d.build())
+        # Multiline descriptions use bracket syntax
+        assert "participant User [" in output
+        assert "Primary user" in output
+        assert "interface" in output
+        assert "]" in output
 
 
 class TestMessage:
@@ -124,7 +136,7 @@ class TestMessage:
             api = d.participant("API")
             d.message(user, api, "request")
 
-        output = d.render()
+        output = render(d.build())
         assert "User -> API : request" in output
 
     def test_message_dotted(self):
@@ -132,7 +144,7 @@ class TestMessage:
             user, api = d.participants("User", "API")
             d.message(user, api, "request", line_style="dotted")
 
-        output = d.render()
+        output = render(d.build())
         assert "User --> API : request" in output
 
     def test_message_thin_arrow(self):
@@ -140,7 +152,7 @@ class TestMessage:
             user, api = d.participants("User", "API")
             d.message(user, api, "request", arrow_head="thin")
 
-        output = d.render()
+        output = render(d.build())
         assert "User ->> API : request" in output
 
     def test_message_bidirectional(self):
@@ -148,7 +160,7 @@ class TestMessage:
             user, api = d.participants("User", "API")
             d.message(user, api, "sync", bidirectional=True)
 
-        output = d.render()
+        output = render(d.build())
         assert "User <-> API : sync" in output
 
     def test_message_bidirectional_lost(self):
@@ -156,7 +168,7 @@ class TestMessage:
             user, api = d.participants("User", "API")
             d.message(user, api, "msg", arrow_head="lost", bidirectional=True)
 
-        output = d.render()
+        output = render(d.build())
         assert "<->x" in output
 
     def test_message_bidirectional_circle(self):
@@ -164,7 +176,7 @@ class TestMessage:
             user, api = d.participants("User", "API")
             d.message(user, api, "msg", arrow_head="circle", bidirectional=True)
 
-        output = d.render()
+        output = render(d.build())
         assert "<->o" in output
 
     def test_message_bidirectional_thin(self):
@@ -172,7 +184,7 @@ class TestMessage:
             user, api = d.participants("User", "API")
             d.message(user, api, "msg", arrow_head="thin", bidirectional=True)
 
-        output = d.render()
+        output = render(d.build())
         assert "<->>" in output
 
     def test_message_with_activation(self):
@@ -180,7 +192,7 @@ class TestMessage:
             user, api = d.participants("User", "API")
             d.message(user, api, "request", activate="activate")
 
-        output = d.render()
+        output = render(d.build())
         assert "User -> API++ : request" in output
 
     def test_message_with_deactivation(self):
@@ -188,8 +200,32 @@ class TestMessage:
             user, api = d.participants("User", "API")
             d.message(api, user, "response", activate="deactivate")
 
-        output = d.render()
+        output = render(d.build())
         assert "API -> User-- : response" in output
+
+    def test_message_with_color(self):
+        with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "request", color="red")
+
+        output = render(d.build())
+        assert "-[#red]->" in output
+
+    def test_message_with_bold(self):
+        with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "request", bold=True)
+
+        output = render(d.build())
+        assert "-[bold]->" in output
+
+    def test_message_with_combined_styling(self):
+        with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "request", color="blue", bold=True)
+
+        output = render(d.build())
+        assert "-[#blue,bold]->" in output
 
     def test_return_message(self):
         with sequence_diagram() as d:
@@ -197,7 +233,7 @@ class TestMessage:
             d.message(user, api, "request")
             d.return_("response")
 
-        output = d.render()
+        output = render(d.build())
         assert "return response" in output
 
 
@@ -209,7 +245,7 @@ class TestActivation:
             user = d.participant("User")
             d.activate(user)
 
-        output = d.render()
+        output = render(d.build())
         assert "activate User" in output
 
     def test_explicit_deactivate(self):
@@ -217,7 +253,7 @@ class TestActivation:
             user = d.participant("User")
             d.deactivate(user)
 
-        output = d.render()
+        output = render(d.build())
         assert "deactivate User" in output
 
     def test_explicit_destroy(self):
@@ -225,7 +261,7 @@ class TestActivation:
             user = d.participant("User")
             d.destroy(user)
 
-        output = d.render()
+        output = render(d.build())
         assert "destroy User" in output
 
     def test_activate_with_color(self):
@@ -233,7 +269,7 @@ class TestActivation:
             user = d.participant("User")
             d.activate(user, color="red")
 
-        output = d.render()
+        output = render(d.build())
         assert "activate User #red" in output
 
 
@@ -246,7 +282,7 @@ class TestGrouping:
             with d.alt("success") as alt:
                 alt.message(api, user, "200 OK")
 
-        output = d.render()
+        output = render(d.build())
         assert "alt success" in output
         assert "  API -> User : 200 OK" in output
         assert "end" in output
@@ -259,7 +295,7 @@ class TestGrouping:
                 with alt.else_("error") as else_block:
                     else_block.message(api, user, "500 Error")
 
-        output = d.render()
+        output = render(d.build())
         assert "alt success" in output
         assert "else error" in output
         assert "end" in output
@@ -270,7 +306,7 @@ class TestGrouping:
             with d.opt("has_cache") as opt:
                 opt.message(api, user, "cached result")
 
-        output = d.render()
+        output = render(d.build())
         assert "opt has_cache" in output
         assert "end" in output
 
@@ -280,7 +316,7 @@ class TestGrouping:
             with d.loop("10 times") as loop:
                 loop.message(user, api, "retry")
 
-        output = d.render()
+        output = render(d.build())
         assert "loop 10 times" in output
         assert "end" in output
 
@@ -292,7 +328,7 @@ class TestGrouping:
                 with par.else_() as else_block:
                     else_block.message(api, db, "query 2")
 
-        output = d.render()
+        output = render(d.build())
         assert "par parallel" in output
         assert "else" in output
         assert "end" in output
@@ -303,7 +339,7 @@ class TestGrouping:
             with d.break_("error condition") as brk:
                 brk.message(api, user, "error")
 
-        output = d.render()
+        output = render(d.build())
         assert "break error condition" in output
         assert "end" in output
 
@@ -313,7 +349,7 @@ class TestGrouping:
             with d.critical("transaction") as crit:
                 crit.message(user, api, "commit")
 
-        output = d.render()
+        output = render(d.build())
         assert "critical transaction" in output
         assert "end" in output
 
@@ -323,7 +359,7 @@ class TestGrouping:
             with d.group("Custom Label", secondary="Secondary") as grp:
                 grp.message(user, api, "action")
 
-        output = d.render()
+        output = render(d.build())
         assert "group Custom Label [Secondary]" in output
         assert "end" in output
 
@@ -337,7 +373,7 @@ class TestBox:
                 api = backend.participant("API")
                 db = backend.database("Database")
 
-        output = d.render()
+        output = render(d.build())
         assert 'box "Backend"' in output
         assert "end box" in output
         assert "participant API" in output
@@ -348,7 +384,7 @@ class TestBox:
             with d.box("Backend", color="LightBlue") as backend:
                 backend.participant("API")
 
-        output = d.render()
+        output = render(d.build())
         assert 'box "Backend" #LightBlue' in output
 
 
@@ -360,7 +396,7 @@ class TestNotes:
             user = d.participant("User")
             d.note("A note", position="right", of=user)
 
-        output = d.render()
+        output = render(d.build())
         assert "note right of User: A note" in output
 
     def test_note_left(self):
@@ -368,7 +404,7 @@ class TestNotes:
             user = d.participant("User")
             d.note("A note", position="left", of=user)
 
-        output = d.render()
+        output = render(d.build())
         assert "note left of User: A note" in output
 
     def test_note_over(self):
@@ -376,7 +412,7 @@ class TestNotes:
             user, api = d.participants("User", "API")
             d.note("Spanning note", over=(user, api))
 
-        output = d.render()
+        output = render(d.build())
         assert "note over User, API: Spanning note" in output
 
     def test_note_across(self):
@@ -384,7 +420,7 @@ class TestNotes:
             d.participants("User", "API", "Database")
             d.note("All participants", across=True)
 
-        output = d.render()
+        output = render(d.build())
         assert "note across: All participants" in output
 
 
@@ -396,7 +432,7 @@ class TestReference:
             user, api = d.participants("User", "API")
             d.ref(user, api, label="See authentication diagram")
 
-        output = d.render()
+        output = render(d.build())
         assert "ref over User, API : See authentication diagram" in output
 
 
@@ -407,35 +443,35 @@ class TestDividerDelaySpace:
         with sequence_diagram() as d:
             d.divider("Initialization")
 
-        output = d.render()
+        output = render(d.build())
         assert "== Initialization ==" in output
 
     def test_delay(self):
         with sequence_diagram() as d:
             d.delay("5 minutes later")
 
-        output = d.render()
+        output = render(d.build())
         assert "...5 minutes later..." in output
 
     def test_delay_no_message(self):
         with sequence_diagram() as d:
             d.delay()
 
-        output = d.render()
+        output = render(d.build())
         assert "..." in output
 
     def test_space(self):
         with sequence_diagram() as d:
             d.space()
 
-        output = d.render()
+        output = render(d.build())
         assert "|||" in output
 
     def test_space_with_pixels(self):
         with sequence_diagram() as d:
             d.space(pixels=45)
 
-        output = d.render()
+        output = render(d.build())
         assert "||45||" in output
 
 
@@ -447,21 +483,21 @@ class TestAutonumber:
             user, api = d.participants("User", "API")
             d.message(user, api, "first")
 
-        output = d.render()
+        output = render(d.build())
         assert "autonumber" in output
 
     def test_autonumber_stop(self):
         with sequence_diagram() as d:
             d.autonumber("stop")
 
-        output = d.render()
+        output = render(d.build())
         assert "autonumber stop" in output
 
     def test_autonumber_resume(self):
         with sequence_diagram() as d:
             d.autonumber("resume")
 
-        output = d.render()
+        output = render(d.build())
         assert "autonumber resume" in output
 
 
@@ -472,14 +508,14 @@ class TestDiagramOptions:
         with sequence_diagram(title="My Diagram") as d:
             d.participant("User")
 
-        output = d.render()
+        output = render(d.build())
         assert "title My Diagram" in output
 
     def test_hide_unlinked(self):
         with sequence_diagram(hide_unlinked=True) as d:
             d.participant("User")
 
-        output = d.render()
+        output = render(d.build())
         assert "hide unlinked" in output
 
 
@@ -491,7 +527,7 @@ class TestRenderMethod:
             user, api = d.participants("User", "API")
             d.message(user, api, "hello")
 
-        output = d.render()
+        output = render(d.build())
         assert output.startswith("@startuml")
         assert output.endswith("@enduml")
 
@@ -501,7 +537,7 @@ class TestRenderMethod:
             d.message(user, api, "hello")
 
         from plantuml_compose.renderers import render
-        assert d.render() == render(d.build())
+        assert render(d.build()) == render(d.build())
 
 
 class TestEdgeCases:
@@ -511,7 +547,7 @@ class TestEdgeCases:
         with sequence_diagram() as d:
             d.participant("My User")
 
-        output = d.render()
+        output = render(d.build())
         # Names with spaces need quoting
         assert 'participant "My User"' in output
 
@@ -520,14 +556,14 @@ class TestEdgeCases:
             user, api = d.participants("User", "API")
             d.message(user, api, "POST /api/v1/users?name=test")
 
-        output = d.render()
+        output = render(d.build())
         assert "POST /api/v1/users?name=test" in output
 
     def test_empty_diagram(self):
         with sequence_diagram() as d:
             pass
 
-        output = d.render()
+        output = render(d.build())
         assert "@startuml" in output
         assert "@enduml" in output
 
@@ -540,7 +576,7 @@ class TestEdgeCases:
                     with else_block.opt("nested") as opt:
                         opt.message(api, user, "nested message")
 
-        output = d.render()
+        output = render(d.build())
         assert "alt outer" in output
         assert "else inner" in output
         assert "opt nested" in output

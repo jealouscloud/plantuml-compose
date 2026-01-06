@@ -2,6 +2,7 @@
 
 import pytest
 
+from plantuml_compose import render
 from plantuml_compose.builders.activity import activity_diagram
 from plantuml_compose.primitives.activity import (
     Action,
@@ -33,21 +34,21 @@ class TestBasicElements:
         with activity_diagram() as d:
             d.start()
 
-        output = d.render()
+        output = render(d.build())
         assert "start" in output
 
     def test_stop(self):
         with activity_diagram() as d:
             d.stop()
 
-        output = d.render()
+        output = render(d.build())
         assert "stop" in output
 
     def test_end(self):
         with activity_diagram() as d:
             d.end()
 
-        output = d.render()
+        output = render(d.build())
         # "end" appears both as command and in @enduml
         assert output.count("end") >= 2
 
@@ -55,28 +56,28 @@ class TestBasicElements:
         with activity_diagram() as d:
             d.action("Process Order")
 
-        output = d.render()
+        output = render(d.build())
         assert ":Process Order;" in output
 
     def test_action_with_color(self):
         with activity_diagram() as d:
             d.action("Important", color="red")
 
-        output = d.render()
+        output = render(d.build())
         assert "#red:Important;" in output
 
     def test_action_with_shape_database(self):
         with activity_diagram() as d:
             d.action("Store Data", shape="database")
 
-        output = d.render()
+        output = render(d.build())
         assert ":Store Data}" in output
 
     def test_action_with_shape_document(self):
         with activity_diagram() as d:
             d.action("Generate Report", shape="document")
 
-        output = d.render()
+        output = render(d.build())
         assert ":Generate Report]" in output
 
 
@@ -89,7 +90,7 @@ class TestArrows:
             d.arrow()
             d.action("B")
 
-        output = d.render()
+        output = render(d.build())
         assert "->" in output
 
     def test_arrow_with_label(self):
@@ -98,7 +99,7 @@ class TestArrows:
             d.arrow("next")
             d.action("B")
 
-        output = d.render()
+        output = render(d.build())
         assert "-> next;" in output
 
     def test_arrow_with_color(self):
@@ -107,7 +108,7 @@ class TestArrows:
             d.arrow(color="blue")
             d.action("B")
 
-        output = d.render()
+        output = render(d.build())
         assert "-[#blue]->" in output
 
     def test_arrow_dashed(self):
@@ -116,8 +117,35 @@ class TestArrows:
             d.arrow(style="dashed")
             d.action("B")
 
-        output = d.render()
+        output = render(d.build())
         assert "-[dashed]->" in output
+
+    def test_arrow_bold(self):
+        with activity_diagram() as d:
+            d.action("A")
+            d.arrow(bold=True)
+            d.action("B")
+
+        output = render(d.build())
+        assert "-[bold]->" in output
+
+    def test_arrow_plain(self):
+        with activity_diagram() as d:
+            d.action("A")
+            d.arrow(plain=True)
+            d.action("B")
+
+        output = render(d.build())
+        assert "-[plain]->" in output
+
+    def test_arrow_combined_styling(self):
+        with activity_diagram() as d:
+            d.action("A")
+            d.arrow(color="red", bold=True)
+            d.action("B")
+
+        output = render(d.build())
+        assert "-[#red,bold]->" in output
 
 
 class TestIf:
@@ -128,7 +156,7 @@ class TestIf:
             with d.if_("Condition?") as branch:
                 branch.action("Then action")
 
-        output = d.render()
+        output = render(d.build())
         assert "if (Condition?) then" in output
         assert ":Then action;" in output
         assert "endif" in output
@@ -138,7 +166,7 @@ class TestIf:
             with d.if_("Valid?", then_label="yes") as branch:
                 branch.action("Process")
 
-        output = d.render()
+        output = render(d.build())
         assert "if (Valid?) then (yes)" in output
 
     def test_if_with_else(self):
@@ -148,7 +176,7 @@ class TestIf:
                 with branch.else_("no") as else_block:
                     else_block.action("Reject")
 
-        output = d.render()
+        output = render(d.build())
         assert "if (Valid?) then (yes)" in output
         assert ":Process;" in output
         assert "else (no)" in output
@@ -164,7 +192,7 @@ class TestIf:
                 with branch.else_() as else_block:
                     else_block.action("Default")
 
-        output = d.render()
+        output = render(d.build())
         assert "if (A?) then" in output
         assert "elseif (B?) then" in output
         assert "else" in output
@@ -181,7 +209,7 @@ class TestSwitch:
                 with sw.case("B") as case:
                     case.action("Handle B")
 
-        output = d.render()
+        output = render(d.build())
         assert "switch (Type?)" in output
         assert "case (A)" in output
         assert "case (B)" in output
@@ -196,7 +224,7 @@ class TestWhile:
             with d.while_("More items?") as loop:
                 loop.action("Process item")
 
-        output = d.render()
+        output = render(d.build())
         assert "while (More items?)" in output
         assert ":Process item;" in output
         assert "endwhile" in output
@@ -206,7 +234,7 @@ class TestWhile:
             with d.while_("Continue?", is_label="yes", endwhile_label="no") as loop:
                 loop.action("Process")
 
-        output = d.render()
+        output = render(d.build())
         assert "while (Continue?) is (yes)" in output
         assert "endwhile (no)" in output
 
@@ -219,7 +247,7 @@ class TestRepeat:
             with d.repeat(condition="More?") as loop:
                 loop.action("Process")
 
-        output = d.render()
+        output = render(d.build())
         assert "repeat" in output
         assert ":Process;" in output
         assert "repeat while (More?)" in output
@@ -233,7 +261,7 @@ class TestRepeat:
             ) as loop:
                 loop.action("Process")
 
-        output = d.render()
+        output = render(d.build())
         assert "repeat while (Continue?) is (yes) not (no)" in output
 
 
@@ -248,7 +276,7 @@ class TestForkSplit:
                 with f.branch() as b2:
                     b2.action("Task 2")
 
-        output = d.render()
+        output = render(d.build())
         assert "fork" in output
         assert "fork again" in output
         assert ":Task 1;" in output
@@ -263,7 +291,7 @@ class TestForkSplit:
                 with f.branch() as b2:
                     b2.action("Task 2")
 
-        output = d.render()
+        output = render(d.build())
         assert "end merge" in output
 
     def test_split_basic(self):
@@ -274,7 +302,7 @@ class TestForkSplit:
                 with s.branch() as b2:
                     b2.action("Path 2")
 
-        output = d.render()
+        output = render(d.build())
         assert "split" in output
         assert "split again" in output
         assert "end split" in output
@@ -290,7 +318,7 @@ class TestSwimlanes:
             d.swimlane("Warehouse")
             d.action("Ship Order")
 
-        output = d.render()
+        output = render(d.build())
         assert "|Sales|" in output
         assert "|Warehouse|" in output
 
@@ -299,7 +327,7 @@ class TestSwimlanes:
             d.swimlane("Sales", color="LightBlue")
             d.action("Take Order")
 
-        output = d.render()
+        output = render(d.build())
         assert "|#LightBlue|Sales|" in output
 
 
@@ -311,7 +339,7 @@ class TestPartitionGroup:
             with d.partition("Validation") as p:
                 p.action("Validate input")
 
-        output = d.render()
+        output = render(d.build())
         assert 'partition "Validation" {' in output
         assert ":Validate input;" in output
         assert "}" in output
@@ -321,7 +349,7 @@ class TestPartitionGroup:
             with d.partition("Validation", color="LightGreen") as p:
                 p.action("Validate")
 
-        output = d.render()
+        output = render(d.build())
         assert "#LightGreen" in output
 
     def test_group(self):
@@ -329,7 +357,7 @@ class TestPartitionGroup:
             with d.group("Processing") as g:
                 g.action("Process")
 
-        output = d.render()
+        output = render(d.build())
         assert "group Processing" in output
         assert "end group" in output
 
@@ -343,7 +371,7 @@ class TestControlFlow:
                 loop.action("Process")
                 loop.break_()
 
-        output = d.render()
+        output = render(d.build())
         assert "break" in output
 
     def test_kill(self):
@@ -351,7 +379,7 @@ class TestControlFlow:
             d.action("Error")
             d.kill()
 
-        output = d.render()
+        output = render(d.build())
         assert "kill" in output
 
     def test_detach(self):
@@ -359,7 +387,7 @@ class TestControlFlow:
             d.action("Background task")
             d.detach()
 
-        output = d.render()
+        output = render(d.build())
         assert "detach" in output
 
     def test_connector(self):
@@ -370,7 +398,7 @@ class TestControlFlow:
             d.connector("A")
             d.action("Continue")
 
-        output = d.render()
+        output = render(d.build())
         assert "(A)" in output
 
 
@@ -382,14 +410,14 @@ class TestNotes:
             d.action("Process")
             d.note("Important step", position="right")
 
-        output = d.render()
+        output = render(d.build())
         assert "note right: Important step" in output
 
     def test_floating_note(self):
         with activity_diagram() as d:
             d.note("Overview", floating=True)
 
-        output = d.render()
+        output = render(d.build())
         assert "floating note" in output
 
 
@@ -401,7 +429,7 @@ class TestDiagramOptions:
             d.start()
             d.stop()
 
-        output = d.render()
+        output = render(d.build())
         assert "title Order Process" in output
 
 
@@ -414,7 +442,7 @@ class TestRenderMethod:
             d.action("Process")
             d.stop()
 
-        output = d.render()
+        output = render(d.build())
         assert output.startswith("@startuml")
         assert output.endswith("@enduml")
 
@@ -425,7 +453,7 @@ class TestRenderMethod:
             d.stop()
 
         from plantuml_compose.renderers import render
-        assert d.render() == render(d.build())
+        assert render(d.build()) == render(d.build())
 
 
 class TestComplexDiagram:
@@ -450,7 +478,7 @@ class TestComplexDiagram:
 
             d.stop()
 
-        output = d.render()
+        output = render(d.build())
         assert "title Order Workflow" in output
         assert "start" in output
         assert ":Receive Order;" in output

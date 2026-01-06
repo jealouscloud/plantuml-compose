@@ -85,6 +85,9 @@ class Arrow:
     label: LabelLike | None = None
     color: ColorLike | None = None
     style: ArrowStyle = "solid"
+    thickness: int | None = None  # Pixels
+    bold: bool = False
+    plain: bool = False  # Removes arrow decoration
 
 
 @dataclass(frozen=True)
