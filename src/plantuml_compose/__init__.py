@@ -16,7 +16,7 @@ Usage:
     print(render(d.build()))
 """
 
-from .builders import state_diagram
+from .builders import component_diagram, state_diagram
 from .primitives import (
     Color,
     ColorLike,
