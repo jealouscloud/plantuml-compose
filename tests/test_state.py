@@ -80,14 +80,11 @@ class TestBulkStates:
 class TestEdgeCases:
     """Tests for edge cases and boundary conditions."""
 
-    def test_empty_state_name(self):
-        """Empty state names are accepted (PlantUML handles gracefully)."""
+    def test_empty_state_name_rejected(self):
+        """Empty state names are rejected (PlantUML doesn't accept them)."""
         with state_diagram() as d:
-            s = d.state("")
-            d.arrow(d.start(), s)
-        output = render(d.build())
-        assert "@startuml" in output
-        assert "@enduml" in output
+            with pytest.raises(ValueError, match="State name cannot be empty"):
+                d.state("")
 
     def test_state_name_with_special_characters(self):
         """State names with special characters use alias for safety."""

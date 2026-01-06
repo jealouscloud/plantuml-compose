@@ -76,7 +76,13 @@ class _BaseStateBuilder:
 
         Returns:
             The created StateNode for use in transitions
+
+        Raises:
+            ValueError: If name is empty (PlantUML rejects empty state names)
         """
+        if not name:
+            raise ValueError("State name cannot be empty")
+
         # Convert string description to Label
         desc_label = Label(description) if isinstance(description, str) else description
 
