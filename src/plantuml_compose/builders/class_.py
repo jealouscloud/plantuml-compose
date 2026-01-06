@@ -13,7 +13,7 @@ Provides a fluent API for constructing class diagrams:
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Iterator
+from typing import Iterator, Literal
 
 from ..primitives.class_ import (
     ClassDiagram,
@@ -361,7 +361,7 @@ class _BaseClassBuilder:
     def note(
         self,
         content: str | Label,
-        position: NotePosition = "right",
+        position: Literal["left", "right", "top", "bottom"] = "right",
         *,
         of: ClassNode | str | None = None,
         member: str | None = None,
@@ -383,7 +383,7 @@ class _BaseClassBuilder:
         content_label = Label(content) if isinstance(content, str) else content
         note = ClassNote(
             content=content_label,
-            position=position,  # type: ignore[arg-type]
+            position=position,
             target=self._to_ref(of) if of else None,
             member=member,
         )

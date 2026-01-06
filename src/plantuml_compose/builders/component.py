@@ -18,7 +18,7 @@ Provides a fluent API for constructing component diagrams:
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Iterator
+from typing import Iterator, Literal
 
 from ..primitives.common import ColorLike, Label, Stereotype
 from ..primitives.component import (
@@ -287,7 +287,7 @@ class _BaseComponentBuilder:
         self,
         content: str | Label,
         *,
-        position: str = "right",
+        position: Literal["left", "right", "top", "bottom"] = "right",
         target: str | None = None,
         floating: bool = False,
         color: ColorLike | None = None,
@@ -307,7 +307,7 @@ class _BaseComponentBuilder:
         content_label = Label(content) if isinstance(content, str) else content
         n = ComponentNote(
             content=content_label,
-            position=position,  # type: ignore[arg-type]
+            position=position,
             target=target,
             floating=floating,
             color=color,

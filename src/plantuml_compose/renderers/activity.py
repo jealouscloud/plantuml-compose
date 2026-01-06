@@ -29,7 +29,7 @@ from ..primitives.activity import (
     Switch,
     While,
 )
-from ..primitives.activity import Label as ActivityLabel
+from ..primitives.activity import GotoLabel as ActivityLabel
 from ..primitives.common import Note
 from .common import escape_quotes, render_color, render_label
 

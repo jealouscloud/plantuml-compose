@@ -29,7 +29,7 @@ Provides a fluent API for constructing object diagrams:
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Iterator
+from typing import Iterator, Literal
 
 from ..primitives.common import ColorLike, Label, Stereotype
 from ..primitives.object_ import (
@@ -297,7 +297,7 @@ class _BaseObjectBuilder:
         self,
         content: str | Label,
         *,
-        position: str = "right",
+        position: Literal["left", "right", "top", "bottom"] = "right",
         target: str | None = None,
         floating: bool = False,
         color: ColorLike | None = None,
@@ -309,7 +309,7 @@ class _BaseObjectBuilder:
         content_label = Label(content) if isinstance(content, str) else content
         n = ObjectNote(
             content=content_label,
-            position=position,  # type: ignore[arg-type]
+            position=position,
             target=target,
             floating=floating,
             color=color,

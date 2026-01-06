@@ -21,7 +21,7 @@ Provides a fluent API for constructing sequence diagrams:
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Iterator
+from typing import Iterator, Literal
 
 from ..primitives.common import (
     ColorLike,
@@ -145,7 +145,7 @@ class _BaseSequenceBuilder:
     def note(
         self,
         content: str | Label,
-        position: str = "right",
+        position: Literal["left", "right"] = "right",
         *,
         of: Participant | str | None = None,
         over: tuple[Participant | str, ...] | None = None,
@@ -157,7 +157,7 @@ class _BaseSequenceBuilder:
 
         Args:
             content: Note text
-            position: "left", "right", or "over"
+            position: "left" or "right" (use `over` parameter for "over" notes)
             of: Participant for left/right notes
             over: Participants for "over" notes
             shape: "note", "hnote" (hexagonal), or "rnote" (rectangular)
@@ -178,10 +178,10 @@ class _BaseSequenceBuilder:
         elif over:
             participants = tuple(self._to_ref(p) for p in over)
 
-        note_pos = "over" if over else position
+        note_pos: Literal["left", "right", "over"] = "over" if over else position
         note = SequenceNote(
             content=content_label,
-            position=note_pos,  # type: ignore[arg-type]
+            position=note_pos,
             participants=participants,
             shape=shape,
             across=across,

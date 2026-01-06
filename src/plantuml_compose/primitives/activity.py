@@ -260,7 +260,7 @@ class Goto:
 
 
 @dataclass(frozen=True)
-class Label:
+class GotoLabel:
     """Label for goto (experimental).
 
     Rendered as: label labelName
@@ -345,7 +345,7 @@ ActivityElement: TypeAlias = (
     | Detach
     | Connector
     | Goto
-    | Label
+    | GotoLabel
     | Swimlane
     | Partition
     | Group

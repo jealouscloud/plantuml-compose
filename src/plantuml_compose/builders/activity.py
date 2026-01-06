@@ -19,7 +19,7 @@ Provides a fluent API for constructing activity diagrams:
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Iterator
+from typing import Iterator, Literal
 
 from ..primitives.activity import (
     Action,
@@ -49,7 +49,7 @@ from ..primitives.activity import (
     Switch,
     While,
 )
-from ..primitives.activity import Label as ActivityLabel
+from ..primitives.activity import GotoLabel as ActivityLabel
 from ..primitives.common import (
     ColorLike,
     Label,
@@ -183,7 +183,7 @@ class _BaseActivityBuilder:
     def note(
         self,
         content: str | Label,
-        position: str = "right",
+        position: Literal["left", "right"] = "right",
         *,
         floating: bool = False,
     ) -> ActivityNote:
@@ -203,7 +203,7 @@ class _BaseActivityBuilder:
         content_label = Label(content) if isinstance(content, str) else content
         n = ActivityNote(
             content=content_label,
-            position=position,  # type: ignore[arg-type]
+            position=position,
             floating=floating,
         )
         self._elements.append(n)
