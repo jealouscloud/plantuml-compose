@@ -1,7 +1,37 @@
 """Generate markdown gallery of test output PNGs."""
 
+import ast
+import re
 from pathlib import Path
 from collections import defaultdict
+
+
+def extract_test_source(tests_dir: Path, class_name: str, test_name: str) -> str | None:
+    """
+    Extract the source code of a test method from test files.
+
+    Uses ast to find line numbers, then extracts the raw source.
+    """
+    # Handle parametrized tests (e.g., test_name__0 -> test_name)
+    base_test_name = re.sub(r"__\d+$", "", test_name)
+
+    for test_file in tests_dir.glob("test_*.py"):
+        source = test_file.read_text()
+        try:
+            tree = ast.parse(source)
+        except SyntaxError:
+            continue
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef) and node.name == class_name:
+                for item in node.body:
+                    if isinstance(item, ast.FunctionDef) and item.name == base_test_name:
+                        # Extract source lines
+                        lines = source.splitlines()
+                        start = item.lineno - 1
+                        end = item.end_lineno
+                        return "\n".join(lines[start:end])
+    return None
 
 
 def generate_test_gallery(
@@ -11,10 +41,12 @@ def generate_test_gallery(
     """
     Generate a markdown file embedding all PNG test outputs.
 
-    Groups images by test class and includes the test name as caption.
+    Groups images by test class and includes the test name and source code.
     """
     if output_file is None:
         output_file = output_dir / "gallery.md"
+
+    tests_dir = output_dir.parent
 
     pngs = sorted(output_dir.glob("*.png"))
 
@@ -39,6 +71,14 @@ def generate_test_gallery(
             test_name = parts[1] if len(parts) > 1 else png.stem
 
             lines.append(f"### {test_name}\n")
+
+            # Include test source code
+            source = extract_test_source(tests_dir, class_name, test_name)
+            if source:
+                lines.append("```python")
+                lines.append(source)
+                lines.append("```\n")
+
             lines.append(f"![{test_name}]({png.name})\n")
 
     content = "\n".join(lines)
