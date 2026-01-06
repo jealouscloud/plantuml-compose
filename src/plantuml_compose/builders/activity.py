@@ -113,7 +113,6 @@ class _BaseActivityBuilder:
         color: ColorLike | None = None,
         style: ArrowStyle = "solid",
         bold: bool = False,
-        plain: bool = False,
     ) -> Arrow:
         """Add an arrow with optional label.
 
@@ -122,7 +121,6 @@ class _BaseActivityBuilder:
             color: Arrow color
             style: Arrow style (solid, dashed, dotted, hidden)
             bold: If True, use bold arrow
-            plain: If True, remove arrow decoration
 
         Returns:
             The created Arrow
@@ -133,7 +131,6 @@ class _BaseActivityBuilder:
             color=color,
             style=style,
             bold=bold,
-            plain=plain,
         )
         self._elements.append(a)
         return a

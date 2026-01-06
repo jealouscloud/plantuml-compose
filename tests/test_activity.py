@@ -129,15 +129,6 @@ class TestArrows:
         output = render(d.build())
         assert "-[bold]->" in output
 
-    def test_arrow_plain(self):
-        with activity_diagram() as d:
-            d.action("A")
-            d.arrow(plain=True)
-            d.action("B")
-
-        output = render(d.build())
-        assert "-[plain]->" in output
-
     def test_arrow_combined_styling(self):
         with activity_diagram() as d:
             d.action("A")

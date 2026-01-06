@@ -251,6 +251,9 @@ class TestActivation:
     def test_explicit_deactivate(self):
         with sequence_diagram() as d:
             user = d.participant("User")
+            api = d.participant("API")
+            d.message(user, api, "request")
+            d.activate(user)
             d.deactivate(user)
 
         output = render(d.build())
@@ -259,6 +262,9 @@ class TestActivation:
     def test_explicit_destroy(self):
         with sequence_diagram() as d:
             user = d.participant("User")
+            api = d.participant("API")
+            d.message(user, api, "request")
+            d.activate(user)
             d.destroy(user)
 
         output = render(d.build())
@@ -441,35 +447,50 @@ class TestDividerDelaySpace:
 
     def test_divider(self):
         with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "request")
             d.divider("Initialization")
+            d.message(api, user, "response")
 
         output = render(d.build())
         assert "== Initialization ==" in output
 
     def test_delay(self):
         with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "request")
             d.delay("5 minutes later")
+            d.message(api, user, "response")
 
         output = render(d.build())
         assert "...5 minutes later..." in output
 
     def test_delay_no_message(self):
         with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "request")
             d.delay()
+            d.message(api, user, "response")
 
         output = render(d.build())
         assert "..." in output
 
     def test_space(self):
         with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "request")
             d.space()
+            d.message(api, user, "response")
 
         output = render(d.build())
         assert "|||" in output
 
     def test_space_with_pixels(self):
         with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "request")
             d.space(pixels=45)
+            d.message(api, user, "response")
 
         output = render(d.build())
         assert "||45||" in output
@@ -487,15 +508,23 @@ class TestAutonumber:
         assert "autonumber" in output
 
     def test_autonumber_stop(self):
-        with sequence_diagram() as d:
+        with sequence_diagram(autonumber=True) as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "first")
             d.autonumber("stop")
+            d.message(api, user, "second")
 
         output = render(d.build())
         assert "autonumber stop" in output
 
     def test_autonumber_resume(self):
-        with sequence_diagram() as d:
+        with sequence_diagram(autonumber=True) as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "first")
+            d.autonumber("stop")
+            d.message(api, user, "second")
             d.autonumber("resume")
+            d.message(user, api, "third")
 
         output = render(d.build())
         assert "autonumber resume" in output
@@ -513,7 +542,9 @@ class TestDiagramOptions:
 
     def test_hide_unlinked(self):
         with sequence_diagram(hide_unlinked=True) as d:
-            d.participant("User")
+            user, api = d.participants("User", "API")
+            d.participant("Unused")  # This will be hidden
+            d.message(user, api, "request")
 
         output = render(d.build())
         assert "hide unlinked" in output
