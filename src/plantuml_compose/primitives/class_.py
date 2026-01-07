@@ -26,8 +26,12 @@ from typing import Literal, TypeAlias
 from .common import (
     ColorLike,
     Direction,
+    Footer,
+    Header,
     Label,
     LabelLike,
+    Legend,
+    Scale,
     LineStyleLike,
     Note,
     Stereotype,
@@ -313,6 +317,11 @@ class ClassDiagram:
 
     elements: tuple["ClassDiagramElement", ...] = field(default_factory=tuple)
     title: str | None = None
+    caption: str | None = None
+    header: Header | None = None
+    footer: Footer | None = None
+    legend: Legend | None = None
+    scale: Scale | None = None
     # Diagram-level directives
     hide_empty_members: bool = False
     hide_circle: bool = False

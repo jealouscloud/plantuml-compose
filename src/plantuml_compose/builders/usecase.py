@@ -24,7 +24,21 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import Iterator, Literal
 
-from ..primitives.common import ColorLike, Label, Stereotype
+from ..primitives.common import (
+    ColorLike,
+    Direction,
+    Footer,
+    Header,
+    Label,
+    Legend,
+    LineStyle,
+    LineStyleLike,
+    Scale,
+    Stereotype,
+    StyleLike,
+    coerce_line_style,
+    validate_style_background_only,
+)
 from ..primitives.usecase import (
     Actor,
     ActorStyle,
@@ -51,7 +65,7 @@ class _BaseUseCaseBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
         business: bool = False,
     ) -> str:
         """Add an actor.
@@ -60,7 +74,7 @@ class _BaseUseCaseBuilder:
             name: Actor name
             alias: Short alias for relationships
             stereotype: Stereotype annotation
-            color: Background color
+            style: Visual style (background, line, text_color)
             business: Use business variant (actor/)
 
         Returns:
@@ -69,11 +83,12 @@ class _BaseUseCaseBuilder:
         if not name:
             raise ValueError("Actor name cannot be empty")
         stereo = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        style_obj = validate_style_background_only(style, "Actor")
         a = Actor(
             name=name,
             alias=alias,
             stereotype=stereo,
-            color=color,
+            style=style_obj,
             business=business,
         )
         self._elements.append(a)
@@ -85,7 +100,7 @@ class _BaseUseCaseBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
         business: bool = False,
     ) -> str:
         """Add a use case.
@@ -94,7 +109,7 @@ class _BaseUseCaseBuilder:
             name: Use case name
             alias: Short alias for relationships
             stereotype: Stereotype annotation
-            color: Background color
+            style: Visual style (background, line, text_color)
             business: Use business variant (usecase/)
 
         Returns:
@@ -103,11 +118,12 @@ class _BaseUseCaseBuilder:
         if not name:
             raise ValueError("Use case name cannot be empty")
         stereo = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        style_obj = validate_style_background_only(style, "UseCase")
         uc = UseCase(
             name=name,
             alias=alias,
             stereotype=stereo,
-            color=color,
+            style=style_obj,
             business=business,
         )
         self._elements.append(uc)
@@ -120,16 +136,32 @@ class _BaseUseCaseBuilder:
         *,
         type: RelationType = "association",
         label: str | Label | None = None,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
-        """Add a relationship between elements."""
+        """Add a relationship between elements.
+
+        Args:
+            source: Source element
+            target: Target element
+            type: Relationship type
+            label: Optional label
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+            note: Note attached to the relationship
+        """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=source,
             target=target,
             type=type,
             label=label_obj,
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -139,7 +171,9 @@ class _BaseUseCaseBuilder:
         target: str,
         *,
         label: str | Label | None = None,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
         """Add an arrow between elements.
 
@@ -147,15 +181,21 @@ class _BaseUseCaseBuilder:
             source: Source element
             target: Target element
             label: Optional label
-            color: Arrow color
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+            note: Note attached to the arrow
         """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=source,
             target=target,
             type="arrow",
             label=label_obj,
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -165,16 +205,31 @@ class _BaseUseCaseBuilder:
         target: str,
         *,
         label: str | Label | None = None,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
-        """Add a simple link (no arrow) between elements."""
+        """Add a simple link (no arrow) between elements.
+
+        Args:
+            source: Source element
+            target: Target element
+            label: Optional label
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+            note: Note attached to the link
+        """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=source,
             target=target,
             type="association",
             label=label_obj,
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -183,20 +238,28 @@ class _BaseUseCaseBuilder:
         source: str,
         target: str,
         *,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
         """Add an include relationship.
 
         Args:
             source: Base use case
             target: Included use case
-            color: Arrow color
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+            note: Note attached to the relationship
         """
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=source,
             target=target,
             type="include",
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -205,20 +268,28 @@ class _BaseUseCaseBuilder:
         source: str,
         target: str,
         *,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
         """Add an extends relationship.
 
         Args:
             source: Extending use case
             target: Base use case
-            color: Arrow color
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+            note: Note attached to the relationship
         """
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=source,
             target=target,
             type="extends",
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -227,20 +298,28 @@ class _BaseUseCaseBuilder:
         child: str,
         parent: str,
         *,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
         """Add a generalization (extension) relationship.
 
         Args:
             child: Child actor/use case
             parent: Parent actor/use case
-            color: Arrow color
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+            note: Note attached to the relationship
         """
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=child,
             target=parent,
             type="extension",
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -273,7 +352,7 @@ class _BaseUseCaseBuilder:
         name: str,
         *,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_ContainerBuilder"]:
         """Create a rectangle container.
 
@@ -281,7 +360,7 @@ class _BaseUseCaseBuilder:
             with d.rectangle("System") as r:
                 r.usecase("Feature")
         """
-        builder = _ContainerBuilder("rectangle", name, stereotype, color)
+        builder = _ContainerBuilder("rectangle", name, stereotype, style)
         yield builder
         self._elements.append(builder._build())
 
@@ -291,7 +370,7 @@ class _BaseUseCaseBuilder:
         name: str,
         *,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_ContainerBuilder"]:
         """Create a package container.
 
@@ -299,7 +378,7 @@ class _BaseUseCaseBuilder:
             with d.package("Module") as p:
                 p.usecase("Feature")
         """
-        builder = _ContainerBuilder("package", name, stereotype, color)
+        builder = _ContainerBuilder("package", name, stereotype, style)
         yield builder
         self._elements.append(builder._build())
 
@@ -312,7 +391,7 @@ class _ContainerBuilder(_BaseUseCaseBuilder):
         type: ContainerType,
         name: str,
         stereotype: str | Stereotype | None,
-        color: ColorLike | None,
+        style: StyleLike | None,
     ) -> None:
         if not name:
             raise ValueError("Container name cannot be empty")
@@ -320,7 +399,7 @@ class _ContainerBuilder(_BaseUseCaseBuilder):
         self._type = type
         self._name = name
         self._stereotype = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
-        self._color = color
+        self._style = validate_style_background_only(style, "Container")
 
     def _build(self) -> Container:
         """Build the container."""
@@ -329,7 +408,7 @@ class _ContainerBuilder(_BaseUseCaseBuilder):
             type=self._type,
             elements=tuple(self._elements),
             stereotype=self._stereotype,
-            color=self._color,
+            style=self._style,
         )
 
 
@@ -351,11 +430,21 @@ class UseCaseDiagramBuilder(_BaseUseCaseBuilder):
         title: str | None = None,
         actor_style: ActorStyle | None = None,
         left_to_right: bool = False,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
+        scale: float | Scale | None = None,
     ) -> None:
         super().__init__()
         self._title = title
         self._actor_style = actor_style
         self._left_to_right = left_to_right
+        self._caption = caption
+        self._header = Header(header) if isinstance(header, str) else header
+        self._footer = Footer(footer) if isinstance(footer, str) else footer
+        self._legend = Legend(legend) if isinstance(legend, str) else legend
+        self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
 
     def build(self) -> UseCaseDiagram:
         """Build the complete use case diagram."""
@@ -364,6 +453,11 @@ class UseCaseDiagramBuilder(_BaseUseCaseBuilder):
             title=self._title,
             actor_style=self._actor_style,
             left_to_right=self._left_to_right,
+            caption=self._caption,
+            header=self._header,
+            footer=self._footer,
+            legend=self._legend,
+            scale=self._scale,
         )
 
     def render(self) -> str:
@@ -382,6 +476,11 @@ def usecase_diagram(
     title: str | None = None,
     actor_style: ActorStyle | None = None,
     left_to_right: bool = False,
+    caption: str | None = None,
+    header: str | Header | None = None,
+    footer: str | Footer | None = None,
+    legend: str | Legend | None = None,
+    scale: float | Scale | None = None,
 ) -> Iterator[UseCaseDiagramBuilder]:
     """Create a use case diagram with context manager syntax.
 
@@ -397,6 +496,11 @@ def usecase_diagram(
         title: Optional diagram title
         actor_style: Actor style ("default", "awesome", "hollow")
         left_to_right: Use left to right layout direction
+        caption: Optional diagram caption
+        header: Optional header text or Header object
+        footer: Optional footer text or Footer object
+        legend: Optional legend text or Legend object
+        scale: Optional scale factor or Scale object
 
     Yields:
         A UseCaseDiagramBuilder for adding diagram elements
@@ -405,5 +509,10 @@ def usecase_diagram(
         title=title,
         actor_style=actor_style,
         left_to_right=left_to_right,
+        caption=caption,
+        header=header,
+        footer=footer,
+        legend=legend,
+        scale=scale,
     )
     yield builder

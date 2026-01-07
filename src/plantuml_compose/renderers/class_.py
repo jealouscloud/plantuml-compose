@@ -20,9 +20,14 @@ from ..primitives.class_ import (
 from ..primitives.common import Note
 from .common import (
     escape_quotes,
+    render_caption,
     render_color,
+    render_footer,
+    render_header,
     render_label,
+    render_legend,
     render_line_style_bracket,
+    render_scale,
     render_stereotype,
 )
 
@@ -30,6 +35,12 @@ from .common import (
 def render_class_diagram(diagram: ClassDiagram) -> str:
     """Render a complete class diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
+
+    # Scale (affects output size)
+    if diagram.scale:
+        scale_str = render_scale(diagram.scale)
+        if scale_str:
+            lines.append(scale_str)
 
     if diagram.title:
         if "\n" in diagram.title:
@@ -39,6 +50,20 @@ def render_class_diagram(diagram: ClassDiagram) -> str:
             lines.append("end title")
         else:
             lines.append(f"title {escape_quotes(diagram.title)}")
+
+    # Header and footer
+    if diagram.header:
+        lines.extend(render_header(diagram.header))
+    if diagram.footer:
+        lines.extend(render_footer(diagram.footer))
+
+    # Caption (appears below diagram)
+    if diagram.caption:
+        lines.append(render_caption(diagram.caption))
+
+    # Legend
+    if diagram.legend:
+        lines.extend(render_legend(diagram.legend))
 
     # Namespace separator
     if diagram.namespace_separator is not None:

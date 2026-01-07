@@ -22,7 +22,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Union
 
-from .common import ColorLike, Label, LabelLike, Stereotype
+from .common import ColorLike, Direction, Footer, Header, Label, LabelLike, Legend, LineStyle, Scale, Stereotype, Style
 
 if TYPE_CHECKING:
     pass
@@ -77,7 +77,7 @@ class DeploymentElement:
     type: ElementType = "node"
     alias: str | None = None
     stereotype: Stereotype | None = None
-    color: ColorLike | None = None
+    style: Style | None = None
     # For nested elements
     elements: tuple["DeploymentDiagramElement", ...] = field(default_factory=tuple)
 
@@ -90,7 +90,9 @@ class Relationship:
     target: str
     type: RelationType = "association"
     label: Label | None = None
-    color: ColorLike | None = None
+    style: LineStyle | None = None
+    direction: Direction | None = None
+    note: Label | None = None
 
 
 @dataclass(frozen=True)
@@ -118,3 +120,8 @@ class DeploymentDiagram:
 
     elements: tuple[DeploymentDiagramElement, ...] = field(default_factory=tuple)
     title: str | None = None
+    caption: str | None = None
+    header: Header | None = None
+    footer: Footer | None = None
+    legend: Legend | None = None
+    scale: Scale | None = None

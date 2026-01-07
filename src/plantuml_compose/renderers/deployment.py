@@ -12,12 +12,29 @@ from ..primitives.deployment import (
     DeploymentNote,
     Relationship,
 )
-from .common import escape_quotes, render_color, render_label, render_stereotype
+from .common import (
+    escape_quotes,
+    render_caption,
+    render_color,
+    render_footer,
+    render_header,
+    render_label,
+    render_legend,
+    render_line_style_bracket,
+    render_scale,
+    render_stereotype,
+)
 
 
 def render_deployment_diagram(diagram: DeploymentDiagram) -> str:
     """Render a complete deployment diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
+
+    # Scale (affects output size)
+    if diagram.scale:
+        scale_str = render_scale(diagram.scale)
+        if scale_str:
+            lines.append(scale_str)
 
     if diagram.title:
         if "\n" in diagram.title:
@@ -27,6 +44,20 @@ def render_deployment_diagram(diagram: DeploymentDiagram) -> str:
             lines.append("end title")
         else:
             lines.append(f"title {escape_quotes(diagram.title)}")
+
+    # Header and footer
+    if diagram.header:
+        lines.extend(render_header(diagram.header))
+    if diagram.footer:
+        lines.extend(render_footer(diagram.footer))
+
+    # Caption (appears below diagram)
+    if diagram.caption:
+        lines.append(render_caption(diagram.caption))
+
+    # Legend
+    if diagram.legend:
+        lines.extend(render_legend(diagram.legend))
 
     for elem in diagram.elements:
         lines.extend(_render_element(elem))
@@ -42,7 +73,7 @@ def _render_element(elem: DeploymentDiagramElement, indent: int = 0) -> list[str
     if isinstance(elem, DeploymentElement):
         return _render_deployment_element(elem, indent)
     if isinstance(elem, Relationship):
-        return [f"{prefix}{_render_relationship(elem)}"]
+        return _render_relationship(elem, indent)
     if isinstance(elem, DeploymentNote):
         return _render_note(elem, indent)
     raise TypeError(f"Unknown element type: {type(elem).__name__}")
@@ -65,8 +96,9 @@ def _render_deployment_element(elem: DeploymentElement, indent: int = 0) -> list
     if elem.stereotype:
         parts.append(render_stereotype(elem.stereotype))
 
-    if elem.color:
-        color = render_color(elem.color)
+    # Style background as element color
+    if elem.style and elem.style.background:
+        color = render_color(elem.style.background)
         if not color.startswith("#"):
             color = f"#{color}"
         parts.append(color)
@@ -82,8 +114,11 @@ def _render_deployment_element(elem: DeploymentElement, indent: int = 0) -> list
     return lines
 
 
-def _render_relationship(rel: Relationship) -> str:
+def _render_relationship(rel: Relationship, indent: int = 0) -> list[str]:
     """Render a relationship between elements."""
+    prefix = "  " * indent
+    lines: list[str] = []
+
     # Build arrow based on type
     arrow_map = {
         "association": "--",
@@ -93,22 +128,10 @@ def _render_relationship(rel: Relationship) -> str:
         "line": "--",
         "dotted": "..",
     }
-    arrow = arrow_map.get(rel.type, "--")
+    base_arrow = arrow_map.get(rel.type, "--")
 
-    # Add color if specified
-    if rel.color:
-        color = render_color(rel.color)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        # Insert color into arrow
-        if "->" in arrow:
-            arrow = arrow.replace("->", f"-[{color}]->")
-        elif ".>" in arrow:
-            arrow = arrow.replace(".>", f".[{color}].>")
-        elif "--" in arrow:
-            arrow = arrow.replace("--", f"-[{color}]-")
-        elif ".." in arrow:
-            arrow = arrow.replace("..", f".[{color}].")
+    # Build arrow with direction and style
+    arrow = _build_arrow(base_arrow, rel.direction, rel.style)
 
     # Build the full relationship line
     parts: list[str] = [rel.source, arrow, rel.target]
@@ -118,7 +141,64 @@ def _render_relationship(rel: Relationship) -> str:
         label = render_label(rel.label)
         parts.append(f": {label}")
 
-    return " ".join(parts)
+    lines.append(f"{prefix}{' '.join(parts)}")
+
+    # Note on link
+    if rel.note:
+        note_text = render_label(rel.note)
+        if "\n" in note_text:
+            lines.append(f"{prefix}note on link")
+            for note_line in note_text.split("\n"):
+                lines.append(f"{prefix}  {note_line}")
+            lines.append(f"{prefix}end note")
+        else:
+            lines.append(f"{prefix}note on link: {note_text}")
+
+    return lines
+
+
+def _build_arrow(base_arrow: str, direction: str | None, style) -> str:
+    """Build arrow with direction and style modifiers."""
+    # Direction modifier (first letter: u, d, l, r)
+    dir_mod = ""
+    if direction:
+        dir_mod = direction[0]
+
+    # Style modifier
+    style_mod = ""
+    if style:
+        style_mod = render_line_style_bracket(style)
+
+    # Build the modified arrow
+    # For arrows like --> or ->
+    if "->" in base_arrow:
+        prefix_part = base_arrow.replace("->", "")
+        if style_mod or dir_mod:
+            return f"{prefix_part}-{style_mod}{dir_mod}->"
+        return base_arrow
+
+    # For dotted arrows like ..>
+    if ".>" in base_arrow:
+        prefix_part = base_arrow.replace(".>", "")
+        if style_mod or dir_mod:
+            return f"{prefix_part}.{style_mod}{dir_mod}.>"
+        return base_arrow
+
+    # For lines like --
+    if "--" in base_arrow:
+        prefix_part = base_arrow.replace("--", "")
+        if style_mod or dir_mod:
+            return f"{prefix_part}-{style_mod}{dir_mod}-"
+        return base_arrow
+
+    # For dotted lines like ..
+    if ".." in base_arrow:
+        prefix_part = base_arrow.replace("..", "")
+        if style_mod or dir_mod:
+            return f"{prefix_part}.{style_mod}{dir_mod}."
+        return base_arrow
+
+    return base_arrow
 
 
 def _render_note(note: DeploymentNote, indent: int = 0) -> list[str]:

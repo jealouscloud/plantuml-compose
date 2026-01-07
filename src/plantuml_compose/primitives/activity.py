@@ -24,12 +24,16 @@ from dataclasses import dataclass, field
 from typing import Literal, TypeAlias
 
 from .common import (
-    ColorLike,
     Direction,
+    Footer,
+    Header,
     Label,
     LabelLike,
-    LineStyleLike,
+    Legend,
+    LineStyle,
+    Scale,
     Note,
+    Style,
 )
 
 
@@ -90,12 +94,12 @@ class Action:
 
         label: Description of the action
         shape: Visual shape (affects meaning - see ActionShape)
-        color: Background color
+        style: Visual style (background, line, text_color)
     """
 
     label: LabelLike
     shape: ActionShape = "default"
-    color: ColorLike | None = None  # Background color
+    style: Style | None = None
 
 
 @dataclass(frozen=True)
@@ -105,18 +109,15 @@ class Arrow:
     Arrows show the direction of flow. They can have labels (for
     conditions or descriptions) and styling.
 
-        label:     Text on the arrow
-        color:     Arrow color
-        style:     Line pattern ("solid", "dashed", "dotted", "hidden")
-        thickness: Line width in pixels
-        bold:      If True, thicker line
+        label:      Text on the arrow
+        pattern:    Line pattern ("solid", "dashed", "dotted", "hidden")
+        line_style: Visual styling (color, thickness, bold)
+        plain:      If True, removes arrow decoration
     """
 
     label: LabelLike | None = None
-    color: ColorLike | None = None
-    style: ArrowStyle = "solid"
-    thickness: int | None = None  # Pixels
-    bold: bool = False
+    pattern: ArrowStyle = "solid"
+    line_style: LineStyle | None = None
     plain: bool = False  # Removes arrow decoration
 
 
@@ -392,6 +393,11 @@ class ActivityDiagram:
 
     elements: tuple["ActivityElement", ...] = field(default_factory=tuple)
     title: str | None = None
+    caption: str | None = None
+    header: Header | None = None
+    footer: Footer | None = None
+    legend: Legend | None = None
+    scale: Scale | None = None
 
 
 # Type alias for elements that can appear in an activity diagram

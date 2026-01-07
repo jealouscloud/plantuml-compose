@@ -332,6 +332,88 @@ class Note:
     position: NotePosition = "right"
 
 
+# =============================================================================
+# Common Diagram Metadata (header, footer, caption, legend, scale)
+# =============================================================================
+
+# Header/Footer positioning
+HeaderPosition = Literal["left", "center", "right"]
+
+# Legend positioning
+LegendPosition = Literal["left", "right", "top", "bottom", "center"]
+
+
+@dataclass(frozen=True)
+class Header:
+    """Diagram header text displayed at the top margin.
+
+    The header appears above the diagram content but within the rendered image.
+    Supports multiline text and Creole markup.
+
+        content:  Header text (can include Creole markup)
+        position: Horizontal alignment ("left", "center", "right")
+    """
+
+    content: LabelLike
+    position: HeaderPosition = "center"
+
+
+@dataclass(frozen=True)
+class Footer:
+    """Diagram footer text displayed at the bottom margin.
+
+    The footer appears below the diagram content but within the rendered image.
+    Supports multiline text and Creole markup. Can include special variables
+    like %page% and %lastpage% for page numbering.
+
+        content:  Footer text (can include Creole markup)
+        position: Horizontal alignment ("left", "center", "right")
+    """
+
+    content: LabelLike
+    position: HeaderPosition = "center"
+
+
+@dataclass(frozen=True)
+class Legend:
+    """A bordered legend box for diagram annotations.
+
+    Legends are bordered boxes that can contain explanatory text, typically
+    used for diagram keys or additional context. Supports multiline text
+    and Creole markup.
+
+        content:  Legend text (can include Creole markup)
+        position: Where to place the legend relative to the diagram
+    """
+
+    content: LabelLike
+    position: LegendPosition = "right"
+
+
+@dataclass(frozen=True)
+class Scale:
+    """Diagram zoom/scale factor.
+
+    Controls the output size of the rendered diagram. Only one scaling
+    method should be specified:
+
+        factor:     Multiply diagram size (e.g., 1.5, 0.5, 2/3)
+        width:      Set exact width in pixels
+        height:     Set exact height in pixels
+        max_width:  Set maximum width (diagram scales down if needed)
+        max_height: Set maximum height (diagram scales down if needed)
+
+    For exact dimensions, use width/height. For proportional scaling that
+    respects aspect ratio, use max_width/max_height.
+    """
+
+    factor: float | None = None
+    width: int | None = None
+    height: int | None = None
+    max_width: int | None = None
+    max_height: int | None = None
+
+
 @dataclass(frozen=True)
 class ElementStyle:
     """Comprehensive style properties for diagram elements.
@@ -480,6 +562,46 @@ def coerce_style(value: StyleLike) -> Style:
         else None,
         stereotype=value.get("stereotype"),
     )
+
+
+def validate_style_background_only(
+    style: StyleLike | None, element_type: str
+) -> Style | None:
+    """Coerce and validate that only background is set in style.
+
+    Some diagram elements only support background color styling. This function
+    validates that unsupported style properties are not provided.
+
+    Args:
+        style: The style to validate (dict or Style object)
+        element_type: Name of the element type for error messages
+
+    Returns:
+        Coerced Style object or None
+
+    Raises:
+        ValueError: If unsupported style properties are provided
+    """
+    if style is None:
+        return None
+
+    style_obj = coerce_style(style)
+
+    unsupported = []
+    if style_obj.line is not None:
+        unsupported.append("line")
+    if style_obj.text_color is not None:
+        unsupported.append("text_color")
+    if style_obj.stereotype is not None:
+        unsupported.append("stereotype")
+
+    if unsupported:
+        raise ValueError(
+            f"{element_type} only supports 'background' styling. "
+            f"Unsupported properties: {', '.join(unsupported)}"
+        )
+
+    return style_obj
 
 
 class ElementStyleDict(TypedDict, total=False):

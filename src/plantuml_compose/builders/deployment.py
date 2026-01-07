@@ -17,7 +17,21 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import Iterator, Literal
 
-from ..primitives.common import ColorLike, Label, Stereotype
+from ..primitives.common import (
+    ColorLike,
+    Direction,
+    Footer,
+    Header,
+    Label,
+    Legend,
+    LineStyle,
+    LineStyleLike,
+    Scale,
+    Stereotype,
+    StyleLike,
+    coerce_line_style,
+    validate_style_background_only,
+)
 from ..primitives.deployment import (
     DeploymentDiagram,
     DeploymentDiagramElement,
@@ -42,18 +56,19 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add an element of any type."""
         if not name:
             raise ValueError("Element name cannot be empty")
         stereo = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        style_obj = validate_style_background_only(style, "DeploymentElement")
         elem = DeploymentElement(
             name=name,
             type=type,
             alias=alias,
             stereotype=stereo,
-            color=color,
+            style=style_obj,
         )
         self._elements.append(elem)
         return alias or name
@@ -65,10 +80,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add an actor."""
-        return self._add_element(name, "actor", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "actor", alias=alias, stereotype=stereotype, style=style)
 
     def agent(
         self,
@@ -76,10 +91,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add an agent."""
-        return self._add_element(name, "agent", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "agent", alias=alias, stereotype=stereotype, style=style)
 
     def artifact(
         self,
@@ -87,10 +102,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add an artifact."""
-        return self._add_element(name, "artifact", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "artifact", alias=alias, stereotype=stereotype, style=style)
 
     def boundary(
         self,
@@ -98,10 +113,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a boundary."""
-        return self._add_element(name, "boundary", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "boundary", alias=alias, stereotype=stereotype, style=style)
 
     def card(
         self,
@@ -109,10 +124,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a card."""
-        return self._add_element(name, "card", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "card", alias=alias, stereotype=stereotype, style=style)
 
     def circle(
         self,
@@ -120,10 +135,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a circle."""
-        return self._add_element(name, "circle", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "circle", alias=alias, stereotype=stereotype, style=style)
 
     def cloud(
         self,
@@ -131,10 +146,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a cloud (simple, non-nested)."""
-        return self._add_element(name, "cloud", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "cloud", alias=alias, stereotype=stereotype, style=style)
 
     def collections(
         self,
@@ -142,10 +157,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a collections element."""
-        return self._add_element(name, "collections", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "collections", alias=alias, stereotype=stereotype, style=style)
 
     def component(
         self,
@@ -153,10 +168,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a component."""
-        return self._add_element(name, "component", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "component", alias=alias, stereotype=stereotype, style=style)
 
     def control(
         self,
@@ -164,10 +179,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a control element."""
-        return self._add_element(name, "control", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "control", alias=alias, stereotype=stereotype, style=style)
 
     def database(
         self,
@@ -175,10 +190,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a database (simple, non-nested)."""
-        return self._add_element(name, "database", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "database", alias=alias, stereotype=stereotype, style=style)
 
     def entity(
         self,
@@ -186,10 +201,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add an entity."""
-        return self._add_element(name, "entity", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "entity", alias=alias, stereotype=stereotype, style=style)
 
     def file(
         self,
@@ -197,10 +212,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a file."""
-        return self._add_element(name, "file", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "file", alias=alias, stereotype=stereotype, style=style)
 
     def folder(
         self,
@@ -208,10 +223,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a folder (simple, non-nested)."""
-        return self._add_element(name, "folder", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "folder", alias=alias, stereotype=stereotype, style=style)
 
     def frame(
         self,
@@ -219,10 +234,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a frame (simple, non-nested)."""
-        return self._add_element(name, "frame", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "frame", alias=alias, stereotype=stereotype, style=style)
 
     def hexagon(
         self,
@@ -230,10 +245,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a hexagon."""
-        return self._add_element(name, "hexagon", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "hexagon", alias=alias, stereotype=stereotype, style=style)
 
     def interface(
         self,
@@ -241,10 +256,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add an interface."""
-        return self._add_element(name, "interface", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "interface", alias=alias, stereotype=stereotype, style=style)
 
     def label(
         self,
@@ -252,10 +267,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a label."""
-        return self._add_element(name, "label", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "label", alias=alias, stereotype=stereotype, style=style)
 
     def package(
         self,
@@ -263,10 +278,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a package (simple, non-nested)."""
-        return self._add_element(name, "package", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "package", alias=alias, stereotype=stereotype, style=style)
 
     def person(
         self,
@@ -274,10 +289,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a person."""
-        return self._add_element(name, "person", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "person", alias=alias, stereotype=stereotype, style=style)
 
     def process(
         self,
@@ -285,10 +300,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a process."""
-        return self._add_element(name, "process", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "process", alias=alias, stereotype=stereotype, style=style)
 
     def queue(
         self,
@@ -296,10 +311,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a queue."""
-        return self._add_element(name, "queue", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "queue", alias=alias, stereotype=stereotype, style=style)
 
     def rectangle(
         self,
@@ -307,10 +322,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a rectangle (simple, non-nested)."""
-        return self._add_element(name, "rectangle", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "rectangle", alias=alias, stereotype=stereotype, style=style)
 
     def stack(
         self,
@@ -318,10 +333,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a stack."""
-        return self._add_element(name, "stack", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "stack", alias=alias, stereotype=stereotype, style=style)
 
     def storage(
         self,
@@ -329,10 +344,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a storage element."""
-        return self._add_element(name, "storage", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "storage", alias=alias, stereotype=stereotype, style=style)
 
     def usecase(
         self,
@@ -340,10 +355,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a usecase."""
-        return self._add_element(name, "usecase", alias=alias, stereotype=stereotype, color=color)
+        return self._add_element(name, "usecase", alias=alias, stereotype=stereotype, style=style)
 
     # Relationship methods
     def relationship(
@@ -353,16 +368,32 @@ class _BaseDeploymentBuilder:
         *,
         type: RelationType = "association",
         label: str | Label | None = None,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
-        """Add a relationship between elements."""
+        """Add a relationship between elements.
+
+        Args:
+            source: Source element
+            target: Target element
+            type: Relationship type
+            label: Optional label
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+            note: Note attached to the relationship
+        """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=source,
             target=target,
             type=type,
             label=label_obj,
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -373,16 +404,32 @@ class _BaseDeploymentBuilder:
         *,
         label: str | Label | None = None,
         dotted: bool = False,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
-        """Add an arrow between elements."""
+        """Add an arrow between elements.
+
+        Args:
+            source: Source element
+            target: Target element
+            label: Optional label
+            dotted: Use dotted arrow style
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+            note: Note attached to the arrow
+        """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=source,
             target=target,
             type="dotted_arrow" if dotted else "arrow",
             label=label_obj,
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -393,16 +440,32 @@ class _BaseDeploymentBuilder:
         *,
         label: str | Label | None = None,
         dotted: bool = False,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
-        """Add a link (no arrow) between elements."""
+        """Add a link (no arrow) between elements.
+
+        Args:
+            source: Source element
+            target: Target element
+            label: Optional label
+            dotted: Use dotted line style
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+            note: Note attached to the link
+        """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=source,
             target=target,
             type="dotted" if dotted else "line",
             label=label_obj,
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -437,10 +500,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_NestedElementBuilder"]:
         """Create a node with nested elements."""
-        builder = _NestedElementBuilder("node", name, alias, stereotype, color)
+        builder = _NestedElementBuilder("node", name, alias, stereotype, style)
         yield builder
         self._elements.append(builder._build())
 
@@ -451,10 +514,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_NestedElementBuilder"]:
         """Create a cloud with nested elements."""
-        builder = _NestedElementBuilder("cloud", name, alias, stereotype, color)
+        builder = _NestedElementBuilder("cloud", name, alias, stereotype, style)
         yield builder
         self._elements.append(builder._build())
 
@@ -465,10 +528,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_NestedElementBuilder"]:
         """Create a database with nested elements."""
-        builder = _NestedElementBuilder("database", name, alias, stereotype, color)
+        builder = _NestedElementBuilder("database", name, alias, stereotype, style)
         yield builder
         self._elements.append(builder._build())
 
@@ -479,10 +542,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_NestedElementBuilder"]:
         """Create a folder with nested elements."""
-        builder = _NestedElementBuilder("folder", name, alias, stereotype, color)
+        builder = _NestedElementBuilder("folder", name, alias, stereotype, style)
         yield builder
         self._elements.append(builder._build())
 
@@ -493,10 +556,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_NestedElementBuilder"]:
         """Create a frame with nested elements."""
-        builder = _NestedElementBuilder("frame", name, alias, stereotype, color)
+        builder = _NestedElementBuilder("frame", name, alias, stereotype, style)
         yield builder
         self._elements.append(builder._build())
 
@@ -507,10 +570,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_NestedElementBuilder"]:
         """Create a package with nested elements."""
-        builder = _NestedElementBuilder("package", name, alias, stereotype, color)
+        builder = _NestedElementBuilder("package", name, alias, stereotype, style)
         yield builder
         self._elements.append(builder._build())
 
@@ -521,10 +584,10 @@ class _BaseDeploymentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_NestedElementBuilder"]:
         """Create a rectangle with nested elements."""
-        builder = _NestedElementBuilder("rectangle", name, alias, stereotype, color)
+        builder = _NestedElementBuilder("rectangle", name, alias, stereotype, style)
         yield builder
         self._elements.append(builder._build())
 
@@ -538,7 +601,7 @@ class _NestedElementBuilder(_BaseDeploymentBuilder):
         name: str,
         alias: str | None,
         stereotype: str | Stereotype | None,
-        color: ColorLike | None,
+        style: StyleLike | None,
     ) -> None:
         if not name:
             raise ValueError("Element name cannot be empty")
@@ -547,7 +610,7 @@ class _NestedElementBuilder(_BaseDeploymentBuilder):
         self._name = name
         self._alias = alias
         self._stereotype = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
-        self._color = color
+        self._style = validate_style_background_only(style, "DeploymentElement")
 
     def _build(self) -> DeploymentElement:
         """Build the nested element."""
@@ -556,7 +619,7 @@ class _NestedElementBuilder(_BaseDeploymentBuilder):
             type=self._type,
             alias=self._alias,
             stereotype=self._stereotype,
-            color=self._color,
+            style=self._style,
             elements=tuple(self._elements),
         )
 
@@ -580,15 +643,30 @@ class DeploymentDiagramBuilder(_BaseDeploymentBuilder):
         self,
         *,
         title: str | None = None,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
+        scale: float | Scale | None = None,
     ) -> None:
         super().__init__()
         self._title = title
+        self._caption = caption
+        self._header = Header(header) if isinstance(header, str) else header
+        self._footer = Footer(footer) if isinstance(footer, str) else footer
+        self._legend = Legend(legend) if isinstance(legend, str) else legend
+        self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
 
     def build(self) -> DeploymentDiagram:
         """Build the complete deployment diagram."""
         return DeploymentDiagram(
             elements=tuple(self._elements),
             title=self._title,
+            caption=self._caption,
+            header=self._header,
+            footer=self._footer,
+            legend=self._legend,
+            scale=self._scale,
         )
 
     def render(self) -> str:
@@ -605,6 +683,11 @@ class DeploymentDiagramBuilder(_BaseDeploymentBuilder):
 def deployment_diagram(
     *,
     title: str | None = None,
+    caption: str | None = None,
+    header: str | Header | None = None,
+    footer: str | Footer | None = None,
+    legend: str | Legend | None = None,
+    scale: float | Scale | None = None,
 ) -> Iterator[DeploymentDiagramBuilder]:
     """Create a deployment diagram with context manager syntax.
 
@@ -620,9 +703,21 @@ def deployment_diagram(
 
     Args:
         title: Optional diagram title
+        caption: Optional diagram caption
+        header: Optional header text or Header object
+        footer: Optional footer text or Footer object
+        legend: Optional legend text or Legend object
+        scale: Optional scale factor or Scale object
 
     Yields:
         A DeploymentDiagramBuilder for adding diagram elements
     """
-    builder = DeploymentDiagramBuilder(title=title)
+    builder = DeploymentDiagramBuilder(
+        title=title,
+        caption=caption,
+        header=header,
+        footer=footer,
+        legend=legend,
+        scale=scale,
+    )
     yield builder

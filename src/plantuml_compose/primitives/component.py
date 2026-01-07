@@ -22,7 +22,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Union
 
-from .common import ColorLike, ComponentDiagramStyle, Direction, Label, LabelLike, LineStyle, Stereotype, Style
+from .common import ColorLike, ComponentDiagramStyle, Direction, Footer, Header, Label, LabelLike, Legend, LineStyle, Scale, Stereotype, Style
 
 if TYPE_CHECKING:
     pass
@@ -250,6 +250,11 @@ class ComponentDiagram:
 
     elements: tuple[ComponentElement, ...] = field(default_factory=tuple)
     title: str | None = None
+    caption: str | None = None
+    header: Header | None = None
+    footer: Footer | None = None
+    legend: Legend | None = None
+    scale: Scale | None = None
     style: ComponentStyle | None = None
     diagram_style: ComponentDiagramStyle | None = None
     # Skin parameters

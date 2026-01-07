@@ -25,10 +25,15 @@ from ..primitives.state import (
 )
 from .common import (
     escape_quotes,
+    render_caption,
     render_color,
+    render_footer,
+    render_header,
     render_label,
+    render_legend,
     render_line_style_bracket,
     render_element_style,
+    render_scale,
     render_stereotype,
 )
 
@@ -101,6 +106,12 @@ def render_state_diagram(diagram: StateDiagram) -> str:
     if diagram.style:
         lines.extend(_render_diagram_style(diagram.style))
 
+    # Scale (affects output size)
+    if diagram.scale:
+        scale_str = render_scale(diagram.scale)
+        if scale_str:
+            lines.append(scale_str)
+
     if diagram.title:
         if "\n" in diagram.title:
             lines.append("title")
@@ -109,6 +120,20 @@ def render_state_diagram(diagram: StateDiagram) -> str:
             lines.append("end title")
         else:
             lines.append(f"title {escape_quotes(diagram.title)}")
+
+    # Header and footer
+    if diagram.header:
+        lines.extend(render_header(diagram.header))
+    if diagram.footer:
+        lines.extend(render_footer(diagram.footer))
+
+    # Caption (appears below diagram)
+    if diagram.caption:
+        lines.append(render_caption(diagram.caption))
+
+    # Legend
+    if diagram.legend:
+        lines.extend(render_legend(diagram.legend))
 
     if diagram.hide_empty_description:
         lines.append("hide empty description")

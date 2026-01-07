@@ -25,8 +25,17 @@ from typing import Iterator, Literal
 
 from ..primitives.common import (
     ColorLike,
+    Footer,
+    Header,
     Label,
     LabelLike,
+    Legend,
+    LineStyle,
+    LineStyleLike,
+    Scale,
+    StyleLike,
+    coerce_line_style,
+    validate_style_background_only,
 )
 from ..primitives.sequence import (
     Activation,
@@ -68,8 +77,7 @@ class _BaseSequenceBuilder:
         line_style: MessageLineStyle = "solid",
         arrow_head: MessageArrowHead = "normal",
         bidirectional: bool = False,
-        color: ColorLike | None = None,
-        bold: bool = False,
+        style: LineStyleLike | None = None,
         activate: ActivationAction | None = None,
         activate_color: ColorLike | None = None,
     ) -> Message:
@@ -82,8 +90,7 @@ class _BaseSequenceBuilder:
             line_style: "solid" or "dotted"
             arrow_head: Arrow head style
             bidirectional: If True, arrow points both directions
-            color: Arrow color (bracket syntax)
-            bold: If True, use bold arrow (bracket syntax)
+            style: Arrow style (color, bold)
             activate: Activation shorthand (++, --, **, !!)
             activate_color: Color for activation bar
 
@@ -91,6 +98,7 @@ class _BaseSequenceBuilder:
             The created Message
         """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
         msg = Message(
             source=self._to_ref(source),
             target=self._to_ref(target),
@@ -98,8 +106,7 @@ class _BaseSequenceBuilder:
             line_style=line_style,
             arrow_head=arrow_head,
             bidirectional=bidirectional,
-            color=color,
-            bold=bold,
+            style=style_obj,
             activation=activate,
             activation_color=activate_color,
         )
@@ -443,11 +450,21 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         self,
         *,
         title: str | None = None,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
+        scale: float | Scale | None = None,
         autonumber: bool = False,
         hide_unlinked: bool = False,
     ) -> None:
         super().__init__()
         self._title = title
+        self._caption = caption
+        self._header = Header(header) if isinstance(header, str) else header
+        self._footer = Footer(footer) if isinstance(footer, str) else footer
+        self._legend = Legend(legend) if isinstance(legend, str) else legend
+        self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         self._autonumber = Autonumber() if autonumber else None
         self._hide_unlinked = hide_unlinked
         self._participants: list[Participant] = []
@@ -460,7 +477,7 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         alias: str | None = None,
         type: ParticipantType = "participant",
         order: int | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
         """Create and register a participant.
@@ -470,7 +487,7 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
             alias: Optional short reference name
             type: Participant shape type
             order: Display order (lower = leftmost)
-            color: Background color
+            style: Visual style (background, line, text_color)
             description: Multiline description shown under the participant
 
         Returns:
@@ -479,12 +496,13 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         if not name:
             raise ValueError("Participant name cannot be empty")
         desc_label = Label(description) if isinstance(description, str) else description
+        style_obj = validate_style_background_only(style, "Participant")
         p = Participant(
             name=name,
             alias=alias,
             type=type,
             order=order,
-            color=color,
+            style=style_obj,
             description=desc_label,
         )
         self._participants.append(p)
@@ -512,12 +530,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         *,
         alias: str | None = None,
         order: int | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
         """Create an actor participant (stick figure)."""
         return self.participant(
-            name, alias=alias, type="actor", order=order, color=color, description=description
+            name, alias=alias, type="actor", order=order, style=style, description=description
         )
 
     def boundary(
@@ -526,12 +544,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         *,
         alias: str | None = None,
         order: int | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
         """Create a boundary participant."""
         return self.participant(
-            name, alias=alias, type="boundary", order=order, color=color, description=description
+            name, alias=alias, type="boundary", order=order, style=style, description=description
         )
 
     def control(
@@ -540,12 +558,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         *,
         alias: str | None = None,
         order: int | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
         """Create a control participant."""
         return self.participant(
-            name, alias=alias, type="control", order=order, color=color, description=description
+            name, alias=alias, type="control", order=order, style=style, description=description
         )
 
     def entity(
@@ -554,12 +572,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         *,
         alias: str | None = None,
         order: int | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
         """Create an entity participant."""
         return self.participant(
-            name, alias=alias, type="entity", order=order, color=color, description=description
+            name, alias=alias, type="entity", order=order, style=style, description=description
         )
 
     def database(
@@ -568,12 +586,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         *,
         alias: str | None = None,
         order: int | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
         """Create a database participant (cylinder)."""
         return self.participant(
-            name, alias=alias, type="database", order=order, color=color, description=description
+            name, alias=alias, type="database", order=order, style=style, description=description
         )
 
     def collections(
@@ -582,12 +600,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         *,
         alias: str | None = None,
         order: int | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
         """Create a collections participant."""
         return self.participant(
-            name, alias=alias, type="collections", order=order, color=color, description=description
+            name, alias=alias, type="collections", order=order, style=style, description=description
         )
 
     def queue(
@@ -596,12 +614,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         *,
         alias: str | None = None,
         order: int | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
         """Create a queue participant."""
         return self.participant(
-            name, alias=alias, type="queue", order=order, color=color, description=description
+            name, alias=alias, type="queue", order=order, style=style, description=description
         )
 
     @contextmanager
@@ -635,6 +653,11 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         return SequenceDiagram(
             elements=tuple(self._elements),
             title=self._title,
+            caption=self._caption,
+            header=self._header,
+            footer=self._footer,
+            legend=self._legend,
+            scale=self._scale,
             participants=standalone,
             boxes=tuple(self._boxes),
             autonumber=self._autonumber,
@@ -665,19 +688,20 @@ class _BoxBuilder:
         alias: str | None = None,
         type: ParticipantType = "participant",
         order: int | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
         """Create a participant within this box."""
         if not name:
             raise ValueError("Participant name cannot be empty")
         desc_label = Label(description) if isinstance(description, str) else description
+        style_obj = validate_style_background_only(style, "Participant")
         p = Participant(
             name=name,
             alias=alias,
             type=type,
             order=order,
-            color=color,
+            style=style_obj,
             description=desc_label,
         )
         self._participants.append(p)
@@ -725,6 +749,11 @@ class _BoxBuilder:
 def sequence_diagram(
     *,
     title: str | None = None,
+    caption: str | None = None,
+    header: str | Header | None = None,
+    footer: str | Footer | None = None,
+    legend: str | Legend | None = None,
+    scale: float | Scale | None = None,
     autonumber: bool = False,
     hide_unlinked: bool = False,
 ) -> Iterator[SequenceDiagramBuilder]:
@@ -747,6 +776,11 @@ def sequence_diagram(
 
     Args:
         title: Optional diagram title
+        caption: Optional caption below the diagram
+        header: Optional header text (string or Header object)
+        footer: Optional footer text (string or Footer object)
+        legend: Optional legend content (string or Legend object)
+        scale: Optional scale factor (float) or Scale object
         autonumber: Enable automatic message numbering
         hide_unlinked: Hide participants with no messages
 
@@ -755,6 +789,11 @@ def sequence_diagram(
     """
     builder = SequenceDiagramBuilder(
         title=title,
+        caption=caption,
+        header=header,
+        footer=footer,
+        legend=legend,
+        scale=scale,
         autonumber=autonumber,
         hide_unlinked=hide_unlinked,
     )

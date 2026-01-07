@@ -28,12 +28,16 @@ from typing import Literal, TypeAlias
 
 from .common import (
     Direction,
+    Footer,
+    Header,
     Label,
     LabelLike,
+    Legend,
     LineStyle,
     LineStyleLike,
     Note,
     RegionSeparator,
+    Scale,
     StateDiagramStyle,
     Style,
     StyleLike,
@@ -279,6 +283,11 @@ class StateDiagram:
 
     elements: tuple["StateDiagramElement", ...] = field(default_factory=tuple)
     title: str | None = None
+    caption: str | None = None
+    header: Header | None = None
+    footer: Footer | None = None
+    legend: Legend | None = None
+    scale: Scale | None = None
     hide_empty_description: bool = False
     style: StateDiagramStyle | None = None
 

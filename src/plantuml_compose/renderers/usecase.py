@@ -14,12 +14,29 @@ from ..primitives.usecase import (
     UseCaseDiagramElement,
     UseCaseNote,
 )
-from .common import escape_quotes, render_color, render_label, render_stereotype
+from .common import (
+    escape_quotes,
+    render_caption,
+    render_color,
+    render_footer,
+    render_header,
+    render_label,
+    render_legend,
+    render_line_style_bracket,
+    render_scale,
+    render_stereotype,
+)
 
 
 def render_usecase_diagram(diagram: UseCaseDiagram) -> str:
     """Render a complete use case diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
+
+    # Scale (affects output size)
+    if diagram.scale:
+        scale_str = render_scale(diagram.scale)
+        if scale_str:
+            lines.append(scale_str)
 
     if diagram.title:
         if "\n" in diagram.title:
@@ -29,6 +46,20 @@ def render_usecase_diagram(diagram: UseCaseDiagram) -> str:
             lines.append("end title")
         else:
             lines.append(f"title {escape_quotes(diagram.title)}")
+
+    # Header and footer
+    if diagram.header:
+        lines.extend(render_header(diagram.header))
+    if diagram.footer:
+        lines.extend(render_footer(diagram.footer))
+
+    # Caption (appears below diagram)
+    if diagram.caption:
+        lines.append(render_caption(diagram.caption))
+
+    # Legend
+    if diagram.legend:
+        lines.extend(render_legend(diagram.legend))
 
     if diagram.left_to_right:
         lines.append("left to right direction")
@@ -54,7 +85,7 @@ def _render_element(elem: UseCaseDiagramElement, indent: int = 0) -> list[str]:
     if isinstance(elem, Container):
         return _render_container(elem, indent)
     if isinstance(elem, Relationship):
-        return [f"{prefix}{_render_relationship(elem)}"]
+        return _render_relationship(elem, indent)
     if isinstance(elem, UseCaseNote):
         return _render_note(elem, indent)
     raise TypeError(f"Unknown element type: {type(elem).__name__}")
@@ -78,8 +109,9 @@ def _render_actor(actor: Actor) -> str:
     if actor.stereotype:
         parts.append(render_stereotype(actor.stereotype))
 
-    if actor.color:
-        color = render_color(actor.color)
+    # Style background as element color
+    if actor.style and actor.style.background:
+        color = render_color(actor.style.background)
         if not color.startswith("#"):
             color = f"#{color}"
         parts.append(color)
@@ -105,8 +137,9 @@ def _render_usecase(usecase: UseCase) -> str:
     if usecase.stereotype:
         parts.append(render_stereotype(usecase.stereotype))
 
-    if usecase.color:
-        color = render_color(usecase.color)
+    # Style background as element color
+    if usecase.style and usecase.style.background:
+        color = render_color(usecase.style.background)
         if not color.startswith("#"):
             color = f"#{color}"
         parts.append(color)
@@ -127,8 +160,9 @@ def _render_container(container: Container, indent: int = 0) -> list[str]:
     if container.stereotype:
         parts.append(render_stereotype(container.stereotype))
 
-    if container.color:
-        color = render_color(container.color)
+    # Style background as element color
+    if container.style and container.style.background:
+        color = render_color(container.style.background)
         if not color.startswith("#"):
             color = f"#{color}"
         parts.append(color)
@@ -143,9 +177,12 @@ def _render_container(container: Container, indent: int = 0) -> list[str]:
     return lines
 
 
-def _render_relationship(rel: Relationship) -> str:
+def _render_relationship(rel: Relationship, indent: int = 0) -> list[str]:
     """Render a relationship."""
-    # Get the arrow based on type
+    prefix = "  " * indent
+    lines: list[str] = []
+
+    # Get the base arrow based on type
     arrow_map = {
         "association": "->",
         "arrow": "-->",
@@ -155,20 +192,10 @@ def _render_relationship(rel: Relationship) -> str:
         "dependency": "..>",
         "line": "--",
     }
-    arrow = arrow_map.get(rel.type, "->")
+    base_arrow = arrow_map.get(rel.type, "->")
 
-    # Add color if specified
-    if rel.color:
-        color = render_color(rel.color)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        # Insert color into arrow
-        if "->" in arrow:
-            arrow = arrow.replace("->", f"-[{color}]->")
-        elif ".>" in arrow:
-            arrow = arrow.replace(".>", f".[{color}].>")
-        elif "--" in arrow:
-            arrow = arrow.replace("--", f"-[{color}]-")
+    # Build arrow with direction and style
+    arrow = _build_arrow(base_arrow, rel.direction, rel.style)
 
     # Build the full relationship line
     parts: list[str] = [rel.source, arrow, rel.target]
@@ -182,7 +209,55 @@ def _render_relationship(rel: Relationship) -> str:
     elif rel.type == "extends":
         parts.append(": <<extends>>")
 
-    return " ".join(parts)
+    lines.append(f"{prefix}{' '.join(parts)}")
+
+    # Note on link
+    if rel.note:
+        note_text = render_label(rel.note)
+        if "\n" in note_text:
+            lines.append(f"{prefix}note on link")
+            for note_line in note_text.split("\n"):
+                lines.append(f"{prefix}  {note_line}")
+            lines.append(f"{prefix}end note")
+        else:
+            lines.append(f"{prefix}note on link: {note_text}")
+
+    return lines
+
+
+def _build_arrow(base_arrow: str, direction: str | None, style) -> str:
+    """Build arrow with direction and style modifiers."""
+    # Direction modifier (first letter: u, d, l, r)
+    dir_mod = ""
+    if direction:
+        dir_mod = direction[0]
+
+    # Style modifier
+    style_mod = ""
+    if style:
+        style_mod = render_line_style_bracket(style)
+
+    # Build the modified arrow
+    # For arrows like -> or -->
+    if "->" in base_arrow:
+        prefix_part = base_arrow.replace("->", "")
+        if style_mod or dir_mod:
+            return f"{prefix_part}-{style_mod}{dir_mod}->"
+        return base_arrow
+
+    # For dotted arrows like .>
+    if ".>" in base_arrow:
+        if style_mod or dir_mod:
+            return f".{style_mod}{dir_mod}.>"
+        return base_arrow
+
+    # For lines like --
+    if base_arrow == "--":
+        if style_mod or dir_mod:
+            return f"-{style_mod}{dir_mod}-"
+        return base_arrow
+
+    return base_arrow
 
 
 def _render_note(note: UseCaseNote, indent: int = 0) -> list[str]:

@@ -31,12 +31,27 @@ from ..primitives.activity import (
 )
 from ..primitives.activity import GotoLabel as ActivityLabel
 from ..primitives.common import Note
-from .common import escape_quotes, render_color, render_label
+from .common import (
+    escape_quotes,
+    render_caption,
+    render_color,
+    render_footer,
+    render_header,
+    render_label,
+    render_legend,
+    render_scale,
+)
 
 
 def render_activity_diagram(diagram: ActivityDiagram) -> str:
     """Render a complete activity diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
+
+    # Scale (affects output size)
+    if diagram.scale:
+        scale_str = render_scale(diagram.scale)
+        if scale_str:
+            lines.append(scale_str)
 
     if diagram.title:
         if "\n" in diagram.title:
@@ -46,6 +61,20 @@ def render_activity_diagram(diagram: ActivityDiagram) -> str:
             lines.append("end title")
         else:
             lines.append(f"title {escape_quotes(diagram.title)}")
+
+    # Header and footer
+    if diagram.header:
+        lines.extend(render_header(diagram.header))
+    if diagram.footer:
+        lines.extend(render_footer(diagram.footer))
+
+    # Caption (appears below diagram)
+    if diagram.caption:
+        lines.append(render_caption(diagram.caption))
+
+    # Legend
+    if diagram.legend:
+        lines.extend(render_legend(diagram.legend))
 
     for elem in diagram.elements:
         lines.extend(_render_element(elem))
@@ -120,10 +149,10 @@ def _render_action(action: Action) -> str:
         "database": "}",
     }[action.shape]
 
-    # Color prefix
+    # Color prefix (from style.background)
     color_prefix = ""
-    if action.color:
-        color = render_color(action.color)
+    if action.style and action.style.background:
+        color = render_color(action.style.background)
         if not color.startswith("#"):
             color = f"#{color}"
         color_prefix = color
@@ -137,15 +166,20 @@ def _render_arrow(arrow: Arrow) -> str:
     # Note: thickness and plain are in the primitive but not rendered -
     # PlantUML doesn't support them in bracket syntax
     parts: list[str] = []
-    if arrow.color:
-        color = render_color(arrow.color)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        parts.append(color)
-    if arrow.style != "solid":
-        parts.append(arrow.style)
-    if arrow.bold:
-        parts.append("bold")
+
+    # Extract color and bold from line_style
+    if arrow.line_style:
+        if arrow.line_style.color:
+            color = render_color(arrow.line_style.color)
+            if not color.startswith("#"):
+                color = f"#{color}"
+            parts.append(color)
+        if arrow.line_style.bold:
+            parts.append("bold")
+
+    # Line pattern (solid, dashed, dotted, hidden)
+    if arrow.pattern != "solid":
+        parts.append(arrow.pattern)
 
     style_part = f"[{','.join(parts)}]" if parts else ""
     arrow_str = f"-{style_part}->"

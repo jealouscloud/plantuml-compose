@@ -51,9 +51,16 @@ from ..primitives.activity import (
 )
 from ..primitives.activity import GotoLabel as ActivityLabel
 from ..primitives.common import (
-    ColorLike,
+    Footer,
+    Header,
     Label,
     LabelLike,
+    Legend,
+    LineStyleLike,
+    Scale,
+    StyleLike,
+    coerce_line_style,
+    validate_style_background_only,
 )
 
 
@@ -86,14 +93,14 @@ class _BaseActivityBuilder:
         label: str | Label,
         *,
         shape: ActionShape = "default",
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Action:
         """Add an action.
 
         Args:
             label: Action text
             shape: SDL shape type
-            color: Background color
+            style: Visual style (background, line, text_color)
 
         Returns:
             The created Action
@@ -102,7 +109,8 @@ class _BaseActivityBuilder:
         if not text:
             raise ValueError("Action label cannot be empty")
         label_obj = Label(label) if isinstance(label, str) else label
-        a = Action(label=label_obj, shape=shape, color=color)
+        style_obj = validate_style_background_only(style, "Action")
+        a = Action(label=label_obj, shape=shape, style=style_obj)
         self._elements.append(a)
         return a
 
@@ -110,27 +118,25 @@ class _BaseActivityBuilder:
         self,
         label: str | Label | None = None,
         *,
-        color: ColorLike | None = None,
-        style: ArrowStyle = "solid",
-        bold: bool = False,
+        pattern: ArrowStyle = "solid",
+        style: LineStyleLike | None = None,
     ) -> Arrow:
         """Add an arrow with optional label.
 
         Args:
             label: Arrow label
-            color: Arrow color
-            style: Arrow style (solid, dashed, dotted, hidden)
-            bold: If True, use bold arrow
+            pattern: Line pattern (solid, dashed, dotted, hidden)
+            style: Line style (color, thickness, bold)
 
         Returns:
             The created Arrow
         """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
         a = Arrow(
             label=label_obj,
-            color=color,
-            style=style,
-            bold=bold,
+            pattern=pattern,
+            line_style=style_obj,
         )
         self._elements.append(a)
         return a
@@ -614,15 +620,34 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
         print(render(diagram))
     """
 
-    def __init__(self, *, title: str | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        title: str | None = None,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
+        scale: float | Scale | None = None,
+    ) -> None:
         super().__init__()
         self._title = title
+        self._caption = caption
+        self._header = Header(header) if isinstance(header, str) else header
+        self._footer = Footer(footer) if isinstance(footer, str) else footer
+        self._legend = Legend(legend) if isinstance(legend, str) else legend
+        self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
 
     def build(self) -> ActivityDiagram:
         """Build the complete activity diagram."""
         return ActivityDiagram(
             elements=tuple(self._elements),
             title=self._title,
+            caption=self._caption,
+            header=self._header,
+            footer=self._footer,
+            legend=self._legend,
+            scale=self._scale,
         )
 
     def render(self) -> str:
@@ -638,6 +663,11 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
 def activity_diagram(
     *,
     title: str | None = None,
+    caption: str | None = None,
+    header: str | Header | None = None,
+    footer: str | Footer | None = None,
+    legend: str | Legend | None = None,
+    scale: float | Scale | None = None,
 ) -> Iterator[ActivityDiagramBuilder]:
     """Create an activity diagram with context manager syntax.
 
@@ -657,9 +687,21 @@ def activity_diagram(
 
     Args:
         title: Optional diagram title
+        caption: Optional diagram caption
+        header: Optional header text or Header object
+        footer: Optional footer text or Footer object
+        legend: Optional legend text or Legend object
+        scale: Optional scale factor or Scale object
 
     Yields:
         An ActivityDiagramBuilder for adding diagram elements
     """
-    builder = ActivityDiagramBuilder(title=title)
+    builder = ActivityDiagramBuilder(
+        title=title,
+        caption=caption,
+        header=header,
+        footer=footer,
+        legend=legend,
+        scale=scale,
+    )
     yield builder

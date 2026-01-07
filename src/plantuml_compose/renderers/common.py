@@ -4,10 +4,14 @@ from __future__ import annotations
 
 from ..primitives.common import (
     Color,
+    Footer,
     Gradient,
+    Header,
     Label,
+    Legend,
     LineStyle,
     LineStyleLike,
+    Scale,
     Stereotype,
     Style,
     StyleLike,
@@ -160,3 +164,134 @@ def render_stereotype(stereotype: Stereotype) -> str:
             color = f"#{color}"
         return f"<< ({stereotype.spot.char},{color}) {stereotype.name} >>"
     return f"<<{stereotype.name}>>"
+
+
+# =============================================================================
+# Common Diagram Metadata Rendering
+# =============================================================================
+
+
+def render_header(header: Header) -> list[str]:
+    """Render header directive.
+
+    PlantUML syntax:
+        header Text           (left-aligned, single line)
+        center header Text    (centered, single line)
+        right header Text     (right-aligned, single line)
+        header\\n...\\nendheader  (multiline block)
+    """
+    text = render_label(header.content)
+
+    if header.position == "center":
+        prefix = "center header"
+    elif header.position == "right":
+        prefix = "right header"
+    else:
+        prefix = "header"
+
+    if "\n" in text:
+        lines = [prefix]
+        lines.extend(f"  {line}" for line in text.split("\n"))
+        lines.append("endheader")
+        return lines
+    return [f"{prefix} {text}"]
+
+
+def render_footer(footer: Footer) -> list[str]:
+    """Render footer directive.
+
+    PlantUML syntax:
+        footer Text           (left-aligned, single line)
+        center footer Text    (centered, single line)
+        right footer Text     (right-aligned, single line)
+        footer\\n...\\nendfooter  (multiline block)
+
+    Supports special variables like %page% and %lastpage%.
+    """
+    text = render_label(footer.content)
+
+    if footer.position == "center":
+        prefix = "center footer"
+    elif footer.position == "right":
+        prefix = "right footer"
+    else:
+        prefix = "footer"
+
+    if "\n" in text:
+        lines = [prefix]
+        lines.extend(f"  {line}" for line in text.split("\n"))
+        lines.append("endfooter")
+        return lines
+    return [f"{prefix} {text}"]
+
+
+def render_legend(legend: Legend) -> list[str]:
+    """Render legend block.
+
+    PlantUML syntax:
+        legend [left|right|top|bottom|center]
+          content
+        endlegend
+
+    Legends are always multiline blocks in PlantUML.
+    """
+    text = render_label(legend.content)
+
+    # Build opening line with position
+    if legend.position == "right":
+        opening = "legend"  # right is default
+    else:
+        opening = f"legend {legend.position}"
+
+    lines = [opening]
+    for line in text.split("\n"):
+        lines.append(f"  {line}")
+    lines.append("endlegend")
+    return lines
+
+
+def render_scale(scale: Scale) -> str:
+    """Render scale directive.
+
+    PlantUML syntax:
+        scale 1.5              (factor)
+        scale 2/3              (fraction - but we use float)
+        scale 200 width        (exact width)
+        scale 100 height       (exact height)
+        scale 200*100          (exact width and height)
+        scale max 1024 width   (max width)
+        scale max 768 height   (max height)
+        scale max 1024*768     (max width and height)
+    """
+    # Max dimensions take priority
+    if scale.max_width is not None and scale.max_height is not None:
+        return f"scale max {scale.max_width}*{scale.max_height}"
+    if scale.max_width is not None:
+        return f"scale max {scale.max_width} width"
+    if scale.max_height is not None:
+        return f"scale max {scale.max_height} height"
+
+    # Exact dimensions
+    if scale.width is not None and scale.height is not None:
+        return f"scale {scale.width}*{scale.height}"
+    if scale.width is not None:
+        return f"scale {scale.width} width"
+    if scale.height is not None:
+        return f"scale {scale.height} height"
+
+    # Factor
+    if scale.factor is not None:
+        return f"scale {scale.factor}"
+
+    return ""
+
+
+def render_caption(caption: str) -> str:
+    """Render caption directive.
+
+    PlantUML syntax:
+        caption Figure 1: Description
+
+    Caption appears below the diagram.
+    """
+    return f"caption {escape_quotes(caption)}"

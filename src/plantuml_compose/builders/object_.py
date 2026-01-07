@@ -31,7 +31,21 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import Iterator, Literal
 
-from ..primitives.common import ColorLike, Label, Stereotype
+from ..primitives.common import (
+    ColorLike,
+    Direction,
+    Footer,
+    Header,
+    Label,
+    Legend,
+    LineStyle,
+    LineStyleLike,
+    Scale,
+    Stereotype,
+    StyleLike,
+    coerce_line_style,
+    validate_style_background_only,
+)
 from ..primitives.object_ import (
     Field,
     Map,
@@ -57,7 +71,7 @@ class _BaseObjectBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> str:
         """Add a simple object without fields.
 
@@ -65,7 +79,7 @@ class _BaseObjectBuilder:
             name: Object name
             alias: Short alias for relationships
             stereotype: Stereotype annotation
-            color: Background color
+            style: Visual style (background, line, text_color)
 
         Returns:
             The alias if provided, otherwise the name
@@ -73,11 +87,12 @@ class _BaseObjectBuilder:
         if not name:
             raise ValueError("Object name cannot be empty")
         stereo = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        style_obj = validate_style_background_only(style, "Object")
         obj = Object(
             name=name,
             alias=alias,
             stereotype=stereo,
-            color=color,
+            style=style_obj,
         )
         self._elements.append(obj)
         return alias or name
@@ -88,7 +103,7 @@ class _BaseObjectBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
         fields: dict[str, str] | None = None,
     ) -> str:
         """Add an object with fields.
@@ -97,7 +112,7 @@ class _BaseObjectBuilder:
             name: Object name
             alias: Short alias for relationships
             stereotype: Stereotype annotation
-            color: Background color
+            style: Visual style (background, line, text_color)
             fields: Dictionary of field name -> value
 
         Returns:
@@ -106,12 +121,13 @@ class _BaseObjectBuilder:
         if not name:
             raise ValueError("Object name cannot be empty")
         stereo = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        style_obj = validate_style_background_only(style, "Object")
         field_objs = tuple(Field(name=k, value=v) for k, v in (fields or {}).items())
         obj = Object(
             name=name,
             alias=alias,
             stereotype=stereo,
-            color=color,
+            style=style_obj,
             fields=field_objs,
         )
         self._elements.append(obj)
@@ -122,7 +138,7 @@ class _BaseObjectBuilder:
         name: str,
         *,
         alias: str | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
         entries: dict[str, str] | None = None,
         links: dict[str, str] | None = None,
     ) -> str:
@@ -131,7 +147,7 @@ class _BaseObjectBuilder:
         Args:
             name: Map name
             alias: Short alias for relationships
-            color: Background color
+            style: Visual style (background, line, text_color)
             entries: Dictionary of key -> value
             links: Dictionary of key -> object reference (for *-> syntax)
 
@@ -140,6 +156,7 @@ class _BaseObjectBuilder:
         """
         if not name:
             raise ValueError("Map name cannot be empty")
+        style_obj = validate_style_background_only(style, "Map")
         entry_objs: list[MapEntry] = []
 
         # Add regular entries
@@ -153,7 +170,7 @@ class _BaseObjectBuilder:
         map_obj = Map(
             name=name,
             alias=alias,
-            color=color,
+            style=style_obj,
             entries=tuple(entry_objs),
         )
         self._elements.append(map_obj)
@@ -166,16 +183,32 @@ class _BaseObjectBuilder:
         *,
         type: RelationType = "association",
         label: str | Label | None = None,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
-        """Add a relationship between objects."""
+        """Add a relationship between objects.
+
+        Args:
+            source: Source object
+            target: Target object
+            type: Relationship type
+            label: Optional label
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+            note: Note attached to the relationship
+        """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=source,
             target=target,
             type=type,
             label=label_obj,
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -185,16 +218,31 @@ class _BaseObjectBuilder:
         target: str,
         *,
         label: str | Label | None = None,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
-        """Add an arrow between objects."""
+        """Add an arrow between objects.
+
+        Args:
+            source: Source object
+            target: Target object
+            label: Optional label
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+            note: Note attached to the arrow
+        """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=source,
             target=target,
             type="arrow",
             label=label_obj,
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -204,16 +252,31 @@ class _BaseObjectBuilder:
         target: str,
         *,
         label: str | Label | None = None,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
-        """Add a simple link between objects."""
+        """Add a simple link between objects.
+
+        Args:
+            source: Source object
+            target: Target object
+            label: Optional label
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+            note: Note attached to the link
+        """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=source,
             target=target,
             type="line",
             label=label_obj,
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -223,16 +286,31 @@ class _BaseObjectBuilder:
         target: str,
         *,
         label: str | Label | None = None,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
-        """Add a composition relationship (*--)."""
+        """Add a composition relationship (*--).
+
+        Args:
+            source: Source object (whole)
+            target: Target object (part)
+            label: Optional label
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+            note: Note attached to the relationship
+        """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=source,
             target=target,
             type="composition",
             label=label_obj,
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -242,16 +320,31 @@ class _BaseObjectBuilder:
         target: str,
         *,
         label: str | Label | None = None,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
-        """Add an aggregation relationship (o--)."""
+        """Add an aggregation relationship (o--).
+
+        Args:
+            source: Source object (whole)
+            target: Target object (part)
+            label: Optional label
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+            note: Note attached to the relationship
+        """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=source,
             target=target,
             type="aggregation",
             label=label_obj,
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -261,16 +354,31 @@ class _BaseObjectBuilder:
         target: str,
         *,
         label: str | Label | None = None,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
-        """Add an extension relationship (<|--)."""
+        """Add an extension relationship (<|--).
+
+        Args:
+            source: Child object
+            target: Parent object
+            label: Optional label
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+            note: Note attached to the relationship
+        """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=source,
             target=target,
             type="extension",
             label=label_obj,
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -280,16 +388,31 @@ class _BaseObjectBuilder:
         target: str,
         *,
         label: str | Label | None = None,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
-        """Add an implementation relationship (<|..)."""
+        """Add an implementation relationship (<|..).
+
+        Args:
+            source: Implementing object
+            target: Interface object
+            label: Optional label
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+            note: Note attached to the relationship
+        """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=source,
             target=target,
             type="implementation",
             label=label_obj,
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -333,15 +456,30 @@ class ObjectDiagramBuilder(_BaseObjectBuilder):
         self,
         *,
         title: str | None = None,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
+        scale: float | Scale | None = None,
     ) -> None:
         super().__init__()
         self._title = title
+        self._caption = caption
+        self._header = Header(header) if isinstance(header, str) else header
+        self._footer = Footer(footer) if isinstance(footer, str) else footer
+        self._legend = Legend(legend) if isinstance(legend, str) else legend
+        self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
 
     def build(self) -> ObjectDiagram:
         """Build the complete object diagram."""
         return ObjectDiagram(
             elements=tuple(self._elements),
             title=self._title,
+            caption=self._caption,
+            header=self._header,
+            footer=self._footer,
+            legend=self._legend,
+            scale=self._scale,
         )
 
     def render(self) -> str:
@@ -358,6 +496,11 @@ class ObjectDiagramBuilder(_BaseObjectBuilder):
 def object_diagram(
     *,
     title: str | None = None,
+    caption: str | None = None,
+    header: str | Header | None = None,
+    footer: str | Footer | None = None,
+    legend: str | Legend | None = None,
+    scale: float | Scale | None = None,
 ) -> Iterator[ObjectDiagramBuilder]:
     """Create an object diagram with context manager syntax.
 
@@ -375,9 +518,21 @@ def object_diagram(
 
     Args:
         title: Optional diagram title
+        caption: Optional diagram caption
+        header: Optional header text or Header object
+        footer: Optional footer text or Footer object
+        legend: Optional legend text or Legend object
+        scale: Optional scale factor or Scale object
 
     Yields:
         An ObjectDiagramBuilder for adding diagram elements
     """
-    builder = ObjectDiagramBuilder(title=title)
+    builder = ObjectDiagramBuilder(
+        title=title,
+        caption=caption,
+        header=header,
+        footer=footer,
+        legend=legend,
+        scale=scale,
+    )
     yield builder

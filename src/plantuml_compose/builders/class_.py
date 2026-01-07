@@ -36,11 +36,15 @@ from ..primitives.class_ import (
 from ..primitives.common import (
     ColorLike,
     Direction,
+    Footer,
+    Header,
     Label,
     LabelLike,
+    Legend,
     LineStyleLike,
     Note,
     NotePosition,
+    Scale,
     Stereotype,
 )
 
@@ -711,12 +715,22 @@ class ClassDiagramBuilder(_BaseClassBuilder):
         hide_empty_members: bool = False,
         hide_circle: bool = False,
         namespace_separator: str | None = None,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
+        scale: float | Scale | None = None,
     ) -> None:
         super().__init__()
         self._title = title
         self._hide_empty_members = hide_empty_members
         self._hide_circle = hide_circle
         self._namespace_separator = namespace_separator
+        self._caption = caption
+        self._header = Header(header) if isinstance(header, str) else header
+        self._footer = Footer(footer) if isinstance(footer, str) else footer
+        self._legend = Legend(legend) if isinstance(legend, str) else legend
+        self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
 
     def build(self) -> ClassDiagram:
         """Build the complete class diagram."""
@@ -726,6 +740,11 @@ class ClassDiagramBuilder(_BaseClassBuilder):
             hide_empty_members=self._hide_empty_members,
             hide_circle=self._hide_circle,
             namespace_separator=self._namespace_separator,
+            caption=self._caption,
+            header=self._header,
+            footer=self._footer,
+            legend=self._legend,
+            scale=self._scale,
         )
 
     def render(self) -> str:
@@ -744,6 +763,11 @@ def class_diagram(
     hide_empty_members: bool = False,
     hide_circle: bool = False,
     namespace_separator: str | None = None,
+    caption: str | None = None,
+    header: str | Header | None = None,
+    footer: str | Footer | None = None,
+    legend: str | Legend | None = None,
+    scale: float | Scale | None = None,
 ) -> Iterator[ClassDiagramBuilder]:
     """Create a class diagram with context manager syntax.
 
@@ -767,6 +791,11 @@ def class_diagram(
         hide_empty_members: Hide classes with no members
         hide_circle: Hide the circle icons
         namespace_separator: Namespace separator (e.g., "::" or "none")
+        caption: Optional diagram caption
+        header: Optional header text or Header object
+        footer: Optional footer text or Footer object
+        legend: Optional legend text or Legend object
+        scale: Optional scale factor or Scale object
 
     Yields:
         A ClassDiagramBuilder for adding diagram elements
@@ -776,5 +805,10 @@ def class_diagram(
         hide_empty_members=hide_empty_members,
         hide_circle=hide_circle,
         namespace_separator=namespace_separator,
+        caption=caption,
+        header=header,
+        footer=footer,
+        legend=legend,
+        scale=scale,
     )
     yield builder

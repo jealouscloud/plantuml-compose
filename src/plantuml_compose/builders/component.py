@@ -25,9 +25,13 @@ from ..primitives.common import (
     ComponentDiagramStyle,
     ComponentDiagramStyleLike,
     Direction,
+    Footer,
+    Header,
     Label,
+    Legend,
     LineStyleLike,
     NotePosition,
+    Scale,
     Stereotype,
     StyleLike,
     coerce_component_diagram_style,
@@ -960,6 +964,11 @@ class ComponentDiagramBuilder(_BaseComponentBuilder):
         style: ComponentStyle | None = None,
         diagram_style: ComponentDiagramStyleLike | None = None,
         hide_stereotype: bool = False,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
+        scale: float | Scale | None = None,
     ) -> None:
         super().__init__()
         self._title = title
@@ -971,6 +980,11 @@ class ComponentDiagramBuilder(_BaseComponentBuilder):
             else None
         )
         self._hide_stereotype = hide_stereotype
+        self._caption = caption
+        self._header = Header(header) if isinstance(header, str) else header
+        self._footer = Footer(footer) if isinstance(footer, str) else footer
+        self._legend = Legend(legend) if isinstance(legend, str) else legend
+        self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
 
     def build(self) -> ComponentDiagram:
         """Build the complete component diagram."""
@@ -980,6 +994,11 @@ class ComponentDiagramBuilder(_BaseComponentBuilder):
             style=self._style,
             diagram_style=self._diagram_style,
             hide_stereotype=self._hide_stereotype,
+            caption=self._caption,
+            header=self._header,
+            footer=self._footer,
+            legend=self._legend,
+            scale=self._scale,
         )
 
     def render(self) -> str:
@@ -999,6 +1018,11 @@ def component_diagram(
     style: ComponentStyle | None = None,
     diagram_style: ComponentDiagramStyleLike | None = None,
     hide_stereotype: bool = False,
+    caption: str | None = None,
+    header: str | Header | None = None,
+    footer: str | Footer | None = None,
+    legend: str | Legend | None = None,
+    scale: float | Scale | None = None,
 ) -> Iterator[ComponentDiagramBuilder]:
     """Create a component diagram with context manager syntax.
 
@@ -1030,6 +1054,11 @@ def component_diagram(
         style: Component style ("uml1", "uml2", "rectangle")
         diagram_style: CSS-like diagram styling (dict or ComponentDiagramStyle object)
         hide_stereotype: Hide all stereotypes
+        caption: Optional diagram caption
+        header: Optional header text or Header object
+        footer: Optional footer text or Footer object
+        legend: Optional legend text or Legend object
+        scale: Optional scale factor or Scale object
 
     Yields:
         A ComponentDiagramBuilder for adding diagram elements
@@ -1039,5 +1068,10 @@ def component_diagram(
         style=style,
         diagram_style=diagram_style,
         hide_stereotype=hide_stereotype,
+        caption=caption,
+        header=header,
+        footer=footer,
+        legend=legend,
+        scale=scale,
     )
     yield builder

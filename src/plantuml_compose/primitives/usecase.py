@@ -23,7 +23,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Union
 
-from .common import ColorLike, Label, LabelLike, Stereotype
+from .common import ColorLike, Direction, Footer, Header, Label, LabelLike, Legend, LineStyle, Scale, Stereotype, Style
 
 if TYPE_CHECKING:
     pass
@@ -50,7 +50,7 @@ class Actor:
     name: str
     alias: str | None = None
     stereotype: Stereotype | None = None
-    color: ColorLike | None = None
+    style: Style | None = None
     business: bool = False  # Business variant (actor/)
 
 
@@ -61,7 +61,7 @@ class UseCase:
     name: str
     alias: str | None = None
     stereotype: Stereotype | None = None
-    color: ColorLike | None = None
+    style: Style | None = None
     business: bool = False  # Business variant (usecase/)
 
 
@@ -73,7 +73,7 @@ class Container:
     type: ContainerType = "rectangle"
     elements: tuple["UseCaseDiagramElement", ...] = field(default_factory=tuple)
     stereotype: Stereotype | None = None
-    color: ColorLike | None = None
+    style: Style | None = None
 
 
 @dataclass(frozen=True)
@@ -84,7 +84,9 @@ class Relationship:
     target: str
     type: RelationType = "association"
     label: Label | None = None
-    color: ColorLike | None = None
+    style: LineStyle | None = None
+    direction: Direction | None = None
+    note: Label | None = None
 
 
 @dataclass(frozen=True)
@@ -114,5 +116,10 @@ class UseCaseDiagram:
 
     elements: tuple[UseCaseDiagramElement, ...] = field(default_factory=tuple)
     title: str | None = None
+    caption: str | None = None
+    header: Header | None = None
+    footer: Footer | None = None
+    legend: Legend | None = None
+    scale: Scale | None = None
     actor_style: ActorStyle | None = None
     left_to_right: bool = False

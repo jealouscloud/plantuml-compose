@@ -26,10 +26,15 @@ from typing import Literal, TypeAlias
 
 from .common import (
     ColorLike,
+    Footer,
+    Header,
     Label,
     LabelLike,
+    Legend,
+    Scale,
     LineStyleLike,
     Note,
+    Style,
     StyleLike,
 )
 
@@ -117,7 +122,7 @@ class Participant:
         alias:       Short identifier for referencing in messages
         type:        Visual shape ("actor", "database", "participant", etc.)
         order:       Display position (lower numbers = left side)
-        color:       Header background color
+        style:       Visual style (background, line, text_color)
         description: Multi-line text in the header (below name)
     """
 
@@ -125,7 +130,7 @@ class Participant:
     alias: str | None = None
     type: ParticipantType = "participant"
     order: int | None = None  # Display order
-    color: ColorLike | None = None
+    style: Style | None = None
     description: LabelLike | None = None  # Multiline description
 
     @property
@@ -151,7 +156,7 @@ class Message:
         activation:     Shorthand to activate/deactivate target
         is_return:      If True, this is a return message
 
-    Arrow styling:
+    Arrow styling via style:
         color:     Arrow color
         thickness: Line width in pixels
         bold:      If True, thicker line
@@ -164,9 +169,7 @@ class Message:
     arrow_head: MessageArrowHead = "normal"
     bidirectional: bool = False
     # Arrow styling (bracket syntax: -[#red,bold]->)
-    color: ColorLike | None = None
-    thickness: int | None = None  # Pixels
-    bold: bool = False
+    style: LineStyleLike | None = None
     # Activation shorthand
     activation: ActivationAction | None = None
     activation_color: ColorLike | None = None
@@ -356,6 +359,11 @@ class SequenceDiagram:
 
     elements: tuple["SequenceDiagramElement", ...] = field(default_factory=tuple)
     title: str | None = None
+    caption: str | None = None
+    header: Header | None = None
+    footer: Footer | None = None
+    legend: Legend | None = None
+    scale: Scale | None = None
     # Participants declared at top (for ordering)
     participants: tuple[Participant, ...] = field(default_factory=tuple)
     # Boxes containing participants

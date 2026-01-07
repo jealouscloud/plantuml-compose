@@ -20,12 +20,16 @@ from typing import Iterator
 
 from ..primitives.common import (
     Direction,
+    Footer,
+    Header,
     Label,
+    Legend,
     LineStyle,
     LineStyleLike,
     Note,
     NotePosition,
     RegionSeparator,
+    Scale,
     StateDiagramStyle,
     StateDiagramStyleLike,
     Style,
@@ -829,11 +833,22 @@ class StateDiagramBuilder(_BaseStateBuilder):
         self,
         *,
         title: str | None = None,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
+        scale: float | Scale | None = None,
         hide_empty_description: bool = False,
         style: StateDiagramStyleLike | None = None,
     ) -> None:
         super().__init__()
         self._title = title
+        self._caption = caption
+        # Coerce string to Header/Footer/Legend objects
+        self._header = Header(header) if isinstance(header, str) else header
+        self._footer = Footer(footer) if isinstance(footer, str) else footer
+        self._legend = Legend(legend) if isinstance(legend, str) else legend
+        self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         self._hide_empty_description = hide_empty_description
         # Coerce style dict to StateDiagramStyle object
         self._style = coerce_state_diagram_style(style) if style is not None else None
@@ -843,6 +858,11 @@ class StateDiagramBuilder(_BaseStateBuilder):
         return StateDiagram(
             elements=tuple(self._elements),
             title=self._title,
+            caption=self._caption,
+            header=self._header,
+            footer=self._footer,
+            legend=self._legend,
+            scale=self._scale,
             hide_empty_description=self._hide_empty_description,
             style=self._style,
         )
@@ -863,6 +883,11 @@ class StateDiagramBuilder(_BaseStateBuilder):
 def state_diagram(
     *,
     title: str | None = None,
+    caption: str | None = None,
+    header: str | Header | None = None,
+    footer: str | Footer | None = None,
+    legend: str | Legend | None = None,
+    scale: float | Scale | None = None,
     hide_empty_description: bool = False,
     style: StateDiagramStyleLike | None = None,
 ) -> Iterator[StateDiagramBuilder]:
@@ -894,6 +919,11 @@ def state_diagram(
 
     Args:
         title: Optional diagram title
+        caption: Optional caption below the diagram
+        header: Optional header text (string or Header object for positioning)
+        footer: Optional footer text (string or Footer object for positioning)
+        legend: Optional legend content (string or Legend object for positioning)
+        scale: Optional scale factor (float) or Scale object for sizing
         hide_empty_description: Whether to hide empty state descriptions
         style: Optional styling (dict or StateDiagramStyle object)
 
@@ -902,6 +932,11 @@ def state_diagram(
     """
     builder = StateDiagramBuilder(
         title=title,
+        caption=caption,
+        header=header,
+        footer=footer,
+        legend=legend,
+        scale=scale,
         hide_empty_description=hide_empty_description,
         style=style,
     )

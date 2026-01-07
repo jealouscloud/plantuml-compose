@@ -22,12 +22,27 @@ from ..primitives.sequence import (
     SequenceNote,
     Space,
 )
-from .common import escape_quotes, render_color, render_label
+from .common import (
+    escape_quotes,
+    render_caption,
+    render_color,
+    render_footer,
+    render_header,
+    render_label,
+    render_legend,
+    render_scale,
+)
 
 
 def render_sequence_diagram(diagram: SequenceDiagram) -> str:
     """Render a complete sequence diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
+
+    # Scale (affects output size)
+    if diagram.scale:
+        scale_str = render_scale(diagram.scale)
+        if scale_str:
+            lines.append(scale_str)
 
     if diagram.title:
         if "\n" in diagram.title:
@@ -37,6 +52,20 @@ def render_sequence_diagram(diagram: SequenceDiagram) -> str:
             lines.append("end title")
         else:
             lines.append(f"title {escape_quotes(diagram.title)}")
+
+    # Header and footer
+    if diagram.header:
+        lines.extend(render_header(diagram.header))
+    if diagram.footer:
+        lines.extend(render_footer(diagram.footer))
+
+    # Caption (appears below diagram)
+    if diagram.caption:
+        lines.append(render_caption(diagram.caption))
+
+    # Legend
+    if diagram.legend:
+        lines.extend(render_legend(diagram.legend))
 
     if diagram.hide_unlinked:
         lines.append("hide unlinked")
@@ -77,9 +106,9 @@ def _render_participant(p: Participant) -> str:
     if p.order is not None:
         parts.append(f"order {p.order}")
 
-    # Color
-    if p.color:
-        color = render_color(p.color)
+    # Style background as element color
+    if p.style and p.style.background:
+        color = render_color(p.style.background)
         if not color.startswith("#"):
             color = f"#{color}"
         parts.append(color)
@@ -184,13 +213,17 @@ def _build_message_arrow(msg: Message) -> str:
     # Build bracket styling if any style options are set
     # Note: thickness is in the primitive but not rendered - PlantUML doesn't support it
     bracket_parts: list[str] = []
-    if msg.color:
-        color = render_color(msg.color)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        bracket_parts.append(color)
-    if msg.bold:
-        bracket_parts.append("bold")
+
+    # Extract styling from style object
+    style = msg.style
+    if style:
+        if hasattr(style, "color") and style.color:
+            color = render_color(style.color)
+            if not color.startswith("#"):
+                color = f"#{color}"
+            bracket_parts.append(color)
+        if hasattr(style, "bold") and style.bold:
+            bracket_parts.append("bold")
 
     # Bracket syntax: -[style]-> (brackets go between dashes)
     bracket = f"[{','.join(bracket_parts)}]" if bracket_parts else ""
