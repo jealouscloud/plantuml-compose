@@ -110,9 +110,9 @@ class TestBasicElements:
         output = render(d.build())
         assert "<<service>>" in output
 
-    def test_element_with_color(self):
+    def test_element_with_style(self):
         with deployment_diagram() as d:
-            d.component("Critical", color="red")
+            d.component("Critical", style={"background": "red"})
 
         output = render(d.build())
         assert "#red" in output
@@ -214,11 +214,11 @@ class TestRelationships:
         output = render(d.build())
         assert "a .. b" in output
 
-    def test_relationship_with_color(self):
+    def test_relationship_with_style(self):
         with deployment_diagram() as d:
             a = d.component("A", alias="a")
             b = d.component("B", alias="b")
-            d.arrow(a, b, color="blue")
+            d.arrow(a, b, style={"color": "blue"})
 
         output = render(d.build())
         assert "[#blue]" in output
@@ -382,4 +382,20 @@ class TestValidation:
         with deployment_diagram() as d:
             with pytest.raises(ValueError, match="cannot be empty"):
                 with d.node_nested(""):
+                    pass
+
+    def test_element_style_rejects_text_color(self):
+        with deployment_diagram() as d:
+            with pytest.raises(ValueError, match="only supports 'background' styling"):
+                d.component("API", style={"text_color": "blue"})
+
+    def test_element_style_rejects_line(self):
+        with deployment_diagram() as d:
+            with pytest.raises(ValueError, match="only supports 'background' styling"):
+                d.database("DB", style={"line": {"color": "red"}})
+
+    def test_nested_element_style_rejects_text_color(self):
+        with deployment_diagram() as d:
+            with pytest.raises(ValueError, match="only supports 'background' styling"):
+                with d.node_nested("Server", style={"text_color": "blue"}):
                     pass

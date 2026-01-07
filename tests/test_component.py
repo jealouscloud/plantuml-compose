@@ -47,6 +47,43 @@ class TestBasicElements:
         output = render(d.build())
         assert "#red" in output
 
+    def test_component_with_line_style(self):
+        with component_diagram() as d:
+            d.component("Bordered", style={"line": {"color": "blue"}})
+
+        output = render(d.build())
+        assert "##blue" in output
+
+    def test_component_with_line_pattern(self):
+        with component_diagram() as d:
+            d.component("Dashed", style={"line": {"pattern": "dashed"}})
+
+        output = render(d.build())
+        assert "##[dashed]" in output
+
+    def test_component_with_text_color(self):
+        with component_diagram() as d:
+            d.component("Highlighted", style={"text_color": "green"})
+
+        output = render(d.build())
+        assert "text:green" in output
+
+    def test_component_with_combined_style(self):
+        with component_diagram() as d:
+            d.component(
+                "FullStyle",
+                style={
+                    "background": "yellow",
+                    "line": {"color": "blue"},
+                    "text_color": "red",
+                },
+            )
+
+        output = render(d.build())
+        assert "#yellow" in output
+        assert "line:blue" in output
+        assert "text:red" in output
+
     def test_interface(self):
         with component_diagram() as d:
             d.interface("REST API")

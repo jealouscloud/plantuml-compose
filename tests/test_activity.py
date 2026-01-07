@@ -59,9 +59,9 @@ class TestBasicElements:
         output = render(d.build())
         assert ":Process Order;" in output
 
-    def test_action_with_color(self):
+    def test_action_with_style(self):
         with activity_diagram() as d:
-            d.action("Important", color="red")
+            d.action("Important", style={"background": "red"})
 
         output = render(d.build())
         assert "#red:Important;" in output
@@ -102,10 +102,10 @@ class TestArrows:
         output = render(d.build())
         assert "-> next;" in output
 
-    def test_arrow_with_color(self):
+    def test_arrow_with_style(self):
         with activity_diagram() as d:
             d.action("A")
-            d.arrow(color="blue")
+            d.arrow(style={"color": "blue"})
             d.action("B")
 
         output = render(d.build())
@@ -114,7 +114,7 @@ class TestArrows:
     def test_arrow_dashed(self):
         with activity_diagram() as d:
             d.action("A")
-            d.arrow(style="dashed")
+            d.arrow(pattern="dashed")
             d.action("B")
 
         output = render(d.build())
@@ -123,7 +123,7 @@ class TestArrows:
     def test_arrow_bold(self):
         with activity_diagram() as d:
             d.action("A")
-            d.arrow(bold=True)
+            d.arrow(style={"bold": True})
             d.action("B")
 
         output = render(d.build())
@@ -132,7 +132,7 @@ class TestArrows:
     def test_arrow_combined_styling(self):
         with activity_diagram() as d:
             d.action("A")
-            d.arrow(color="red", bold=True)
+            d.arrow(style={"color": "red", "bold": True})
             d.action("B")
 
         output = render(d.build())
@@ -512,3 +512,13 @@ class TestValidation:
             with pytest.raises(ValueError, match="cannot be empty"):
                 with d.group(""):
                     pass
+
+    def test_action_style_rejects_text_color(self):
+        with activity_diagram() as d:
+            with pytest.raises(ValueError, match="only supports 'background' styling"):
+                d.action("Test", style={"text_color": "blue"})
+
+    def test_action_style_rejects_line(self):
+        with activity_diagram() as d:
+            with pytest.raises(ValueError, match="only supports 'background' styling"):
+                d.action("Test", style={"line": {"color": "red"}})

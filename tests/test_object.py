@@ -48,9 +48,9 @@ class TestObjects:
         output = render(d.build())
         assert "<<entity>>" in output
 
-    def test_object_with_color(self):
+    def test_object_with_style(self):
         with object_diagram() as d:
-            d.object("VIP", color="gold")
+            d.object("VIP", style={"background": "gold"})
 
         output = render(d.build())
         assert "#gold" in output
@@ -98,9 +98,9 @@ class TestMaps:
         output = render(d.build())
         assert "item1 *-> widget" in output
 
-    def test_map_with_color(self):
+    def test_map_with_style(self):
         with object_diagram() as d:
-            d.map("Config", color="LightBlue", entries={"key": "value"})
+            d.map("Config", style={"background": "LightBlue"}, entries={"key": "value"})
 
         output = render(d.build())
         assert "#LightBlue" in output
@@ -181,11 +181,11 @@ class TestRelationships:
         output = render(d.build())
         assert "a <|-- b : extends" in output
 
-    def test_relationship_with_color(self):
+    def test_relationship_with_style(self):
         with object_diagram() as d:
             a = d.object("A", alias="a")
             b = d.object("B", alias="b")
-            d.arrow(a, b, color="blue")
+            d.arrow(a, b, style={"color": "blue"})
 
         output = render(d.build())
         assert "[#blue]" in output
@@ -317,3 +317,18 @@ class TestValidation:
         with object_diagram() as d:
             with pytest.raises(ValueError, match="cannot be empty"):
                 d.note("")
+
+    def test_object_style_rejects_text_color(self):
+        with object_diagram() as d:
+            with pytest.raises(ValueError, match="only supports 'background' styling"):
+                d.object("User", style={"text_color": "blue"})
+
+    def test_object_style_rejects_line(self):
+        with object_diagram() as d:
+            with pytest.raises(ValueError, match="only supports 'background' styling"):
+                d.object_with_fields("User", style={"line": {"color": "red"}})
+
+    def test_map_style_rejects_text_color(self):
+        with object_diagram() as d:
+            with pytest.raises(ValueError, match="only supports 'background' styling"):
+                d.map("MyMap", style={"text_color": "blue"}, entries={"a": "b"})

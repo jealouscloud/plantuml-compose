@@ -96,9 +96,9 @@ class TestParticipant:
         output = render(d.build())
         assert "participant User order 10" in output
 
-    def test_participant_with_color(self):
+    def test_participant_with_style(self):
         with sequence_diagram() as d:
-            d.participant("User", color="red")
+            d.participant("User", style={"background": "red"})
 
         output = render(d.build())
         assert "participant User #red" in output
@@ -203,18 +203,18 @@ class TestMessage:
         output = render(d.build())
         assert "API -> User-- : response" in output
 
-    def test_message_with_color(self):
+    def test_message_with_style_color(self):
         with sequence_diagram() as d:
             user, api = d.participants("User", "API")
-            d.message(user, api, "request", color="red")
+            d.message(user, api, "request", style={"color": "red"})
 
         output = render(d.build())
         assert "-[#red]->" in output
 
-    def test_message_with_bold(self):
+    def test_message_with_style_bold(self):
         with sequence_diagram() as d:
             user, api = d.participants("User", "API")
-            d.message(user, api, "request", bold=True)
+            d.message(user, api, "request", style={"bold": True})
 
         output = render(d.build())
         assert "-[bold]->" in output
@@ -222,7 +222,7 @@ class TestMessage:
     def test_message_with_combined_styling(self):
         with sequence_diagram() as d:
             user, api = d.participants("User", "API")
-            d.message(user, api, "request", color="blue", bold=True)
+            d.message(user, api, "request", style={"color": "blue", "bold": True})
 
         output = render(d.build())
         assert "-[#blue,bold]->" in output
@@ -641,3 +641,13 @@ class TestValidation:
         with sequence_diagram() as d:
             with pytest.raises(ValueError, match="cannot be empty"):
                 d.database("")
+
+    def test_participant_style_rejects_text_color(self):
+        with sequence_diagram() as d:
+            with pytest.raises(ValueError, match="only supports 'background' styling"):
+                d.participant("User", style={"text_color": "blue"})
+
+    def test_participant_style_rejects_line(self):
+        with sequence_diagram() as d:
+            with pytest.raises(ValueError, match="only supports 'background' styling"):
+                d.participant("User", style={"line": {"color": "red"}})

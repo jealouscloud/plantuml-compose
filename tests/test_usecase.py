@@ -39,9 +39,9 @@ class TestActors:
         output = render(d.build())
         assert "<<privileged>>" in output
 
-    def test_actor_with_color(self):
+    def test_actor_with_style(self):
         with usecase_diagram() as d:
-            d.actor("VIP", color="gold")
+            d.actor("VIP", style={"background": "gold"})
 
         output = render(d.build())
         assert "#gold" in output
@@ -86,9 +86,9 @@ class TestUseCases:
         output = render(d.build())
         assert "<<critical>>" in output
 
-    def test_usecase_with_color(self):
+    def test_usecase_with_style(self):
         with usecase_diagram() as d:
-            d.usecase("Priority", color="red")
+            d.usecase("Priority", style={"background": "red"})
 
         output = render(d.build())
         assert "#red" in output
@@ -132,9 +132,9 @@ class TestContainers:
         assert "rectangle System" in output
         assert "package Subsystem" in output
 
-    def test_container_with_color(self):
+    def test_container_with_style(self):
         with usecase_diagram() as d:
-            with d.rectangle("System", color="LightBlue") as r:
+            with d.rectangle("System", style={"background": "LightBlue"}) as r:
                 r.usecase("Feature")
 
         output = render(d.build())
@@ -198,11 +198,11 @@ class TestRelationships:
         output = render(d.build())
         assert "admin <|-- user" in output
 
-    def test_relationship_with_color(self):
+    def test_relationship_with_style(self):
         with usecase_diagram() as d:
             user = d.actor("User", alias="u")
             uc = d.usecase("Login", alias="login")
-            d.arrow(user, uc, color="blue")
+            d.arrow(user, uc, style={"color": "blue"})
 
         output = render(d.build())
         assert "[#blue]" in output
@@ -352,4 +352,20 @@ class TestValidation:
         with usecase_diagram() as d:
             with pytest.raises(ValueError, match="cannot be empty"):
                 with d.rectangle(""):
+                    pass
+
+    def test_actor_style_rejects_text_color(self):
+        with usecase_diagram() as d:
+            with pytest.raises(ValueError, match="only supports 'background' styling"):
+                d.actor("User", style={"text_color": "blue"})
+
+    def test_usecase_style_rejects_line(self):
+        with usecase_diagram() as d:
+            with pytest.raises(ValueError, match="only supports 'background' styling"):
+                d.usecase("Login", style={"line": {"color": "red"}})
+
+    def test_container_style_rejects_text_color(self):
+        with usecase_diagram() as d:
+            with pytest.raises(ValueError, match="only supports 'background' styling"):
+                with d.rectangle("System", style={"text_color": "blue"}):
                     pass
