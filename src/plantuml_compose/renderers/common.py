@@ -295,3 +295,32 @@ def render_caption(caption: str) -> str:
     Caption appears below the diagram.
     """
     return f"caption {escape_quotes(caption)}"
+
+
+def needs_quotes(name: str) -> bool:
+    """Check if a name needs to be quoted in PlantUML.
+
+    Names need quotes if they:
+    - Are empty
+    - Don't start with a letter or underscore
+    - Contain characters other than alphanumeric or underscore
+    """
+    if not name:
+        return True
+    if not name[0].isalpha() and name[0] != "_":
+        return True
+    for char in name:
+        if not (char.isalnum() or char == "_"):
+            return True
+    return False
+
+
+def quote_ref(ref: str) -> str:
+    """Quote a reference if it contains special characters.
+
+    Used when rendering relationship source/target refs that may contain
+    spaces or other characters requiring quoting in PlantUML syntax.
+    """
+    if needs_quotes(ref):
+        return f'"{escape_quotes(ref)}"'
+    return ref

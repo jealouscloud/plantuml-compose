@@ -43,11 +43,24 @@ from ..primitives.deployment import (
 )
 
 
+# Type alias for objects that can be used as relationship endpoints
+DeploymentRef = DeploymentElement | str
+
+
 class _BaseDeploymentBuilder:
     """Base class for deployment builders with shared methods."""
 
     def __init__(self) -> None:
         self._elements: list[DeploymentDiagramElement] = []
+
+    def _to_ref(self, target: DeploymentRef) -> str:
+        """Convert a deployment element reference to its string form.
+
+        Accepts strings or DeploymentElement primitives.
+        """
+        if isinstance(target, str):
+            return target
+        return target._ref
 
     def _add_element(
         self,
@@ -57,7 +70,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add an element of any type."""
         if not name:
             raise ValueError("Element name cannot be empty")
@@ -71,7 +84,7 @@ class _BaseDeploymentBuilder:
             style=style_obj,
         )
         self._elements.append(elem)
-        return alias or name
+        return elem
 
     # Element type shortcuts
     def actor(
@@ -81,7 +94,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add an actor."""
         return self._add_element(name, "actor", alias=alias, stereotype=stereotype, style=style)
 
@@ -92,7 +105,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add an agent."""
         return self._add_element(name, "agent", alias=alias, stereotype=stereotype, style=style)
 
@@ -103,7 +116,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add an artifact."""
         return self._add_element(name, "artifact", alias=alias, stereotype=stereotype, style=style)
 
@@ -114,7 +127,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a boundary."""
         return self._add_element(name, "boundary", alias=alias, stereotype=stereotype, style=style)
 
@@ -125,7 +138,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a card."""
         return self._add_element(name, "card", alias=alias, stereotype=stereotype, style=style)
 
@@ -136,7 +149,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a circle."""
         return self._add_element(name, "circle", alias=alias, stereotype=stereotype, style=style)
 
@@ -147,7 +160,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a cloud (simple, non-nested)."""
         return self._add_element(name, "cloud", alias=alias, stereotype=stereotype, style=style)
 
@@ -158,7 +171,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a collections element."""
         return self._add_element(name, "collections", alias=alias, stereotype=stereotype, style=style)
 
@@ -169,7 +182,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a component."""
         return self._add_element(name, "component", alias=alias, stereotype=stereotype, style=style)
 
@@ -180,7 +193,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a control element."""
         return self._add_element(name, "control", alias=alias, stereotype=stereotype, style=style)
 
@@ -191,7 +204,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a database (simple, non-nested)."""
         return self._add_element(name, "database", alias=alias, stereotype=stereotype, style=style)
 
@@ -202,7 +215,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add an entity."""
         return self._add_element(name, "entity", alias=alias, stereotype=stereotype, style=style)
 
@@ -213,7 +226,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a file."""
         return self._add_element(name, "file", alias=alias, stereotype=stereotype, style=style)
 
@@ -224,7 +237,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a folder (simple, non-nested)."""
         return self._add_element(name, "folder", alias=alias, stereotype=stereotype, style=style)
 
@@ -235,7 +248,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a frame (simple, non-nested)."""
         return self._add_element(name, "frame", alias=alias, stereotype=stereotype, style=style)
 
@@ -246,7 +259,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a hexagon."""
         return self._add_element(name, "hexagon", alias=alias, stereotype=stereotype, style=style)
 
@@ -257,7 +270,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add an interface."""
         return self._add_element(name, "interface", alias=alias, stereotype=stereotype, style=style)
 
@@ -268,7 +281,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a label."""
         return self._add_element(name, "label", alias=alias, stereotype=stereotype, style=style)
 
@@ -279,7 +292,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a package (simple, non-nested)."""
         return self._add_element(name, "package", alias=alias, stereotype=stereotype, style=style)
 
@@ -290,7 +303,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a person."""
         return self._add_element(name, "person", alias=alias, stereotype=stereotype, style=style)
 
@@ -301,7 +314,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a process."""
         return self._add_element(name, "process", alias=alias, stereotype=stereotype, style=style)
 
@@ -312,7 +325,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a queue."""
         return self._add_element(name, "queue", alias=alias, stereotype=stereotype, style=style)
 
@@ -323,7 +336,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a rectangle (simple, non-nested)."""
         return self._add_element(name, "rectangle", alias=alias, stereotype=stereotype, style=style)
 
@@ -334,7 +347,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a stack."""
         return self._add_element(name, "stack", alias=alias, stereotype=stereotype, style=style)
 
@@ -345,7 +358,7 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a storage element."""
         return self._add_element(name, "storage", alias=alias, stereotype=stereotype, style=style)
 
@@ -356,15 +369,15 @@ class _BaseDeploymentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> DeploymentElement:
         """Add a usecase."""
         return self._add_element(name, "usecase", alias=alias, stereotype=stereotype, style=style)
 
     # Relationship methods
     def relationship(
         self,
-        source: str,
-        target: str,
+        source: DeploymentRef,
+        target: DeploymentRef,
         *,
         type: RelationType = "association",
         label: str | Label | None = None,
@@ -375,8 +388,8 @@ class _BaseDeploymentBuilder:
         """Add a relationship between elements.
 
         Args:
-            source: Source element
-            target: Target element
+            source: Source element (string or DeploymentElement)
+            target: Target element (string or DeploymentElement)
             type: Relationship type
             label: Optional label
             style: Line style (color, pattern, thickness)
@@ -387,8 +400,8 @@ class _BaseDeploymentBuilder:
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type=type,
             label=label_obj,
             style=style_obj,
@@ -399,8 +412,8 @@ class _BaseDeploymentBuilder:
 
     def arrow(
         self,
-        source: str,
-        target: str,
+        source: DeploymentRef,
+        target: DeploymentRef,
         *,
         label: str | Label | None = None,
         dotted: bool = False,
@@ -411,8 +424,8 @@ class _BaseDeploymentBuilder:
         """Add an arrow between elements.
 
         Args:
-            source: Source element
-            target: Target element
+            source: Source element (string or DeploymentElement)
+            target: Target element (string or DeploymentElement)
             label: Optional label
             dotted: Use dotted arrow style
             style: Line style (color, pattern, thickness)
@@ -423,8 +436,8 @@ class _BaseDeploymentBuilder:
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type="dotted_arrow" if dotted else "arrow",
             label=label_obj,
             style=style_obj,
@@ -435,8 +448,8 @@ class _BaseDeploymentBuilder:
 
     def link(
         self,
-        source: str,
-        target: str,
+        source: DeploymentRef,
+        target: DeploymentRef,
         *,
         label: str | Label | None = None,
         dotted: bool = False,
@@ -447,8 +460,8 @@ class _BaseDeploymentBuilder:
         """Add a link (no arrow) between elements.
 
         Args:
-            source: Source element
-            target: Target element
+            source: Source element (string or DeploymentElement)
+            target: Target element (string or DeploymentElement)
             label: Optional label
             dotted: Use dotted line style
             style: Line style (color, pattern, thickness)
@@ -459,8 +472,8 @@ class _BaseDeploymentBuilder:
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type="dotted" if dotted else "line",
             label=label_obj,
             style=style_obj,
@@ -469,12 +482,38 @@ class _BaseDeploymentBuilder:
         )
         self._elements.append(rel)
 
+    def connect(
+        self,
+        hub: DeploymentRef,
+        spokes: list[DeploymentRef],
+        *,
+        label: str | Label | None = None,
+        dotted: bool = False,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> None:
+        """Connect a hub element to multiple spoke elements.
+
+        Creates arrows from hub to each spoke. Useful for hub-and-spoke patterns
+        like a load balancer connecting to multiple servers.
+
+        Args:
+            hub: Central element
+            spokes: List of elements to connect to
+            label: Optional label for all arrows
+            dotted: Use dotted arrow style
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+        """
+        for spoke in spokes:
+            self.arrow(hub, spoke, label=label, dotted=dotted, style=style, direction=direction)
+
     def note(
         self,
         content: str | Label,
         *,
         position: Literal["left", "right", "top", "bottom"] = "right",
-        target: str | None = None,
+        target: DeploymentRef | None = None,
         floating: bool = False,
         color: ColorLike | None = None,
     ) -> None:
@@ -483,10 +522,11 @@ class _BaseDeploymentBuilder:
         if not text:
             raise ValueError("Note content cannot be empty")
         content_label = Label(content) if isinstance(content, str) else content
+        target_ref = self._to_ref(target) if target else None
         n = DeploymentNote(
             content=content_label,
             position=position,
-            target=target,
+            target=target_ref,
             floating=floating,
             color=color,
         )

@@ -26,6 +26,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal, TypeAlias, TypedDict
 
+
+def sanitize_ref(name: str) -> str:
+    """Convert a name to a valid PlantUML reference.
+
+    PlantUML identifiers cannot contain spaces, so spaces are replaced with
+    underscores. This allows names like "Web Server" to be referenced as
+    "Web_Server" in relationships.
+    """
+    return name.replace(" ", "_")
+
+
 # All color names supported by PlantUML (extracted via test_codegen.py)
 # fmt: off
 PlantUMLColor = Literal[

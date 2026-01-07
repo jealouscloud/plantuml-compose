@@ -17,6 +17,8 @@ from ..primitives.component import (
 )
 from .common import (
     escape_quotes,
+    needs_quotes,
+    quote_ref,
     render_caption,
     render_color,
     render_element_style,
@@ -111,7 +113,7 @@ def _render_component(comp: Component, indent: int = 0) -> list[str]:
     parts.append("component")
 
     # Name with possible alias
-    name = f'"{escape_quotes(comp.name)}"' if _needs_quotes(comp.name) else comp.name
+    name = f'"{escape_quotes(comp.name)}"' if needs_quotes(comp.name) else comp.name
     parts.append(name)
 
     if comp.alias:
@@ -143,7 +145,7 @@ def _render_interface(iface: Interface) -> str:
     # Interface can use () syntax or interface keyword
     parts.append("interface")
 
-    name = f'"{escape_quotes(iface.name)}"' if _needs_quotes(iface.name) else iface.name
+    name = f'"{escape_quotes(iface.name)}"' if needs_quotes(iface.name) else iface.name
     parts.append(name)
 
     if iface.alias:
@@ -168,7 +170,7 @@ def _render_container(container: Container, indent: int = 0) -> list[str]:
     # Build container opening
     parts: list[str] = [container.type]
 
-    name = f'"{escape_quotes(container.name)}"' if _needs_quotes(container.name) else container.name
+    name = f'"{escape_quotes(container.name)}"' if needs_quotes(container.name) else container.name
     parts.append(name)
 
     if container.stereotype:
@@ -198,7 +200,7 @@ def _render_relationship(rel: Relationship, indent: int = 0) -> list[str]:
     arrow = _build_arrow(rel)
 
     # Build the full relationship line
-    parts: list[str] = [rel.source]
+    parts: list[str] = [quote_ref(rel.source)]
 
     # Source label
     if rel.source_label:
@@ -210,7 +212,7 @@ def _render_relationship(rel: Relationship, indent: int = 0) -> list[str]:
     if rel.target_label:
         parts.append(f'"{rel.target_label}"')
 
-    parts.append(rel.target)
+    parts.append(quote_ref(rel.target))
 
     # Relationship label
     if rel.label:
@@ -332,16 +334,3 @@ def _render_note(note: ComponentNote, indent: int = 0) -> list[str]:
         return lines
 
     return [f"{prefix}{pos}{color_part}: {content}"]
-
-
-def _needs_quotes(name: str) -> bool:
-    """Check if a name needs to be quoted."""
-    # Needs quotes if contains spaces, special chars, or doesn't start with letter
-    if not name:
-        return True
-    if not name[0].isalpha() and name[0] != "_":
-        return True
-    for char in name:
-        if not (char.isalnum() or char == "_"):
-            return True
-    return False

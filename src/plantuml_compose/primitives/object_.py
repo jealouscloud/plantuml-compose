@@ -23,7 +23,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Union
 
-from .common import ColorLike, Direction, Footer, Header, Label, LabelLike, Legend, LineStyle, Scale, Stereotype, Style
+from .common import ColorLike, Direction, Footer, Header, Label, LabelLike, Legend, LineStyle, sanitize_ref, Scale, Stereotype, Style
 
 if TYPE_CHECKING:
     pass
@@ -70,6 +70,18 @@ class Object:
     style: Style | None = None
     fields: tuple[Field, ...] = field(default_factory=tuple)
 
+    @property
+    def _ref(self) -> str:
+        """Internal identifier used when rendering relationships.
+
+        Returns the alias if set, otherwise the name with spaces converted
+        to underscores. You don't need this directly - just pass objects to
+        arrow(), connect(), etc. Exposed for debugging the PlantUML output.
+        """
+        if self.alias:
+            return self.alias
+        return sanitize_ref(self.name)
+
 
 @dataclass(frozen=True)
 class Map:
@@ -79,6 +91,18 @@ class Map:
     alias: str | None = None
     style: Style | None = None
     entries: tuple[MapEntry, ...] = field(default_factory=tuple)
+
+    @property
+    def _ref(self) -> str:
+        """Internal identifier used when rendering relationships.
+
+        Returns the alias if set, otherwise the name with spaces converted
+        to underscores. You don't need this directly - just pass objects to
+        arrow(), connect(), etc. Exposed for debugging the PlantUML output.
+        """
+        if self.alias:
+            return self.alias
+        return sanitize_ref(self.name)
 
 
 @dataclass(frozen=True)

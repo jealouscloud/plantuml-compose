@@ -31,6 +31,7 @@ from ..primitives.common import (
     Legend,
     LineStyleLike,
     NotePosition,
+    sanitize_ref,
     Scale,
     Stereotype,
     StyleLike,
@@ -50,7 +51,6 @@ from ..primitives.component import (
     Port,
     Relationship,
     RelationType,
-    _sanitize_ref,
 )
 
 
@@ -866,7 +866,7 @@ class _ContainerBuilder(_BaseComponentBuilder):
         """Reference name for use in relationships."""
         if self._alias:
             return self._alias
-        return _sanitize_ref(self._name)
+        return sanitize_ref(self._name)
 
     def _build(self) -> Container:
         """Build the container."""
@@ -901,7 +901,7 @@ class _ComponentWithPortsBuilder:
         """Reference name for use in relationships."""
         if self._alias:
             return self._alias
-        return _sanitize_ref(self._name)
+        return sanitize_ref(self._name)
 
     def port(self, name: str) -> str:
         """Add a bidirectional port."""

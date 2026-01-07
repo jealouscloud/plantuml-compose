@@ -16,6 +16,8 @@ from ..primitives.usecase import (
 )
 from .common import (
     escape_quotes,
+    needs_quotes,
+    quote_ref,
     render_caption,
     render_color,
     render_footer,
@@ -100,7 +102,7 @@ def _render_actor(actor: Actor) -> str:
     parts.append(keyword)
 
     # Name
-    name = f'"{escape_quotes(actor.name)}"' if _needs_quotes(actor.name) else actor.name
+    name = f'"{escape_quotes(actor.name)}"' if needs_quotes(actor.name) else actor.name
     parts.append(name)
 
     if actor.alias:
@@ -128,7 +130,7 @@ def _render_usecase(usecase: UseCase) -> str:
     parts.append(keyword)
 
     # Name (use cases are typically in parentheses in PlantUML syntax)
-    name = f'"{escape_quotes(usecase.name)}"' if _needs_quotes(usecase.name) else usecase.name
+    name = f'"{escape_quotes(usecase.name)}"' if needs_quotes(usecase.name) else usecase.name
     parts.append(f"({name})")
 
     if usecase.alias:
@@ -154,7 +156,7 @@ def _render_container(container: Container, indent: int = 0) -> list[str]:
 
     parts: list[str] = [container.type]
 
-    name = f'"{escape_quotes(container.name)}"' if _needs_quotes(container.name) else container.name
+    name = f'"{escape_quotes(container.name)}"' if needs_quotes(container.name) else container.name
     parts.append(name)
 
     if container.stereotype:
@@ -198,7 +200,7 @@ def _render_relationship(rel: Relationship, indent: int = 0) -> list[str]:
     arrow = _build_arrow(base_arrow, rel.direction, rel.style)
 
     # Build the full relationship line
-    parts: list[str] = [rel.source, arrow, rel.target]
+    parts: list[str] = [quote_ref(rel.source), arrow, quote_ref(rel.target)]
 
     # Relationship label
     if rel.label:
@@ -288,15 +290,3 @@ def _render_note(note: UseCaseNote, indent: int = 0) -> list[str]:
         return lines
 
     return [f"{prefix}{pos}{color_part}: {content}"]
-
-
-def _needs_quotes(name: str) -> bool:
-    """Check if a name needs to be quoted."""
-    if not name:
-        return True
-    if not name[0].isalpha() and name[0] != "_":
-        return True
-    for char in name:
-        if not (char.isalnum() or char == "_"):
-            return True
-    return False

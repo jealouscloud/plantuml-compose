@@ -11,9 +11,9 @@ Provides a fluent API for constructing sequence diagrams:
         d.message(api, db, "INSERT")
 
         with d.alt("success") as alt:
-            d.message(api, user, "200 OK")
-            with alt.else_("error"):
-                d.message(api, user, "500 Error")
+            alt.message(api, user, "200 OK")
+            with alt.else_("error") as else_block:
+                else_block.message(api, user, "500 Error")
 
     print(d.render())
 """
@@ -289,9 +289,9 @@ class _BaseSequenceBuilder:
 
         Usage:
             with d.alt("success") as alt:
-                d.message(api, user, "200 OK")
-                with alt.else_("error"):
-                    d.message(api, user, "500 Error")
+                alt.message(api, user, "200 OK")
+                with alt.else_("error") as else_block:
+                    else_block.message(api, user, "500 Error")
         """
         builder = _AltBuilder("alt", label)
         yield builder

@@ -15,6 +15,8 @@ from ..primitives.object_ import (
 )
 from .common import (
     escape_quotes,
+    needs_quotes,
+    quote_ref,
     render_caption,
     render_color,
     render_footer,
@@ -95,7 +97,7 @@ def _render_object(obj: Object, indent: int = 0) -> list[str]:
         parts.append(name)
         parts.append(f"as {obj.alias}")
     else:
-        name = f'"{escape_quotes(obj.name)}"' if _needs_quotes(obj.name) else obj.name
+        name = f'"{escape_quotes(obj.name)}"' if needs_quotes(obj.name) else obj.name
         parts.append(name)
 
     if obj.stereotype:
@@ -133,7 +135,7 @@ def _render_map(map_obj: Map, indent: int = 0) -> list[str]:
         parts.append(name)
         parts.append(f"as {map_obj.alias}")
     else:
-        name = f'"{escape_quotes(map_obj.name)}"' if _needs_quotes(map_obj.name) else map_obj.name
+        name = f'"{escape_quotes(map_obj.name)}"' if needs_quotes(map_obj.name) else map_obj.name
         parts.append(name)
 
     # Style background as element color
@@ -177,7 +179,7 @@ def _render_relationship(rel: Relationship, indent: int = 0) -> list[str]:
     arrow = _build_arrow(base_arrow, rel.direction, rel.style)
 
     # Build the full relationship line
-    parts: list[str] = [rel.source, arrow, rel.target]
+    parts: list[str] = [quote_ref(rel.source), arrow, quote_ref(rel.target)]
 
     # Relationship label
     if rel.label:
@@ -272,15 +274,3 @@ def _render_note(note: ObjectNote, indent: int = 0) -> list[str]:
         return lines
 
     return [f"{prefix}{pos}{color_part}: {content}"]
-
-
-def _needs_quotes(name: str) -> bool:
-    """Check if a name needs to be quoted."""
-    if not name:
-        return True
-    if not name[0].isalpha() and name[0] != "_":
-        return True
-    for char in name:
-        if not (char.isalnum() or char == "_"):
-            return True
-    return False

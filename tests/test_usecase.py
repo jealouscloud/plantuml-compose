@@ -29,7 +29,8 @@ class TestActors:
             u = d.actor("User", alias="u")
 
         output = render(d.build())
-        assert u == "u"
+        assert u.alias == "u"
+        assert u._ref == "u"
         assert "actor User as u" in output
 
     def test_actor_with_stereotype(self):
@@ -69,7 +70,8 @@ class TestUseCases:
             uc = d.usecase("Login", alias="UC1")
 
         output = render(d.build())
-        assert uc == "UC1"
+        assert uc.alias == "UC1"
+        assert uc._ref == "UC1"
         assert "usecase (Login) as UC1" in output
 
     def test_usecase_with_spaces(self):
@@ -206,6 +208,30 @@ class TestRelationships:
 
         output = render(d.build())
         assert "[#blue]" in output
+
+    def test_connect_hub_and_spoke(self):
+        with usecase_diagram() as d:
+            user = d.actor("Customer", alias="user")
+            browse = d.usecase("Browse", alias="browse")
+            cart = d.usecase("Add to Cart", alias="cart")
+            checkout = d.usecase("Checkout", alias="checkout")
+            d.connect(user, [browse, cart, checkout])
+
+        output = render(d.build())
+        assert "user --> browse" in output
+        assert "user --> cart" in output
+        assert "user --> checkout" in output
+
+    def test_arrow_with_spaces_in_names(self):
+        """Test that spaces in element names are sanitized in relationships."""
+        with usecase_diagram() as d:
+            user = d.actor("System Admin")
+            uc = d.usecase("Manage Users")
+            d.arrow(user, uc)
+
+        output = render(d.build())
+        # Spaces are converted to underscores in the _ref property
+        assert "System_Admin --> Manage_Users" in output
 
 
 class TestNotes:

@@ -20,6 +20,8 @@ from ..primitives.class_ import (
 from ..primitives.common import Note
 from .common import (
     escape_quotes,
+    needs_quotes,
+    quote_ref,
     render_caption,
     render_color,
     render_footer,
@@ -206,7 +208,7 @@ def _render_relationship(rel: Relationship) -> str:
 
     # Build with labels, cardinalities and relationship label
     # PlantUML syntax: source "src_label" "src_card" --> "tgt_card" "tgt_label" target : label
-    parts: list[str] = [rel.source]
+    parts: list[str] = [quote_ref(rel.source)]
 
     # Source label (role name)
     if rel.source_label:
@@ -226,7 +228,7 @@ def _render_relationship(rel: Relationship) -> str:
     if rel.target_label:
         parts.append(f'"{rel.target_label}"')
 
-    parts.append(rel.target)
+    parts.append(quote_ref(rel.target))
 
     # Relationship label
     if rel.label:

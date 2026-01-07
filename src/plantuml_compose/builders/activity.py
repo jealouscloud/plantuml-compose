@@ -248,10 +248,10 @@ class _BaseActivityBuilder:
 
         Usage:
             with d.switch("Type?") as sw:
-                with sw.case("A"):
-                    sw.action("Handle A")
-                with sw.case("B"):
-                    sw.action("Handle B")
+                with sw.case("A") as case_a:
+                    case_a.action("Handle A")
+                with sw.case("B") as case_b:
+                    case_b.action("Handle B")
         """
         builder = _SwitchBuilder(condition)
         yield builder
@@ -310,10 +310,10 @@ class _BaseActivityBuilder:
 
         Usage:
             with d.fork() as f:
-                with f.branch():
-                    f.action("Task 1")
-                with f.branch():
-                    f.action("Task 2")
+                with f.branch() as b1:
+                    b1.action("Task 1")
+                with f.branch() as b2:
+                    b2.action("Task 2")
         """
         builder = _ForkBuilder(end_style)  # type: ignore[arg-type]
         yield builder
@@ -325,10 +325,10 @@ class _BaseActivityBuilder:
 
         Usage:
             with d.split() as s:
-                with s.branch():
-                    s.action("Path 1")
-                with s.branch():
-                    s.action("Path 2")
+                with s.branch() as b1:
+                    b1.action("Path 1")
+                with s.branch() as b2:
+                    b2.action("Path 2")
         """
         builder = _SplitBuilder()
         yield builder

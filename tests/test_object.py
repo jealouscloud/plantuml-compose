@@ -31,7 +31,8 @@ class TestObjects:
             c = d.object("Customer", alias="cust")
 
         output = render(d.build())
-        assert c == "cust"
+        assert c.alias == "cust"
+        assert c._ref == "cust"
         assert 'object "Customer" as cust' in output
 
     def test_object_with_spaces(self):
@@ -87,7 +88,8 @@ class TestMaps:
             p = d.map("Products", alias="prod", entries={"x": "y"})
 
         output = render(d.build())
-        assert p == "prod"
+        assert p.alias == "prod"
+        assert p._ref == "prod"
         assert 'map "Products" as prod' in output
 
     def test_map_with_links(self):
@@ -189,6 +191,30 @@ class TestRelationships:
 
         output = render(d.build())
         assert "[#blue]" in output
+
+    def test_connect_hub_and_spoke(self):
+        with object_diagram() as d:
+            order = d.object("Order", alias="order")
+            item1 = d.object("Item 1", alias="item1")
+            item2 = d.object("Item 2", alias="item2")
+            item3 = d.object("Item 3", alias="item3")
+            d.connect(order, [item1, item2, item3])
+
+        output = render(d.build())
+        assert "order --> item1" in output
+        assert "order --> item2" in output
+        assert "order --> item3" in output
+
+    def test_arrow_with_spaces_in_names(self):
+        """Test that spaces in element names are sanitized in relationships."""
+        with object_diagram() as d:
+            customer = d.object("My Customer")
+            order = d.object("New Order")
+            d.arrow(customer, order)
+
+        output = render(d.build())
+        # Spaces are converted to underscores in the _ref property
+        assert "My_Customer --> New_Order" in output
 
 
 class TestNotes:

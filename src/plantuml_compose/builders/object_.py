@@ -59,11 +59,24 @@ from ..primitives.object_ import (
 )
 
 
+# Type alias for objects that can be used as relationship endpoints
+ObjectRef = Object | Map | str
+
+
 class _BaseObjectBuilder:
     """Base class for object builders with shared methods."""
 
     def __init__(self) -> None:
         self._elements: list[ObjectDiagramElement] = []
+
+    def _to_ref(self, target: ObjectRef) -> str:
+        """Convert an object reference to its string form.
+
+        Accepts strings, Object, or Map primitives.
+        """
+        if isinstance(target, str):
+            return target
+        return target._ref
 
     def object(
         self,
@@ -72,7 +85,7 @@ class _BaseObjectBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
-    ) -> str:
+    ) -> Object:
         """Add a simple object without fields.
 
         Args:
@@ -82,7 +95,7 @@ class _BaseObjectBuilder:
             style: Visual style (background, line, text_color)
 
         Returns:
-            The alias if provided, otherwise the name
+            The created Object
         """
         if not name:
             raise ValueError("Object name cannot be empty")
@@ -95,7 +108,7 @@ class _BaseObjectBuilder:
             style=style_obj,
         )
         self._elements.append(obj)
-        return alias or name
+        return obj
 
     def object_with_fields(
         self,
@@ -105,7 +118,7 @@ class _BaseObjectBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
         fields: dict[str, str] | None = None,
-    ) -> str:
+    ) -> Object:
         """Add an object with fields.
 
         Args:
@@ -116,7 +129,7 @@ class _BaseObjectBuilder:
             fields: Dictionary of field name -> value
 
         Returns:
-            The alias if provided, otherwise the name
+            The created Object
         """
         if not name:
             raise ValueError("Object name cannot be empty")
@@ -131,7 +144,7 @@ class _BaseObjectBuilder:
             fields=field_objs,
         )
         self._elements.append(obj)
-        return alias or name
+        return obj
 
     def map(
         self,
@@ -141,7 +154,7 @@ class _BaseObjectBuilder:
         style: StyleLike | None = None,
         entries: dict[str, str] | None = None,
         links: dict[str, str] | None = None,
-    ) -> str:
+    ) -> Map:
         """Add a map (associative array).
 
         Args:
@@ -152,7 +165,7 @@ class _BaseObjectBuilder:
             links: Dictionary of key -> object reference (for *-> syntax)
 
         Returns:
-            The alias if provided, otherwise the name
+            The created Map
         """
         if not name:
             raise ValueError("Map name cannot be empty")
@@ -174,12 +187,12 @@ class _BaseObjectBuilder:
             entries=tuple(entry_objs),
         )
         self._elements.append(map_obj)
-        return alias or name
+        return map_obj
 
     def relationship(
         self,
-        source: str,
-        target: str,
+        source: ObjectRef,
+        target: ObjectRef,
         *,
         type: RelationType = "association",
         label: str | Label | None = None,
@@ -190,8 +203,8 @@ class _BaseObjectBuilder:
         """Add a relationship between objects.
 
         Args:
-            source: Source object
-            target: Target object
+            source: Source object (string, Object, or Map)
+            target: Target object (string, Object, or Map)
             type: Relationship type
             label: Optional label
             style: Line style (color, pattern, thickness)
@@ -202,8 +215,8 @@ class _BaseObjectBuilder:
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type=type,
             label=label_obj,
             style=style_obj,
@@ -214,8 +227,8 @@ class _BaseObjectBuilder:
 
     def arrow(
         self,
-        source: str,
-        target: str,
+        source: ObjectRef,
+        target: ObjectRef,
         *,
         label: str | Label | None = None,
         style: LineStyleLike | None = None,
@@ -225,8 +238,8 @@ class _BaseObjectBuilder:
         """Add an arrow between objects.
 
         Args:
-            source: Source object
-            target: Target object
+            source: Source object (string, Object, or Map)
+            target: Target object (string, Object, or Map)
             label: Optional label
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
@@ -236,8 +249,8 @@ class _BaseObjectBuilder:
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type="arrow",
             label=label_obj,
             style=style_obj,
@@ -248,8 +261,8 @@ class _BaseObjectBuilder:
 
     def link(
         self,
-        source: str,
-        target: str,
+        source: ObjectRef,
+        target: ObjectRef,
         *,
         label: str | Label | None = None,
         style: LineStyleLike | None = None,
@@ -259,8 +272,8 @@ class _BaseObjectBuilder:
         """Add a simple link between objects.
 
         Args:
-            source: Source object
-            target: Target object
+            source: Source object (string, Object, or Map)
+            target: Target object (string, Object, or Map)
             label: Optional label
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
@@ -270,8 +283,8 @@ class _BaseObjectBuilder:
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type="line",
             label=label_obj,
             style=style_obj,
@@ -282,8 +295,8 @@ class _BaseObjectBuilder:
 
     def composition(
         self,
-        source: str,
-        target: str,
+        source: ObjectRef,
+        target: ObjectRef,
         *,
         label: str | Label | None = None,
         style: LineStyleLike | None = None,
@@ -293,8 +306,8 @@ class _BaseObjectBuilder:
         """Add a composition relationship (*--).
 
         Args:
-            source: Source object (whole)
-            target: Target object (part)
+            source: Source object (whole) - string, Object, or Map
+            target: Target object (part) - string, Object, or Map
             label: Optional label
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
@@ -304,8 +317,8 @@ class _BaseObjectBuilder:
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type="composition",
             label=label_obj,
             style=style_obj,
@@ -316,8 +329,8 @@ class _BaseObjectBuilder:
 
     def aggregation(
         self,
-        source: str,
-        target: str,
+        source: ObjectRef,
+        target: ObjectRef,
         *,
         label: str | Label | None = None,
         style: LineStyleLike | None = None,
@@ -327,8 +340,8 @@ class _BaseObjectBuilder:
         """Add an aggregation relationship (o--).
 
         Args:
-            source: Source object (whole)
-            target: Target object (part)
+            source: Source object (whole) - string, Object, or Map
+            target: Target object (part) - string, Object, or Map
             label: Optional label
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
@@ -338,8 +351,8 @@ class _BaseObjectBuilder:
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type="aggregation",
             label=label_obj,
             style=style_obj,
@@ -350,8 +363,8 @@ class _BaseObjectBuilder:
 
     def extension(
         self,
-        source: str,
-        target: str,
+        source: ObjectRef,
+        target: ObjectRef,
         *,
         label: str | Label | None = None,
         style: LineStyleLike | None = None,
@@ -361,8 +374,8 @@ class _BaseObjectBuilder:
         """Add an extension relationship (<|--).
 
         Args:
-            source: Child object
-            target: Parent object
+            source: Child object - string, Object, or Map
+            target: Parent object - string, Object, or Map
             label: Optional label
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
@@ -372,8 +385,8 @@ class _BaseObjectBuilder:
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type="extension",
             label=label_obj,
             style=style_obj,
@@ -384,8 +397,8 @@ class _BaseObjectBuilder:
 
     def implementation(
         self,
-        source: str,
-        target: str,
+        source: ObjectRef,
+        target: ObjectRef,
         *,
         label: str | Label | None = None,
         style: LineStyleLike | None = None,
@@ -395,8 +408,8 @@ class _BaseObjectBuilder:
         """Add an implementation relationship (<|..).
 
         Args:
-            source: Implementing object
-            target: Interface object
+            source: Implementing object - string, Object, or Map
+            target: Interface object - string, Object, or Map
             label: Optional label
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
@@ -406,8 +419,8 @@ class _BaseObjectBuilder:
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type="implementation",
             label=label_obj,
             style=style_obj,
@@ -416,12 +429,35 @@ class _BaseObjectBuilder:
         )
         self._elements.append(rel)
 
+    def connect(
+        self,
+        hub: ObjectRef,
+        spokes: list[ObjectRef],
+        *,
+        label: str | Label | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> None:
+        """Connect a hub object to multiple spoke objects.
+
+        Creates arrows from hub to each spoke. Useful for hub-and-spoke patterns.
+
+        Args:
+            hub: Central object
+            spokes: List of objects to connect to
+            label: Optional label for all arrows
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+        """
+        for spoke in spokes:
+            self.arrow(hub, spoke, label=label, style=style, direction=direction)
+
     def note(
         self,
         content: str | Label,
         *,
         position: Literal["left", "right", "top", "bottom"] = "right",
-        target: str | None = None,
+        target: ObjectRef | None = None,
         floating: bool = False,
         color: ColorLike | None = None,
     ) -> None:
@@ -430,10 +466,11 @@ class _BaseObjectBuilder:
         if not text:
             raise ValueError("Note content cannot be empty")
         content_label = Label(content) if isinstance(content, str) else content
+        target_ref = self._to_ref(target) if target else None
         n = ObjectNote(
             content=content_label,
             position=position,
-            target=target,
+            target=target_ref,
             floating=floating,
             color=color,
         )

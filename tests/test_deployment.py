@@ -100,7 +100,8 @@ class TestBasicElements:
             srv = d.component("Web Server", alias="srv")
 
         output = render(d.build())
-        assert srv == "srv"
+        assert srv.alias == "srv"
+        assert srv._ref == "srv"
         assert 'component "Web Server" as srv' in output
 
     def test_element_with_stereotype(self):
@@ -222,6 +223,30 @@ class TestRelationships:
 
         output = render(d.build())
         assert "[#blue]" in output
+
+    def test_connect_hub_and_spoke(self):
+        with deployment_diagram() as d:
+            lb = d.component("Load Balancer", alias="lb")
+            web1 = d.component("Web 1", alias="web1")
+            web2 = d.component("Web 2", alias="web2")
+            web3 = d.component("Web 3", alias="web3")
+            d.connect(lb, [web1, web2, web3])
+
+        output = render(d.build())
+        assert "lb --> web1" in output
+        assert "lb --> web2" in output
+        assert "lb --> web3" in output
+
+    def test_arrow_with_spaces_in_names(self):
+        """Test that spaces in element names are sanitized in relationships."""
+        with deployment_diagram() as d:
+            web = d.component("Web Server")
+            db = d.database("Data Store")
+            d.arrow(web, db)
+
+        output = render(d.build())
+        # Spaces are converted to underscores in the _ref property
+        assert "Web_Server --> Data_Store" in output
 
 
 class TestNotes:

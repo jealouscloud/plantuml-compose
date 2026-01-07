@@ -139,10 +139,14 @@ class StateNode:
 
     @property
     def _ref(self) -> str:
-        """Internal: Reference name for use in transitions."""
+        """Internal identifier used when rendering transitions.
+
+        Returns the alias if set, otherwise the name with spaces and special
+        characters removed. You don't need this directly - just pass objects
+        to flow(), transition(), etc. Exposed for debugging the PlantUML output.
+        """
         if self.alias:
             return self.alias
-        # Replace spaces and double quotes for PlantUML compatibility
         return _sanitize_ref(self.name)
 
 
@@ -231,7 +235,12 @@ class CompositeState:
 
     @property
     def _ref(self) -> str:
-        """Internal: Reference name for use in transitions."""
+        """Internal identifier used when rendering transitions.
+
+        Returns the alias if set, otherwise the name with spaces and special
+        characters removed. You don't need this directly - just pass objects
+        to flow(), transition(), etc. Exposed for debugging the PlantUML output.
+        """
         if self.alias:
             return self.alias
         return _sanitize_ref(self.name)
@@ -262,7 +271,12 @@ class ConcurrentState:
 
     @property
     def _ref(self) -> str:
-        """Internal: Reference name for use in transitions."""
+        """Internal identifier used when rendering transitions.
+
+        Returns the alias if set, otherwise the name with spaces and special
+        characters removed. You don't need this directly - just pass objects
+        to flow(), transition(), etc. Exposed for debugging the PlantUML output.
+        """
         if self.alias:
             return self.alias
         return _sanitize_ref(self.name)

@@ -53,11 +53,24 @@ from ..primitives.usecase import (
 )
 
 
+# Type alias for objects that can be used as relationship endpoints
+UseCaseRef = Actor | UseCase | str
+
+
 class _BaseUseCaseBuilder:
     """Base class for use case builders with shared methods."""
 
     def __init__(self) -> None:
         self._elements: list[UseCaseDiagramElement] = []
+
+    def _to_ref(self, target: UseCaseRef) -> str:
+        """Convert a use case element reference to its string form.
+
+        Accepts strings, Actor, or UseCase primitives.
+        """
+        if isinstance(target, str):
+            return target
+        return target._ref
 
     def actor(
         self,
@@ -67,7 +80,7 @@ class _BaseUseCaseBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
         business: bool = False,
-    ) -> str:
+    ) -> Actor:
         """Add an actor.
 
         Args:
@@ -78,7 +91,7 @@ class _BaseUseCaseBuilder:
             business: Use business variant (actor/)
 
         Returns:
-            The alias if provided, otherwise the name
+            The created Actor
         """
         if not name:
             raise ValueError("Actor name cannot be empty")
@@ -92,7 +105,7 @@ class _BaseUseCaseBuilder:
             business=business,
         )
         self._elements.append(a)
-        return alias or name
+        return a
 
     def usecase(
         self,
@@ -102,7 +115,7 @@ class _BaseUseCaseBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
         business: bool = False,
-    ) -> str:
+    ) -> UseCase:
         """Add a use case.
 
         Args:
@@ -113,7 +126,7 @@ class _BaseUseCaseBuilder:
             business: Use business variant (usecase/)
 
         Returns:
-            The alias if provided, otherwise the use case reference
+            The created UseCase
         """
         if not name:
             raise ValueError("Use case name cannot be empty")
@@ -127,12 +140,12 @@ class _BaseUseCaseBuilder:
             business=business,
         )
         self._elements.append(uc)
-        return alias or f"({name})"
+        return uc
 
     def relationship(
         self,
-        source: str,
-        target: str,
+        source: UseCaseRef,
+        target: UseCaseRef,
         *,
         type: RelationType = "association",
         label: str | Label | None = None,
@@ -143,8 +156,8 @@ class _BaseUseCaseBuilder:
         """Add a relationship between elements.
 
         Args:
-            source: Source element
-            target: Target element
+            source: Source element (string, Actor, or UseCase)
+            target: Target element (string, Actor, or UseCase)
             type: Relationship type
             label: Optional label
             style: Line style (color, pattern, thickness)
@@ -155,8 +168,8 @@ class _BaseUseCaseBuilder:
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type=type,
             label=label_obj,
             style=style_obj,
@@ -167,8 +180,8 @@ class _BaseUseCaseBuilder:
 
     def arrow(
         self,
-        source: str,
-        target: str,
+        source: UseCaseRef,
+        target: UseCaseRef,
         *,
         label: str | Label | None = None,
         style: LineStyleLike | None = None,
@@ -178,8 +191,8 @@ class _BaseUseCaseBuilder:
         """Add an arrow between elements.
 
         Args:
-            source: Source element
-            target: Target element
+            source: Source element (string, Actor, or UseCase)
+            target: Target element (string, Actor, or UseCase)
             label: Optional label
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
@@ -189,8 +202,8 @@ class _BaseUseCaseBuilder:
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type="arrow",
             label=label_obj,
             style=style_obj,
@@ -201,8 +214,8 @@ class _BaseUseCaseBuilder:
 
     def link(
         self,
-        source: str,
-        target: str,
+        source: UseCaseRef,
+        target: UseCaseRef,
         *,
         label: str | Label | None = None,
         style: LineStyleLike | None = None,
@@ -212,8 +225,8 @@ class _BaseUseCaseBuilder:
         """Add a simple link (no arrow) between elements.
 
         Args:
-            source: Source element
-            target: Target element
+            source: Source element (string, Actor, or UseCase)
+            target: Target element (string, Actor, or UseCase)
             label: Optional label
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
@@ -223,8 +236,8 @@ class _BaseUseCaseBuilder:
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type="association",
             label=label_obj,
             style=style_obj,
@@ -235,8 +248,8 @@ class _BaseUseCaseBuilder:
 
     def includes(
         self,
-        source: str,
-        target: str,
+        source: UseCaseRef,
+        target: UseCaseRef,
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
@@ -245,8 +258,8 @@ class _BaseUseCaseBuilder:
         """Add an include relationship.
 
         Args:
-            source: Base use case
-            target: Included use case
+            source: Base use case (string, Actor, or UseCase)
+            target: Included use case (string, Actor, or UseCase)
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
@@ -254,8 +267,8 @@ class _BaseUseCaseBuilder:
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type="include",
             style=style_obj,
             direction=direction,
@@ -265,8 +278,8 @@ class _BaseUseCaseBuilder:
 
     def extends(
         self,
-        source: str,
-        target: str,
+        source: UseCaseRef,
+        target: UseCaseRef,
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
@@ -275,8 +288,8 @@ class _BaseUseCaseBuilder:
         """Add an extends relationship.
 
         Args:
-            source: Extending use case
-            target: Base use case
+            source: Extending use case (string, Actor, or UseCase)
+            target: Base use case (string, Actor, or UseCase)
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
@@ -284,8 +297,8 @@ class _BaseUseCaseBuilder:
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type="extends",
             style=style_obj,
             direction=direction,
@@ -295,8 +308,8 @@ class _BaseUseCaseBuilder:
 
     def generalizes(
         self,
-        child: str,
-        parent: str,
+        child: UseCaseRef,
+        parent: UseCaseRef,
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
@@ -305,8 +318,8 @@ class _BaseUseCaseBuilder:
         """Add a generalization (extension) relationship.
 
         Args:
-            child: Child actor/use case
-            parent: Parent actor/use case
+            child: Child actor/use case (string, Actor, or UseCase)
+            parent: Parent actor/use case (string, Actor, or UseCase)
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
@@ -314,8 +327,8 @@ class _BaseUseCaseBuilder:
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
-            source=child,
-            target=parent,
+            source=self._to_ref(child),
+            target=self._to_ref(parent),
             type="extension",
             style=style_obj,
             direction=direction,
@@ -323,12 +336,36 @@ class _BaseUseCaseBuilder:
         )
         self._elements.append(rel)
 
+    def connect(
+        self,
+        hub: UseCaseRef,
+        spokes: list[UseCaseRef],
+        *,
+        label: str | Label | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> None:
+        """Connect a hub element to multiple spoke elements.
+
+        Creates arrows from hub to each spoke. Useful for connecting an actor
+        to multiple use cases.
+
+        Args:
+            hub: Central element (e.g., actor)
+            spokes: List of elements to connect to (e.g., use cases)
+            label: Optional label for all arrows
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint (up, down, left, right)
+        """
+        for spoke in spokes:
+            self.arrow(hub, spoke, label=label, style=style, direction=direction)
+
     def note(
         self,
         content: str | Label,
         *,
         position: Literal["left", "right", "top", "bottom"] = "right",
-        target: str | None = None,
+        target: UseCaseRef | None = None,
         floating: bool = False,
         color: ColorLike | None = None,
     ) -> None:
@@ -337,10 +374,11 @@ class _BaseUseCaseBuilder:
         if not text:
             raise ValueError("Note content cannot be empty")
         content_label = Label(content) if isinstance(content, str) else content
+        target_ref = self._to_ref(target) if target else None
         n = UseCaseNote(
             content=content_label,
             position=position,
-            target=target,
+            target=target_ref,
             floating=floating,
             color=color,
         )
