@@ -7,7 +7,7 @@ Provides a fluent API for constructing class diagrams:
         order = d.class_("Order")
         d.has(user, order, source_card="1", target_card="*")
 
-    print(render(d.build()))
+    print(d.render())
 """
 
 from __future__ import annotations

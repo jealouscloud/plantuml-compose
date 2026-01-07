@@ -1,5 +1,20 @@
 """Activity diagram primitives.
 
+Activity diagrams show the flow of actions and decisions in a process. They're
+essentially flowcharts with UML notation, useful for documenting:
+
+- Business processes and workflows
+- Algorithm logic and decision trees
+- Use case flows
+- Multi-threaded or parallel processes
+
+Key concepts:
+    Action:     A single step or task (rounded rectangle)
+    Decision:   A branch point with conditions (diamond via if/switch)
+    Fork/Join:  Parallel execution paths (horizontal bars)
+    Swimlane:   Vertical partition showing responsibility
+    Start/Stop: Entry and exit points (circles)
+
 All types are frozen dataclasses - immutable data with no behavior.
 """
 
@@ -18,26 +33,27 @@ from .common import (
 )
 
 
-# SDL shape types for actions
+# SDL shape types for actions - controls the visual shape
 ActionShape = Literal[
-    "default",  # :action;
-    "start_end",  # :action|
-    "receive",  # :action<
-    "send",  # :action>
-    "slant",  # :action/
-    "document",  # :action]
-    "database",  # :action}
+    "default",    # :action;  Rounded rectangle (standard)
+    "start_end",  # :action|  Stadium/pill shape
+    "receive",    # :action<  Left-pointing flag (receive event)
+    "send",       # :action>  Right-pointing flag (send event)
+    "slant",      # :action/  Slanted parallelogram (data flow)
+    "document",   # :action]  Document shape (wavy bottom)
+    "database",   # :action}  Cylinder shape (database operation)
 ]
 
-# Arrow styles
+# Arrow line styles
 ArrowStyle = Literal["solid", "dashed", "dotted", "hidden"]
 
 
 @dataclass(frozen=True)
 class Start:
-    """Start node.
+    """The starting point of an activity flow.
 
-    Rendered as: start
+    Rendered as a filled black circle. Every activity diagram should
+    have exactly one start node where execution begins.
     """
 
     pass
@@ -45,9 +61,10 @@ class Start:
 
 @dataclass(frozen=True)
 class Stop:
-    """Stop node (filled circle).
+    """A normal termination point (filled circle).
 
-    Rendered as: stop
+    Indicates successful completion of the activity. Use Stop when the
+    process ends normally. A diagram can have multiple stop nodes.
     """
 
     pass
@@ -55,9 +72,10 @@ class Stop:
 
 @dataclass(frozen=True)
 class End:
-    """End node (circle with X).
+    """A flow termination point (circle with X).
 
-    Rendered as: end
+    Similar to Stop but typically indicates an abnormal or alternative
+    ending, such as cancellation or error termination.
     """
 
     pass
@@ -65,9 +83,14 @@ class End:
 
 @dataclass(frozen=True)
 class Action:
-    """An action in an activity diagram.
+    """A single step or task in the activity flow.
 
-    Rendered as: :Action text;
+    Actions are the basic building blocks, representing work being done.
+    Each action has a label describing the task.
+
+        label: Description of the action
+        shape: Visual shape (affects meaning - see ActionShape)
+        color: Background color
     """
 
     label: LabelLike
@@ -77,9 +100,16 @@ class Action:
 
 @dataclass(frozen=True)
 class Arrow:
-    """Arrow with optional label and styling.
+    """A flow connector between activities.
 
-    Rendered as: -> or -[style]->
+    Arrows show the direction of flow. They can have labels (for
+    conditions or descriptions) and styling.
+
+        label:     Text on the arrow
+        color:     Arrow color
+        style:     Line pattern ("solid", "dashed", "dotted", "hidden")
+        thickness: Line width in pixels
+        bold:      If True, thicker line
     """
 
     label: LabelLike | None = None
@@ -92,16 +122,17 @@ class Arrow:
 
 @dataclass(frozen=True)
 class If:
-    """Conditional branching.
+    """Conditional branching (if/elseif/else).
 
-    Rendered as:
-    if (condition?) then (yes)
-      ...
-    elseif (other?) then (yes)
-      ...
-    else (no)
-      ...
-    endif
+    Creates a decision diamond that splits the flow based on conditions.
+    Each branch contains its own sequence of actions.
+
+        condition:       The test expression (shown in diamond)
+        then_label:      Label for the "then" path (e.g., "yes")
+        then_elements:   Actions when condition is true
+        elseif_branches: Additional conditional branches
+        else_label:      Label for the "else" path (e.g., "no")
+        else_elements:   Actions when all conditions are false
     """
 
     condition: str
@@ -114,7 +145,10 @@ class If:
 
 @dataclass(frozen=True)
 class ElseIfBranch:
-    """An elseif branch within an If."""
+    """An additional conditional branch within an If block.
+
+    Each elseif tests another condition if the previous ones were false.
+    """
 
     condition: str
     then_label: str | None = None
@@ -123,15 +157,13 @@ class ElseIfBranch:
 
 @dataclass(frozen=True)
 class Switch:
-    """Switch/case statement.
+    """Multi-way branching based on a value (switch/case).
 
-    Rendered as:
-    switch (test?)
-    case (A)
-      ...
-    case (B)
-      ...
-    endswitch
+    Unlike If (which tests conditions), Switch compares a value against
+    multiple options. Useful for menu selections or state-based logic.
+
+        condition: The value being tested
+        cases:     The possible values and their actions
     """
 
     condition: str
@@ -140,7 +172,10 @@ class Switch:
 
 @dataclass(frozen=True)
 class Case:
-    """A case within a Switch."""
+    """A single case within a Switch block.
+
+    Represents one possible value and the actions to take when matched.
+    """
 
     label: str
     elements: tuple["ActivityElement", ...] = field(default_factory=tuple)
@@ -148,12 +183,15 @@ class Case:
 
 @dataclass(frozen=True)
 class While:
-    """While loop.
+    """Pre-test loop (while condition is true, repeat).
 
-    Rendered as:
-    while (condition?) is (yes)
-      ...
-    endwhile (no)
+    The condition is checked before each iteration. If false initially,
+    the body never executes.
+
+        condition:      Loop test expression
+        is_label:       Label for continuing (e.g., "yes")
+        elements:       Loop body actions
+        endwhile_label: Label for exiting (e.g., "no")
     """
 
     condition: str
@@ -164,13 +202,17 @@ class While:
 
 @dataclass(frozen=True)
 class Repeat:
-    """Repeat-while loop.
+    """Post-test loop (repeat until condition is false).
 
-    Rendered as:
-    repeat :start label;
-      ...
-    backward :back action;
-    repeat while (condition?) is (yes) not (no)
+    The body executes at least once before the condition is checked.
+    Supports a backward action that runs before repeating.
+
+        elements:        Loop body actions
+        condition:       Exit test (None = infinite loop)
+        start_label:     Label at loop start
+        backward_action: Action before repeating
+        is_label:        Label for repeating
+        not_label:       Label for exiting
     """
 
     elements: tuple["ActivityElement", ...] = field(default_factory=tuple)
@@ -183,9 +225,10 @@ class Repeat:
 
 @dataclass(frozen=True)
 class Break:
-    """Break out of loop.
+    """Exit from the enclosing loop.
 
-    Rendered as: break
+    Immediately terminates the current While or Repeat loop and
+    continues with the flow after the loop.
     """
 
     pass
@@ -193,14 +236,17 @@ class Break:
 
 @dataclass(frozen=True)
 class Fork:
-    """Fork into parallel branches.
+    """Parallel execution (fork/join with synchronization bars).
 
-    Rendered as:
-    fork
-      ...
-    fork again
-      ...
-    end fork
+    Splits the flow into parallel branches that execute simultaneously.
+    All branches must complete before the flow continues (join).
+
+        branches:  Tuple of branch contents (each branch is a tuple of elements)
+        end_style: How branches merge:
+                   "fork"  - All must complete (AND join)
+                   "merge" - First to complete continues
+                   "or"    - Any subset can complete
+                   "and"   - Explicit AND join
     """
 
     branches: tuple[tuple["ActivityElement", ...], ...] = field(default_factory=tuple)
@@ -209,14 +255,10 @@ class Fork:
 
 @dataclass(frozen=True)
 class Split:
-    """Split into branches (no synchronization bar).
+    """Branching without synchronization bars.
 
-    Rendered as:
-    split
-      ...
-    split again
-      ...
-    end split
+    Similar to Fork but without the visual synchronization bars.
+    Use when showing diverging paths that don't need explicit join semantics.
     """
 
     branches: tuple[tuple["ActivityElement", ...], ...] = field(default_factory=tuple)
@@ -224,9 +266,10 @@ class Split:
 
 @dataclass(frozen=True)
 class Kill:
-    """Kill terminator (X symbol).
+    """Forced termination (X symbol).
 
-    Rendered as: kill
+    Abruptly ends the flow, typically indicating an error or abort
+    condition. Different from Stop which indicates normal completion.
     """
 
     pass
@@ -234,9 +277,10 @@ class Kill:
 
 @dataclass(frozen=True)
 class Detach:
-    """Detach from flow.
+    """Detach from the current flow.
 
-    Rendered as: detach
+    The detached path continues independently without affecting the
+    main flow. Useful for background processes or fire-and-forget actions.
     """
 
     pass
@@ -244,9 +288,11 @@ class Detach:
 
 @dataclass(frozen=True)
 class Connector:
-    """Connector for goto-like jumps.
+    """A named connector point for jumps.
 
-    Rendered as: (A)
+    Creates a reference point that can be targeted by Goto or used
+    to show flow connections between distant parts of the diagram.
+    Rendered as a circle with the name inside.
     """
 
     name: str
@@ -254,9 +300,10 @@ class Connector:
 
 @dataclass(frozen=True)
 class Goto:
-    """Goto label (experimental).
+    """Jump to a labeled point (experimental PlantUML feature).
 
-    Rendered as: goto labelName
+    Transfers flow to the specified label. Use sparingly as it can
+    make diagrams harder to follow.
     """
 
     label: str
@@ -264,9 +311,10 @@ class Goto:
 
 @dataclass(frozen=True)
 class GotoLabel:
-    """Label for goto (experimental).
+    """A target label for Goto jumps (experimental).
 
-    Rendered as: label labelName
+    Defines a named point in the flow that can be the target of
+    a Goto instruction.
     """
 
     name: str
@@ -274,10 +322,14 @@ class GotoLabel:
 
 @dataclass(frozen=True)
 class Swimlane:
-    """Swimlane (vertical partition).
+    """A vertical partition showing responsibility or actor.
 
-    Rendered as: |Lane Name|
-    or: |#color|Lane Name|
+    Swimlanes divide the diagram into columns, each representing
+    a different role, system, or department. Actions placed after
+    a swimlane declaration appear in that lane.
+
+        name:  Lane label (shown at top)
+        color: Lane background color
     """
 
     name: str
@@ -286,12 +338,14 @@ class Swimlane:
 
 @dataclass(frozen=True)
 class Partition:
-    """Partition (grouping with border).
+    """A bordered region grouping related activities.
 
-    Rendered as:
-    partition "Name" {
-      ...
-    }
+    Partitions draw a box around a set of activities to show they
+    belong together, with a title in the border.
+
+        name:     Partition label
+        elements: Activities inside the partition
+        color:    Background color
     """
 
     name: str
@@ -301,12 +355,10 @@ class Partition:
 
 @dataclass(frozen=True)
 class Group:
-    """Group (lighter grouping).
+    """A lightweight grouping of activities.
 
-    Rendered as:
-    group Name
-      ...
-    end group
+    Similar to Partition but with less visual weight. Groups
+    activities without a strong border.
     """
 
     name: str
@@ -315,7 +367,12 @@ class Group:
 
 @dataclass(frozen=True)
 class ActivityNote:
-    """A note in an activity diagram."""
+    """A note annotation in an activity diagram.
+
+        content:  Note text (can include Creole markup)
+        position: "left" or "right" of the flow
+        floating: If True, not attached to specific element
+    """
 
     content: LabelLike
     position: Literal["left", "right"] = "right"
@@ -324,7 +381,14 @@ class ActivityNote:
 
 @dataclass(frozen=True)
 class ActivityDiagram:
-    """Complete activity diagram."""
+    """A complete activity diagram ready for rendering.
+
+    Contains all actions, decisions, and control flow elements.
+    Usually created via the activity_diagram() builder rather than directly.
+
+        elements: All diagram elements in flow order
+        title:    Optional diagram title
+    """
 
     elements: tuple["ActivityElement", ...] = field(default_factory=tuple)
     title: str | None = None

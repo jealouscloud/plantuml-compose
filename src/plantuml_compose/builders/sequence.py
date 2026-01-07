@@ -15,7 +15,7 @@ Provides a fluent API for constructing sequence diagrams:
             with alt.else_("error"):
                 d.message(api, user, "500 Error")
 
-    print(render(d.build()))
+    print(d.render())
 """
 
 from __future__ import annotations

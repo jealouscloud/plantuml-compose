@@ -1,6 +1,24 @@
 """Common primitives shared across all diagram types.
 
-All types here are frozen dataclasses - immutable data with no behavior.
+This module contains the foundational types used throughout plantuml-compose:
+
+- **Colors**: Named colors (e.g., "red", "LightBlue"), hex codes ("#FF0000"),
+  RGB values, and gradients for backgrounds and lines.
+
+- **Labels**: Text content that can include PlantUML's Creole markup or HTML
+  formatting for rich text in diagrams.
+
+- **Styles**: Visual properties like background colors, line patterns (solid,
+  dashed, dotted), and text styling that can be applied to diagram elements.
+
+- **Notes**: Annotations that can be attached to elements or float freely
+  in the diagram.
+
+- **Stereotypes**: UML markers (shown as <<name>>) that classify elements,
+  optionally with a colored "spot" character.
+
+All types are frozen dataclasses - immutable data containers with no behavior.
+This ensures diagrams are built from pure, predictable data structures.
 """
 
 from __future__ import annotations
@@ -66,36 +84,58 @@ FontStyle = Literal["normal", "bold", "italic", "bold italic"]
 
 @dataclass(frozen=True)
 class Color:
-    """Immutable color value.
+    """Immutable color value for styling diagram elements.
 
-    Use factory methods for construction:
-        Color.named("red")
-        Color.hex("#FF0000")
-        Color.rgb(255, 0, 0)
+    Colors can specify backgrounds, lines, text, and other visual properties.
+    PlantUML supports named colors (CSS color names), hex codes, and RGB values.
+
+    For convenience, most APIs accept plain strings ("red", "#FF0000") which
+    are automatically converted to Color objects. Use factory methods when
+    you need explicit construction:
+
+        Color.named("red")       # CSS color name
+        Color.hex("#FF0000")     # Hex code (with or without #)
+        Color.rgb(255, 0, 0)     # RGB components (0-255 each)
+        Color.rgba(255, 0, 0, 128)  # RGBA with transparency
     """
 
     value: str
 
     @classmethod
     def named(cls, name: str) -> Color:
-        """Create a named color (e.g., 'red', 'LightBlue')."""
+        """Create from a CSS color name.
+
+        PlantUML supports standard web colors like "red", "LightBlue",
+        "DarkSlateGray", etc. Names are case-insensitive in PlantUML.
+        """
         return cls(name)
 
     @classmethod
     def hex(cls, code: str) -> Color:
-        """Create a hex color (e.g., '#FF0000' or 'FF0000')."""
+        """Create from a hex color code.
+
+        Accepts with or without leading "#": "#FF0000" or "FF0000".
+        The "#" prefix is normalized automatically.
+        """
         if not code.startswith("#"):
             code = f"#{code}"
         return cls(code)
 
     @classmethod
     def rgb(cls, r: int, g: int, b: int) -> Color:
-        """Create a color from RGB values (0-255)."""
+        """Create from RGB components.
+
+        Each component is an integer from 0-255.
+        """
         return cls(f"#{r:02X}{g:02X}{b:02X}")
 
     @classmethod
     def rgba(cls, r: int, g: int, b: int, a: int) -> Color:
-        """Create a color from RGBA values (0-255). Alpha is first in PlantUML."""
+        """Create from RGBA components with transparency.
+
+        Each component is an integer from 0-255. Alpha 0 is fully transparent,
+        255 is fully opaque. Note: PlantUML encodes alpha first (#AARRGGBB).
+        """
         return cls(f"#{a:02X}{r:02X}{g:02X}{b:02X}")
 
 
@@ -137,13 +177,19 @@ def _coerce_color_or_gradient(
 
 @dataclass(frozen=True)
 class Gradient:
-    """Two-color gradient.
+    """Two-color gradient for element backgrounds.
 
-    Direction determines the separator character in PlantUML:
-        horizontal: | (red|green)
-        vertical: - (red-green)
-        diagonal_down: / (red/green)
-        diagonal_up: \\ (red\\green)
+    Gradients blend smoothly from a start color to an end color. The direction
+    controls the angle of the blend:
+
+        horizontal:    Left to right (|)
+        vertical:      Top to bottom (-)
+        diagonal_down: Top-left to bottom-right (/)
+        diagonal_up:   Bottom-left to top-right (\\)
+
+    Example:
+        # Blue fading to white from left to right
+        style={"background": Gradient("Blue", "White", "horizontal")}
     """
 
     start: ColorLike
@@ -155,7 +201,19 @@ class Gradient:
 
 @dataclass(frozen=True)
 class LineStyle:
-    """Visual styling for lines and arrows."""
+    """Visual styling for lines and arrows connecting elements.
+
+    Controls how connection lines appear in the diagram:
+
+        pattern:   Line pattern - "solid", "dashed", "dotted", or "hidden"
+        color:     Line color (any ColorLike value)
+        thickness: Line width in pixels
+        bold:      If True, renders a thicker line
+
+    Example:
+        # Red dashed arrow
+        d.transition(a, b, style=LineStyle(pattern="dashed", color="red"))
+    """
 
     pattern: LinePattern = "solid"
     color: ColorLike | None = None
@@ -165,10 +223,20 @@ class LineStyle:
 
 @dataclass(frozen=True)
 class Label:
-    """Text label with optional markup.
+    """Text content for diagram elements, titles, and annotations.
 
-    PlantUML supports Creole and HTML markup in labels.
-    We pass through as-is without validation.
+    Labels can contain plain text or rich formatting using PlantUML's
+    Creole markup or HTML subset:
+
+        **bold**           Bold text
+        //italic//         Italic text
+        __underline__      Underlined text
+        ~~strikethrough~~  Strikethrough text
+        <color:red>text</color>  Colored text
+        <size:18>text</size>     Sized text
+
+    For simple text, you can pass strings directly to most APIs - they're
+    automatically wrapped in Label objects.
     """
 
     text: str
@@ -180,9 +248,16 @@ LabelLike: TypeAlias = Label | str
 
 @dataclass(frozen=True)
 class Spot:
-    """Stereotype spot - a colored circle with a single character.
+    """A colored circle with a single character, displayed in stereotypes.
+
+    Spots appear as small colored circles with a letter inside, placed
+    before the stereotype name. They provide quick visual classification.
 
     Renders as: << (S,#red) StereoName >>
+
+    Example:
+        # Service stereotype with blue "S" indicator
+        Spot("S", "DodgerBlue")
     """
 
     char: str
@@ -191,9 +266,21 @@ class Spot:
 
 @dataclass(frozen=True)
 class Stereotype:
-    """Stereotype marker for UML elements.
+    """UML stereotype marker that classifies diagram elements.
 
-    Can include an optional spot (colored character circle).
+    In UML, stereotypes are shown as <<name>> and indicate that an element
+    belongs to a particular category or has special semantics. Common examples:
+    <<interface>>, <<abstract>>, <<service>>, <<entity>>.
+
+    Stereotypes can optionally include a "spot" - a colored circle with a
+    single character that provides quick visual identification.
+
+    Example:
+        # Simple stereotype
+        Stereotype("service")
+
+        # Stereotype with colored spot
+        Stereotype("service", Spot("S", "DodgerBlue"))
     """
 
     name: str
@@ -202,7 +289,23 @@ class Stereotype:
 
 @dataclass(frozen=True)
 class Style:
-    """Visual styling that can apply to any element."""
+    """Visual styling that can apply to any diagram element.
+
+    Combines multiple visual properties into a single style specification:
+
+        background:  Fill color or gradient for the element
+        line:        Styling for the element's border/outline
+        text_color:  Color for text within the element
+        stereotype:  UML stereotype marker (<<name>>)
+
+    Example:
+        # Error state with red background and border
+        d.state("Error", style=Style(
+            background="#FFCDD2",
+            line=LineStyle(color="red"),
+            text_color="DarkRed",
+        ))
+    """
 
     background: ColorLike | Gradient | None = None
     line: "LineStyleLike | None" = None
@@ -212,7 +315,18 @@ class Style:
 
 @dataclass(frozen=True)
 class Note:
-    """Annotation that can be attached to elements."""
+    """Annotation that can be attached to diagram elements.
+
+    Notes appear as yellow sticky-note boxes containing explanatory text.
+    They can be positioned relative to an element or float freely.
+
+    Position options vary by diagram type but commonly include:
+        left, right:  Beside an element
+        top, bottom:  Above or below an element
+        floating:     Not attached to any specific element
+
+    The content can include Creole markup for rich text formatting.
+    """
 
     content: LabelLike
     position: NotePosition = "right"
@@ -220,9 +334,20 @@ class Note:
 
 @dataclass(frozen=True)
 class ElementStyle:
-    """Style properties for diagram elements (states, notes, etc.).
+    """Comprehensive style properties for diagram elements.
 
-    Used within StateDiagramStyle to define element-specific styling.
+    Used in diagram-wide style blocks to define default appearance for
+    element types (states, notes, etc.). These properties map to PlantUML's
+    CSS-like <style> block syntax.
+
+        background:     Fill color
+        line_color:     Border/outline color
+        font_color:     Text color
+        font_name:      Font family (e.g., "Arial", "Courier")
+        font_size:      Font size in points
+        font_style:     "normal", "bold", "italic", or "bold italic"
+        round_corner:   Corner radius in pixels (0 for sharp corners)
+        line_thickness: Border width in pixels
     """
 
     background: ColorLike | None = None
@@ -237,10 +362,14 @@ class ElementStyle:
 
 @dataclass(frozen=True)
 class DiagramArrowStyle:
-    """Style properties for arrows in diagram-wide styles.
+    """Style properties for all arrows in a diagram.
 
-    Note: This is different from LineStyle which is for individual arrows.
-    This is for the <style> block's arrow { } section.
+    Used in diagram-wide style blocks to set default arrow appearance.
+    This affects transitions, relationships, and other connecting lines.
+
+    Note: For styling individual arrows, use LineStyle on specific
+    transitions. This class is for the <style> block's arrow { } section
+    that sets diagram-wide defaults.
     """
 
     line_color: ColorLike | None = None
@@ -250,9 +379,17 @@ class DiagramArrowStyle:
 
 @dataclass(frozen=True)
 class StateDiagramStyle:
-    """Typed CSS-like style for state diagrams.
+    """Diagram-wide styling for state diagrams.
 
-    Usage:
+    This generates a PlantUML <style> block that sets default appearance
+    for all elements in the diagram. Individual elements can still override
+    these defaults with inline styles.
+
+    Root-level properties apply to the diagram background and default fonts.
+    Element-specific properties (state, arrow, note, title) let you style
+    each element type independently.
+
+    Example:
         with state_diagram(
             style=StateDiagramStyle(
                 background="white",
@@ -268,20 +405,8 @@ class StateDiagramStyle:
         ) as d:
             ...
 
-    Generates:
-        <style>
-        stateDiagram {
-            BackgroundColor white
-            FontName Arial
-            state {
-                BackgroundColor #E3F2FD
-                LineColor #1976D2
-            }
-            arrow {
-                LineColor #757575
-            }
-        }
-        </style>
+    This generates a <style> block in the PlantUML output that themes
+    all states with blue backgrounds and gray arrows.
     """
 
     # Root-level properties

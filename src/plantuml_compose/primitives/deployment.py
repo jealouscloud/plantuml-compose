@@ -1,6 +1,20 @@
 """Deployment diagram primitives.
 
-Frozen dataclasses representing all deployment diagram elements.
+Deployment diagrams show the physical deployment of software onto hardware.
+They map software artifacts (components, executables, files) to the hardware
+nodes (servers, devices, cloud instances) where they run. Useful for:
+
+- Documenting server architecture and infrastructure
+- Planning cloud deployments and scaling
+- Showing network topology
+- Mapping services to physical/virtual machines
+
+Key concepts:
+    Node:      A computational resource (server, VM, container, device)
+    Artifact:  A deployable unit (JAR, Docker image, executable)
+    Nested:    Elements can be nested to show containment
+
+All types are frozen dataclasses - immutable data with no behavior.
 """
 
 from __future__ import annotations

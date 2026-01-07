@@ -1,5 +1,21 @@
 """Sequence diagram primitives.
 
+Sequence diagrams show interactions between participants over time. Messages
+flow from left to right, and time progresses from top to bottom. They're
+ideal for documenting:
+
+- API call flows and request/response patterns
+- User interaction scenarios
+- System integration protocols
+- Method call sequences in code
+
+Key concepts:
+    Participant: An entity (user, service, object) that sends/receives messages
+    Lifeline:    The vertical dashed line showing a participant's existence
+    Message:     Communication from one participant to another (arrows)
+    Activation:  A narrow rectangle showing when a participant is active
+    Fragment:    A grouping like alt (if/else), loop, or opt (optional)
+
 All types are frozen dataclasses - immutable data with no behavior.
 """
 
@@ -18,43 +34,58 @@ from .common import (
 )
 
 
-# Participant shape types
+# Participant shape types - visual representation in the diagram
 ParticipantType = Literal[
-    "participant",
-    "actor",
-    "boundary",
-    "control",
-    "entity",
-    "database",
-    "collections",
-    "queue",
+    "participant",  # Default rectangle
+    "actor",        # Stick figure (human user)
+    "boundary",     # UI or external interface (circle with line)
+    "control",      # Controller/logic (circle with arrow)
+    "entity",       # Data/domain object (circle with line below)
+    "database",     # Database (cylinder)
+    "collections",  # Collection/group (stacked rectangles)
+    "queue",        # Message queue
 ]
 
 # Message arrow line styles
-MessageLineStyle = Literal["solid", "dotted"]
+MessageLineStyle = Literal[
+    "solid",   # -> Synchronous message
+    "dotted",  # --> Asynchronous or return message
+]
 
 # Message arrow head styles
 MessageArrowHead = Literal[
-    "normal",  # >
-    "thin",  # >>
-    "lost",  # x (message lost)
-    "open",  # ) or ( - half arrows
-    "circle",  # o
-    "none",  # no arrow head
+    "normal",  # >   Standard filled arrow
+    "thin",    # >>  Thin/async arrow
+    "lost",    # >x  Message lost (didn't reach target)
+    "open",    # >)  Half arrow
+    "circle",  # >o  Arrow with circle
+    "none",    #     No arrowhead (just a line)
 ]
 
-# Grouping block types (semantic keywords)
-GroupType = Literal["alt", "opt", "loop", "par", "break", "critical", "group"]
+# Grouping block types (combined fragment operators)
+GroupType = Literal[
+    "alt",       # Alternative: if/else branches
+    "opt",       # Optional: may or may not execute
+    "loop",      # Loop: repeated execution
+    "par",       # Parallel: concurrent execution
+    "break",     # Break: exit enclosing fragment
+    "critical",  # Critical: atomic region (no interruption)
+    "group",     # Custom group with arbitrary label
+]
 
 # Note shape variants
-NoteShape = Literal["note", "hnote", "rnote"]
+NoteShape = Literal[
+    "note",   # Standard rectangular note
+    "hnote",  # Hexagonal note
+    "rnote",  # Rounded note
+]
 
-# Activation actions for shorthand syntax
+# Activation actions for shorthand syntax on messages
 ActivationAction = Literal[
-    "activate",  # ++
-    "deactivate",  # --
-    "create",  # **
-    "destroy",  # !!
+    "activate",    # ++ Start activation bar
+    "deactivate",  # -- End activation bar
+    "create",      # ** Create new participant
+    "destroy",     # !! Destroy participant (X on lifeline)
 ]
 
 
@@ -77,7 +108,18 @@ def _sanitize_participant_ref(name: str) -> str:
 
 @dataclass(frozen=True)
 class Participant:
-    """A participant in a sequence diagram (lifeline)."""
+    """An entity that sends or receives messages in a sequence diagram.
+
+    Participants appear as columns with a header box and vertical lifeline.
+    Each message arrow connects one participant to another.
+
+        name:        Display name in the header box
+        alias:       Short identifier for referencing in messages
+        type:        Visual shape ("actor", "database", "participant", etc.)
+        order:       Display position (lower numbers = left side)
+        color:       Header background color
+        description: Multi-line text in the header (below name)
+    """
 
     name: str
     alias: str | None = None
@@ -96,7 +138,24 @@ class Participant:
 
 @dataclass(frozen=True)
 class Message:
-    """A message between participants."""
+    """An arrow between participants representing communication.
+
+    Messages are the core of sequence diagrams, showing how participants
+    interact over time. Each message renders as an arrow with optional label.
+
+        source/target:  Participant references
+        label:          Text on the arrow
+        line_style:     "solid" (sync) or "dotted" (async/return)
+        arrow_head:     Arrow style ("normal", "thin", "lost", etc.)
+        bidirectional:  If True, arrow points both directions
+        activation:     Shorthand to activate/deactivate target
+        is_return:      If True, this is a return message
+
+    Arrow styling:
+        color:     Arrow color
+        thickness: Line width in pixels
+        bold:      If True, thicker line
+    """
 
     source: str  # Participant reference
     target: str  # Participant reference
@@ -117,9 +176,10 @@ class Message:
 
 @dataclass(frozen=True)
 class Return:
-    """Return message (auto-return from activation).
+    """A return message from the current activation.
 
-    Rendered as: return label
+    Used inside an activation block to show the response. Renders as
+    a dotted arrow back to the caller with an optional label.
     """
 
     label: LabelLike | None = None
@@ -127,9 +187,15 @@ class Return:
 
 @dataclass(frozen=True)
 class Activation:
-    """Explicit activation/deactivation of a participant.
+    """Explicit control over a participant's activation bar.
 
-    For when you need explicit control, not message shorthand.
+    Activation bars are narrow rectangles on the lifeline showing when
+    a participant is actively processing. Usually managed implicitly
+    via message shortcuts (++, --), but this allows explicit control.
+
+        participant: Which participant to activate/deactivate
+        action:      "activate", "deactivate", or "destroy"
+        color:       Activation bar color (only for activate)
     """
 
     participant: str  # Participant reference
@@ -139,9 +205,20 @@ class Activation:
 
 @dataclass(frozen=True)
 class GroupBlock:
-    """A grouping block (alt, opt, loop, par, break, critical, group).
+    """A combined fragment (alt, opt, loop, par, etc.) grouping messages.
 
-    Contains a sequence of elements and optional else branches.
+    Fragments are boxes around message sequences that add control flow
+    semantics. Each type has specific meaning:
+
+        alt:      Alternative paths (if/else)
+        opt:      Optional (may or may not execute)
+        loop:     Repeated execution
+        par:      Parallel execution
+        break:    Exit enclosing fragment
+        critical: Atomic region
+        group:    Custom labeled grouping
+
+    Use else_blocks for alt/par branches.
     """
 
     type: GroupType
@@ -153,7 +230,11 @@ class GroupBlock:
 
 @dataclass(frozen=True)
 class ElseBlock:
-    """An else branch within an alt or par block."""
+    """An alternative branch within an alt or par block.
+
+    Represents an "else" or additional parallel track with its own
+    label and message sequence.
+    """
 
     label: LabelLike | None = None
     elements: tuple["SequenceDiagramElement", ...] = field(default_factory=tuple)
@@ -161,7 +242,11 @@ class ElseBlock:
 
 @dataclass(frozen=True)
 class Box:
-    """A box grouping participants together visually."""
+    """A visual container grouping related participants.
+
+    Boxes draw a rectangle around participants to show they belong
+    together (e.g., "Frontend Services", "Database Cluster").
+    """
 
     name: str | None = None
     color: ColorLike | None = None
@@ -170,9 +255,15 @@ class Box:
 
 @dataclass(frozen=True)
 class SequenceNote:
-    """A note in a sequence diagram.
+    """A note annotation in a sequence diagram.
 
-    Sequence diagrams have specialized note positioning relative to participants.
+    Notes can be positioned relative to participants:
+
+        position: "left", "right", or "over"
+        participants: Which participant(s) the note relates to
+        across: If True, spans all participants
+        aligned: If True, aligns with the previous note
+        shape: "note" (rectangle), "hnote" (hexagon), "rnote" (rounded)
     """
 
     content: LabelLike
@@ -185,9 +276,10 @@ class SequenceNote:
 
 @dataclass(frozen=True)
 class Reference:
-    """A reference to another diagram.
+    """A reference box pointing to another diagram or interaction.
 
-    Rendered as: ref over Alice, Bob : See other diagram
+    Rendered as a box spanning the specified participants with a
+    label like "See Authentication Flow" or "ref: LoginSequence".
     """
 
     participants: tuple[str, ...]  # Participant references
@@ -196,9 +288,10 @@ class Reference:
 
 @dataclass(frozen=True)
 class Divider:
-    """A divider line with title.
+    """A horizontal divider line with a centered title.
 
-    Rendered as: == Title ==
+    Dividers separate logical phases of an interaction, rendered as
+    a double line spanning the diagram with text like "== Phase 2 ==".
     """
 
     title: str
@@ -206,9 +299,10 @@ class Divider:
 
 @dataclass(frozen=True)
 class Delay:
-    """A delay indicator.
+    """A visual indicator of time passing.
 
-    Rendered as: ... or ...message...
+    Rendered as "..." or "...message..." to show a pause or delay
+    in the interaction before the next message.
     """
 
     message: str | None = None
@@ -216,9 +310,12 @@ class Delay:
 
 @dataclass(frozen=True)
 class Space:
-    """Vertical spacing.
+    """Explicit vertical spacing between elements.
 
-    Rendered as: ||| or ||N||
+    Adds blank space in the diagram. Use when automatic spacing
+    isn't sufficient for visual clarity.
+
+        pixels: Space height (None for default spacing)
     """
 
     pixels: int | None = None  # None means default spacing
@@ -226,9 +323,14 @@ class Space:
 
 @dataclass(frozen=True)
 class Autonumber:
-    """Autonumber control.
+    """Control for automatic message numbering.
 
-    Rendered as: autonumber [start] [increment] [format]
+    Adds sequence numbers (1, 2, 3...) to messages for easy reference.
+
+        action:    "start", "stop", or "resume"
+        start:     Starting number
+        increment: Step between numbers
+        format:    Display format (e.g., "<b>[000]" for bold three-digit)
     """
 
     action: Literal["start", "stop", "resume"] = "start"
@@ -239,7 +341,18 @@ class Autonumber:
 
 @dataclass(frozen=True)
 class SequenceDiagram:
-    """Complete sequence diagram."""
+    """A complete sequence diagram ready for rendering.
+
+    Contains all participants, messages, and diagram-level settings.
+    Usually created via the sequence_diagram() builder rather than directly.
+
+        elements:      Messages, notes, groups, and other content
+        participants:  Declared participants (controls ordering)
+        boxes:         Visual groupings of participants
+        title:         Optional diagram title
+        autonumber:    Message numbering settings
+        hide_unlinked: If True, hide participants with no messages
+    """
 
     elements: tuple["SequenceDiagramElement", ...] = field(default_factory=tuple)
     title: str | None = None

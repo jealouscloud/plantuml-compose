@@ -13,7 +13,7 @@ Provides a fluent API for constructing activity diagrams:
 
         d.stop()
 
-    print(render(d.build()))
+    print(d.render())
 """
 
 from __future__ import annotations

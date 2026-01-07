@@ -1,6 +1,21 @@
 """Use case diagram primitives.
 
-Frozen dataclasses representing all use case diagram elements.
+Use case diagrams show what a system does from the users' perspective.
+They capture functional requirements by showing who (actors) does what
+(use cases) with the system. Useful for:
+
+- Gathering and documenting requirements
+- Defining system scope and boundaries
+- Identifying user roles and their goals
+- Planning feature development
+
+Key concepts:
+    Actor:    Someone or something that interacts with the system
+    Use Case: A goal or function the system provides (shown as oval)
+    Include:  A use case that's always part of another
+    Extends:  Optional behavior that may extend a use case
+
+All types are frozen dataclasses - immutable data with no behavior.
 """
 
 from __future__ import annotations

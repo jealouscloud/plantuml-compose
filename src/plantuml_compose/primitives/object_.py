@@ -1,6 +1,21 @@
 """Object diagram primitives.
 
-Frozen dataclasses representing all object diagram elements.
+Object diagrams show instances of classes at a specific moment in time.
+While class diagrams show the structure (types), object diagrams show
+actual objects with concrete values. Useful for:
+
+- Illustrating example data scenarios
+- Debugging by showing object state
+- Documenting test cases
+- Explaining complex relationships with concrete examples
+
+Key concepts:
+    Object: An instance of a class with name:Type format
+    Field:  An attribute with a specific value
+    Map:    A key-value collection (special PlantUML feature)
+    Link:   A connection between object instances
+
+All types are frozen dataclasses - immutable data with no behavior.
 """
 
 from __future__ import annotations

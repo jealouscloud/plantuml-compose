@@ -9,7 +9,7 @@ Provides a fluent API for constructing state diagrams:
         d.arrow(idle, running, label="begin")
         d.arrow(running, d.end(), label="finish")
 
-    print(render(d.build()))
+    print(d.render())
 """
 
 from __future__ import annotations
@@ -879,7 +879,7 @@ def state_diagram(
             d.arrow(green, yellow, label="timer")
             d.arrow(yellow, red, label="timer")
 
-        print(render(d.build()))
+        print(d.render())
 
     With dict-based styling (no extra imports needed):
         with state_diagram(
