@@ -22,7 +22,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Union
 
-from .common import ColorLike, ComponentDiagramStyle, Label, LabelLike, Stereotype
+from .common import ColorLike, ComponentDiagramStyle, Direction, Label, LabelLike, LineStyle, Stereotype, Style
 
 if TYPE_CHECKING:
     pass
@@ -79,7 +79,7 @@ class Component:
         alias:      Short identifier for relationships
         type:       Element type (usually "component")
         stereotype: UML stereotype (e.g., <<service>>)
-        color:      Background color
+        style:      Visual styling (background, line, text_color)
         elements:   Nested ports or sub-components
     """
 
@@ -87,7 +87,7 @@ class Component:
     alias: str | None = None
     type: ComponentType = "component"
     stereotype: Stereotype | None = None
-    color: ColorLike | None = None
+    style: Style | None = None
     # For nested elements (ports, inner components)
     elements: tuple["ComponentElement", ...] = field(default_factory=tuple)
 
@@ -109,13 +109,13 @@ class Interface:
         name:       Interface name
         alias:      Short identifier for relationships
         stereotype: UML stereotype
-        color:      Display color
+        style:      Visual styling (background, line, text_color)
     """
 
     name: str
     alias: str | None = None
     stereotype: Stereotype | None = None
-    color: ColorLike | None = None
+    style: Style | None = None
 
     @property
     def _ref(self) -> str:
@@ -151,7 +151,7 @@ class Container:
         type:       Visual shape ("package", "node", "cloud", etc.)
         elements:   Components inside the container
         stereotype: UML stereotype
-        color:      Background color
+        style:      Visual styling (background, line, text_color)
         alias:      Short identifier for relationships
     """
 
@@ -159,7 +159,7 @@ class Container:
     type: ContainerType = "package"
     elements: tuple["ComponentElement", ...] = field(default_factory=tuple)
     stereotype: Stereotype | None = None
-    color: ColorLike | None = None
+    style: Style | None = None
     alias: str | None = None
 
     @property
@@ -185,6 +185,9 @@ class Relationship:
         source/target: Component or interface references
         source/target_label: Labels at each end
         label:      Text on the relationship line
+        style:      Line styling (color, pattern, thickness)
+        direction:  Layout hint (left, right, up, down)
+        note:       Note attached to the relationship
         left/right_head: Custom arrowhead symbols
     """
 
@@ -194,7 +197,9 @@ class Relationship:
     label: Label | None = None
     source_label: str | None = None
     target_label: str | None = None
-    color: ColorLike | None = None
+    style: LineStyle | None = None
+    direction: Direction | None = None
+    note: Label | None = None
     # Arrow head customization
     left_head: str | None = None  # e.g., "o", "*", "#", etc.
     right_head: str | None = None

@@ -15,7 +15,7 @@ from ..primitives.component import (
     Port,
     Relationship,
 )
-from .common import escape_quotes, render_color, render_label, render_stereotype
+from .common import escape_quotes, render_color, render_element_style, render_label, render_line_style_bracket, render_stereotype
 
 
 def render_component_diagram(diagram: ComponentDiagram) -> str:
@@ -57,7 +57,7 @@ def _render_element(elem: ComponentElement, indent: int = 0) -> list[str]:
     if isinstance(elem, Container):
         return _render_container(elem, indent)
     if isinstance(elem, Relationship):
-        return [f"{prefix}{_render_relationship(elem)}"]
+        return _render_relationship(elem, indent)
     if isinstance(elem, ComponentNote):
         return _render_note(elem, indent)
     raise TypeError(f"Unknown element type: {type(elem).__name__}")
@@ -88,11 +88,10 @@ def _render_component(comp: Component, indent: int = 0) -> list[str]:
     if comp.stereotype:
         parts.append(render_stereotype(comp.stereotype))
 
-    if comp.color:
-        color = render_color(comp.color)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        parts.append(color)
+    if comp.style:
+        style_str = render_element_style(comp.style)
+        if style_str:
+            parts.append(style_str)
 
     if comp.elements:
         lines.append(f"{prefix}{' '.join(parts)} {{")
@@ -121,11 +120,10 @@ def _render_interface(iface: Interface) -> str:
     if iface.stereotype:
         parts.append(render_stereotype(iface.stereotype))
 
-    if iface.color:
-        color = render_color(iface.color)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        parts.append(color)
+    if iface.style:
+        style_str = render_element_style(iface.style)
+        if style_str:
+            parts.append(style_str)
 
     return " ".join(parts)
 
@@ -144,11 +142,10 @@ def _render_container(container: Container, indent: int = 0) -> list[str]:
     if container.stereotype:
         parts.append(render_stereotype(container.stereotype))
 
-    if container.color:
-        color = render_color(container.color)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        parts.append(color)
+    if container.style:
+        style_str = render_element_style(container.style)
+        if style_str:
+            parts.append(style_str)
 
     parts.append("{")
     lines.append(f"{prefix}{' '.join(parts)}")
@@ -160,25 +157,13 @@ def _render_container(container: Container, indent: int = 0) -> list[str]:
     return lines
 
 
-def _render_relationship(rel: Relationship) -> str:
+def _render_relationship(rel: Relationship, indent: int = 0) -> list[str]:
     """Render a relationship between components."""
-    # Build arrow based on type
-    arrow = _get_arrow_for_type(rel.type, rel.left_head, rel.right_head)
+    prefix = "  " * indent
+    lines: list[str] = []
 
-    # Add color if specified
-    if rel.color:
-        color = render_color(rel.color)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        # Insert color into arrow
-        if "->" in arrow:
-            arrow = arrow.replace("->", f"-[{color}]->")
-        elif ".>" in arrow:
-            arrow = arrow.replace(".>", f".[{color}].>")
-        elif "--" in arrow:
-            arrow = arrow.replace("--", f"-[{color}]-")
-        elif ".." in arrow:
-            arrow = arrow.replace("..", f".[{color}].")
+    # Build arrow based on type with direction and style
+    arrow = _build_arrow(rel)
 
     # Build the full relationship line
     parts: list[str] = [rel.source]
@@ -200,7 +185,61 @@ def _render_relationship(rel: Relationship) -> str:
         label = render_label(rel.label)
         parts.append(f": {label}")
 
-    return " ".join(parts)
+    lines.append(f"{prefix}{' '.join(parts)}")
+
+    # Note on link
+    if rel.note:
+        note_text = render_label(rel.note)
+        if "\n" in note_text:
+            lines.append(f"{prefix}note on link")
+            for note_line in note_text.split("\n"):
+                lines.append(f"{prefix}  {note_line}")
+            lines.append(f"{prefix}end note")
+        else:
+            lines.append(f"{prefix}note on link: {note_text}")
+
+    return lines
+
+
+def _build_arrow(rel: Relationship) -> str:
+    """Build the arrow string for a relationship."""
+    # Get base arrow for type
+    base = _get_arrow_for_type(rel.type, rel.left_head, rel.right_head)
+
+    # Direction modifier (first letter: u, d, l, r)
+    dir_mod = rel.direction[0] if rel.direction else ""
+
+    # Style modifier [#color,pattern,thickness=N]
+    style_mod = ""
+    if rel.style:
+        style_mod = render_line_style_bracket(rel.style)
+
+    # If no modifiers, return base arrow
+    if not style_mod and not dir_mod:
+        return base
+
+    # Insert modifiers into arrow
+    # Arrows can be: -->, ..>, --(, )--, --, ..
+    if "->" in base:
+        # Solid arrow: --> becomes -[style]dir->
+        return base.replace("->", f"-{style_mod}{dir_mod}->")
+    if ".>" in base:
+        # Dotted arrow: ..> becomes .[style]dir.>
+        return base.replace(".>", f".{style_mod}{dir_mod}.>")
+    if "--(" in base:
+        # Provides: --( becomes -[style]dir-(
+        return base.replace("-(", f"-{style_mod}{dir_mod}-(")
+    if ")--" in base:
+        # Requires: )-- becomes )-[style]dir-
+        return base.replace(")-", f"){style_mod}{dir_mod}-")
+    if "--" in base:
+        # Plain line: -- becomes -[style]dir-
+        return base.replace("--", f"-{style_mod}{dir_mod}-")
+    if ".." in base:
+        # Dotted line: .. becomes .[style]dir.
+        return base.replace("..", f".{style_mod}{dir_mod}.")
+
+    return base
 
 
 def _get_arrow_for_type(rel_type: str, left_head: str | None, right_head: str | None) -> str:

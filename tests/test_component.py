@@ -40,9 +40,9 @@ class TestBasicElements:
         output = render(d.build())
         assert "<<storage>>" in output
 
-    def test_component_with_color(self):
+    def test_component_with_style(self):
         with component_diagram() as d:
-            d.component("Critical", color="red")
+            d.component("Critical", style={"background": "red"})
 
         output = render(d.build())
         assert "#red" in output
@@ -136,9 +136,9 @@ class TestContainers:
         assert "node Server" in output
         assert "App" in output
 
-    def test_container_with_color(self):
+    def test_container_with_style(self):
         with component_diagram() as d:
-            with d.package("Important", color="LightBlue") as pkg:
+            with d.package("Important", style={"background": "LightBlue"}) as pkg:
                 pkg.component("Service")
 
         output = render(d.build())
@@ -187,10 +187,10 @@ class TestRelationships:
         with component_diagram() as d:
             a = d.component("A", alias="a")
             b = d.component("B", alias="b")
-            d.arrow(a, b, dotted=True)
+            d.arrow(a, b, style={"pattern": "dashed"})
 
         output = render(d.build())
-        assert "a ..> b" in output
+        assert "a ..[dashed].> b" in output
 
     def test_link(self):
         with component_diagram() as d:
@@ -241,7 +241,7 @@ class TestRelationships:
         with component_diagram() as d:
             a = d.component("A", alias="a")
             b = d.component("B", alias="b")
-            d.arrow(a, b, color="blue")
+            d.arrow(a, b, style={"color": "blue"})
 
         output = render(d.build())
         assert "[#blue]" in output

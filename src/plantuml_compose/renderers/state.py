@@ -28,7 +28,7 @@ from .common import (
     render_color,
     render_label,
     render_line_style_bracket,
-    render_state_style,
+    render_element_style,
     render_stereotype,
 )
 
@@ -276,7 +276,7 @@ def _render_state_node(state: StateNode) -> list[str]:
 
     # Add inline style if present
     if state.style:
-        style_str = render_state_style(state.style)
+        style_str = render_element_style(state.style)
         if style_str:
             decl += f" {style_str}"
 
@@ -315,7 +315,7 @@ def _render_pseudo_state(pseudo: PseudoState) -> list[str]:
         # Use alias syntax so transitions can reference the sanitized name
         decl = f'state "{escaped_name}" as {sanitized} <<{pseudo.kind.value}>>'
         if pseudo.style:
-            style_str = render_state_style(pseudo.style)
+            style_str = render_element_style(pseudo.style)
             if style_str:
                 decl += f" {style_str}"
         return [decl]
@@ -425,7 +425,7 @@ def _render_composite_state(comp: CompositeState) -> list[str]:
 
     # Add inline style
     if comp.style:
-        style_str = render_state_style(comp.style)
+        style_str = render_element_style(comp.style)
         if style_str:
             opening += f" {style_str}"
 
@@ -466,7 +466,7 @@ def _render_concurrent_state(conc: ConcurrentState) -> list[str]:
 
     # Add inline style
     if conc.style:
-        style_str = render_state_style(conc.style)
+        style_str = render_element_style(conc.style)
         if style_str:
             opening += f" {style_str}"
 

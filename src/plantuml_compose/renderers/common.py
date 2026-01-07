@@ -73,16 +73,18 @@ def render_line_style_bracket(style: LineStyleLike) -> str:
     return f"[{','.join(parts)}]" if parts else ""
 
 
-def render_state_style(style: StyleLike) -> str:
-    """Render Style as PlantUML inline format.
+def render_element_style(style: StyleLike) -> str:
+    """Render Style as PlantUML inline format for any element.
 
-    PlantUML state style syntax options:
+    PlantUML element style syntax options:
     1. Background only: #color or #color1-color2 (gradient)
     2. Line only: ##[pattern]color or ##color
     3. Multiple properties: #back;line:color;text:color (semicolon-separated)
 
     When only background and/or line are specified, uses space-separated format.
     When text_color is specified, uses semicolon format (background optional).
+
+    Works for states, components, interfaces, and other diagram elements.
     """
     style = coerce_style(style)
 

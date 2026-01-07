@@ -24,10 +24,15 @@ from ..primitives.common import (
     ColorLike,
     ComponentDiagramStyle,
     ComponentDiagramStyleLike,
+    Direction,
     Label,
+    LineStyleLike,
     NotePosition,
     Stereotype,
+    StyleLike,
     coerce_component_diagram_style,
+    coerce_line_style,
+    coerce_style,
 )
 from ..primitives.component import (
     Component,
@@ -100,7 +105,7 @@ class _BaseComponentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
         note: str | None = None,
         note_position: NotePosition = "right",
     ) -> Component:
@@ -110,7 +115,7 @@ class _BaseComponentBuilder:
             name: Component name
             alias: Short alias for relationships
             stereotype: Stereotype annotation (string or Stereotype object)
-            color: Background color
+            style: Visual styling (dict or Style with background, line, text_color)
             note: Optional note content (creates attached note)
             note_position: Position of note ("left", "right", "top", "bottom")
 
@@ -119,17 +124,19 @@ class _BaseComponentBuilder:
 
         Example:
             api = d.component("API Server", note="Main entry point")
+            d.component("Error", style={"background": "red", "text_color": "white"})
             d.arrow(api, db)  # Can pass Component directly
         """
         if not name:
             raise ValueError("Component name cannot be empty")
         stereo = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        style_obj = coerce_style(style) if style else None
         comp = Component(
             name=name,
             alias=alias,
             type="component",
             stereotype=stereo,
-            color=color,
+            style=style_obj,
         )
         self._elements.append(comp)
 
@@ -149,7 +156,7 @@ class _BaseComponentBuilder:
         *,
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
         note: str | None = None,
         note_position: NotePosition = "right",
     ) -> Interface:
@@ -159,7 +166,7 @@ class _BaseComponentBuilder:
             name: Interface name
             alias: Short alias for relationships
             stereotype: Stereotype annotation (string or Stereotype object)
-            color: Background color
+            style: Visual styling (dict or Style with background, line, text_color)
             note: Optional note content (creates attached note)
             note_position: Position of note ("left", "right", "top", "bottom")
 
@@ -168,16 +175,18 @@ class _BaseComponentBuilder:
 
         Example:
             rest = d.interface("REST API", note="HTTP endpoints")
+            d.interface("IError", style={"background": "red"})
             d.provides(api, rest)  # Can pass Interface directly
         """
         if not name:
             raise ValueError("Interface name cannot be empty")
         stereo = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        style_obj = coerce_style(style) if style else None
         iface = Interface(
             name=name,
             alias=alias,
             stereotype=stereo,
-            color=color,
+            style=style_obj,
         )
         self._elements.append(iface)
 
@@ -333,7 +342,9 @@ class _BaseComponentBuilder:
         label: str | Label | None = None,
         source_label: str | None = None,
         target_label: str | None = None,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
         """Add a relationship between components.
 
@@ -344,9 +355,13 @@ class _BaseComponentBuilder:
             label: Relationship label
             source_label: Label near source
             target_label: Label near target
-            color: Arrow color
+            style: Line style (dict or LineStyle with color, pattern, thickness)
+            direction: Layout direction hint ("up", "down", "left", "right")
+            note: Optional note attached to relationship
         """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
@@ -354,7 +369,9 @@ class _BaseComponentBuilder:
             label=label_obj,
             source_label=source_label,
             target_label=target_label,
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -364,6 +381,9 @@ class _BaseComponentBuilder:
         interface: ComponentRef,
         *,
         label: str | Label | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
         """Component provides an interface (lollipop notation).
 
@@ -371,13 +391,21 @@ class _BaseComponentBuilder:
             component: Component that provides (string, primitive, or builder)
             interface: Interface being provided (string, primitive, or builder)
             label: Optional label
+            style: Line style (dict or LineStyle with color, pattern, thickness)
+            direction: Layout direction hint ("up", "down", "left", "right")
+            note: Optional note attached to relationship
         """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=self._to_ref(component),
             target=self._to_ref(interface),
             type="provides",
             label=label_obj,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -387,6 +415,9 @@ class _BaseComponentBuilder:
         interface: ComponentRef,
         *,
         label: str | Label | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
         """Component requires an interface.
 
@@ -394,13 +425,21 @@ class _BaseComponentBuilder:
             component: Component that requires (string, primitive, or builder)
             interface: Interface being required (string, primitive, or builder)
             label: Optional label
+            style: Line style (dict or LineStyle with color, pattern, thickness)
+            direction: Layout direction hint ("up", "down", "left", "right")
+            note: Optional note attached to relationship
         """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=self._to_ref(component),
             target=self._to_ref(interface),
             type="requires",
             label=label_obj,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -410,6 +449,9 @@ class _BaseComponentBuilder:
         target: ComponentRef,
         *,
         label: str | Label | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
         """Add a dependency (dotted arrow).
 
@@ -417,13 +459,21 @@ class _BaseComponentBuilder:
             source: Dependent component (string, primitive, or builder)
             target: Component being depended on (string, primitive, or builder)
             label: Optional label
+            style: Line style (dict or LineStyle with color, pattern, thickness)
+            direction: Layout direction hint ("up", "down", "left", "right")
+            note: Optional note attached to relationship
         """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type="dependency",
             label=label_obj,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -433,7 +483,9 @@ class _BaseComponentBuilder:
         target: ComponentRef,
         *,
         label: str | Label | None = None,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> None:
         """Add a simple link (solid line).
 
@@ -441,15 +493,21 @@ class _BaseComponentBuilder:
             source: Source component (string, primitive, or builder)
             target: Target component (string, primitive, or builder)
             label: Optional label
-            color: Optional color
+            style: Line style (dict or LineStyle with color, pattern, thickness)
+            direction: Layout direction hint ("up", "down", "left", "right")
+            note: Optional note attached to relationship
         """
         label_obj = Label(label) if isinstance(label, str) else label
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type="line",
             label=label_obj,
-            color=color,
+            style=style_obj,
+            direction=direction,
+            note=note_obj,
         )
         self._elements.append(rel)
 
@@ -457,8 +515,9 @@ class _BaseComponentBuilder:
         self,
         *components: ComponentRef,
         label: str | Label | None = None,
-        dotted: bool = False,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> list[Relationship]:
         """Add arrows between consecutive components.
 
@@ -466,8 +525,9 @@ class _BaseComponentBuilder:
             *components: Two or more components to connect. Creates arrows:
                          components[0]->components[1], components[1]->components[2], etc.
             label: Optional label (applied to all arrows)
-            dotted: Use dotted line
-            color: Optional color
+            style: Line style (dict or LineStyle with color, pattern, thickness)
+            direction: Layout direction hint ("up", "down", "left", "right")
+            note: Optional note attached to arrows
 
         Returns:
             List of created Relationships
@@ -475,14 +535,21 @@ class _BaseComponentBuilder:
         Examples:
             d.arrow(a, b)           # Single arrow: a -> b
             d.arrow(a, b, c)        # Chain: a -> b -> c (2 arrows)
-            d.arrow(a, b, c, d)     # Chain: a -> b -> c -> d (3 arrows)
             d.arrow(a, b, label="calls")  # All arrows labeled "calls"
+            d.arrow(a, b, style={"color": "red", "pattern": "dashed"})
+            d.arrow(a, b, direction="left", note="Important!")
         """
         if len(components) < 2:
             raise ValueError("arrow() requires at least 2 components")
 
         label_obj = Label(label) if isinstance(label, str) else label
-        arrow_type = "dotted_arrow" if dotted else "arrow"
+        style_obj = coerce_line_style(style) if style else None
+        note_obj = Label(note) if isinstance(note, str) else note
+
+        # Determine arrow type from style pattern
+        arrow_type: RelationType = "arrow"
+        if style_obj and style_obj.pattern in ("dashed", "dotted"):
+            arrow_type = "dotted_arrow"
 
         relationships: list[Relationship] = []
         for source, target in zip(components[:-1], components[1:]):
@@ -491,7 +558,9 @@ class _BaseComponentBuilder:
                 target=self._to_ref(target),
                 type=arrow_type,
                 label=label_obj,
-                color=color,
+                style=style_obj,
+                direction=direction,
+                note=note_obj,
             )
             self._elements.append(rel)
             relationships.append(rel)
@@ -501,8 +570,8 @@ class _BaseComponentBuilder:
     def chain(
         self,
         *items: ComponentRef | str,
-        dotted: bool = False,
-        color: ColorLike | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
     ) -> list[Relationship]:
         """Create a chain of arrows with interleaved labels.
 
@@ -512,8 +581,8 @@ class _BaseComponentBuilder:
         Args:
             *items: Alternating components and labels. Labels between components
                     become arrow labels.
-            dotted: Use dotted arrows
-            color: Optional color for all arrows
+            style: Line style (dict or LineStyle with color, pattern, thickness)
+            direction: Layout direction hint ("up", "down", "left", "right")
 
         Returns:
             List of created Relationships
@@ -530,11 +599,21 @@ class _BaseComponentBuilder:
             d.chain(a, "call", b, c, "store", d)
             # Creates: a --call--> b --> c --store--> d
 
+            # With styling
+            d.chain(a, b, c, style={"color": "red", "pattern": "dashed"})
+
         Raises:
             ValueError: If items doesn't start with a component or has consecutive labels
         """
         if len(items) < 2:
             raise ValueError("chain() requires at least 2 components")
+
+        style_obj = coerce_line_style(style) if style else None
+
+        # Determine arrow type from style pattern
+        arrow_type: RelationType = "arrow"
+        if style_obj and style_obj.pattern in ("dashed", "dotted"):
+            arrow_type = "dotted_arrow"
 
         relationships: list[Relationship] = []
         i = 0
@@ -555,8 +634,9 @@ class _BaseComponentBuilder:
                     rel = Relationship(
                         source=self._to_ref(current_component),
                         target=self._to_ref(item),
-                        type="dotted_arrow" if dotted else "arrow",
-                        color=color,
+                        type=arrow_type,
+                        style=style_obj,
+                        direction=direction,
                     )
                     self._elements.append(rel)
                     relationships.append(rel)
@@ -575,9 +655,10 @@ class _BaseComponentBuilder:
                 rel = Relationship(
                     source=self._to_ref(current_component),
                     target=self._to_ref(next_item),
-                    type="dotted_arrow" if dotted else "arrow",
+                    type=arrow_type,
                     label=Label(item),
-                    color=color,
+                    style=style_obj,
+                    direction=direction,
                 )
                 self._elements.append(rel)
                 relationships.append(rel)
@@ -631,7 +712,7 @@ class _BaseComponentBuilder:
         *,
         alias: str | None = None,
         stereotype: Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_ContainerBuilder"]:
         """Create a package container.
 
@@ -641,7 +722,7 @@ class _BaseComponentBuilder:
 
             d.arrow(dom, other)  # Reference by alias
         """
-        builder = _ContainerBuilder("package", name, stereotype, color, alias)
+        builder = _ContainerBuilder("package", name, stereotype, style, alias)
         yield builder
         self._elements.append(builder._build())
 
@@ -652,7 +733,7 @@ class _BaseComponentBuilder:
         *,
         alias: str | None = None,
         stereotype: Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_ContainerBuilder"]:
         """Create a node container.
 
@@ -660,7 +741,7 @@ class _BaseComponentBuilder:
             with d.node("Server", alias="srv") as n:
                 n.component("App")
         """
-        builder = _ContainerBuilder("node", name, stereotype, color, alias)
+        builder = _ContainerBuilder("node", name, stereotype, style, alias)
         yield builder
         self._elements.append(builder._build())
 
@@ -671,10 +752,10 @@ class _BaseComponentBuilder:
         *,
         alias: str | None = None,
         stereotype: Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_ContainerBuilder"]:
         """Create a folder container."""
-        builder = _ContainerBuilder("folder", name, stereotype, color, alias)
+        builder = _ContainerBuilder("folder", name, stereotype, style, alias)
         yield builder
         self._elements.append(builder._build())
 
@@ -685,10 +766,10 @@ class _BaseComponentBuilder:
         *,
         alias: str | None = None,
         stereotype: Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_ContainerBuilder"]:
         """Create a frame container."""
-        builder = _ContainerBuilder("frame", name, stereotype, color, alias)
+        builder = _ContainerBuilder("frame", name, stereotype, style, alias)
         yield builder
         self._elements.append(builder._build())
 
@@ -699,10 +780,10 @@ class _BaseComponentBuilder:
         *,
         alias: str | None = None,
         stereotype: Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_ContainerBuilder"]:
         """Create a cloud container."""
-        builder = _ContainerBuilder("cloud", name, stereotype, color, alias)
+        builder = _ContainerBuilder("cloud", name, stereotype, style, alias)
         yield builder
         self._elements.append(builder._build())
 
@@ -713,10 +794,10 @@ class _BaseComponentBuilder:
         *,
         alias: str | None = None,
         stereotype: Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_ContainerBuilder"]:
         """Create a database container."""
-        builder = _ContainerBuilder("database", name, stereotype, color, alias)
+        builder = _ContainerBuilder("database", name, stereotype, style, alias)
         yield builder
         self._elements.append(builder._build())
 
@@ -727,10 +808,10 @@ class _BaseComponentBuilder:
         *,
         alias: str | None = None,
         stereotype: Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_ContainerBuilder"]:
         """Create a rectangle container."""
-        builder = _ContainerBuilder("rectangle", name, stereotype, color, alias)
+        builder = _ContainerBuilder("rectangle", name, stereotype, style, alias)
         yield builder
         self._elements.append(builder._build())
 
@@ -741,7 +822,7 @@ class _BaseComponentBuilder:
         *,
         alias: str | None = None,
         stereotype: Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_ComponentWithPortsBuilder"]:
         """Create a component with ports.
 
@@ -751,7 +832,7 @@ class _BaseComponentBuilder:
                 c.portin("requests")
                 c.portout("responses")
         """
-        builder = _ComponentWithPortsBuilder(name, alias, stereotype, color)
+        builder = _ComponentWithPortsBuilder(name, alias, stereotype, style)
         yield builder
         self._elements.append(builder._build())
 
@@ -764,7 +845,7 @@ class _ContainerBuilder(_BaseComponentBuilder):
         type: ContainerType,
         name: str,
         stereotype: Stereotype | None,
-        color: ColorLike | None,
+        style: StyleLike | None,
         alias: str | None = None,
     ) -> None:
         if not name:
@@ -773,7 +854,7 @@ class _ContainerBuilder(_BaseComponentBuilder):
         self._type = type
         self._name = name
         self._stereotype = stereotype
-        self._color = color
+        self._style = coerce_style(style) if style else None
         self._alias = alias
 
     @property
@@ -790,7 +871,7 @@ class _ContainerBuilder(_BaseComponentBuilder):
             type=self._type,
             elements=tuple(self._elements),
             stereotype=self._stereotype,
-            color=self._color,
+            style=self._style,
             alias=self._alias,
         )
 
@@ -803,12 +884,12 @@ class _ComponentWithPortsBuilder:
         name: str,
         alias: str | None,
         stereotype: Stereotype | None,
-        color: ColorLike | None,
+        style: StyleLike | None,
     ) -> None:
         self._name = name
         self._alias = alias
         self._stereotype = stereotype
-        self._color = color
+        self._style = coerce_style(style) if style else None
         self._elements: list[Port] = []
 
     @property
@@ -843,7 +924,7 @@ class _ComponentWithPortsBuilder:
             alias=self._alias,
             type="component",
             stereotype=self._stereotype,
-            color=self._color,
+            style=self._style,
             elements=tuple(self._elements),
         )
 
