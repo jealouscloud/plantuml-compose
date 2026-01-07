@@ -609,3 +609,113 @@ def coerce_state_diagram_style(
         if "title" in value
         else None,
     )
+
+
+# ---------------------------------------------------------------------------
+# Component Diagram Styling
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ComponentDiagramStyle:
+    """Diagram-wide styling for component diagrams.
+
+    This generates a PlantUML <style> block that sets default appearance
+    for all elements in the diagram. Individual elements can still override
+    these defaults with inline styles.
+
+    Root-level properties apply to the diagram background and default fonts.
+    Element-specific properties (component, interface, arrow, note, title)
+    let you style each element type independently.
+
+    Example:
+        with component_diagram(
+            style=ComponentDiagramStyle(
+                background="white",
+                font_name="Arial",
+                component=ElementStyle(
+                    background="#E3F2FD",
+                    line_color="#1976D2",
+                ),
+                arrow=DiagramArrowStyle(
+                    line_color="#757575",
+                ),
+            )
+        ) as d:
+            ...
+
+    This generates a <style> block in the PlantUML output that themes
+    all components with blue backgrounds and gray arrows.
+    """
+
+    # Root-level properties
+    background: ColorLike | Gradient | None = None
+    font_name: str | None = None
+    font_size: int | None = None
+    font_color: ColorLike | None = None
+
+    # Element-specific styles
+    component: ElementStyle | None = None
+    interface: ElementStyle | None = None
+    arrow: DiagramArrowStyle | None = None
+    note: ElementStyle | None = None
+    title: ElementStyle | None = None
+
+
+class ComponentDiagramStyleDict(TypedDict, total=False):
+    """Dict form of ComponentDiagramStyle for convenience.
+
+    Example:
+        with component_diagram(
+            style={
+                "background": "white",
+                "font_name": "Arial",
+                "component": {"background": "#E3F2FD", "line_color": "#1976D2"},
+                "arrow": {"line_color": "#757575"},
+            }
+        ) as d:
+            ...
+    """
+
+    background: ColorLike | Gradient
+    font_name: str
+    font_size: int
+    font_color: ColorLike
+    component: ElementStyleLike
+    interface: ElementStyleLike
+    arrow: DiagramArrowStyleLike
+    note: ElementStyleLike
+    title: ElementStyleLike
+
+
+# Type alias for component diagram style arguments
+ComponentDiagramStyleLike: TypeAlias = ComponentDiagramStyle | ComponentDiagramStyleDict
+
+
+def coerce_component_diagram_style(
+    value: ComponentDiagramStyleLike,
+) -> ComponentDiagramStyle:
+    """Convert a ComponentDiagramStyleLike value to a ComponentDiagramStyle object."""
+    if isinstance(value, ComponentDiagramStyle):
+        return value
+    return ComponentDiagramStyle(
+        background=_coerce_color_or_gradient(value.get("background")),
+        font_name=value.get("font_name"),
+        font_size=value.get("font_size"),
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
+        component=coerce_element_style(value["component"])
+        if "component" in value
+        else None,
+        interface=coerce_element_style(value["interface"])
+        if "interface" in value
+        else None,
+        arrow=coerce_diagram_arrow_style(value["arrow"])
+        if "arrow" in value
+        else None,
+        note=coerce_element_style(value["note"]) if "note" in value else None,
+        title=coerce_element_style(value["title"])
+        if "title" in value
+        else None,
+    )

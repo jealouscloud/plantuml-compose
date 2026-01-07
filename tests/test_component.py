@@ -30,7 +30,7 @@ class TestBasicElements:
             api = d.component("API Server", alias="api")
 
         output = render(d.build())
-        assert api == "api"
+        assert api._ref == "api"  # Component returns object with _ref property
         assert 'component "API Server" as api' in output
 
     def test_component_with_stereotype(self):
@@ -59,7 +59,7 @@ class TestBasicElements:
             rest = d.interface("REST API", alias="rest")
 
         output = render(d.build())
-        assert rest == "rest"
+        assert rest._ref == "rest"  # Interface returns object with _ref property
         assert 'interface "REST API" as rest' in output
 
 

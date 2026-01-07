@@ -22,7 +22,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Union
 
-from .common import ColorLike, Label, LabelLike, Stereotype
+from .common import ColorLike, ComponentDiagramStyle, Label, LabelLike, Stereotype
 
 if TYPE_CHECKING:
     pass
@@ -58,6 +58,16 @@ RelationType = Literal[
 ComponentStyle = Literal["uml1", "uml2", "rectangle"]
 
 
+def _sanitize_ref(name: str) -> str:
+    """Convert a name to a valid PlantUML reference.
+
+    PlantUML identifiers cannot contain spaces, so spaces are replaced with
+    underscores. This allows names like "Web Server" to be referenced as
+    "Web_Server" in relationships.
+    """
+    return name.replace(" ", "_")
+
+
 @dataclass(frozen=True)
 class Component:
     """A software component in the diagram.
@@ -81,6 +91,13 @@ class Component:
     # For nested elements (ports, inner components)
     elements: tuple["ComponentElement", ...] = field(default_factory=tuple)
 
+    @property
+    def _ref(self) -> str:
+        """Reference name for use in relationships."""
+        if self.alias:
+            return self.alias
+        return _sanitize_ref(self.name)
+
 
 @dataclass(frozen=True)
 class Interface:
@@ -99,6 +116,13 @@ class Interface:
     alias: str | None = None
     stereotype: Stereotype | None = None
     color: ColorLike | None = None
+
+    @property
+    def _ref(self) -> str:
+        """Reference name for use in relationships."""
+        if self.alias:
+            return self.alias
+        return _sanitize_ref(self.name)
 
 
 @dataclass(frozen=True)
@@ -128,6 +152,7 @@ class Container:
         elements:   Components inside the container
         stereotype: UML stereotype
         color:      Background color
+        alias:      Short identifier for relationships
     """
 
     name: str
@@ -135,6 +160,14 @@ class Container:
     elements: tuple["ComponentElement", ...] = field(default_factory=tuple)
     stereotype: Stereotype | None = None
     color: ColorLike | None = None
+    alias: str | None = None
+
+    @property
+    def _ref(self) -> str:
+        """Reference name for use in relationships."""
+        if self.alias:
+            return self.alias
+        return _sanitize_ref(self.name)
 
 
 @dataclass(frozen=True)
@@ -206,11 +239,13 @@ class ComponentDiagram:
         elements:        All diagram elements
         title:           Optional diagram title
         style:           Visual style ("uml1", "uml2", "rectangle")
+        diagram_style:   CSS-like diagram styling (colors, fonts, etc.)
         hide_stereotype: If True, hide stereotype labels
     """
 
     elements: tuple[ComponentElement, ...] = field(default_factory=tuple)
     title: str | None = None
     style: ComponentStyle | None = None
+    diagram_style: ComponentDiagramStyle | None = None
     # Skin parameters
     hide_stereotype: bool = False

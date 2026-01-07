@@ -18,9 +18,17 @@ Provides a fluent API for constructing component diagrams:
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Iterator, Literal
+from typing import Iterator, Literal, TypeAlias, Union
 
-from ..primitives.common import ColorLike, Label, Stereotype
+from ..primitives.common import (
+    ColorLike,
+    ComponentDiagramStyle,
+    ComponentDiagramStyleLike,
+    Label,
+    NotePosition,
+    Stereotype,
+    coerce_component_diagram_style,
+)
 from ..primitives.component import (
     Component,
     ComponentDiagram,
@@ -33,7 +41,20 @@ from ..primitives.component import (
     Port,
     Relationship,
     RelationType,
+    _sanitize_ref,
 )
+
+
+# Type alias for objects that can be used as relationship endpoints
+# Includes primitives (Component, Interface, Container) and their builders
+ComponentRef: TypeAlias = Union[
+    str,
+    "Component",
+    "Interface",
+    "Container",
+    "_ContainerBuilder",
+    "_ComponentWithPortsBuilder",
+]
 
 
 class _BaseComponentBuilder:
@@ -42,6 +63,37 @@ class _BaseComponentBuilder:
     def __init__(self) -> None:
         self._elements: list[ComponentElement] = []
 
+    def _to_ref(self, target: ComponentRef) -> str:
+        """Convert a component reference to its string form.
+
+        Accepts strings, primitives (Component, Interface, Container), and
+        builders (_ContainerBuilder, _ComponentWithPortsBuilder). This allows
+        relationship methods to accept any of these types ergonomically.
+
+        Args:
+            target: Component reference (string, primitive, or builder)
+
+        Returns:
+            String reference suitable for use in relationships
+
+        Example:
+            with d.package("Backend") as backend:
+                api = d.component("API")
+
+            # All of these work:
+            d.arrow("Frontend", api)        # String and Component
+            d.arrow(backend, api)           # Builder and Component
+            d.arrow(backend, "Database")    # Builder and string
+        """
+        if isinstance(target, str):
+            return target
+        # Primitives and builders both have _ref property
+        if hasattr(target, "_ref"):
+            ref = getattr(target, "_ref")
+            if isinstance(ref, str):
+                return ref
+        return str(target)
+
     def component(
         self,
         name: str,
@@ -49,7 +101,9 @@ class _BaseComponentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         color: ColorLike | None = None,
-    ) -> str:
+        note: str | None = None,
+        note_position: NotePosition = "right",
+    ) -> Component:
         """Add a component.
 
         Args:
@@ -57,9 +111,15 @@ class _BaseComponentBuilder:
             alias: Short alias for relationships
             stereotype: Stereotype annotation (string or Stereotype object)
             color: Background color
+            note: Optional note content (creates attached note)
+            note_position: Position of note ("left", "right", "top", "bottom")
 
         Returns:
-            The alias if provided, otherwise the name (for use in relationships)
+            The created Component (use in relationships via _to_ref or its _ref property)
+
+        Example:
+            api = d.component("API Server", note="Main entry point")
+            d.arrow(api, db)  # Can pass Component directly
         """
         if not name:
             raise ValueError("Component name cannot be empty")
@@ -72,7 +132,16 @@ class _BaseComponentBuilder:
             color=color,
         )
         self._elements.append(comp)
-        return alias or name
+
+        # Add note if provided
+        if note:
+            self._elements.append(ComponentNote(
+                content=Label(note),
+                position=note_position,  # type: ignore[arg-type]
+                target=comp._ref,
+            ))
+
+        return comp
 
     def interface(
         self,
@@ -81,7 +150,9 @@ class _BaseComponentBuilder:
         alias: str | None = None,
         stereotype: str | Stereotype | None = None,
         color: ColorLike | None = None,
-    ) -> str:
+        note: str | None = None,
+        note_position: NotePosition = "right",
+    ) -> Interface:
         """Add an interface.
 
         Args:
@@ -89,9 +160,15 @@ class _BaseComponentBuilder:
             alias: Short alias for relationships
             stereotype: Stereotype annotation (string or Stereotype object)
             color: Background color
+            note: Optional note content (creates attached note)
+            note_position: Position of note ("left", "right", "top", "bottom")
 
         Returns:
-            The alias if provided, otherwise the name
+            The created Interface (use in relationships via _to_ref or its _ref property)
+
+        Example:
+            rest = d.interface("REST API", note="HTTP endpoints")
+            d.provides(api, rest)  # Can pass Interface directly
         """
         if not name:
             raise ValueError("Interface name cannot be empty")
@@ -103,7 +180,128 @@ class _BaseComponentBuilder:
             color=color,
         )
         self._elements.append(iface)
-        return alias or name
+
+        # Add note if provided
+        if note:
+            self._elements.append(ComponentNote(
+                content=Label(note),
+                position=note_position,  # type: ignore[arg-type]
+                target=iface._ref,
+            ))
+
+        return iface
+
+    def components(
+        self,
+        *names: str,
+        stereotype: str | Stereotype | None = None,
+        color: ColorLike | None = None,
+    ) -> tuple[Component, ...]:
+        """Create and register multiple components at once.
+
+        Args:
+            *names: Component names
+            stereotype: Optional stereotype applied to all components
+            color: Optional color applied to all components
+
+        Returns:
+            Tuple of created Components in order
+
+        Example:
+            api, db, cache = d.components("API", "Database", "Cache")
+            d.arrow(api, db)
+            d.arrow(api, cache)
+        """
+        return tuple(
+            self.component(name, stereotype=stereotype, color=color)
+            for name in names
+        )
+
+    def interfaces(
+        self,
+        *names: str,
+        stereotype: str | Stereotype | None = None,
+        color: ColorLike | None = None,
+    ) -> tuple[Interface, ...]:
+        """Create and register multiple interfaces at once.
+
+        Args:
+            *names: Interface names
+            stereotype: Optional stereotype applied to all interfaces
+            color: Optional color applied to all interfaces
+
+        Returns:
+            Tuple of created Interfaces in order
+
+        Example:
+            rest, graphql, grpc = d.interfaces("REST", "GraphQL", "gRPC")
+        """
+        return tuple(
+            self.interface(name, stereotype=stereotype, color=color)
+            for name in names
+        )
+
+    def service(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        provides: tuple[str, ...] | list[str] | None = None,
+        requires: tuple[str, ...] | list[str] | None = None,
+        stereotype: str | Stereotype | None = None,
+        color: ColorLike | None = None,
+    ) -> Component:
+        """Create a service component with its provided and required interfaces.
+
+        A convenience method that creates a component along with its interface
+        declarations and relationships in a single call. Reduces boilerplate for
+        common service-oriented patterns.
+
+        Args:
+            name: Service component name
+            alias: Short alias for relationships
+            provides: Interface names this service provides (lollipop connections)
+            requires: Interface names this service requires (socket connections)
+            stereotype: Stereotype annotation (e.g., "service")
+            color: Background color
+
+        Returns:
+            The created Component
+
+        Example:
+            # Instead of:
+            api = d.component("API Gateway")
+            rest = d.interface("REST")
+            auth = d.interface("Auth")
+            d.provides(api, rest)
+            d.requires(api, auth)
+
+            # Use:
+            api = d.service("API Gateway",
+                provides=("REST",),
+                requires=("Auth",))
+        """
+        # Create the component
+        comp = self.component(
+            name,
+            alias=alias,
+            stereotype=stereotype,
+            color=color,
+        )
+
+        # Create provided interfaces and relationships
+        if provides:
+            for iface_name in provides:
+                iface = self.interface(iface_name)
+                self.provides(comp, iface)
+
+        # Create required interfaces and relationships
+        if requires:
+            for iface_name in requires:
+                iface = self.interface(iface_name)
+                self.requires(comp, iface)
+
+        return comp
 
     def port(
         self,
@@ -128,8 +326,8 @@ class _BaseComponentBuilder:
 
     def relationship(
         self,
-        source: str,
-        target: str,
+        source: ComponentRef,
+        target: ComponentRef,
         *,
         type: RelationType = "association",
         label: str | Label | None = None,
@@ -140,8 +338,8 @@ class _BaseComponentBuilder:
         """Add a relationship between components.
 
         Args:
-            source: Source component/interface
-            target: Target component/interface
+            source: Source component/interface (string, primitive, or builder)
+            target: Target component/interface (string, primitive, or builder)
             type: Relationship type
             label: Relationship label
             source_label: Label near source
@@ -150,8 +348,8 @@ class _BaseComponentBuilder:
         """
         label_obj = Label(label) if isinstance(label, str) else label
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type=type,
             label=label_obj,
             source_label=source_label,
@@ -162,22 +360,22 @@ class _BaseComponentBuilder:
 
     def provides(
         self,
-        component: str,
-        interface: str,
+        component: ComponentRef,
+        interface: ComponentRef,
         *,
         label: str | Label | None = None,
     ) -> None:
         """Component provides an interface (lollipop notation).
 
         Args:
-            component: Component that provides
-            interface: Interface being provided
+            component: Component that provides (string, primitive, or builder)
+            interface: Interface being provided (string, primitive, or builder)
             label: Optional label
         """
         label_obj = Label(label) if isinstance(label, str) else label
         rel = Relationship(
-            source=component,
-            target=interface,
+            source=self._to_ref(component),
+            target=self._to_ref(interface),
             type="provides",
             label=label_obj,
         )
@@ -185,22 +383,22 @@ class _BaseComponentBuilder:
 
     def requires(
         self,
-        component: str,
-        interface: str,
+        component: ComponentRef,
+        interface: ComponentRef,
         *,
         label: str | Label | None = None,
     ) -> None:
         """Component requires an interface.
 
         Args:
-            component: Component that requires
-            interface: Interface being required
+            component: Component that requires (string, primitive, or builder)
+            interface: Interface being required (string, primitive, or builder)
             label: Optional label
         """
         label_obj = Label(label) if isinstance(label, str) else label
         rel = Relationship(
-            source=component,
-            target=interface,
+            source=self._to_ref(component),
+            target=self._to_ref(interface),
             type="requires",
             label=label_obj,
         )
@@ -208,22 +406,22 @@ class _BaseComponentBuilder:
 
     def depends(
         self,
-        source: str,
-        target: str,
+        source: ComponentRef,
+        target: ComponentRef,
         *,
         label: str | Label | None = None,
     ) -> None:
         """Add a dependency (dotted arrow).
 
         Args:
-            source: Dependent component
-            target: Component being depended on
+            source: Dependent component (string, primitive, or builder)
+            target: Component being depended on (string, primitive, or builder)
             label: Optional label
         """
         label_obj = Label(label) if isinstance(label, str) else label
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type="dependency",
             label=label_obj,
         )
@@ -231,8 +429,8 @@ class _BaseComponentBuilder:
 
     def link(
         self,
-        source: str,
-        target: str,
+        source: ComponentRef,
+        target: ComponentRef,
         *,
         label: str | Label | None = None,
         color: ColorLike | None = None,
@@ -240,15 +438,15 @@ class _BaseComponentBuilder:
         """Add a simple link (solid line).
 
         Args:
-            source: Source component
-            target: Target component
+            source: Source component (string, primitive, or builder)
+            target: Target component (string, primitive, or builder)
             label: Optional label
             color: Optional color
         """
         label_obj = Label(label) if isinstance(label, str) else label
         rel = Relationship(
-            source=source,
-            target=target,
+            source=self._to_ref(source),
+            target=self._to_ref(target),
             type="line",
             label=label_obj,
             color=color,
@@ -257,38 +455,148 @@ class _BaseComponentBuilder:
 
     def arrow(
         self,
-        source: str,
-        target: str,
-        *,
+        *components: ComponentRef,
         label: str | Label | None = None,
         dotted: bool = False,
         color: ColorLike | None = None,
-    ) -> None:
-        """Add an arrow between components.
+    ) -> list[Relationship]:
+        """Add arrows between consecutive components.
 
         Args:
-            source: Source component
-            target: Target component
-            label: Optional label
+            *components: Two or more components to connect. Creates arrows:
+                         components[0]->components[1], components[1]->components[2], etc.
+            label: Optional label (applied to all arrows)
             dotted: Use dotted line
             color: Optional color
+
+        Returns:
+            List of created Relationships
+
+        Examples:
+            d.arrow(a, b)           # Single arrow: a -> b
+            d.arrow(a, b, c)        # Chain: a -> b -> c (2 arrows)
+            d.arrow(a, b, c, d)     # Chain: a -> b -> c -> d (3 arrows)
+            d.arrow(a, b, label="calls")  # All arrows labeled "calls"
         """
+        if len(components) < 2:
+            raise ValueError("arrow() requires at least 2 components")
+
         label_obj = Label(label) if isinstance(label, str) else label
-        rel = Relationship(
-            source=source,
-            target=target,
-            type="dotted_arrow" if dotted else "arrow",
-            label=label_obj,
-            color=color,
-        )
-        self._elements.append(rel)
+        arrow_type = "dotted_arrow" if dotted else "arrow"
+
+        relationships: list[Relationship] = []
+        for source, target in zip(components[:-1], components[1:]):
+            rel = Relationship(
+                source=self._to_ref(source),
+                target=self._to_ref(target),
+                type=arrow_type,
+                label=label_obj,
+                color=color,
+            )
+            self._elements.append(rel)
+            relationships.append(rel)
+
+        return relationships
+
+    def chain(
+        self,
+        *items: ComponentRef | str,
+        dotted: bool = False,
+        color: ColorLike | None = None,
+    ) -> list[Relationship]:
+        """Create a chain of arrows with interleaved labels.
+
+        A more ergonomic way to define a sequence of connected components with labels.
+        Components are objects (Component, Interface, builders), labels are plain strings.
+
+        Args:
+            *items: Alternating components and labels. Labels between components
+                    become arrow labels.
+            dotted: Use dotted arrows
+            color: Optional color for all arrows
+
+        Returns:
+            List of created Relationships
+
+        Examples:
+            # Simple chain with labels
+            d.chain(ui, "HTTP", api, "SQL", db)
+            # Creates: ui --HTTP--> api --SQL--> db
+
+            # Can omit labels for unlabeled arrows
+            d.chain(a, b, c)  # Creates: a --> b --> c
+
+            # Mix labeled and unlabeled
+            d.chain(a, "call", b, c, "store", d)
+            # Creates: a --call--> b --> c --store--> d
+
+        Raises:
+            ValueError: If items doesn't start with a component or has consecutive labels
+        """
+        if len(items) < 2:
+            raise ValueError("chain() requires at least 2 components")
+
+        relationships: list[Relationship] = []
+        i = 0
+        current_component: ComponentRef | None = None
+
+        while i < len(items):
+            item = items[i]
+
+            # Check if this item is a component-like (not a label string)
+            is_component = (
+                not isinstance(item, str)
+                or hasattr(item, "_ref")
+            )
+
+            if is_component:
+                if current_component is not None:
+                    # Create unlabeled arrow from previous component
+                    rel = Relationship(
+                        source=self._to_ref(current_component),
+                        target=self._to_ref(item),
+                        type="dotted_arrow" if dotted else "arrow",
+                        color=color,
+                    )
+                    self._elements.append(rel)
+                    relationships.append(rel)
+                current_component = item
+                i += 1
+            elif isinstance(item, str):
+                # This is a label - must have a current component and next item must be a component
+                if current_component is None:
+                    raise ValueError("chain() must start with a component, not a label")
+                if i + 1 >= len(items):
+                    raise ValueError("chain() cannot end with a label")
+
+                next_item = items[i + 1]
+
+                # Create arrow with label
+                rel = Relationship(
+                    source=self._to_ref(current_component),
+                    target=self._to_ref(next_item),
+                    type="dotted_arrow" if dotted else "arrow",
+                    label=Label(item),
+                    color=color,
+                )
+                self._elements.append(rel)
+                relationships.append(rel)
+                current_component = next_item
+                i += 2  # Skip both label and next component
+            else:
+                raise ValueError(f"chain() received unexpected item type: {type(item)}")
+
+        if len(relationships) == 0:
+            raise ValueError("chain() requires at least 2 components")
+
+        return relationships
 
     def note(
         self,
         content: str | Label,
         *,
         position: Literal["left", "right", "top", "bottom"] = "right",
-        target: str | None = None,
+        target: ComponentRef | None = None,
         floating: bool = False,
         color: ColorLike | None = None,
     ) -> None:
@@ -297,7 +605,7 @@ class _BaseComponentBuilder:
         Args:
             content: Note text
             position: "left", "right", "top", or "bottom"
-            target: Component/interface to attach to
+            target: Component/interface to attach to (string, primitive, or builder)
             floating: If True, creates a floating note
             color: Note background color
         """
@@ -305,10 +613,11 @@ class _BaseComponentBuilder:
         if not text:
             raise ValueError("Note content cannot be empty")
         content_label = Label(content) if isinstance(content, str) else content
+        target_ref = self._to_ref(target) if target is not None else None
         n = ComponentNote(
             content=content_label,
             position=position,
-            target=target,
+            target=target_ref,
             floating=floating,
             color=color,
         )
@@ -320,16 +629,19 @@ class _BaseComponentBuilder:
         self,
         name: str,
         *,
+        alias: str | None = None,
         stereotype: Stereotype | None = None,
         color: ColorLike | None = None,
     ) -> Iterator["_ContainerBuilder"]:
         """Create a package container.
 
         Usage:
-            with d.package("Domain") as pkg:
+            with d.package("Domain", alias="dom") as pkg:
                 pkg.component("Entity")
+
+            d.arrow(dom, other)  # Reference by alias
         """
-        builder = _ContainerBuilder("package", name, stereotype, color)
+        builder = _ContainerBuilder("package", name, stereotype, color, alias)
         yield builder
         self._elements.append(builder._build())
 
@@ -338,16 +650,17 @@ class _BaseComponentBuilder:
         self,
         name: str,
         *,
+        alias: str | None = None,
         stereotype: Stereotype | None = None,
         color: ColorLike | None = None,
     ) -> Iterator["_ContainerBuilder"]:
         """Create a node container.
 
         Usage:
-            with d.node("Server") as n:
+            with d.node("Server", alias="srv") as n:
                 n.component("App")
         """
-        builder = _ContainerBuilder("node", name, stereotype, color)
+        builder = _ContainerBuilder("node", name, stereotype, color, alias)
         yield builder
         self._elements.append(builder._build())
 
@@ -356,11 +669,12 @@ class _BaseComponentBuilder:
         self,
         name: str,
         *,
+        alias: str | None = None,
         stereotype: Stereotype | None = None,
         color: ColorLike | None = None,
     ) -> Iterator["_ContainerBuilder"]:
         """Create a folder container."""
-        builder = _ContainerBuilder("folder", name, stereotype, color)
+        builder = _ContainerBuilder("folder", name, stereotype, color, alias)
         yield builder
         self._elements.append(builder._build())
 
@@ -369,11 +683,12 @@ class _BaseComponentBuilder:
         self,
         name: str,
         *,
+        alias: str | None = None,
         stereotype: Stereotype | None = None,
         color: ColorLike | None = None,
     ) -> Iterator["_ContainerBuilder"]:
         """Create a frame container."""
-        builder = _ContainerBuilder("frame", name, stereotype, color)
+        builder = _ContainerBuilder("frame", name, stereotype, color, alias)
         yield builder
         self._elements.append(builder._build())
 
@@ -382,11 +697,12 @@ class _BaseComponentBuilder:
         self,
         name: str,
         *,
+        alias: str | None = None,
         stereotype: Stereotype | None = None,
         color: ColorLike | None = None,
     ) -> Iterator["_ContainerBuilder"]:
         """Create a cloud container."""
-        builder = _ContainerBuilder("cloud", name, stereotype, color)
+        builder = _ContainerBuilder("cloud", name, stereotype, color, alias)
         yield builder
         self._elements.append(builder._build())
 
@@ -395,11 +711,12 @@ class _BaseComponentBuilder:
         self,
         name: str,
         *,
+        alias: str | None = None,
         stereotype: Stereotype | None = None,
         color: ColorLike | None = None,
     ) -> Iterator["_ContainerBuilder"]:
         """Create a database container."""
-        builder = _ContainerBuilder("database", name, stereotype, color)
+        builder = _ContainerBuilder("database", name, stereotype, color, alias)
         yield builder
         self._elements.append(builder._build())
 
@@ -408,11 +725,12 @@ class _BaseComponentBuilder:
         self,
         name: str,
         *,
+        alias: str | None = None,
         stereotype: Stereotype | None = None,
         color: ColorLike | None = None,
     ) -> Iterator["_ContainerBuilder"]:
         """Create a rectangle container."""
-        builder = _ContainerBuilder("rectangle", name, stereotype, color)
+        builder = _ContainerBuilder("rectangle", name, stereotype, color, alias)
         yield builder
         self._elements.append(builder._build())
 
@@ -447,6 +765,7 @@ class _ContainerBuilder(_BaseComponentBuilder):
         name: str,
         stereotype: Stereotype | None,
         color: ColorLike | None,
+        alias: str | None = None,
     ) -> None:
         if not name:
             raise ValueError("Container name cannot be empty")
@@ -455,6 +774,14 @@ class _ContainerBuilder(_BaseComponentBuilder):
         self._name = name
         self._stereotype = stereotype
         self._color = color
+        self._alias = alias
+
+    @property
+    def _ref(self) -> str:
+        """Reference name for use in relationships."""
+        if self._alias:
+            return self._alias
+        return _sanitize_ref(self._name)
 
     def _build(self) -> Container:
         """Build the container."""
@@ -464,6 +791,7 @@ class _ContainerBuilder(_BaseComponentBuilder):
             elements=tuple(self._elements),
             stereotype=self._stereotype,
             color=self._color,
+            alias=self._alias,
         )
 
 
@@ -482,6 +810,13 @@ class _ComponentWithPortsBuilder:
         self._stereotype = stereotype
         self._color = color
         self._elements: list[Port] = []
+
+    @property
+    def _ref(self) -> str:
+        """Reference name for use in relationships."""
+        if self._alias:
+            return self._alias
+        return _sanitize_ref(self._name)
 
     def port(self, name: str) -> str:
         """Add a bidirectional port."""
@@ -524,6 +859,17 @@ class ComponentDiagramBuilder(_BaseComponentBuilder):
 
         diagram = d.build()
         print(render(diagram))
+
+    With dict-based styling (no extra imports needed):
+        with component_diagram(
+            diagram_style={
+                "background": "white",
+                "font_name": "Arial",
+                "component": {"background": "#E3F2FD", "line_color": "#1976D2"},
+                "arrow": {"line_color": "#757575"},
+            }
+        ) as d:
+            d.component("Styled")
     """
 
     def __init__(
@@ -531,11 +877,18 @@ class ComponentDiagramBuilder(_BaseComponentBuilder):
         *,
         title: str | None = None,
         style: ComponentStyle | None = None,
+        diagram_style: ComponentDiagramStyleLike | None = None,
         hide_stereotype: bool = False,
     ) -> None:
         super().__init__()
         self._title = title
         self._style = style
+        # Coerce diagram_style dict to ComponentDiagramStyle object
+        self._diagram_style = (
+            coerce_component_diagram_style(diagram_style)
+            if diagram_style is not None
+            else None
+        )
         self._hide_stereotype = hide_stereotype
 
     def build(self) -> ComponentDiagram:
@@ -544,6 +897,7 @@ class ComponentDiagramBuilder(_BaseComponentBuilder):
             elements=tuple(self._elements),
             title=self._title,
             style=self._style,
+            diagram_style=self._diagram_style,
             hide_stereotype=self._hide_stereotype,
         )
 
@@ -562,6 +916,7 @@ def component_diagram(
     *,
     title: str | None = None,
     style: ComponentStyle | None = None,
+    diagram_style: ComponentDiagramStyleLike | None = None,
     hide_stereotype: bool = False,
 ) -> Iterator[ComponentDiagramBuilder]:
     """Create a component diagram with context manager syntax.
@@ -578,9 +933,21 @@ def component_diagram(
 
         print(d.render())
 
+    With dict-based styling (no extra imports needed):
+        with component_diagram(
+            diagram_style={
+                "background": "white",
+                "font_name": "Arial",
+                "component": {"background": "#E3F2FD", "line_color": "#1976D2"},
+                "arrow": {"line_color": "#757575"},
+            }
+        ) as d:
+            d.component("Styled")
+
     Args:
         title: Optional diagram title
         style: Component style ("uml1", "uml2", "rectangle")
+        diagram_style: CSS-like diagram styling (dict or ComponentDiagramStyle object)
         hide_stereotype: Hide all stereotypes
 
     Yields:
@@ -589,6 +956,7 @@ def component_diagram(
     builder = ComponentDiagramBuilder(
         title=title,
         style=style,
+        diagram_style=diagram_style,
         hide_stereotype=hide_stereotype,
     )
     yield builder
