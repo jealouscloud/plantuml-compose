@@ -977,9 +977,9 @@ def sequence_diagram(
             d.message(user, api, "POST /orders")
 
             with d.alt("success") as alt:
-                d.message(api, user, "200 OK")
-                with alt.else_("error"):
-                    d.message(api, user, "500 Error")
+                alt.message(api, user, "200 OK")
+                with alt.else_("error") as else_block:
+                    else_block.message(api, user, "500 Error")
 
         print(d.render())
 

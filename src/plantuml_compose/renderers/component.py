@@ -311,13 +311,10 @@ def _render_note(note: ComponentNote, indent: int = 0) -> list[str]:
     prefix = "  " * indent
     content = render_label(note.content)
 
-    pos = note.position
-    if note.floating:
-        pos = f"floating note {pos}"
-    elif note.target:
-        pos = f"note {pos} of {note.target}"
+    if note.target:
+        pos = f"note {note.position} of {note.target}"
     else:
-        pos = f"note {pos}"
+        pos = f"note {note.position}"
 
     color_part = ""
     if note.color:

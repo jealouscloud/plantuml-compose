@@ -344,7 +344,7 @@ class _BaseComponentBuilder:
             name,
             alias=alias,
             stereotype=stereotype,
-            color=color,
+            style={"background": color} if color else None,
         )
 
         # Create provided interfaces and relationships
@@ -734,7 +734,6 @@ class _BaseComponentBuilder:
         *,
         position: Literal["left", "right", "top", "bottom"] = "right",
         target: ComponentRef | None = None,
-        floating: bool = False,
         color: ColorLike | None = None,
     ) -> None:
         """Add a note.
@@ -743,7 +742,6 @@ class _BaseComponentBuilder:
             content: Note text
             position: "left", "right", "top", or "bottom"
             target: Component/interface to attach to (string, primitive, or builder)
-            floating: If True, creates a floating note
             color: Note background color
         """
         text = content.text if isinstance(content, Label) else content
@@ -755,7 +753,6 @@ class _BaseComponentBuilder:
             content=content_label,
             position=position,
             target=target_ref,
-            floating=floating,
             color=color,
         )
         self._elements.append(n)

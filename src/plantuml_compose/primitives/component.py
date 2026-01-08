@@ -216,15 +216,13 @@ class ComponentNote:
 
         content:  Note text
         position: Placement relative to target
-        target:   Component to attach to (None for floating)
-        floating: If True, not attached to any element
+        target:   Component to attach to
         color:    Note background color
     """
 
     content: Label
     position: Literal["left", "right", "top", "bottom"] = "right"
     target: str | None = None  # Component/interface to attach to
-    floating: bool = False
     color: ColorLike | None = None
 
 

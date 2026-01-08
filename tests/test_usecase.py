@@ -142,6 +142,19 @@ class TestContainers:
         output = render(d.build())
         assert "#LightBlue" in output
 
+    def test_container_elements_without_explicit_alias(self):
+        """Elements in containers should include implicit alias to prevent duplicates."""
+        with usecase_diagram() as d:
+            user = d.actor("System Admin")
+            with d.rectangle("System") as r:
+                manage = r.usecase("Manage Users")
+            d.arrow(user, manage)
+
+        output = render(d.build())
+        # When name has spaces, _ref differs from name, so alias is rendered
+        assert "as System_Admin" in output
+        assert "as Manage_Users" in output
+
 
 class TestRelationships:
     """Tests for relationships."""
@@ -247,13 +260,6 @@ class TestNotes:
         output = render(d.build())
         assert "note right of login" in output
         assert "Important feature" in output
-
-    def test_floating_note(self):
-        with usecase_diagram() as d:
-            d.note("System overview", floating=True)
-
-        output = render(d.build())
-        assert "floating note" in output
 
     def test_note_with_color(self):
         with usecase_diagram() as d:

@@ -562,7 +562,6 @@ class _BaseDeploymentBuilder:
         *,
         position: Literal["left", "right", "top", "bottom"] = "right",
         target: DeploymentRef | None = None,
-        floating: bool = False,
         color: ColorLike | None = None,
     ) -> None:
         """Add a note."""
@@ -575,7 +574,6 @@ class _BaseDeploymentBuilder:
             content=content_label,
             position=position,
             target=target_ref,
-            floating=floating,
             color=color,
         )
         self._elements.append(n)

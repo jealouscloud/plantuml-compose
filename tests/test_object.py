@@ -229,13 +229,6 @@ class TestNotes:
         assert "note right of ord" in output
         assert "Important" in output
 
-    def test_floating_note(self):
-        with object_diagram() as d:
-            d.note("System overview", floating=True)
-
-        output = render(d.build())
-        assert "floating note" in output
-
     def test_note_with_color(self):
         with object_diagram() as d:
             d.object("Order", alias="ord")

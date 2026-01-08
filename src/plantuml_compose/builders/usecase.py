@@ -432,7 +432,6 @@ class _BaseUseCaseBuilder:
         *,
         position: Literal["left", "right", "top", "bottom"] = "right",
         target: UseCaseRef | None = None,
-        floating: bool = False,
         color: ColorLike | None = None,
     ) -> None:
         """Add a note."""
@@ -445,7 +444,6 @@ class _BaseUseCaseBuilder:
             content=content_label,
             position=position,
             target=target_ref,
-            floating=floating,
             color=color,
         )
         self._elements.append(n)

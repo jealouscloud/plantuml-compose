@@ -125,7 +125,6 @@ class ObjectNote:
     content: Label
     position: Literal["left", "right", "top", "bottom"] = "right"
     target: str | None = None
-    floating: bool = False
     color: ColorLike | None = None
 
 

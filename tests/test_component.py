@@ -99,6 +99,24 @@ class TestBasicElements:
         assert rest._ref == "rest"  # Interface returns object with _ref property
         assert 'interface "REST API" as rest' in output
 
+    def test_service_with_color(self):
+        """service() convenience method should work with color parameter."""
+        with component_diagram() as d:
+            d.service("API", color="LightBlue")
+
+        output = render(d.build())
+        assert "#LightBlue" in output
+
+    def test_service_with_provides_and_requires(self):
+        """service() should create component with interface relationships."""
+        with component_diagram() as d:
+            d.service("API", provides=("REST",), requires=("Database",))
+
+        output = render(d.build())
+        assert "component API" in output
+        assert "interface REST" in output
+        assert "interface Database" in output
+
 
 class TestContainers:
     """Tests for container elements (package, node, etc.)."""
@@ -295,13 +313,6 @@ class TestNotes:
         output = render(d.build())
         assert "note right of api" in output
         assert "Main entry point" in output
-
-    def test_floating_note(self):
-        with component_diagram() as d:
-            d.note("System overview", floating=True)
-
-        output = render(d.build())
-        assert "floating note" in output
 
     def test_note_with_color(self):
         with component_diagram() as d:

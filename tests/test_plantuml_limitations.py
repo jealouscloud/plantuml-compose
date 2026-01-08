@@ -200,3 +200,91 @@ A -[#red,bold]-> B : message
         assert svg_contains_color(svg, "#FF0000") or svg_contains_color(svg, "red"), (
             "Sequence arrow color not rendered. Test infrastructure may be broken."
         )
+
+
+class TestFloatingNoteSyntaxLimitation:
+    """Verify that 'floating note' syntax is rejected in non-activity diagrams.
+
+    PlantUML only supports 'floating note' syntax in Activity diagrams.
+    In UseCase, Component, Deployment, and Object diagrams, the syntax
+    causes a parse error.
+
+    If these tests FAIL (syntax becomes valid), it means PlantUML has added
+    support and we should re-expose the `floating` parameter in those builders.
+    """
+
+    def test_usecase_floating_note_rejected(self, validate_plantuml):
+        """UseCase diagrams should reject 'floating note' syntax."""
+        puml = """
+@startuml
+actor User
+usecase (Login)
+User --> Login
+floating note right: This is a floating note
+@enduml
+"""
+        assert not validate_plantuml(puml), (
+            "PlantUML now accepts 'floating note' in UseCase diagrams! "
+            "Consider re-adding `floating` parameter to usecase note() method."
+        )
+
+    def test_component_floating_note_rejected(self, validate_plantuml):
+        """Component diagrams should reject 'floating note' syntax."""
+        puml = """
+@startuml
+component API
+component Database
+API --> Database
+floating note right: This is a floating note
+@enduml
+"""
+        assert not validate_plantuml(puml), (
+            "PlantUML now accepts 'floating note' in Component diagrams! "
+            "Consider re-adding `floating` parameter to component note() method."
+        )
+
+    def test_deployment_floating_note_rejected(self, validate_plantuml):
+        """Deployment diagrams should reject 'floating note' syntax."""
+        puml = """
+@startuml
+node Server
+database DB
+Server --> DB
+floating note right: This is a floating note
+@enduml
+"""
+        assert not validate_plantuml(puml), (
+            "PlantUML now accepts 'floating note' in Deployment diagrams! "
+            "Consider re-adding `floating` parameter to deployment note() method."
+        )
+
+    def test_object_floating_note_rejected(self, validate_plantuml):
+        """Object diagrams should reject 'floating note' syntax."""
+        puml = """
+@startuml
+object Order
+object Customer
+Order --> Customer
+floating note right: This is a floating note
+@enduml
+"""
+        assert not validate_plantuml(puml), (
+            "PlantUML now accepts 'floating note' in Object diagrams! "
+            "Consider re-adding `floating` parameter to object note() method."
+        )
+
+    def test_activity_floating_note_works(self, validate_plantuml):
+        """Activity diagrams SHOULD accept 'floating note' syntax (positive control)."""
+        puml = """
+@startuml
+start
+:Step 1;
+floating note right: This should work
+:Step 2;
+stop
+@enduml
+"""
+        assert validate_plantuml(puml), (
+            "Activity diagram floating note stopped working! "
+            "PlantUML may have changed behavior."
+        )

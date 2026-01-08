@@ -107,6 +107,9 @@ def _render_actor(actor: Actor) -> str:
 
     if actor.alias:
         parts.append(f"as {actor.alias}")
+    elif actor._ref != actor.name:
+        # Add implicit alias when ref differs from name to prevent duplicates in containers
+        parts.append(f"as {actor._ref}")
 
     if actor.stereotype:
         parts.append(render_stereotype(actor.stereotype))
@@ -135,6 +138,9 @@ def _render_usecase(usecase: UseCase) -> str:
 
     if usecase.alias:
         parts.append(f"as {usecase.alias}")
+    elif usecase._ref != usecase.name:
+        # Add implicit alias when ref differs from name to prevent duplicates in containers
+        parts.append(f"as {usecase._ref}")
 
     if usecase.stereotype:
         parts.append(render_stereotype(usecase.stereotype))
@@ -267,13 +273,10 @@ def _render_note(note: UseCaseNote, indent: int = 0) -> list[str]:
     prefix = "  " * indent
     content = render_label(note.content)
 
-    pos = note.position
-    if note.floating:
-        pos = f"floating note {pos}"
-    elif note.target:
-        pos = f"note {pos} of {note.target}"
+    if note.target:
+        pos = f"note {note.position} of {note.target}"
     else:
-        pos = f"note {pos}"
+        pos = f"note {note.position}"
 
     color_part = ""
     if note.color:

@@ -261,13 +261,6 @@ class TestNotes:
         assert "note right of api" in output
         assert "Main entry point" in output
 
-    def test_floating_note(self):
-        with deployment_diagram() as d:
-            d.note("System overview", floating=True)
-
-        output = render(d.build())
-        assert "floating note" in output
-
     def test_note_with_color(self):
         with deployment_diagram() as d:
             d.component("API", alias="api")
