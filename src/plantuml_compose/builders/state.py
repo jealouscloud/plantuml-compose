@@ -1,15 +1,60 @@
 """State diagram builder with context manager syntax.
 
-Provides a fluent API for constructing state diagrams:
+When to Use
+-----------
+State diagrams show how ONE entity changes over time. Use when:
 
-    with state_diagram(title="My Diagram") as d:
-        idle = d.state("Idle")
-        running = d.state("Running")
-        d.arrow(d.start(), idle)
-        d.arrow(idle, running, label="begin")
-        d.arrow(running, d.end(), label="finish")
+- Modeling object lifecycles (Order: pending -> paid -> shipped)
+- Showing workflow stages (Document: draft -> review -> published)
+- Visualizing UI states (Button: idle -> hover -> pressed -> disabled)
+- Protocol states (Connection: disconnected -> connecting -> connected)
 
-    print(d.render())
+NOT for:
+- Multiple entities interacting (use sequence diagram)
+- System architecture (use component/deployment diagram)
+- Code structure (use class diagram)
+- User workflows with decisions (use activity diagram)
+
+Key Concepts
+------------
+State:      A condition during an entity's life ("Logged In", "Processing")
+Transition: Movement between states, triggered by events
+Guard:      Condition that must be true for transition [if authorized]
+Effect:     Action performed during transition / doSomething()
+
+Composite:  A state containing sub-states (nested state machine):
+
+            ┌─────────────────────────────┐
+            │ Active                      │
+            │  ┌─────┐      ┌─────────┐   │
+            │  │Idle │ ───► │ Working │   │
+            │  └─────┘      └─────────┘   │
+            └─────────────────────────────┘
+
+Fork/Join:  Split into parallel paths, then synchronize:
+
+                     │
+                 ────┴────   <- fork
+                 │   │   │
+                 ▼   ▼   ▼
+                [A] [B] [C]   (all execute concurrently)
+                 │   │   │
+                 ────┬────   <- join (waits for all)
+                     │
+
+Example
+-------
+    with state_diagram(title="Order Lifecycle") as d:
+        pending = d.state("Pending")
+        paid = d.state("Paid")
+        shipped = d.state("Shipped")
+
+        d.arrow(d.start(), pending)
+        d.arrow(pending, paid, label="payment received")
+        d.arrow(paid, shipped, label="dispatched")
+        d.arrow(shipped, d.end())
+
+    print(render(d.build()))
 """
 
 from __future__ import annotations
@@ -34,6 +79,7 @@ from ..primitives.common import (
     StateDiagramStyleLike,
     Style,
     StyleLike,
+    coerce_direction,
     coerce_line_style,
     coerce_state_diagram_style,
     coerce_style,
@@ -163,6 +209,19 @@ class _BaseStateBuilder:
         if len(states) < 2:
             raise ValueError("arrow() requires at least 2 states")
 
+        # Detect common mistake: bare string intended as label
+        # First two args can be strings (state references), but 3rd+ should be state objects
+        for i, state in enumerate(states):
+            if i >= 2 and isinstance(state, str) and state not in self._STATE_REF_STRINGS:
+                raise ValueError(
+                    f"Unexpected string '{state}' at position {i + 1} in arrow().\n\n"
+                    f"If this is a label, use the label parameter:\n"
+                    f"    d.arrow(a, b, label=\"{state}\")\n\n"
+                    f"If this is a state to chain through, create a state object first:\n"
+                    f"    c = d.state(\"{state}\")\n"
+                    f"    d.arrow(a, b, c)"
+                )
+
         # Convert string label to Label
         label_obj = Label(label) if isinstance(label, str) else label
 
@@ -171,6 +230,9 @@ class _BaseStateBuilder:
 
         # Coerce style dict to LineStyle object
         style_obj = coerce_line_style(style) if style is not None else None
+
+        # Coerce direction (supports shortcuts: u/d/l/r)
+        direction_val = coerce_direction(direction)
 
         transitions: list[Transition] = []
         for source, target in zip(states[:-1], states[1:]):
@@ -182,7 +244,7 @@ class _BaseStateBuilder:
                 guard=guard,
                 effect=effect,
                 style=style_obj,
-                direction=direction,
+                direction=direction_val,
                 note=note_obj,
             )
             self._elements.append(trans)
@@ -248,6 +310,9 @@ class _BaseStateBuilder:
         # Coerce style dict to LineStyle object
         style_obj = coerce_line_style(style) if style is not None else None
 
+        # Coerce direction (supports shortcuts: u/d/l/r)
+        direction_val = coerce_direction(direction)
+
         # Parse items into (source, label, target) tuples
         transitions: list[Transition] = []
         i = 0
@@ -264,7 +329,7 @@ class _BaseStateBuilder:
                         source=self._to_ref(current_state),
                         target=self._to_ref(item),
                         style=style_obj,
-                        direction=direction,
+                        direction=direction_val,
                     )
                     self._elements.append(trans)
                     transitions.append(trans)
@@ -286,7 +351,7 @@ class _BaseStateBuilder:
                     target=self._to_ref(next_item),
                     label=Label(item),
                     style=style_obj,
-                    direction=direction,
+                    direction=direction_val,
                 )
                 self._elements.append(trans)
                 transitions.append(trans)

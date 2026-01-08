@@ -1,29 +1,63 @@
 """Object diagram builder with context manager syntax.
 
-Provides a fluent API for constructing object diagrams:
+When to Use
+-----------
+Object diagrams show instances at a specific point in time.
+Use when:
 
+- Showing concrete examples of class relationships
+- Visualizing data state for debugging
+- Illustrating test scenarios
+- Documenting sample data structures
+
+NOT for:
+- General type structure (use class diagram)
+- Behavior over time (use sequence or state diagram)
+- System architecture (use component diagram)
+
+Key Concepts
+------------
+Object:     An instance of a class with concrete values
+Field:      Attribute with a specific value
+Map:        Key-value collection (associative array)
+
+Object notation:
+
+    ┌────────────────────┐
+    │ objectName : Type  │   <- underlined in UML
+    ├────────────────────┤
+    │ id = 12345         │   <- actual values
+    │ status = "active"  │
+    └────────────────────┘
+
+Versus class diagram:
+
+    Class Diagram (types):     Object Diagram (instances):
+    ┌─────────────┐            ┌─────────────────┐
+    │   Order     │            │ order1 : Order  │
+    ├─────────────┤            ├─────────────────┤
+    │ -id: int    │            │ id = 12345      │
+    │ -status: str│            │ status = "paid" │
+    └─────────────┘            └─────────────────┘
+
+Relationships show links between specific instances:
+
+    ┌────────────────┐         ┌─────────────────┐
+    │ alice : User   │────────>│ order1 : Order  │
+    └────────────────┘         └─────────────────┘
+
+Example
+-------
     with object_diagram(title="Order Example") as d:
-        # Simple object
         customer = d.object("Customer", alias="cust")
-
-        # Object with fields
         order = d.object_with_fields(
-            "Order",
-            alias="ord",
+            "Order", alias="ord",
             fields={"id": "12345", "total": "$99.99"}
         )
 
-        # Map (associative array)
-        products = d.map("Products", alias="prod", entries={
-            "item1": "Widget",
-            "item2": "Gadget"
-        })
-
-        # Relationships
         d.arrow(customer, order)
-        d.arrow(order, products)
 
-    print(d.render())
+    print(render(d.build()))
 """
 
 from __future__ import annotations
@@ -43,6 +77,7 @@ from ..primitives.common import (
     Scale,
     Stereotype,
     StyleLike,
+    coerce_direction,
     coerce_line_style,
     validate_style_background_only,
 )
@@ -214,13 +249,14 @@ class _BaseObjectBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type=type,
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
@@ -248,13 +284,14 @@ class _BaseObjectBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type="arrow",
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
@@ -282,13 +319,14 @@ class _BaseObjectBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type="line",
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
@@ -316,13 +354,14 @@ class _BaseObjectBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type="composition",
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
@@ -350,13 +389,14 @@ class _BaseObjectBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type="aggregation",
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
@@ -384,13 +424,14 @@ class _BaseObjectBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type="extension",
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
@@ -418,13 +459,14 @@ class _BaseObjectBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type="implementation",
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)

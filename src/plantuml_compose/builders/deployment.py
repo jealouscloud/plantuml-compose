@@ -1,7 +1,51 @@
 """Deployment diagram builder with context manager syntax.
 
-Provides a fluent API for constructing deployment diagrams:
+When to Use
+-----------
+Deployment diagrams show WHERE software runs on hardware/infrastructure.
+Use when:
 
+- Documenting production architecture
+- Planning infrastructure (servers, containers, cloud resources)
+- Showing network topology
+- Visualizing artifacts on nodes
+
+NOT for:
+- Software module structure (use component diagram)
+- Code organization (use class diagram)
+- Runtime interactions (use sequence diagram)
+
+Key Concepts
+------------
+Node:       Execution environment (server, VM, container, device)
+Artifact:   Deployable unit (WAR, JAR, Docker image, executable)
+Component:  Software piece running on a node
+
+Node types (stereotypes):
+
+    <<device>>      Physical hardware (server, router)
+    <<executionEnvironment>>  VM, container runtime
+    <<artifact>>    Deployable file
+
+Nesting shows containment:
+
+    ┌─────── node "Production Server" ──────┐
+    │                                        │
+    │  ┌──── node "Docker" ─────┐            │
+    │  │  [API Container]       │            │
+    │  │  [Worker Container]    │            │
+    │  └────────────────────────┘            │
+    │                                        │
+    │  ((PostgreSQL))                        │
+    └────────────────────────────────────────┘
+
+Connections show network/communication:
+
+    [Load Balancer] ──> [API Server]
+    [API Server] ──> [Database]
+
+Example
+-------
     with deployment_diagram(title="Infrastructure") as d:
         with d.node("Server") as server:
             server.component("App")
@@ -9,7 +53,7 @@ Provides a fluent API for constructing deployment diagrams:
 
         d.arrow("App", "PostgreSQL", label="connects")
 
-    print(d.render())
+    print(render(d.build()))
 """
 
 from __future__ import annotations
@@ -29,6 +73,7 @@ from ..primitives.common import (
     Scale,
     Stereotype,
     StyleLike,
+    coerce_direction,
     coerce_line_style,
     validate_style_background_only,
 )
@@ -399,13 +444,14 @@ class _BaseDeploymentBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type=type,
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
@@ -435,13 +481,14 @@ class _BaseDeploymentBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type="dotted_arrow" if dotted else "arrow",
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
@@ -471,13 +518,14 @@ class _BaseDeploymentBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type="dotted" if dotted else "line",
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)

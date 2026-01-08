@@ -74,6 +74,110 @@ PlantUMLColor = Literal[
 Direction = Literal["up", "down", "left", "right"]
 
 
+# =============================================================================
+# Validation Helpers
+# =============================================================================
+
+
+def validate_literal(
+    value: str,
+    options: dict[str, str],
+    param_name: str,
+) -> str:
+    """Validate a value with teaching error message showing all valid options.
+
+    This function provides helpful error messages that list all valid options
+    when an invalid value is provided, teaching users the API as they use it.
+
+    Note: Validation is case-insensitive - 'Public', 'PUBLIC', and 'public'
+    are all accepted and normalized to lowercase.
+
+    Args:
+        value: The input value to validate (case-insensitive)
+        options: Dict mapping valid inputs to their descriptions (for errors)
+                 or to canonical values (for coercion)
+        param_name: Name of the parameter for error messages
+
+    Returns:
+        The validated value (lowercased and stripped)
+
+    Raises:
+        ValueError: If value not in options, with message listing all options
+
+    Example:
+        >>> validate_literal("up", {"up": "Place above", "down": "Place below"}, "direction")
+        'up'
+        >>> validate_literal("UP", {"up": "Place above", "down": "Place below"}, "direction")
+        'up'  # Case-insensitive
+        >>> validate_literal("diagonal", {"up": "Place above", "down": "Place below"}, "direction")
+        ValueError: Invalid direction 'diagonal'.
+
+        Valid options:
+          'up' - Place above
+          'down' - Place below
+    """
+    normalized = value.lower().strip()
+    if normalized not in options:
+        opts_list = "\n".join(f"  '{k}' - {v}" for k, v in options.items())
+        raise ValueError(
+            f"Invalid {param_name} '{value}'.\n\nValid options:\n{opts_list}"
+        )
+    return normalized
+
+
+# Direction shortcuts and their canonical values
+_DIRECTION_SHORTCUTS: dict[str, str] = {
+    "u": "up",
+    "d": "down",
+    "l": "left",
+    "r": "right",
+}
+
+# Direction options for validation errors
+DIRECTION_OPTIONS: dict[str, str] = {
+    "up": "Place target above source",
+    "down": "Place target below source",
+    "left": "Place target left of source",
+    "right": "Place target right of source",
+    "u": "Shortcut for 'up'",
+    "d": "Shortcut for 'down'",
+    "l": "Shortcut for 'left'",
+    "r": "Shortcut for 'right'",
+}
+
+
+def coerce_direction(value: str | None) -> Direction | None:
+    """Coerce direction value with shortcut support and helpful errors.
+
+    Accepts both full names (up, down, left, right) and shortcuts (u, d, l, r).
+    Provides a helpful error message listing all valid options if invalid.
+
+    Args:
+        value: Direction value or None
+
+    Returns:
+        Canonical direction value ('up', 'down', 'left', 'right') or None
+
+    Raises:
+        ValueError: If value is not a valid direction
+
+    Example:
+        >>> coerce_direction("u")
+        'up'
+        >>> coerce_direction("left")
+        'left'
+        >>> coerce_direction(None)
+        None
+    """
+    if value is None:
+        return None
+
+    normalized = validate_literal(value, DIRECTION_OPTIONS, "direction")
+
+    # Convert shortcuts to canonical values
+    return _DIRECTION_SHORTCUTS.get(normalized, normalized)  # type: ignore[return-value]
+
+
 # Line/arrow pattern styles
 LinePattern = Literal["solid", "dashed", "dotted", "hidden"]
 

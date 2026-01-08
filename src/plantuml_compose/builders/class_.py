@@ -1,13 +1,57 @@
 """Class diagram builder with context manager syntax.
 
-Provides a fluent API for constructing class diagrams:
+When to Use
+-----------
+Class diagrams show static structure: types, their attributes, and relationships.
+Use when:
 
+- Modeling domain concepts (User, Order, Product)
+- Documenting APIs or database schemas
+- Planning inheritance hierarchies
+- Showing associations between entities
+
+NOT for:
+- Runtime behavior (use sequence or activity diagram)
+- Object instances at a point in time (use object diagram)
+- Physical deployment (use deployment diagram)
+
+Key Concepts
+------------
+Class:       A type with optional attributes and methods
+Interface:   A contract (no implementation)
+Enum:        Fixed set of values
+
+Relationships:
+
+    extends (inheritance):      Child ──▷ Parent
+    implements (realization):   Class ··▷ Interface
+    has (aggregation):          Whole ◇── Part   (part can exist alone)
+    contains (composition):     Whole ◆── Part   (part dies with whole)
+    uses (dependency):          A ···> B         (A depends on B)
+    associates:                 A ──> B          (general relationship)
+
+Cardinality: How many instances relate
+
+    User "1" o-- "*" Order    (one User has many Orders)
+         │        │
+         │        └─ target cardinality
+         └─ source cardinality
+
+Visibility (for members):
+
+    public:     Accessible from anywhere
+    private:    Only within the class
+    protected:  Class and subclasses
+    package:    Same package only
+
+Example
+-------
     with class_diagram(title="Domain Model") as d:
         user = d.class_("User")
         order = d.class_("Order")
         d.has(user, order, source_card="1", target_card="*")
 
-    print(d.render())
+    print(render(d.build()))
 """
 
 from __future__ import annotations
@@ -32,6 +76,7 @@ from ..primitives.class_ import (
     SeparatorStyle,
     Together,
     Visibility,
+    VISIBILITY_OPTIONS,
 )
 from ..primitives.common import (
     ColorLike,
@@ -46,6 +91,8 @@ from ..primitives.common import (
     NotePosition,
     Scale,
     Stereotype,
+    coerce_direction,
+    validate_literal,
 )
 
 
@@ -238,10 +285,9 @@ class _BaseClassBuilder:
 
     def has(
         self,
-        container: ClassNode | str,
-        contained: ClassNode | str,
+        whole: ClassNode | str,
+        part: ClassNode | str,
         *,
-        composition: bool = False,
         source_card: str | None = None,
         target_card: str | None = None,
         source_label: str | None = None,
@@ -250,28 +296,84 @@ class _BaseClassBuilder:
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
     ) -> Relationship:
-        """Create a has-a relationship (aggregation or composition).
+        """Create an aggregation relationship (hollow diamond).
+
+        Aggregation means the part can exist independently of the whole.
+        When the whole is destroyed, the part continues to exist.
+
+        For composition (lifecycle-bound ownership), use contains() instead.
 
         Args:
-            container: The containing class
-            contained: The contained class
-            composition: If True, uses composition (*--); if False, aggregation (o--)
-            source_card: Cardinality at container end (e.g., "1")
-            target_card: Cardinality at contained end (e.g., "*", "0..*")
-            source_label: Role name at container end
-            target_label: Role name at contained end
+            whole: The containing class
+            part: The contained class
+            source_card: Cardinality at whole end (e.g., "1")
+            target_card: Cardinality at part end (e.g., "*", "0..*")
+            source_label: Role name at whole end
+            target_label: Role name at part end
             label: Relationship label
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint
 
         Example:
-            d.has(user, order, source_card="1", target_card="*", label="places")
+            d.has(team, player)  # Player exists without Team
+            d.has(library, book, source_card="1", target_card="*")
+
+        UML: Hollow diamond (o--)
         """
-        rel_type: RelationType = "composition" if composition else "aggregation"
         return self._relationship(
-            container,
-            contained,
-            rel_type,
+            whole,
+            part,
+            "aggregation",
+            source_card=source_card,
+            target_card=target_card,
+            source_label=source_label,
+            target_label=target_label,
+            label=label,
+            style=style,
+            direction=direction,
+        )
+
+    def contains(
+        self,
+        whole: ClassNode | str,
+        part: ClassNode | str,
+        *,
+        source_card: str | None = None,
+        target_card: str | None = None,
+        source_label: str | None = None,
+        target_label: str | None = None,
+        label: str | Label | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> Relationship:
+        """Create a composition relationship (filled diamond).
+
+        Composition means the part cannot exist independently of the whole.
+        When the whole is destroyed, the part is also destroyed.
+
+        For aggregation (independent lifecycle), use has() instead.
+
+        Args:
+            whole: The containing class
+            part: The contained class
+            source_card: Cardinality at whole end (e.g., "1")
+            target_card: Cardinality at part end (e.g., "*", "0..*")
+            source_label: Role name at whole end
+            target_label: Role name at part end
+            label: Relationship label
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint
+
+        Example:
+            d.contains(house, room)  # Room cannot exist without House
+            d.contains(order, line_item, target_card="1..*")
+
+        UML: Filled diamond (*--)
+        """
+        return self._relationship(
+            whole,
+            part,
+            "composition",
             source_card=source_card,
             target_card=target_card,
             source_label=source_label,
@@ -397,6 +499,7 @@ class _BaseClassBuilder:
     ) -> Relationship:
         """Internal: Create and register a relationship."""
         label_obj = Label(label) if isinstance(label, str) else label
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
@@ -407,7 +510,7 @@ class _BaseClassBuilder:
             target_label=target_label,
             label=label_obj,
             style=style,
-            direction=direction,
+            direction=direction_val,
         )
         self._elements.append(rel)
         return rel
@@ -534,25 +637,36 @@ class _ClassMemberBuilder:
         """Add a field to the class.
 
         Args:
-            name: Field name (can include visibility prefix like "-id")
+            name: Field name
             type: Field type
-            visibility: Explicit visibility (+, -, #, ~)
+            visibility: 'public', 'private', 'protected', or 'package'
             modifier: Modifier (static, abstract)
 
         Returns:
             The created Member
         """
-        # Parse visibility from name if not explicit
-        actual_visibility = visibility
-        actual_name = name
-        if name and name[0] in "+-#~" and visibility is None:
-            actual_visibility = name[0]  # type: ignore[assignment]
-            actual_name = name[1:]
+        # Reject old visibility prefix pattern with helpful error
+        if name and name[0] in "+-#~":
+            symbol = name[0]
+            word = {"+": "public", "-": "private", "#": "protected", "~": "package"}[
+                symbol
+            ]
+            raise ValueError(
+                f"Visibility prefix '{symbol}' in field name is not supported.\n"
+                f"Use: field(\"{name[1:]}\", visibility=\"{word}\")"
+            )
+
+        # Validate visibility if provided
+        validated_visibility: Visibility | None = None
+        if visibility is not None:
+            validated_visibility = validate_literal(  # type: ignore[assignment]
+                visibility, VISIBILITY_OPTIONS, "visibility"
+            )
 
         member = Member(
-            name=actual_name,
+            name=name,
             type=type,
-            visibility=actual_visibility,
+            visibility=validated_visibility,
             modifier=modifier,
             is_method=False,
         )
@@ -572,23 +686,34 @@ class _ClassMemberBuilder:
         Args:
             name: Method signature (e.g., "login()", "calculate(x: int)")
             return_type: Return type
-            visibility: Explicit visibility (+, -, #, ~)
+            visibility: 'public', 'private', 'protected', or 'package'
             modifier: Modifier (static, abstract)
 
         Returns:
             The created Member
         """
-        # Parse visibility from name if not explicit
-        actual_visibility = visibility
-        actual_name = name
-        if name and name[0] in "+-#~" and visibility is None:
-            actual_visibility = name[0]  # type: ignore[assignment]
-            actual_name = name[1:]
+        # Reject old visibility prefix pattern with helpful error
+        if name and name[0] in "+-#~":
+            symbol = name[0]
+            word = {"+": "public", "-": "private", "#": "protected", "~": "package"}[
+                symbol
+            ]
+            raise ValueError(
+                f"Visibility prefix '{symbol}' in method name is not supported.\n"
+                f"Use: method(\"{name[1:]}\", visibility=\"{word}\")"
+            )
+
+        # Validate visibility if provided
+        validated_visibility: Visibility | None = None
+        if visibility is not None:
+            validated_visibility = validate_literal(  # type: ignore[assignment]
+                visibility, VISIBILITY_OPTIONS, "visibility"
+            )
 
         member = Member(
-            name=actual_name,
+            name=name,
             type=return_type,
-            visibility=actual_visibility,
+            visibility=validated_visibility,
             modifier=modifier,
             is_method=True,
         )

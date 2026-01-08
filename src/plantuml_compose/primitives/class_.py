@@ -55,13 +55,29 @@ ClassType = Literal[
     "diamond",     # Shorthand diamond notation
 ]
 
-# Member visibility symbols (UML standard)
+# Member visibility - human-readable names
 Visibility = Literal[
-    "+",  # public - visible to all
-    "-",  # private - visible only within the class
-    "#",  # protected - visible to subclasses
-    "~",  # package - visible within the same package
+    "public",     # Visible to all classes
+    "private",    # Visible only within the declaring class
+    "protected",  # Visible to the class and its subclasses
+    "package",    # Visible within the same package
 ]
+
+# Visibility options for validation errors
+VISIBILITY_OPTIONS: dict[str, str] = {
+    "public": "Accessible from anywhere (UML: +)",
+    "private": "Only accessible within this class (UML: -)",
+    "protected": "Accessible from this class and subclasses (UML: #)",
+    "package": "Accessible within the same package (UML: ~)",
+}
+
+# Internal mapping for rendering to PlantUML syntax
+_VISIBILITY_TO_SYMBOL: dict[str, str] = {
+    "public": "+",
+    "private": "-",
+    "protected": "#",
+    "package": "~",
+}
 
 # Member modifiers affecting display
 MemberModifier = Literal[

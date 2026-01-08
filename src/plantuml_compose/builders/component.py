@@ -1,18 +1,62 @@
 """Component diagram builder with context manager syntax.
 
-Provides a fluent API for constructing component diagrams:
+When to Use
+-----------
+Component diagrams show how software pieces connect through interfaces.
+Use when:
 
+- Documenting system architecture at module level
+- Showing dependencies between services
+- Visualizing provided/required interfaces
+- Planning microservice boundaries
+
+NOT for:
+- Physical hardware deployment (use deployment diagram)
+- Internal class structure (use class diagram)
+- Runtime behavior (use sequence diagram)
+
+Key Concepts
+------------
+Component:   A modular unit of software (service, library, module)
+Interface:   A contract a component provides or requires
+Package:     Grouping of related components
+
+Interface notation:
+
+    Component ──○   provides (lollipop): exposes an interface
+    Component ──◗   requires (socket): needs an interface
+
+    [API]──○ REST    (API provides REST interface)
+    [Web]──◗ REST    (Web requires REST interface)
+
+Dependencies:
+
+    [Component A] ···> [Component B]   A depends on B
+    [Component A] ──>  [Component B]   A uses B
+
+Containers group related components:
+
+    ┌─────── package "Backend" ───────┐
+    │  [API Server]    [Worker]       │
+    │       │              │          │
+    │       └──────┬───────┘          │
+    │              ▼                  │
+    │        [Database]               │
+    └─────────────────────────────────┘
+
+Example
+-------
     with component_diagram(title="System Architecture") as d:
         api = d.component("API Server")
         db = d.component("Database", stereotype="database")
 
         d.provides(api, "REST")
-        d.requires(api, db, label="queries")
+        d.link(api, db, label="queries")
 
         with d.package("Infrastructure") as pkg:
             pkg.component("Load Balancer")
 
-    print(d.render())
+    print(render(d.build()))
 """
 
 from __future__ import annotations
@@ -36,6 +80,7 @@ from ..primitives.common import (
     Stereotype,
     StyleLike,
     coerce_component_diagram_style,
+    coerce_direction,
     coerce_line_style,
     coerce_style,
 )
@@ -366,6 +411,7 @@ class _BaseComponentBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
@@ -374,7 +420,7 @@ class _BaseComponentBuilder:
             source_label=source_label,
             target_label=target_label,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
@@ -402,13 +448,14 @@ class _BaseComponentBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(component),
             target=self._to_ref(interface),
             type="provides",
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
@@ -436,13 +483,14 @@ class _BaseComponentBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(component),
             target=self._to_ref(interface),
             type="requires",
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
@@ -470,13 +518,14 @@ class _BaseComponentBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type="dependency",
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
@@ -504,13 +553,14 @@ class _BaseComponentBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type="line",
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
@@ -549,6 +599,7 @@ class _BaseComponentBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
 
         # Determine arrow type from style pattern
         arrow_type: RelationType = "arrow"
@@ -563,7 +614,7 @@ class _BaseComponentBuilder:
                 type=arrow_type,
                 label=label_obj,
                 style=style_obj,
-                direction=direction,
+                direction=direction_val,
                 note=note_obj,
             )
             self._elements.append(rel)
@@ -613,6 +664,7 @@ class _BaseComponentBuilder:
             raise ValueError("chain() requires at least 2 components")
 
         style_obj = coerce_line_style(style) if style else None
+        direction_val = coerce_direction(direction)
 
         # Determine arrow type from style pattern
         arrow_type: RelationType = "arrow"
@@ -640,7 +692,7 @@ class _BaseComponentBuilder:
                         target=self._to_ref(item),
                         type=arrow_type,
                         style=style_obj,
-                        direction=direction,
+                        direction=direction_val,
                     )
                     self._elements.append(rel)
                     relationships.append(rel)
@@ -662,7 +714,7 @@ class _BaseComponentBuilder:
                     type=arrow_type,
                     label=Label(item),
                     style=style_obj,
-                    direction=direction,
+                    direction=direction_val,
                 )
                 self._elements.append(rel)
                 relationships.append(rel)

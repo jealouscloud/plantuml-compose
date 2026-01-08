@@ -90,13 +90,14 @@ class TestClassMembers:
         output = render(d.build())
         assert "id : int" in output
 
-    def test_field_with_visibility_prefix(self):
+    def test_field_with_visibility(self):
+        """Test visibility parameter with human-readable names."""
         with class_diagram() as d:
             with d.class_with_members("User") as user:
-                user.field("-private_field", "str")
-                user.field("+public_field", "str")
-                user.field("#protected_field", "str")
-                user.field("~package_field", "str")
+                user.field("private_field", "str", visibility="private")
+                user.field("public_field", "str", visibility="public")
+                user.field("protected_field", "str", visibility="protected")
+                user.field("package_field", "str", visibility="package")
 
         output = render(d.build())
         assert "-private_field : str" in output
@@ -104,13 +105,27 @@ class TestClassMembers:
         assert "#protected_field : str" in output
         assert "~package_field : str" in output
 
+    def test_field_visibility_prefix_rejected(self):
+        """Visibility prefix in field name is rejected with helpful error."""
+        with class_diagram() as d:
+            with d.class_with_members("User") as user:
+                with pytest.raises(ValueError, match="Visibility prefix"):
+                    user.field("-private_field", "str")
+
     def test_method(self):
         with class_diagram() as d:
             with d.class_with_members("User") as user:
-                user.method("+login()", "bool")
+                user.method("login()", "bool", visibility="public")
 
         output = render(d.build())
         assert "+login() : bool" in output
+
+    def test_method_visibility_prefix_rejected(self):
+        """Visibility prefix in method name is rejected with helpful error."""
+        with class_diagram() as d:
+            with d.class_with_members("User") as user:
+                with pytest.raises(ValueError, match="Visibility prefix"):
+                    user.method("+login()", "bool")
 
     def test_static_method(self):
         with class_diagram() as d:
@@ -124,11 +139,11 @@ class TestClassMembers:
     def test_abstract_method(self):
         with class_diagram() as d:
             with d.class_with_members("Entity") as entity:
-                entity.abstract_method("+save()", "bool")
+                entity.abstract_method("save()", "bool", visibility="public")
 
         output = render(d.build())
         assert "{abstract}" in output
-        assert "save() : bool" in output
+        assert "+ save() : bool" in output  # Space after modifier+visibility
 
     def test_separator(self):
         with class_diagram() as d:
@@ -182,10 +197,11 @@ class TestRelationships:
         assert "Container o-- Item" in output
 
     def test_composition(self):
+        """Use contains() for composition (filled diamond)."""
         with class_diagram() as d:
             container = d.class_("Container")
             item = d.class_("Item")
-            d.has(container, item, composition=True)
+            d.contains(container, item)
 
         output = render(d.build())
         assert "Container *-- Item" in output
@@ -431,11 +447,11 @@ class TestComplexDiagram:
             order = d.class_("Order")
 
             with d.class_with_members("Product") as product:
-                product.field("-id", "int")
-                product.field("-name", "str")
-                product.field("-price", "Decimal")
+                product.field("id", "int", visibility="private")
+                product.field("name", "str", visibility="private")
+                product.field("price", "Decimal", visibility="private")
                 product.separator()
-                product.method("+apply_discount(pct)", "Decimal")
+                product.method("apply_discount(pct)", "Decimal", visibility="public")
 
             # Relationships
             d.has(user, order, source_card="1", target_card="*", label="places")

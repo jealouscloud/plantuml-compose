@@ -1,22 +1,63 @@
 """Use case diagram builder with context manager syntax.
 
-Provides a fluent API for constructing use case diagrams:
+When to Use
+-----------
+Use case diagrams show WHAT a system does from the user's perspective.
+Use when:
 
+- Capturing functional requirements
+- Defining system boundaries
+- Identifying actors and their goals
+- Communicating with stakeholders
+
+NOT for:
+- HOW the system works internally (use sequence/activity)
+- Data structures (use class diagram)
+- Deployment (use deployment diagram)
+
+Key Concepts
+------------
+Actor:     Someone/something outside the system (User, Admin, External API)
+Use Case:  A goal the system helps actors achieve (Login, Checkout, Search)
+System:    Boundary (rectangle) showing what's inside vs outside
+
+Relationships:
+
+    actor ──> usecase       Actor interacts with use case
+    generalizes ──▷         Inheritance (Admin ──▷ User)
+
+    requires (<<include>>):
+        Base ALWAYS needs the required use case
+        Checkout ··> Validate Cart : <<include>>
+
+    optional_for (<<extends>>):
+        Extension MAY be triggered during base
+        Apply Coupon ··> Checkout : <<extends>>
+
+              ┌────────────────────────────────────┐
+     Actor    │  System Boundary                   │
+       │      │                                    │
+     ┌─┴─┐    │   (Browse)    (Checkout)           │
+     │ o │────│─────○───────────○                  │
+     └─┬─┘    │                 │                  │
+       │      │                 │ <<include>>      │
+              │                 ▼                  │
+              │           (Validate Cart)          │
+              └────────────────────────────────────┘
+
+Example
+-------
     with usecase_diagram(title="Shopping System") as d:
-        # Actors
         user = d.actor("Customer")
-        admin = d.actor("Admin")
-
-        # Use cases
         browse = d.usecase("Browse Products")
         checkout = d.usecase("Checkout")
+        validate = d.usecase("Validate Cart")
 
-        # Relationships
         d.arrow(user, browse)
         d.arrow(user, checkout)
-        d.includes(checkout, "Validate Cart")
+        d.requires(checkout, validate)
 
-    print(d.render())
+    print(render(d.build()))
 """
 
 from __future__ import annotations
@@ -36,6 +77,7 @@ from ..primitives.common import (
     Scale,
     Stereotype,
     StyleLike,
+    coerce_direction,
     coerce_line_style,
     validate_style_background_only,
 )
@@ -167,13 +209,14 @@ class _BaseUseCaseBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type=type,
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
@@ -201,13 +244,14 @@ class _BaseUseCaseBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type="arrow",
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
@@ -235,73 +279,94 @@ class _BaseUseCaseBuilder:
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
             target=self._to_ref(target),
             type="association",
             label=label_obj,
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
 
-    def includes(
+    def requires(
         self,
-        source: UseCaseRef,
-        target: UseCaseRef,
+        base: UseCaseRef,
+        required: UseCaseRef,
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
         note: str | Label | None = None,
     ) -> None:
-        """Add an include relationship.
+        """Add a mandatory requirement relationship (<<include>>).
+
+        The base use case ALWAYS invokes the required use case.
+        This is mandatory - the base cannot complete without the required.
 
         Args:
-            source: Base use case (string, Actor, or UseCase)
-            target: Included use case (string, Actor, or UseCase)
+            base: Base use case that always invokes the required use case
+            required: Use case that is always executed as part of base
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
+
+        Example:
+            d.requires(checkout, validate_cart)  # Checkout always validates cart
+            d.requires(place_order, authenticate)  # Order requires login
+
+        UML: <<include>> relationship
         """
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
-            source=self._to_ref(source),
-            target=self._to_ref(target),
+            source=self._to_ref(base),
+            target=self._to_ref(required),
             type="include",
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
 
-    def extends(
+    def optional_for(
         self,
-        source: UseCaseRef,
-        target: UseCaseRef,
+        extension: UseCaseRef,
+        base: UseCaseRef,
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
         note: str | Label | None = None,
     ) -> None:
-        """Add an extends relationship.
+        """Add an optional extension relationship (<<extends>>).
+
+        The extension MAY be triggered during the base use case,
+        but is not required for base to complete.
 
         Args:
-            source: Extending use case (string, Actor, or UseCase)
-            target: Base use case (string, Actor, or UseCase)
+            extension: Optional use case that may be triggered
+            base: Base use case that may trigger the extension
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
+
+        Example:
+            d.optional_for(apply_coupon, checkout)  # Coupon is optional
+            d.optional_for(express_shipping, place_order)  # Express is optional
+
+        UML: <<extends>> relationship
         """
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
-            source=self._to_ref(source),
-            target=self._to_ref(target),
+            source=self._to_ref(extension),
+            target=self._to_ref(base),
             type="extends",
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)
@@ -326,12 +391,13 @@ class _BaseUseCaseBuilder:
         """
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
+        direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(child),
             target=self._to_ref(parent),
             type="extension",
             style=style_obj,
-            direction=direction,
+            direction=direction_val,
             note=note_obj,
         )
         self._elements.append(rel)

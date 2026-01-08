@@ -1,7 +1,62 @@
 """Activity diagram builder with context manager syntax.
 
-Provides a fluent API for constructing activity diagrams:
+When to Use
+-----------
+Activity diagrams show workflows with decisions and parallel paths.
+Use when:
 
+- Modeling business processes (order fulfillment, approvals)
+- Documenting algorithms with branching
+- Showing user workflows with decision points
+- Visualizing parallel operations
+
+NOT for:
+- Object lifecycles (use state diagram)
+- Message exchanges between systems (use sequence diagram)
+- Static structure (use class diagram)
+
+Key Concepts
+------------
+Action:     A step in the workflow (rounded rectangle)
+Decision:   Branch based on condition (if/else, switch)
+Fork/Join:  Parallel execution paths
+
+Control flow (arrows implied between actions):
+
+    (●)──►[Action A]──►◆──►[Action B]──►(◉)
+           start     decision          stop
+
+Branching:
+
+    with d.if_("Valid?") as branch:
+        branch.action("Process")       # "yes" branch
+        with branch.else_():
+            branch.action("Reject")    # "no" branch
+
+Parallel execution:
+
+              │
+          ════╪════   <- fork
+          │   │   │
+          ▼   ▼   ▼
+         [A] [B] [C]  (all run concurrently)
+          │   │   │
+          ════╪════   <- join (waits for all)
+              │
+
+Swimlanes (partition by actor/department):
+
+    |Customer|          |Warehouse|
+        │                   │
+     [Browse]               │
+        │                   │
+     [Order]───────────►[Pick Items]
+        │                   │
+     [Pay]              [Ship]
+        │                   │
+
+Example
+-------
     with activity_diagram(title="Order Process") as d:
         d.start()
         d.action("Receive Order")
@@ -13,7 +68,7 @@ Provides a fluent API for constructing activity diagrams:
 
         d.stop()
 
-    print(d.render())
+    print(render(d.build()))
 """
 
 from __future__ import annotations

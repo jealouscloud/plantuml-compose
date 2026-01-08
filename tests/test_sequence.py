@@ -187,21 +187,29 @@ class TestMessage:
         output = render(d.build())
         assert "<->>" in output
 
-    def test_message_with_activation(self):
+    def test_explicit_activation(self):
+        """Use explicit activate() instead of inline parameter."""
         with sequence_diagram() as d:
             user, api = d.participants("User", "API")
-            d.message(user, api, "request", activate="activate")
+            d.message(user, api, "request")
+            d.activate(api)
 
         output = render(d.build())
-        assert "User -> API++ : request" in output
+        assert "User -> API : request" in output
+        assert "activate API" in output
 
-    def test_message_with_deactivation(self):
+    def test_explicit_deactivation(self):
+        """Use explicit deactivate() instead of inline parameter."""
         with sequence_diagram() as d:
             user, api = d.participants("User", "API")
-            d.message(api, user, "response", activate="deactivate")
+            d.activate(api)
+            d.message(api, user, "response")
+            d.deactivate(api)
 
         output = render(d.build())
-        assert "API -> User-- : response" in output
+        assert "activate API" in output
+        assert "API -> User : response" in output
+        assert "deactivate API" in output
 
     def test_message_with_style_color(self):
         with sequence_diagram() as d:

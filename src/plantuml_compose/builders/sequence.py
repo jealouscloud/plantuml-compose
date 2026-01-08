@@ -1,21 +1,80 @@
 """Sequence diagram builder with context manager syntax.
 
-Provides a fluent API for constructing sequence diagrams:
+When to Use
+-----------
+Sequence diagrams show how multiple entities interact over time. Use when:
 
+- Documenting request/response flows (HTTP, API calls)
+- Showing object collaboration in a scenario
+- Illustrating protocol exchanges
+- Explaining complex multi-step processes
+
+NOT for:
+- Single entity changing states (use state diagram)
+- Static structure (use class diagram)
+- System architecture (use component diagram)
+
+Key Concepts
+------------
+Participant:  An entity that sends/receives messages (User, API, Database)
+Message:      Communication between participants (arrows)
+Activation:   Period when participant is processing (vertical bar)
+
+              User          API           DB
+               │             │             │
+               │──request──► │             │
+               │             ├────query───►│
+               │             │◄───result───│
+               │◄──response──│             │
+               │             │             │
+
+Grouping Blocks (combined fragments):
+
+    alt:      Alternative paths (if/else)
+    opt:      Optional section (if without else)
+    loop:     Repeated section
+    par:      Parallel execution
+    critical: Atomic section
+
+IMPORTANT: Inside blocks, use the block's builder for messages:
+
+    with d.alt("condition") as alt:
+        alt.message(a, b)     # Correct - use alt.message()
+        # d.message(a, b)     # Wrong! Would raise an error
+
+Example
+-------
     with sequence_diagram(title="Order Flow") as d:
         user = d.participant("User")
-        api = d.participant("API", type="boundary")
+        api = d.boundary("API")
         db = d.database("Database")
 
         d.message(user, api, "POST /orders")
+        d.activate(api)
         d.message(api, db, "INSERT")
+        d.message(db, api, "OK")
+        d.message(api, user, "201 Created")
+        d.deactivate(api)
 
-        with d.alt("success") as alt:
-            alt.message(api, user, "200 OK")
-            with alt.else_("error") as else_block:
-                else_block.message(api, user, "500 Error")
+    print(render(d.build()))
 
-    print(d.render())
+Example with Blocks
+-------------------
+    with sequence_diagram() as d:
+        user = d.participant("User")
+        api = d.participant("API")
+
+        d.message(user, api, "login")
+
+        # Alternative paths - use block's builder for messages!
+        with d.alt("valid credentials") as alt:
+            alt.message(api, user, "success")
+            with alt.else_("invalid"):
+                alt.message(api, user, "error")
+
+        # Optional section
+        with d.opt("remember me") as opt:
+            opt.message(api, user, "set cookie")
 """
 
 from __future__ import annotations
@@ -78,8 +137,6 @@ class _BaseSequenceBuilder:
         arrow_head: MessageArrowHead = "normal",
         bidirectional: bool = False,
         style: LineStyleLike | None = None,
-        activate: ActivationAction | None = None,
-        activate_color: ColorLike | None = None,
     ) -> Message:
         """Create and register a message between participants.
 
@@ -91,11 +148,14 @@ class _BaseSequenceBuilder:
             arrow_head: Arrow head style
             bidirectional: If True, arrow points both directions
             style: Arrow style (color, bold)
-            activate: Activation shorthand (++, --, **, !!)
-            activate_color: Color for activation bar
 
         Returns:
             The created Message
+
+        For activation control, use explicit methods:
+            d.activate(participant)    # Start activation bar
+            d.deactivate(participant)  # End activation bar
+            d.destroy(participant)     # Destroy participant with X
         """
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
@@ -107,8 +167,6 @@ class _BaseSequenceBuilder:
             arrow_head=arrow_head,
             bidirectional=bidirectional,
             style=style_obj,
-            activation=activate,
-            activation_color=activate_color,
         )
         self._elements.append(msg)
         return msg
@@ -469,6 +527,157 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         self._hide_unlinked = hide_unlinked
         self._participants: list[Participant] = []
         self._boxes: list[Box] = []
+        # Track block context for detecting d.message() inside blocks
+        self._block_stack: list[str] = []
+
+    # Override message() to detect calls inside block contexts
+    def message(
+        self,
+        source: Participant | str,
+        target: Participant | str,
+        label: str | Label | None = None,
+        *,
+        line_style: MessageLineStyle = "solid",
+        arrow_head: MessageArrowHead = "normal",
+        bidirectional: bool = False,
+        style: LineStyleLike | None = None,
+    ) -> Message:
+        """Create and register a message between participants.
+
+        Args:
+            source: Source participant (Participant object or reference string)
+            target: Target participant (Participant object or reference string)
+            label: Message label text
+            line_style: "solid" or "dotted"
+            arrow_head: Arrow head style
+            bidirectional: If True, arrow points both directions
+            style: Arrow style (color, bold)
+
+        Returns:
+            The created Message
+
+        For activation control, use explicit methods:
+            d.activate(participant)    # Start activation bar
+            d.deactivate(participant)  # End activation bar
+            d.destroy(participant)     # Destroy participant with X
+
+        Raises:
+            RuntimeError: If called inside a block context (alt, opt, loop, etc.)
+        """
+        if self._block_stack:
+            block_type = self._block_stack[-1]
+            raise RuntimeError(
+                f"d.message() called inside '{block_type}' block.\n\n"
+                f"Messages inside blocks must use the block's builder:\n\n"
+                f"    with d.{block_type}(...) as {block_type}:\n"
+                f"        {block_type}.message(...)  # Correct\n\n"
+                f"If you want the message outside the block, "
+                f"move it before or after the 'with' statement."
+            )
+        return super().message(
+            source,
+            target,
+            label,
+            line_style=line_style,
+            arrow_head=arrow_head,
+            bidirectional=bidirectional,
+            style=style,
+        )
+
+    # Override block context managers to track block stack
+    @contextmanager
+    def alt(self, label: str | Label | None = None) -> Iterator[_AltBuilder]:
+        """Create an alt (alternative) grouping block.
+
+        Usage:
+            with d.alt("success") as alt:
+                alt.message(api, user, "200 OK")
+                with alt.else_("error") as else_block:
+                    else_block.message(api, user, "500 Error")
+        """
+        self._block_stack.append("alt")
+        try:
+            builder = _AltBuilder("alt", label)
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
+
+    @contextmanager
+    def opt(self, label: str | Label | None = None) -> Iterator[_GroupBuilder]:
+        """Create an opt (optional) grouping block."""
+        self._block_stack.append("opt")
+        try:
+            builder = _GroupBuilder("opt", label)
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
+
+    @contextmanager
+    def loop(self, label: str | Label | None = None) -> Iterator[_GroupBuilder]:
+        """Create a loop grouping block."""
+        self._block_stack.append("loop")
+        try:
+            builder = _GroupBuilder("loop", label)
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
+
+    @contextmanager
+    def par(self, label: str | Label | None = None) -> Iterator[_AltBuilder]:
+        """Create a par (parallel) grouping block.
+
+        par blocks can have else branches like alt.
+        """
+        self._block_stack.append("par")
+        try:
+            builder = _AltBuilder("par", label)
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
+
+    @contextmanager
+    def break_(self, label: str | Label | None = None) -> Iterator[_GroupBuilder]:
+        """Create a break grouping block."""
+        self._block_stack.append("break")
+        try:
+            builder = _GroupBuilder("break", label)
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
+
+    @contextmanager
+    def critical(self, label: str | Label | None = None) -> Iterator[_GroupBuilder]:
+        """Create a critical grouping block."""
+        self._block_stack.append("critical")
+        try:
+            builder = _GroupBuilder("critical", label)
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
+
+    @contextmanager
+    def group(
+        self,
+        label: str | Label | None = None,
+        secondary: str | Label | None = None,
+    ) -> Iterator[_GroupBuilder]:
+        """Create a custom group with optional secondary label.
+
+        Rendered as: group Label [Secondary]
+        """
+        self._block_stack.append("group")
+        try:
+            builder = _GroupBuilder("group", label, secondary)
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
 
     def participant(
         self,

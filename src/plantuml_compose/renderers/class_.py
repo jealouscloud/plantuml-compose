@@ -16,6 +16,7 @@ from ..primitives.class_ import (
     Relationship,
     Separator,
     Together,
+    _VISIBILITY_TO_SYMBOL,
 )
 from ..primitives.common import Note
 from .common import (
@@ -171,9 +172,9 @@ def _render_member(member: Member) -> str:
     if member.modifier:
         parts.append(f"{{{member.modifier}}}")
 
-    # Visibility
+    # Visibility (convert human-readable name to UML symbol)
     if member.visibility:
-        parts.append(member.visibility)
+        parts.append(_VISIBILITY_TO_SYMBOL[member.visibility])
 
     # Name and type
     if member.type:

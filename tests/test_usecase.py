@@ -173,20 +173,22 @@ class TestRelationships:
         output = render(d.build())
         assert "u -> browse" in output
 
-    def test_includes(self):
+    def test_requires(self):
+        """requires() replaces includes() - base ALWAYS needs required."""
         with usecase_diagram() as d:
             checkout = d.usecase("Checkout", alias="checkout")
             validate = d.usecase("Validate Cart", alias="validate")
-            d.includes(checkout, validate)
+            d.requires(checkout, validate)
 
         output = render(d.build())
         assert "checkout .> validate : <<include>>" in output
 
-    def test_extends(self):
+    def test_optional_for(self):
+        """optional_for() replaces extends() - extension MAY occur."""
         with usecase_diagram() as d:
             login = d.usecase("Login", alias="login")
             oauth = d.usecase("OAuth Login", alias="oauth")
-            d.extends(oauth, login)
+            d.optional_for(oauth, login)
 
         output = render(d.build())
         assert "oauth .> login : <<extends>>" in output
@@ -342,9 +344,9 @@ class TestComplexDiagram:
             # Admin relationships
             d.arrow(admin, manage)
 
-            # Include/extends
-            d.includes(checkout, payment)
-            d.extends(search, browse)
+            # Requires/optional_for
+            d.requires(checkout, payment)
+            d.optional_for(search, browse)
 
         output = render(d.build())
         assert "title E-Commerce System" in output
