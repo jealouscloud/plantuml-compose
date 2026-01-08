@@ -82,11 +82,10 @@ def render_element_style(style: StyleLike) -> str:
 
     PlantUML element style syntax options:
     1. Background only: #color or #color1-color2 (gradient)
-    2. Line only: ##[pattern]color or ##color
-    3. Multiple properties: #back;line:color;text:color (semicolon-separated)
+    2. Line/text/multiple: #back;line.pattern:color;text:color (semicolon-separated)
 
-    When only background and/or line are specified, uses space-separated format.
-    When text_color is specified, uses semicolon format (background optional).
+    The ## syntax for line-only styling doesn't work in component/deployment
+    diagrams, so we always use semicolon format when line or text is specified.
 
     Works for states, components, interfaces, and other diagram elements.
     """
@@ -104,30 +103,14 @@ def render_element_style(style: StyleLike) -> str:
     )
     has_text = text_color is not None
 
-    # If we only have background and/or line, use space-separated format
-    if not has_text:
-        parts: list[str] = []
+    # Background only: use simple #color format
+    if has_background and not has_line and not has_text:
+        bg = render_color(background)  # type: ignore[arg-type]
+        if not bg.startswith("#"):
+            bg = f"#{bg}"
+        return bg
 
-        if has_background:
-            bg = render_color(background)  # type: ignore[arg-type]
-            if not bg.startswith("#"):
-                bg = f"#{bg}"
-            parts.append(bg)
-
-        if has_line and line:
-            color = render_color(line.color) if line.color else ""
-            pattern = ""
-            if line.pattern != "solid":
-                pattern = f"[{line.pattern}]"
-
-            if color or pattern:
-                if color.startswith("#"):
-                    color = color[1:]  # Remove leading # for hex colors
-                parts.append(f"##{pattern}{color}")
-
-        return " ".join(parts)
-
-    # Use semicolon format for text color (with optional background/line)
+    # Line or text present: use semicolon format for compatibility
     props: list[str] = []
 
     if has_background:
@@ -147,7 +130,7 @@ def render_element_style(style: StyleLike) -> str:
         tc = render_color(text_color)
         props.append(f"text:{tc}")
 
-    # Join with semicolons, prefix with # if we have background, else just #
+    # Join with semicolons, prefix with # if needed
     if props:
         result = ";".join(props)
         if not result.startswith("#"):

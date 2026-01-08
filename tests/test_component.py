@@ -52,14 +52,16 @@ class TestBasicElements:
             d.component("Bordered", style={"line": {"color": "blue"}})
 
         output = render(d.build())
-        assert "##blue" in output
+        # Uses semicolon format which works in component diagrams
+        assert "#line:blue" in output
 
     def test_component_with_line_pattern(self):
         with component_diagram() as d:
             d.component("Dashed", style={"line": {"pattern": "dashed"}})
 
         output = render(d.build())
-        assert "##[dashed]" in output
+        # Uses semicolon format which works in component diagrams
+        assert "#line.dashed" in output
 
     def test_component_with_text_color(self):
         with component_diagram() as d:

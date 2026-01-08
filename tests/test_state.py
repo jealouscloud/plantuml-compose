@@ -972,8 +972,9 @@ class TestStateStyles:
                 ),
             )
         output = render(d.build())
-        # Uses ##[pattern]color format
-        assert "##[dashed]blue" in output
+        # Uses semicolon format for line styling (compatible with all diagram types)
+        assert "line.dashed" in output
+        assert "line:blue" in output
 
     def test_state_with_text_color(self):
         with state_diagram() as d:

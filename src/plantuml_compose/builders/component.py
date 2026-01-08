@@ -253,14 +253,14 @@ class _BaseComponentBuilder:
         self,
         *names: str,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> tuple[Component, ...]:
         """Create and register multiple components at once.
 
         Args:
             *names: Component names
             stereotype: Optional stereotype applied to all components
-            color: Optional color applied to all components
+            style: Optional style applied to all components
 
         Returns:
             Tuple of created Components in order
@@ -271,7 +271,7 @@ class _BaseComponentBuilder:
             d.arrow(api, cache)
         """
         return tuple(
-            self.component(name, stereotype=stereotype, color=color)
+            self.component(name, stereotype=stereotype, style=style)
             for name in names
         )
 
@@ -279,14 +279,14 @@ class _BaseComponentBuilder:
         self,
         *names: str,
         stereotype: str | Stereotype | None = None,
-        color: ColorLike | None = None,
+        style: StyleLike | None = None,
     ) -> tuple[Interface, ...]:
         """Create and register multiple interfaces at once.
 
         Args:
             *names: Interface names
             stereotype: Optional stereotype applied to all interfaces
-            color: Optional color applied to all interfaces
+            style: Optional style applied to all interfaces
 
         Returns:
             Tuple of created Interfaces in order
@@ -295,7 +295,7 @@ class _BaseComponentBuilder:
             rest, graphql, grpc = d.interfaces("REST", "GraphQL", "gRPC")
         """
         return tuple(
-            self.interface(name, stereotype=stereotype, color=color)
+            self.interface(name, stereotype=stereotype, style=style)
             for name in names
         )
 
