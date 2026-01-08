@@ -917,6 +917,176 @@ class StateDiagramBuilder(_BaseStateBuilder):
         self._hide_empty_description = hide_empty_description
         # Coerce style dict to StateDiagramStyle object
         self._style = coerce_state_diagram_style(style) if style is not None else None
+        # Track block context for detecting d.state() inside blocks
+        self._block_stack: list[str] = []
+
+    def _check_not_in_block(self, method_name: str) -> None:
+        """Raise error if called inside a block context."""
+        if self._block_stack:
+            block_type = self._block_stack[-1]
+            # Clean variable name for consistency (no trailing underscore issues in state,
+            # but matches pattern in activity and sequence builders)
+            var_name = block_type.rstrip("_") + "_block"
+            raise RuntimeError(
+                f"d.{method_name}() called inside '{block_type}' block.\n"
+                f"\n"
+                f"Inside blocks, use the block's builder:\n"
+                f"\n"
+                f"    # Correct:\n"
+                f"    with d.{block_type}(...) as {var_name}:\n"
+                f"        {var_name}.{method_name}(...)\n"
+                f"\n"
+                f"    # Wrong - this is what raised this error:\n"
+                f"    with d.{block_type}(...):\n"
+                f"        d.{method_name}(...)\n"
+                f"\n"
+                f"If you want the {method_name} outside the block, "
+                f"move it before or after the 'with' statement."
+            )
+
+    # Override methods to detect misuse inside blocks
+    def state(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        description: str | Label | None = None,
+        style: StyleLike | None = None,
+        note: str | Note | None = None,
+        note_position: NotePosition = "right",
+    ) -> StateNode:
+        """Create and register a state node.
+
+        Raises:
+            RuntimeError: If called inside a block context (composite, concurrent, etc.)
+        """
+        self._check_not_in_block("state")
+        return super().state(
+            name,
+            alias=alias,
+            description=description,
+            style=style,
+            note=note,
+            note_position=note_position,
+        )
+
+    def states(
+        self,
+        *names: str,
+        style: StyleLike | None = None,
+    ) -> tuple[StateNode, ...]:
+        """Create and register multiple state nodes at once.
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("states")
+        return super().states(*names, style=style)
+
+    def choice(self, name: str) -> PseudoState:
+        """Create and register a choice pseudo-state (diamond).
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("choice")
+        return super().choice(name)
+
+    def fork(self, name: str) -> PseudoState:
+        """Create and register a fork pseudo-state (horizontal bar).
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("fork")
+        return super().fork(name)
+
+    def join(self, name: str) -> PseudoState:
+        """Create and register a join pseudo-state (horizontal bar).
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("join")
+        return super().join(name)
+
+    def sdl_receive(self, name: str) -> PseudoState:
+        """Create and register an SDL receive pseudo-state (concave polygon).
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("sdl_receive")
+        return super().sdl_receive(name)
+
+    def note(
+        self,
+        content: str | Label,
+        position: NotePosition = "right",
+    ) -> Note:
+        """Create and register a floating note.
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("note")
+        return super().note(content, position)
+
+    # Override block context managers to track block stack
+    @contextmanager
+    def composite(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        style: StyleLike | None = None,
+        note: str | Note | None = None,
+        note_position: NotePosition = "right",
+    ) -> Iterator[_CompositeBuilder]:
+        """Create a composite state with nested elements."""
+        self._block_stack.append("composite")
+        try:
+            style_obj = coerce_style(style) if style is not None else None
+            builder = _CompositeBuilder(name, alias, style_obj, note, note_position)
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
+
+    @contextmanager
+    def concurrent(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        style: StyleLike | None = None,
+        note: str | Note | None = None,
+        note_position: NotePosition = "right",
+        separator: RegionSeparator = "horizontal",
+    ) -> Iterator[_ConcurrentBuilder]:
+        """Create a concurrent state with parallel regions."""
+        self._block_stack.append("concurrent")
+        try:
+            style_obj = coerce_style(style) if style is not None else None
+            builder = _ConcurrentBuilder(name, alias, style_obj, note, note_position, separator)
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
+
+    @contextmanager
+    def parallel(
+        self,
+        name: str | None = None,
+    ) -> Iterator["_ParallelBuilder"]:
+        """Create a fork/join parallel structure with branches."""
+        self._block_stack.append("parallel")
+        try:
+            builder = _ParallelBuilder(name)
+            yield builder
+            self._elements.extend(builder._build())
+        finally:
+            self._block_stack.pop()
 
     def build(self) -> StateDiagram:
         """Build the complete state diagram."""

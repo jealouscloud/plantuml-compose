@@ -106,6 +106,7 @@ from ..primitives.activity import (
 )
 from ..primitives.activity import GotoLabel as ActivityLabel
 from ..primitives.common import (
+    ColorLike,
     Footer,
     Header,
     Label,
@@ -692,6 +693,288 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
         self._footer = Footer(footer) if isinstance(footer, str) else footer
         self._legend = Legend(legend) if isinstance(legend, str) else legend
         self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        # Track block context for detecting d.action() inside blocks
+        self._block_stack: list[str] = []
+
+    def _check_not_in_block(self, method_name: str) -> None:
+        """Raise error if called inside a block context."""
+        if self._block_stack:
+            block_type = self._block_stack[-1]
+            # Clean variable name: if_ -> if_block (not if__block)
+            var_name = block_type.rstrip("_") + "_block"
+            raise RuntimeError(
+                f"d.{method_name}() called inside '{block_type}' block.\n"
+                f"\n"
+                f"Inside blocks, use the block's builder:\n"
+                f"\n"
+                f"    # Correct:\n"
+                f"    with d.{block_type}(...) as {var_name}:\n"
+                f"        {var_name}.{method_name}(...)\n"
+                f"\n"
+                f"    # Wrong - this is what raised this error:\n"
+                f"    with d.{block_type}(...):\n"
+                f"        d.{method_name}(...)\n"
+                f"\n"
+                f"If you want the {method_name} outside the block, "
+                f"move it before or after the 'with' statement."
+            )
+
+    # Override methods to detect misuse inside blocks
+    def start(self) -> Start:
+        """Add a start node.
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("start")
+        return super().start()
+
+    def stop(self) -> Stop:
+        """Add a stop node (filled circle).
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("stop")
+        return super().stop()
+
+    def end(self) -> End:
+        """Add an end node (circle with X).
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("end")
+        return super().end()
+
+    def action(
+        self,
+        label: str | Label,
+        *,
+        shape: ActionShape = "default",
+        style: StyleLike | None = None,
+    ) -> Action:
+        """Add an action.
+
+        Raises:
+            RuntimeError: If called inside a block context (if_, while_, etc.)
+        """
+        self._check_not_in_block("action")
+        return super().action(label, shape=shape, style=style)
+
+    def arrow(
+        self,
+        label: str | Label | None = None,
+        *,
+        pattern: ArrowStyle = "solid",
+        style: LineStyleLike | None = None,
+    ) -> Arrow:
+        """Add an arrow with optional label.
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("arrow")
+        return super().arrow(label, pattern=pattern, style=style)
+
+    def break_(self) -> Break:
+        """Add a break statement (exit loop).
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("break_")
+        return super().break_()
+
+    def kill(self) -> Kill:
+        """Add a kill terminator (X symbol).
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("kill")
+        return super().kill()
+
+    def detach(self) -> Detach:
+        """Detach from flow.
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("detach")
+        return super().detach()
+
+    def connector(self, name: str) -> Connector:
+        """Add a connector for goto-like jumps.
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("connector")
+        return super().connector(name)
+
+    def goto(self, label: str) -> Goto:
+        """Add a goto statement (experimental).
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("goto")
+        return super().goto(label)
+
+    def label(self, name: str) -> ActivityLabel:
+        """Add a label for goto (experimental).
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("label")
+        return super().label(name)
+
+    def swimlane(self, name: str, color: ColorLike | None = None) -> Swimlane:
+        """Switch to a swimlane.
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("swimlane")
+        return super().swimlane(name, color)
+
+    def note(
+        self,
+        content: str | Label,
+        position: Literal["left", "right"] = "right",
+        *,
+        floating: bool = False,
+    ) -> ActivityNote:
+        """Add a note.
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("note")
+        return super().note(content, position, floating=floating)
+
+    # Override block context managers to track block stack
+    @contextmanager
+    def if_(
+        self,
+        condition: str,
+        *,
+        then_label: str | None = None,
+    ) -> Iterator["_IfBuilder"]:
+        """Create an if statement."""
+        self._block_stack.append("if_")
+        try:
+            builder = _IfBuilder(condition, then_label)
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
+
+    @contextmanager
+    def switch(self, condition: str) -> Iterator["_SwitchBuilder"]:
+        """Create a switch statement."""
+        self._block_stack.append("switch")
+        try:
+            builder = _SwitchBuilder(condition)
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
+
+    @contextmanager
+    def while_(
+        self,
+        condition: str,
+        *,
+        is_label: str | None = None,
+        endwhile_label: str | None = None,
+    ) -> Iterator["_WhileBuilder"]:
+        """Create a while loop."""
+        self._block_stack.append("while_")
+        try:
+            builder = _WhileBuilder(condition, is_label, endwhile_label)
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
+
+    @contextmanager
+    def repeat(
+        self,
+        *,
+        start_label: str | None = None,
+        condition: str | None = None,
+        is_label: str | None = None,
+        not_label: str | None = None,
+        backward_action: str | None = None,
+    ) -> Iterator["_RepeatBuilder"]:
+        """Create a repeat-while loop."""
+        self._block_stack.append("repeat")
+        try:
+            builder = _RepeatBuilder(
+                start_label=start_label,
+                condition=condition,
+                is_label=is_label,
+                not_label=not_label,
+                backward_action=backward_action,
+            )
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
+
+    @contextmanager
+    def fork(
+        self,
+        end_style: str = "fork",
+    ) -> Iterator["_ForkBuilder"]:
+        """Create a fork/join for parallel execution."""
+        self._block_stack.append("fork")
+        try:
+            builder = _ForkBuilder(end_style)  # type: ignore[arg-type]
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
+
+    @contextmanager
+    def split(self) -> Iterator["_SplitBuilder"]:
+        """Create a split for parallel paths (no sync bar)."""
+        self._block_stack.append("split")
+        try:
+            builder = _SplitBuilder()
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
+
+    @contextmanager
+    def partition(
+        self,
+        name: str,
+        color: ColorLike | None = None,
+    ) -> Iterator["_PartitionBuilder"]:
+        """Create a partition (grouping with border)."""
+        self._block_stack.append("partition")
+        try:
+            builder = _PartitionBuilder(name, color)
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
+
+    @contextmanager
+    def group(self, name: str) -> Iterator["_GroupBuilder"]:
+        """Create a group (lighter grouping)."""
+        self._block_stack.append("group")
+        try:
+            builder = _GroupBuilder(name)
+            yield builder
+            self._elements.append(builder._build())
+        finally:
+            self._block_stack.pop()
 
     def build(self) -> ActivityDiagram:
         """Build the complete activity diagram."""

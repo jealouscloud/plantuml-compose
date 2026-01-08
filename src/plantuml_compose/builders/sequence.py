@@ -530,7 +530,30 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         # Track block context for detecting d.message() inside blocks
         self._block_stack: list[str] = []
 
-    # Override message() to detect calls inside block contexts
+    def _check_not_in_block(self, method_name: str) -> None:
+        """Raise error if called inside a block context."""
+        if self._block_stack:
+            block_type = self._block_stack[-1]
+            # Clean variable name: break_ -> break_block (not break__block)
+            var_name = block_type.rstrip("_") + "_block"
+            raise RuntimeError(
+                f"d.{method_name}() called inside '{block_type}' block.\n"
+                f"\n"
+                f"Inside blocks, use the block's builder:\n"
+                f"\n"
+                f"    # Correct:\n"
+                f"    with d.{block_type}(...) as {var_name}:\n"
+                f"        {var_name}.{method_name}(...)\n"
+                f"\n"
+                f"    # Wrong - this is what raised this error:\n"
+                f"    with d.{block_type}(...):\n"
+                f"        d.{method_name}(...)\n"
+                f"\n"
+                f"If you want the {method_name} outside the block, "
+                f"move it before or after the 'with' statement."
+            )
+
+    # Override methods to detect misuse inside blocks
     def message(
         self,
         source: Participant | str,
@@ -544,36 +567,10 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
     ) -> Message:
         """Create and register a message between participants.
 
-        Args:
-            source: Source participant (Participant object or reference string)
-            target: Target participant (Participant object or reference string)
-            label: Message label text
-            line_style: "solid" or "dotted"
-            arrow_head: Arrow head style
-            bidirectional: If True, arrow points both directions
-            style: Arrow style (color, bold)
-
-        Returns:
-            The created Message
-
-        For activation control, use explicit methods:
-            d.activate(participant)    # Start activation bar
-            d.deactivate(participant)  # End activation bar
-            d.destroy(participant)     # Destroy participant with X
-
         Raises:
             RuntimeError: If called inside a block context (alt, opt, loop, etc.)
         """
-        if self._block_stack:
-            block_type = self._block_stack[-1]
-            raise RuntimeError(
-                f"d.message() called inside '{block_type}' block.\n\n"
-                f"Messages inside blocks must use the block's builder:\n\n"
-                f"    with d.{block_type}(...) as {block_type}:\n"
-                f"        {block_type}.message(...)  # Correct\n\n"
-                f"If you want the message outside the block, "
-                f"move it before or after the 'with' statement."
-            )
+        self._check_not_in_block("message")
         return super().message(
             source,
             target,
@@ -583,6 +580,107 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
             bidirectional=bidirectional,
             style=style,
         )
+
+    def return_(self, label: str | Label | None = None) -> Return:
+        """Create a return message (auto-return from activation).
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("return_")
+        return super().return_(label)
+
+    def activate(
+        self,
+        participant: Participant | str,
+        color: ColorLike | None = None,
+    ) -> Activation:
+        """Explicitly activate a participant.
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("activate")
+        return super().activate(participant, color)
+
+    def deactivate(self, participant: Participant | str) -> Activation:
+        """Explicitly deactivate a participant.
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("deactivate")
+        return super().deactivate(participant)
+
+    def destroy(self, participant: Participant | str) -> Activation:
+        """Destroy a participant (X on lifeline).
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("destroy")
+        return super().destroy(participant)
+
+    def note(
+        self,
+        content: str | Label,
+        position: Literal["left", "right"] = "right",
+        *,
+        of: Participant | str | None = None,
+        over: tuple[Participant | str, ...] | None = None,
+        shape: NoteShape = "note",
+        across: bool = False,
+        aligned: bool = False,
+    ) -> SequenceNote:
+        """Create and register a note.
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("note")
+        return super().note(
+            content, position, of=of, over=over, shape=shape, across=across, aligned=aligned
+        )
+
+    def ref(
+        self,
+        *participants: Participant | str,
+        label: str | Label,
+    ) -> Reference:
+        """Create a reference to another diagram.
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("ref")
+        return super().ref(*participants, label=label)
+
+    def divider(self, title: str) -> Divider:
+        """Create a divider line with title.
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("divider")
+        return super().divider(title)
+
+    def delay(self, message: str | None = None) -> Delay:
+        """Create a delay indicator.
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("delay")
+        return super().delay(message)
+
+    def space(self, pixels: int | None = None) -> Space:
+        """Create vertical spacing.
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("space")
+        return super().space(pixels)
 
     # Override block context managers to track block stack
     @contextmanager

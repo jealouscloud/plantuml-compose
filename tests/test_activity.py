@@ -522,3 +522,149 @@ class TestValidation:
         with activity_diagram() as d:
             with pytest.raises(ValueError, match="only supports 'background' styling"):
                 d.action("Test", style={"line": {"color": "red"}})
+
+
+class TestBlockMisuseDetection:
+    """Tests for detecting d.action() called inside block contexts."""
+
+    def test_action_inside_if_raises_error(self):
+        with activity_diagram() as d:
+            d.start()
+            with d.if_("condition"):
+                with pytest.raises(RuntimeError) as exc_info:
+                    d.action("wrong")
+
+        error_text = str(exc_info.value)
+        assert "d.action() called inside 'if_' block" in error_text
+        assert "if_block.action" in error_text
+
+    def test_action_inside_while_raises_error(self):
+        with activity_diagram() as d:
+            d.start()
+            with d.while_("condition"):
+                with pytest.raises(RuntimeError, match="inside 'while_' block"):
+                    d.action("wrong")
+
+    def test_action_inside_fork_raises_error(self):
+        with activity_diagram() as d:
+            d.start()
+            with d.fork():
+                with pytest.raises(RuntimeError, match="inside 'fork' block"):
+                    d.action("wrong")
+
+    def test_correct_usage_in_block_works(self):
+        """Verify that using the block's builder works correctly."""
+        with activity_diagram() as d:
+            d.start()
+            with d.if_("Valid?", then_label="yes") as branch:
+                branch.action("Process")
+            d.stop()
+
+        output = render(d.build())
+        assert "if (Valid?) then (yes)" in output
+        assert ":Process;" in output
+
+    # Test all protected methods raise errors inside blocks
+    def test_start_inside_block_raises_error(self):
+        with activity_diagram() as d:
+            with d.if_("condition"):
+                with pytest.raises(RuntimeError, match="d.start\\(\\) called inside 'if_' block"):
+                    d.start()
+
+    def test_stop_inside_block_raises_error(self):
+        with activity_diagram() as d:
+            with d.if_("condition"):
+                with pytest.raises(RuntimeError, match="d.stop\\(\\) called inside 'if_' block"):
+                    d.stop()
+
+    def test_end_inside_block_raises_error(self):
+        with activity_diagram() as d:
+            with d.if_("condition"):
+                with pytest.raises(RuntimeError, match="d.end\\(\\) called inside 'if_' block"):
+                    d.end()
+
+    def test_arrow_inside_block_raises_error(self):
+        with activity_diagram() as d:
+            with d.if_("condition"):
+                with pytest.raises(RuntimeError, match="d.arrow\\(\\) called inside 'if_' block"):
+                    d.arrow("test")
+
+    def test_break_inside_block_raises_error(self):
+        with activity_diagram() as d:
+            with d.while_("condition"):
+                with pytest.raises(RuntimeError, match="d.break_\\(\\) called inside 'while_' block"):
+                    d.break_()
+
+    def test_kill_inside_block_raises_error(self):
+        with activity_diagram() as d:
+            with d.if_("condition"):
+                with pytest.raises(RuntimeError, match="d.kill\\(\\) called inside 'if_' block"):
+                    d.kill()
+
+    def test_detach_inside_block_raises_error(self):
+        with activity_diagram() as d:
+            with d.fork():
+                with pytest.raises(RuntimeError, match="d.detach\\(\\) called inside 'fork' block"):
+                    d.detach()
+
+    def test_connector_inside_block_raises_error(self):
+        with activity_diagram() as d:
+            with d.if_("condition"):
+                with pytest.raises(RuntimeError, match="d.connector\\(\\) called inside 'if_' block"):
+                    d.connector("conn")
+
+    def test_goto_inside_block_raises_error(self):
+        with activity_diagram() as d:
+            with d.if_("condition"):
+                with pytest.raises(RuntimeError, match="d.goto\\(\\) called inside 'if_' block"):
+                    d.goto("label")
+
+    def test_label_inside_block_raises_error(self):
+        with activity_diagram() as d:
+            with d.if_("condition"):
+                with pytest.raises(RuntimeError, match="d.label\\(\\) called inside 'if_' block"):
+                    d.label("test")
+
+    def test_swimlane_inside_block_raises_error(self):
+        with activity_diagram() as d:
+            with d.if_("condition"):
+                with pytest.raises(RuntimeError, match="d.swimlane\\(\\) called inside 'if_' block"):
+                    d.swimlane("Lane1")
+
+    def test_note_inside_block_raises_error(self):
+        with activity_diagram() as d:
+            with d.if_("condition"):
+                with pytest.raises(RuntimeError, match="d.note\\(\\) called inside 'if_' block"):
+                    d.note("test note")
+
+    def test_partition_block_tracks_context(self):
+        """Verify partition is tracked as a block context."""
+        with activity_diagram() as d:
+            with d.partition("Section"):
+                with pytest.raises(RuntimeError, match="d.action\\(\\) called inside 'partition' block"):
+                    d.action("wrong")
+
+    def test_group_block_tracks_context(self):
+        """Verify group is tracked as a block context."""
+        with activity_diagram() as d:
+            with d.group("Section"):
+                with pytest.raises(RuntimeError, match="d.action\\(\\) called inside 'group' block"):
+                    d.action("wrong")
+
+    def test_all_block_types_track_context(self):
+        """Verify all block types are tracked."""
+        block_types = [
+            ("if_", lambda d: d.if_("x")),
+            ("switch", lambda d: d.switch("x")),
+            ("while_", lambda d: d.while_("x")),
+            ("repeat", lambda d: d.repeat()),
+            ("fork", lambda d: d.fork()),
+            ("split", lambda d: d.split()),
+            ("partition", lambda d: d.partition("x")),
+            ("group", lambda d: d.group("x")),
+        ]
+        for block_name, block_fn in block_types:
+            with activity_diagram() as d:
+                with block_fn(d):
+                    with pytest.raises(RuntimeError, match=f"inside '{block_name}' block"):
+                        d.action("wrong")

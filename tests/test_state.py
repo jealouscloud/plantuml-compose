@@ -2083,3 +2083,104 @@ class TestEscapingInSVG:
         # The state should render - apostrophe is sanitized from the alias
         # Name displays as "It's Working", alias is "Its_Working"
         assert "Working" in svg
+
+
+class TestBlockMisuseDetection:
+    """Tests for detecting d.state() called inside block contexts."""
+
+    def test_state_inside_composite_raises_error(self):
+        with state_diagram() as d:
+            with d.composite("Active"):
+                with pytest.raises(RuntimeError) as exc_info:
+                    d.state("Working")
+
+        error_text = str(exc_info.value)
+        assert "d.state() called inside 'composite' block" in error_text
+        assert "composite_block.state" in error_text
+
+    def test_state_inside_concurrent_raises_error(self):
+        with state_diagram() as d:
+            with d.concurrent("Parallel"):
+                with pytest.raises(RuntimeError, match="inside 'concurrent' block"):
+                    d.state("Working")
+
+    def test_state_inside_parallel_raises_error(self):
+        """Parallel blocks don't directly contain states - they contain branches.
+        But d.state() inside parallel should still be caught."""
+        with state_diagram() as d:
+            try:
+                with d.parallel("Tasks") as p:
+                    # User might mistakenly call d.state() here
+                    with pytest.raises(RuntimeError, match="inside 'parallel' block"):
+                        d.state("Working")
+                    # Add a branch so _build() doesn't fail
+                    with p.branch() as b:
+                        b.state("Task1")
+            except ValueError:
+                # If we get here, the test setup is wrong
+                pytest.fail("Test should have caught RuntimeError before ValueError")
+
+    def test_correct_usage_in_composite_works(self):
+        """Verify that using the block's builder works correctly."""
+        with state_diagram() as d:
+            with d.composite("Active") as comp:
+                comp.state("Working")
+                comp.state("Idle")
+
+        output = render(d.build())
+        assert "state Active {" in output
+        assert "state Working" in output
+        assert "state Idle" in output
+
+    # Test all protected methods raise errors inside blocks
+    def test_states_inside_block_raises_error(self):
+        with state_diagram() as d:
+            with d.composite("Active"):
+                with pytest.raises(RuntimeError, match="d.states\\(\\) called inside 'composite' block"):
+                    d.states("A", "B", "C")
+
+    def test_choice_inside_block_raises_error(self):
+        with state_diagram() as d:
+            with d.composite("Active"):
+                with pytest.raises(RuntimeError, match="d.choice\\(\\) called inside 'composite' block"):
+                    d.choice("decide")
+
+    def test_fork_inside_block_raises_error(self):
+        with state_diagram() as d:
+            with d.composite("Active"):
+                with pytest.raises(RuntimeError, match="d.fork\\(\\) called inside 'composite' block"):
+                    d.fork("split")
+
+    def test_join_inside_block_raises_error(self):
+        with state_diagram() as d:
+            with d.composite("Active"):
+                with pytest.raises(RuntimeError, match="d.join\\(\\) called inside 'composite' block"):
+                    d.join("merge")
+
+    def test_sdl_receive_inside_block_raises_error(self):
+        with state_diagram() as d:
+            with d.composite("Active"):
+                with pytest.raises(RuntimeError, match="d.sdl_receive\\(\\) called inside 'composite' block"):
+                    d.sdl_receive("receive")
+
+    def test_note_inside_block_raises_error(self):
+        with state_diagram() as d:
+            with d.composite("Active"):
+                with pytest.raises(RuntimeError, match="d.note\\(\\) called inside 'composite' block"):
+                    d.note("test note")
+
+    def test_all_block_types_track_context(self):
+        """Verify all block types are tracked.
+
+        Note: parallel is tested separately in test_state_inside_parallel_raises_error
+        because _ParallelBuilder doesn't have state() - it uses branch() instead.
+        """
+        block_types = [
+            ("composite", lambda d: d.composite("x")),
+            ("concurrent", lambda d: d.concurrent("x")),
+        ]
+        for block_name, block_fn in block_types:
+            with state_diagram() as d:
+                with block_fn(d):
+                    with pytest.raises(RuntimeError, match=f"inside '{block_name}' block"):
+                        d.state("wrong")
