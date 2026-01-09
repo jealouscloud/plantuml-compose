@@ -94,8 +94,8 @@ class TestMaps:
 
     def test_map_with_links(self):
         with object_diagram() as d:
-            d.object("Widget", alias="widget")
-            d.map("Products", links={"item1": "widget"})
+            widget = d.object("Widget", alias="widget")
+            d.map("Products", links={"item1": widget})
 
         output = render(d.build())
         assert "item1 *-> widget" in output

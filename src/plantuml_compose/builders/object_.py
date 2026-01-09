@@ -188,7 +188,7 @@ class _BaseObjectBuilder:
         alias: str | None = None,
         style: StyleLike | None = None,
         entries: dict[str, str] | None = None,
-        links: dict[str, str] | None = None,
+        links: dict[str, ObjectRef] | None = None,
     ) -> Map:
         """Add a map (associative array).
 
@@ -197,7 +197,7 @@ class _BaseObjectBuilder:
             alias: Short alias for relationships
             style: Visual style (background, line, text_color)
             entries: Dictionary of key -> value
-            links: Dictionary of key -> object reference (for *-> syntax)
+            links: Dictionary of key -> Object or Map (for *-> syntax)
 
         Returns:
             The created Map
@@ -213,7 +213,7 @@ class _BaseObjectBuilder:
 
         # Add linked entries
         for key, link in (links or {}).items():
-            entry_objs.append(MapEntry(key=key, value="", link=link))
+            entry_objs.append(MapEntry(key=key, value="", link=self._to_ref(link)))
 
         map_obj = Map(
             name=name,
