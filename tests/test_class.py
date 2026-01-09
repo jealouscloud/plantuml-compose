@@ -233,11 +233,11 @@ class TestRelationships:
         output = render(d.build())
         assert "A --> B" in output
 
-    def test_relationship_with_cardinality(self):
+    def test_relationship_with_labels(self):
         with class_diagram() as d:
             user = d.class_("User")
             order = d.class_("Order")
-            d.has(user, order, source_card="1", target_card="*")
+            d.has(user, order, source_label="1", target_label="*")
 
         output = render(d.build())
         assert '"1"' in output
@@ -463,8 +463,8 @@ class TestComplexDiagram:
                 product.method("apply_discount(pct)", "Decimal", visibility="public")
 
             # Relationships
-            d.has(user, order, source_card="1", target_card="*", label="places")
-            d.has(order, "Product", source_card="1", target_card="*")
+            d.has(user, order, source_label="1", target_label="*", label="places")
+            d.has(order, "Product", source_label="1", target_label="*")
 
         output = render(d.build())
         assert "title E-Commerce Domain" in output

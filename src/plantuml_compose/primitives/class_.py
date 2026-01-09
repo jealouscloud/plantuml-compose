@@ -214,23 +214,19 @@ class Relationship:
         association:    General connection (A uses B)
         dependency:     A depends on B (e.g., parameter type)
 
-    Cardinality (e.g., "1", "0..*", "1..n") shows multiplicity at each end.
-    Labels at source/target ends can name roles.
+    Labels at source/target ends can show cardinality, role names, or both.
 
-        source/target:           Class references
-        source/target_cardinality: Multiplicity ("1", "0..*", etc.)
-        source/target_label:     Role names at each end
-        label:                   Relationship name (on the line)
-        label_direction:         Arrow in label ("<" or ">")
+        source/target:       Class references
+        source/target_label: Text at each end (cardinality, role, or both)
+        label:               Relationship name (on the line)
+        label_direction:     Arrow in label ("<" or ">")
     """
 
     source: str  # Class reference
     target: str  # Class reference
     type: RelationType = "association"
     label: LabelLike | None = None
-    source_cardinality: str | None = None  # e.g., "1", "0..*"
-    target_cardinality: str | None = None
-    source_label: str | None = None  # Label at source end
+    source_label: str | None = None  # Label at source end (cardinality, role, etc.)
     target_label: str | None = None  # Label at target end
     style: LineStyleLike | None = None
     direction: Direction | None = None

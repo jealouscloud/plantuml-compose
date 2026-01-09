@@ -30,12 +30,12 @@ Relationships:
     uses (dependency):          A ···> B         (A depends on B)
     associates:                 A ──> B          (general relationship)
 
-Cardinality: How many instances relate
+Labels: Cardinality, roles, or both at each end
 
     User "1" o-- "*" Order    (one User has many Orders)
          │        │
-         │        └─ target cardinality
-         └─ source cardinality
+         │        └─ target_label
+         └─ source_label
 
 Visibility (for members):
 
@@ -49,7 +49,7 @@ Example
     with class_diagram(title="Domain Model") as d:
         user = d.class_("User")
         order = d.class_("Order")
-        d.has(user, order, source_card="1", target_card="*")
+        d.has(user, order, source_label="1", target_label="*")
 
     print(render(d.build()))
 """
@@ -288,8 +288,6 @@ class _BaseClassBuilder:
         whole: ClassNode | str,
         part: ClassNode | str,
         *,
-        source_card: str | None = None,
-        target_card: str | None = None,
         source_label: str | None = None,
         target_label: str | None = None,
         label: str | Label | None = None,
@@ -306,17 +304,15 @@ class _BaseClassBuilder:
         Args:
             whole: The containing class
             part: The contained class
-            source_card: Cardinality at whole end (e.g., "1")
-            target_card: Cardinality at part end (e.g., "*", "0..*")
-            source_label: Role name at whole end
-            target_label: Role name at part end
-            label: Relationship label
+            source_label: Label at whole end (cardinality like "1", role like "owner", or both)
+            target_label: Label at part end (cardinality like "*", role, or both)
+            label: Relationship label (on the line)
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint
 
         Example:
             d.has(team, player)  # Player exists without Team
-            d.has(library, book, source_card="1", target_card="*")
+            d.has(library, book, source_label="1", target_label="*")
 
         UML: Hollow diamond (o--)
         """
@@ -324,8 +320,6 @@ class _BaseClassBuilder:
             whole,
             part,
             "aggregation",
-            source_card=source_card,
-            target_card=target_card,
             source_label=source_label,
             target_label=target_label,
             label=label,
@@ -338,8 +332,6 @@ class _BaseClassBuilder:
         whole: ClassNode | str,
         part: ClassNode | str,
         *,
-        source_card: str | None = None,
-        target_card: str | None = None,
         source_label: str | None = None,
         target_label: str | None = None,
         label: str | Label | None = None,
@@ -356,17 +348,15 @@ class _BaseClassBuilder:
         Args:
             whole: The containing class
             part: The contained class
-            source_card: Cardinality at whole end (e.g., "1")
-            target_card: Cardinality at part end (e.g., "*", "0..*")
-            source_label: Role name at whole end
-            target_label: Role name at part end
-            label: Relationship label
+            source_label: Label at whole end (cardinality like "1", role, or both)
+            target_label: Label at part end (cardinality like "1..*", role, or both)
+            label: Relationship label (on the line)
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint
 
         Example:
             d.contains(house, room)  # Room cannot exist without House
-            d.contains(order, line_item, target_card="1..*")
+            d.contains(order, line_item, target_label="1..*")
 
         UML: Filled diamond (*--)
         """
@@ -374,8 +364,6 @@ class _BaseClassBuilder:
             whole,
             part,
             "composition",
-            source_card=source_card,
-            target_card=target_card,
             source_label=source_label,
             target_label=target_label,
             label=label,
@@ -404,8 +392,6 @@ class _BaseClassBuilder:
         source: ClassNode | str,
         target: ClassNode | str,
         *,
-        source_card: str | None = None,
-        target_card: str | None = None,
         source_label: str | None = None,
         target_label: str | None = None,
         label: str | Label | None = None,
@@ -419,11 +405,9 @@ class _BaseClassBuilder:
         Args:
             source: Source class
             target: Target class
-            source_card: Cardinality at source end
-            target_card: Cardinality at target end
-            source_label: Role name at source end
-            target_label: Role name at target end
-            label: Relationship label
+            source_label: Label at source end (cardinality, role, or both)
+            target_label: Label at target end (cardinality, role, or both)
+            label: Relationship label (on the line)
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint
         """
@@ -431,8 +415,6 @@ class _BaseClassBuilder:
             source,
             target,
             "association",
-            source_card=source_card,
-            target_card=target_card,
             source_label=source_label,
             target_label=target_label,
             label=label,
@@ -446,8 +428,6 @@ class _BaseClassBuilder:
         target: ClassNode | str,
         type: RelationType = "association",
         *,
-        source_card: str | None = None,
-        target_card: str | None = None,
         source_label: str | None = None,
         target_label: str | None = None,
         label: str | Label | None = None,
@@ -462,11 +442,9 @@ class _BaseClassBuilder:
             source: Source class
             target: Target class
             type: Relationship type
-            source_card: Cardinality at source end (e.g., "1")
-            target_card: Cardinality at target end (e.g., "*")
-            source_label: Role name at source end
-            target_label: Role name at target end
-            label: Relationship label
+            source_label: Label at source end (cardinality, role, or both)
+            target_label: Label at target end (cardinality, role, or both)
+            label: Relationship label (on the line)
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint
         """
@@ -474,8 +452,6 @@ class _BaseClassBuilder:
             source,
             target,
             type,
-            source_card=source_card,
-            target_card=target_card,
             source_label=source_label,
             target_label=target_label,
             label=label,
@@ -489,8 +465,6 @@ class _BaseClassBuilder:
         target: ClassNode | str,
         type: RelationType,
         *,
-        source_card: str | None = None,
-        target_card: str | None = None,
         source_label: str | None = None,
         target_label: str | None = None,
         label: str | Label | None = None,
@@ -504,8 +478,6 @@ class _BaseClassBuilder:
             source=self._to_ref(source),
             target=self._to_ref(target),
             type=type,
-            source_cardinality=source_card,
-            target_cardinality=target_card,
             source_label=source_label,
             target_label=target_label,
             label=label_obj,
@@ -824,7 +796,7 @@ class ClassDiagramBuilder(_BaseClassBuilder):
         with class_diagram(title="Domain Model") as d:
             user = d.class_("User")
             order = d.class_("Order")
-            d.has(user, order, source_card="1", target_card="*")
+            d.has(user, order, source_label="1", target_label="*")
 
         diagram = d.build()
         print(render(diagram))
@@ -899,11 +871,11 @@ def class_diagram(
             order = d.class_("Order")
 
             with d.class_with_members("Product") as product:
-                product.field("-id", "int")
-                product.field("-name", "str")
-                product.method("+save()", "bool")
+                product.field("id", "int", visibility="private")
+                product.field("name", "str", visibility="private")
+                product.method("save()", "bool", visibility="public")
 
-            d.has(user, order, source_card="1", target_card="*")
+            d.has(user, order, source_label="1", target_label="*")
             d.extends(admin, user)
 
         print(d.render())

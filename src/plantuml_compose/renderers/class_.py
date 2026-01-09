@@ -207,31 +207,20 @@ def _render_relationship(rel: Relationship) -> str:
     # Build arrow based on relationship type
     arrow = _build_relationship_arrow(rel)
 
-    # Build with labels, cardinalities and relationship label
-    # PlantUML syntax: source "src_label" "src_card" --> "tgt_card" "tgt_label" target : label
+    # PlantUML syntax: source "label" --> "label" target : label
     parts: list[str] = [quote_ref(rel.source)]
 
-    # Source label (role name)
     if rel.source_label:
         parts.append(f'"{rel.source_label}"')
 
-    # Source cardinality
-    if rel.source_cardinality:
-        parts.append(f'"{rel.source_cardinality}"')
-
     parts.append(arrow)
 
-    # Target cardinality
-    if rel.target_cardinality:
-        parts.append(f'"{rel.target_cardinality}"')
-
-    # Target label (role name)
     if rel.target_label:
         parts.append(f'"{rel.target_label}"')
 
     parts.append(quote_ref(rel.target))
 
-    # Relationship label
+    # Relationship label (on the line)
     if rel.label:
         label_text = render_label(rel.label)
         if rel.label_direction:
