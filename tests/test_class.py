@@ -78,6 +78,64 @@ class TestClassNode:
         output = render(d.build())
         assert 'class "Long Class Name" as lcn' in output
 
+    def test_class_with_style(self):
+        """Test that class style renders inline color."""
+        with class_diagram() as d:
+            d.class_("Error", style={"background": "#FFCDD2"})
+
+        output = render(d.build())
+        assert "class Error #FFCDD2" in output
+
+    def test_abstract_with_style(self):
+        """Test that abstract class style renders inline color."""
+        with class_diagram() as d:
+            d.abstract("Base", style={"background": "#E3F2FD"})
+
+        output = render(d.build())
+        assert "abstract class Base #E3F2FD" in output
+
+    def test_interface_with_style(self):
+        """Test that interface style renders inline color."""
+        with class_diagram() as d:
+            d.interface("Serializable", style={"background": "#FFF3E0"})
+
+        output = render(d.build())
+        assert "interface Serializable #FFF3E0" in output
+
+    def test_enum_with_style(self):
+        """Test that enum style renders inline color."""
+        with class_diagram() as d:
+            d.enum("Status", "ACTIVE", "INACTIVE", style={"background": "#E8F5E9"})
+
+        output = render(d.build())
+        assert "#E8F5E9" in output
+
+    def test_annotation_with_style(self):
+        """Test that annotation style renders inline color."""
+        with class_diagram() as d:
+            d.annotation("Deprecated", style={"background": "#FFEBEE"})
+
+        output = render(d.build())
+        assert "annotation Deprecated #FFEBEE" in output
+
+    def test_entity_with_style(self):
+        """Test that entity style renders inline color."""
+        with class_diagram() as d:
+            d.entity("Order", style={"background": "#FCE4EC"})
+
+        output = render(d.build())
+        assert "entity Order #FCE4EC" in output
+
+    def test_class_with_members_and_style(self):
+        """Test that class_with_members style renders inline color."""
+        with class_diagram() as d:
+            with d.class_with_members("User", style={"background": "#E1F5FE"}) as user:
+                user.field("name", "str")
+
+        output = render(d.build())
+        assert "#E1F5FE" in output
+        assert "name : str" in output
+
 
 class TestClassMembers:
     """Tests for class members (fields and methods)."""
@@ -297,6 +355,17 @@ class TestRelationships:
 
         output = render(d.build())
         assert "-[#blue,dotted,thickness=2]->" in output
+
+    def test_relationship_with_note(self):
+        """Test that relationship note renders using 'note on link' syntax."""
+        with class_diagram() as d:
+            user = d.class_("User")
+            order = d.class_("Order")
+            d.has(user, order, note="Ownership relationship")
+
+        output = render(d.build())
+        assert "User o-- Order" in output
+        assert "note on link : Ownership relationship" in output
 
 
 class TestPackages:

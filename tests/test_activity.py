@@ -548,7 +548,9 @@ class TestBlockMisuseDetection:
     def test_action_inside_fork_raises_error(self):
         with activity_diagram() as d:
             d.start()
-            with d.fork():
+            with d.fork() as f:
+                with f.branch() as b:
+                    b.action("valid")
                 with pytest.raises(RuntimeError, match="inside 'fork' block"):
                     d.action("wrong")
 
@@ -603,7 +605,9 @@ class TestBlockMisuseDetection:
 
     def test_detach_inside_block_raises_error(self):
         with activity_diagram() as d:
-            with d.fork():
+            with d.fork() as f:
+                with f.branch() as b:
+                    b.action("valid")
                 with pytest.raises(RuntimeError, match="d.detach\\(\\) called inside 'fork' block"):
                     d.detach()
 
@@ -653,18 +657,34 @@ class TestBlockMisuseDetection:
 
     def test_all_block_types_track_context(self):
         """Verify all block types are tracked."""
-        block_types = [
+        # Block types that don't require children
+        simple_block_types = [
             ("if_", lambda d: d.if_("x")),
-            ("switch", lambda d: d.switch("x")),
             ("while_", lambda d: d.while_("x")),
             ("repeat", lambda d: d.repeat()),
-            ("fork", lambda d: d.fork()),
-            ("split", lambda d: d.split()),
             ("partition", lambda d: d.partition("x")),
             ("group", lambda d: d.group("x")),
         ]
-        for block_name, block_fn in block_types:
+        for block_name, block_fn in simple_block_types:
             with activity_diagram() as d:
                 with block_fn(d):
                     with pytest.raises(RuntimeError, match=f"inside '{block_name}' block"):
                         d.action("wrong")
+
+        # fork/split require at least one branch
+        for block_name in ["fork", "split"]:
+            with activity_diagram() as d:
+                block_fn = getattr(d, block_name)
+                with block_fn() as f:
+                    with f.branch() as b:
+                        b.action("valid")
+                    with pytest.raises(RuntimeError, match=f"inside '{block_name}' block"):
+                        d.action("wrong")
+
+        # switch requires at least one case
+        with activity_diagram() as d:
+            with d.switch("x") as sw:
+                with sw.case("a") as c:
+                    c.action("valid")
+                with pytest.raises(RuntimeError, match="inside 'switch' block"):
+                    d.action("wrong")

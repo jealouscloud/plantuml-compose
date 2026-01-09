@@ -116,8 +116,12 @@ from ..primitives.common import (
     Scale,
     StyleLike,
     coerce_line_style,
+    validate_literal_type,
     validate_style_background_only,
 )
+
+# Type alias for fork end styles - defines valid values once
+ForkEndStyle = Literal["fork", "merge", "or", "and"]
 
 
 class _BaseActivityBuilder:
@@ -360,9 +364,13 @@ class _BaseActivityBuilder:
     @contextmanager
     def fork(
         self,
-        end_style: str = "fork",
+        end_style: ForkEndStyle = "fork",
     ) -> Iterator["_ForkBuilder"]:
         """Create a fork/join for parallel execution.
+
+        Args:
+            end_style: How to end the fork - "fork" (sync bar), "merge" (single arrow),
+                "or" (diamond), or "and" (bar). Defaults to "fork".
 
         Usage:
             with d.fork() as f:
@@ -371,7 +379,8 @@ class _BaseActivityBuilder:
                 with f.branch() as b2:
                     b2.action("Task 2")
         """
-        builder = _ForkBuilder(end_style)  # type: ignore[arg-type]
+        validate_literal_type(end_style, ForkEndStyle, "end_style")
+        builder = _ForkBuilder(end_style)
         yield builder
         self._elements.append(builder._build())
 
@@ -485,11 +494,13 @@ class _ElseBuilder(_BaseActivityBuilder):
     pass
 
 
-class _SwitchBuilder(_BaseActivityBuilder):
-    """Builder for switch statements."""
+class _SwitchBuilder:
+    """Builder for switch statements.
+
+    Only exposes case() - actions must be added inside cases.
+    """
 
     def __init__(self, condition: str) -> None:
-        super().__init__()
         self._condition = condition
         self._cases: list[Case] = []
 
@@ -502,6 +513,11 @@ class _SwitchBuilder(_BaseActivityBuilder):
 
     def _build(self) -> Switch:
         """Build the switch statement."""
+        if not self._cases:
+            raise ValueError(
+                "Switch must have at least one case. "
+                "Use 'with sw.case(\"label\") as c: c.action(...)'"
+            )
         return Switch(
             condition=self._condition,
             cases=tuple(self._cases),
@@ -577,11 +593,13 @@ class _RepeatBuilder(_BaseActivityBuilder):
         )
 
 
-class _ForkBuilder(_BaseActivityBuilder):
-    """Builder for fork/join."""
+class _ForkBuilder:
+    """Builder for fork/join.
 
-    def __init__(self, end_style: str) -> None:
-        super().__init__()
+    Only exposes branch() - actions must be added inside branches.
+    """
+
+    def __init__(self, end_style: Literal["fork", "merge", "or", "and"]) -> None:
         self._end_style = end_style
         self._branches: list[list[ActivityElement]] = []
 
@@ -594,17 +612,24 @@ class _ForkBuilder(_BaseActivityBuilder):
 
     def _build(self) -> Fork:
         """Build the fork."""
+        if not self._branches:
+            raise ValueError(
+                "Fork must have at least one branch. "
+                "Use 'with f.branch() as b: b.action(...)'"
+            )
         return Fork(
             branches=tuple(tuple(b) for b in self._branches),
-            end_style=self._end_style,  # type: ignore[arg-type]
+            end_style=self._end_style,
         )
 
 
-class _SplitBuilder(_BaseActivityBuilder):
-    """Builder for split."""
+class _SplitBuilder:
+    """Builder for split.
+
+    Only exposes branch() - actions must be added inside branches.
+    """
 
     def __init__(self) -> None:
-        super().__init__()
         self._branches: list[list[ActivityElement]] = []
 
     @contextmanager
@@ -616,6 +641,11 @@ class _SplitBuilder(_BaseActivityBuilder):
 
     def _build(self) -> Split:
         """Build the split."""
+        if not self._branches:
+            raise ValueError(
+                "Split must have at least one branch. "
+                "Use 'with s.branch() as b: b.action(...)'"
+            )
         return Split(
             branches=tuple(tuple(b) for b in self._branches),
         )
@@ -928,12 +958,18 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
     @contextmanager
     def fork(
         self,
-        end_style: str = "fork",
+        end_style: ForkEndStyle = "fork",
     ) -> Iterator["_ForkBuilder"]:
-        """Create a fork/join for parallel execution."""
+        """Create a fork/join for parallel execution.
+
+        Args:
+            end_style: How to end the fork - "fork" (sync bar), "merge" (single arrow),
+                "or" (diamond), or "and" (bar). Defaults to "fork".
+        """
+        validate_literal_type(end_style, ForkEndStyle, "end_style")
         self._block_stack.append("fork")
         try:
-            builder = _ForkBuilder(end_style)  # type: ignore[arg-type]
+            builder = _ForkBuilder(end_style)
             yield builder
             self._elements.append(builder._build())
         finally:

@@ -179,7 +179,7 @@ class _BaseComponentBuilder:
         if not name:
             raise ValueError("Component name cannot be empty")
         stereo = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
-        style_obj = coerce_style(style) if style else None
+        style_obj = coerce_style(style)
         comp = Component(
             name=name,
             alias=alias,
@@ -230,7 +230,7 @@ class _BaseComponentBuilder:
         if not name:
             raise ValueError("Interface name cannot be empty")
         stereo = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
-        style_obj = coerce_style(style) if style else None
+        style_obj = coerce_style(style)
         iface = Interface(
             name=name,
             alias=alias,
@@ -907,7 +907,7 @@ class _ContainerBuilder(_BaseComponentBuilder):
         self._type = type
         self._name = name
         self._stereotype = stereotype
-        self._style = coerce_style(style) if style else None
+        self._style = coerce_style(style)
         self._alias = alias
 
     @property
@@ -942,7 +942,7 @@ class _ComponentWithPortsBuilder:
         self._name = name
         self._alias = alias
         self._stereotype = stereotype
-        self._style = coerce_style(style) if style else None
+        self._style = coerce_style(style)
         self._elements: list[Port] = []
 
     @property

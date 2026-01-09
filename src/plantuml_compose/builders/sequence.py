@@ -94,8 +94,12 @@ from ..primitives.common import (
     Scale,
     StyleLike,
     coerce_line_style,
+    validate_literal_type,
     validate_style_background_only,
 )
+
+# Type alias for autonumber actions - defines valid values once
+AutonumberAction = Literal["start", "stop", "resume"]
 from ..primitives.sequence import (
     Activation,
     ActivationAction,
@@ -269,12 +273,17 @@ class _BaseSequenceBuilder:
         """Create a reference to another diagram.
 
         Args:
-            *participants: Participants the reference spans
+            *participants: Participants the reference spans (at least one required)
             label: Reference description
 
         Returns:
             The created Reference
+
+        Raises:
+            ValueError: If no participants are provided.
         """
+        if not participants:
+            raise ValueError("ref() requires at least one participant")
         label_obj = Label(label) if isinstance(label, str) else label
         ref = Reference(
             participants=tuple(self._to_ref(p) for p in participants),
@@ -314,7 +323,7 @@ class _BaseSequenceBuilder:
 
     def autonumber(
         self,
-        action: str = "start",
+        action: AutonumberAction = "start",
         *,
         start: int | None = None,
         increment: int | None = None,
@@ -331,8 +340,9 @@ class _BaseSequenceBuilder:
         Returns:
             The created Autonumber
         """
+        validate_literal_type(action, AutonumberAction, "action")
         auto = Autonumber(
-            action=action,  # type: ignore[arg-type]
+            action=action,
             start=start,
             increment=increment,
             format=format,

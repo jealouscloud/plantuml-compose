@@ -142,7 +142,7 @@ class _BaseStateBuilder:
         )
 
         # Coerce style dict to Style object
-        style_obj = coerce_style(style) if style is not None else None
+        style_obj = coerce_style(style)
 
         node = StateNode(
             name=name,
@@ -461,7 +461,7 @@ class _BaseStateBuilder:
             A CompositeBuilder for adding nested elements
         """
         # Coerce style dict to Style object
-        style_obj = coerce_style(style) if style is not None else None
+        style_obj = coerce_style(style)
         builder = _CompositeBuilder(name, alias, style_obj, note, note_position)
         yield builder
         self._elements.append(builder._build())
@@ -498,7 +498,7 @@ class _BaseStateBuilder:
             A ConcurrentBuilder for adding parallel regions
         """
         # Coerce style dict to Style object
-        style_obj = coerce_style(style) if style is not None else None
+        style_obj = coerce_style(style)
         builder = _ConcurrentBuilder(name, alias, style_obj, note, note_position, separator)
         yield builder
         self._elements.append(builder._build())
@@ -1046,7 +1046,7 @@ class StateDiagramBuilder(_BaseStateBuilder):
         """Create a composite state with nested elements."""
         self._block_stack.append("composite")
         try:
-            style_obj = coerce_style(style) if style is not None else None
+            style_obj = coerce_style(style)
             builder = _CompositeBuilder(name, alias, style_obj, note, note_position)
             yield builder
             self._elements.append(builder._build())
@@ -1067,7 +1067,7 @@ class StateDiagramBuilder(_BaseStateBuilder):
         """Create a concurrent state with parallel regions."""
         self._block_stack.append("concurrent")
         try:
-            style_obj = coerce_style(style) if style is not None else None
+            style_obj = coerce_style(style)
             builder = _ConcurrentBuilder(name, alias, style_obj, note, note_position, separator)
             yield builder
             self._elements.append(builder._build())

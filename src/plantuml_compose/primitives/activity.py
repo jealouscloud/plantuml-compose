@@ -24,6 +24,7 @@ from dataclasses import dataclass, field
 from typing import Literal, TypeAlias
 
 from .common import (
+    ColorLike,
     Direction,
     Footer,
     Header,
@@ -31,8 +32,8 @@ from .common import (
     LabelLike,
     Legend,
     LineStyle,
-    Scale,
     Note,
+    Scale,
     Style,
 )
 

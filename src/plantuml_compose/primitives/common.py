@@ -24,7 +24,35 @@ This ensures diagrams are built from pure, predictable data structures.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal, TypeAlias, TypedDict
+from typing import Any, Literal, TypeAlias, TypedDict, get_args
+
+
+def validate_literal_type(value: str, literal_type: Any, param_name: str) -> str:
+    """Validate a value against a Literal type using get_args().
+
+    This extracts valid values from the Literal type definition, ensuring
+    the validation stays in sync with the type hint automatically.
+
+    Args:
+        value: The value to validate
+        literal_type: The Literal type (e.g., Literal["a", "b", "c"])
+        param_name: Name of the parameter for error messages
+
+    Returns:
+        The validated value
+
+    Raises:
+        ValueError: If value is not one of the Literal's allowed values
+
+    Example:
+        ForkEndStyle = Literal["fork", "merge", "or", "and"]
+        validate_literal_type("fork", ForkEndStyle, "end_style")  # OK
+        validate_literal_type("bad", ForkEndStyle, "end_style")   # ValueError
+    """
+    valid = get_args(literal_type)
+    if value not in valid:
+        raise ValueError(f"{param_name} must be one of {valid}, got '{value}'")
+    return value
 
 
 def sanitize_ref(name: str) -> str:
@@ -197,6 +225,15 @@ RegionSeparator = Literal["horizontal", "vertical"]
 FontStyle = Literal["normal", "bold", "italic", "bold italic"]
 
 
+def _validate_color_component(value: int, name: str) -> int:
+    """Validate that a color component is an integer in the range 0-255."""
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"{name} must be an integer, got {type(value).__name__}")
+    if not 0 <= value <= 255:
+        raise ValueError(f"{name} must be 0-255, got {value}")
+    return value
+
+
 @dataclass(frozen=True)
 class Color:
     """Immutable color value for styling diagram elements.
@@ -241,7 +278,14 @@ class Color:
         """Create from RGB components.
 
         Each component is an integer from 0-255.
+
+        Raises:
+            TypeError: If any component is not an integer.
+            ValueError: If any component is outside the 0-255 range.
         """
+        _validate_color_component(r, "r")
+        _validate_color_component(g, "g")
+        _validate_color_component(b, "b")
         return cls(f"#{r:02X}{g:02X}{b:02X}")
 
     @classmethod
@@ -250,7 +294,15 @@ class Color:
 
         Each component is an integer from 0-255. Alpha 0 is fully transparent,
         255 is fully opaque. Note: PlantUML encodes alpha first (#AARRGGBB).
+
+        Raises:
+            TypeError: If any component is not an integer.
+            ValueError: If any component is outside the 0-255 range.
         """
+        _validate_color_component(r, "r")
+        _validate_color_component(g, "g")
+        _validate_color_component(b, "b")
+        _validate_color_component(a, "a")
         return cls(f"#{a:02X}{r:02X}{g:02X}{b:02X}")
 
 
@@ -290,6 +342,9 @@ def _coerce_color_or_gradient(
     return coerce_color(value)
 
 
+_GRADIENT_DIRECTIONS = ("horizontal", "vertical", "diagonal_down", "diagonal_up")
+
+
 @dataclass(frozen=True)
 class Gradient:
     """Two-color gradient for element backgrounds.
@@ -305,6 +360,9 @@ class Gradient:
     Example:
         # Blue fading to white from left to right
         style={"background": Gradient("Blue", "White", "horizontal")}
+
+    Raises:
+        ValueError: If direction is not one of the valid options.
     """
 
     start: ColorLike
@@ -312,6 +370,13 @@ class Gradient:
     direction: Literal[
         "horizontal", "vertical", "diagonal_down", "diagonal_up"
     ] = "horizontal"
+
+    def __post_init__(self) -> None:
+        if self.direction not in _GRADIENT_DIRECTIONS:
+            raise ValueError(
+                f"direction must be one of {_GRADIENT_DIRECTIONS}, "
+                f"got '{self.direction}'"
+            )
 
 
 @dataclass(frozen=True)
@@ -665,8 +730,14 @@ class StyleDict(TypedDict, total=False):
 StyleLike: TypeAlias = Style | StyleDict
 
 
-def coerce_style(value: StyleLike) -> Style:
-    """Convert a StyleLike value to a Style object."""
+def coerce_style(value: StyleLike | None) -> Style | None:
+    """Convert a StyleLike value to a Style object.
+
+    Returns None if value is None, allowing cleaner call sites:
+        style=coerce_style(style)  # instead of coerce_style(style) if style else None
+    """
+    if value is None:
+        return None
     if isinstance(value, Style):
         return value
     return Style(

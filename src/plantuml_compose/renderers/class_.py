@@ -5,6 +5,8 @@ Pure functions that transform class diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+
 from ..primitives.class_ import (
     ClassDiagram,
     ClassDiagramElement,
@@ -18,7 +20,14 @@ from ..primitives.class_ import (
     Together,
     _VISIBILITY_TO_SYMBOL,
 )
-from ..primitives.common import Note
+from ..primitives.common import (
+    Gradient,
+    LineStyle,
+    Note,
+    Style,
+    coerce_line_style,
+    coerce_style,
+)
 from .common import (
     escape_quotes,
     needs_quotes,
@@ -33,6 +42,18 @@ from .common import (
     render_scale,
     render_stereotype,
 )
+
+
+@dataclass
+class _RenderContext:
+    """Mutable context for tracking state during rendering."""
+
+    note_counter: int = 0
+
+    def next_note_alias(self) -> str:
+        """Generate the next unique note alias."""
+        self.note_counter += 1
+        return f"N{self.note_counter}"
 
 
 def render_class_diagram(diagram: ClassDiagram) -> str:
@@ -82,30 +103,75 @@ def render_class_diagram(diagram: ClassDiagram) -> str:
         lines.append("hide circle")
 
     # Main elements
+    ctx = _RenderContext()
     for elem in diagram.elements:
-        lines.extend(_render_element(elem))
+        lines.extend(_render_element(elem, ctx))
 
     lines.append("@enduml")
     return "\n".join(lines)
 
 
-def _render_element(elem: ClassDiagramElement) -> list[str]:
+def _render_element(elem: ClassDiagramElement, ctx: _RenderContext) -> list[str]:
     """Render a single diagram element."""
     if isinstance(elem, ClassNode):
         return _render_class_node(elem)
     if isinstance(elem, Relationship):
-        return [_render_relationship(elem)]
+        return _render_relationship(elem)
     if isinstance(elem, Package):
-        return _render_package(elem)
+        return _render_package(elem, ctx)
     if isinstance(elem, Together):
-        return _render_together(elem)
+        return _render_together(elem, ctx)
     if isinstance(elem, ClassNote):
         return _render_class_note(elem)
     if isinstance(elem, HideShow):
         return [f"{elem.action} {elem.target}"]
     if isinstance(elem, Note):
-        return _render_floating_note(elem)
+        return _render_floating_note(elem, ctx)
     raise TypeError(f"Unknown element type: {type(elem).__name__}")
+
+
+def _render_class_inline_style(style: Style | dict) -> str:
+    """Render inline style for a class node.
+
+    PlantUML supports:
+      - Simple: #E3F2FD (just background color)
+      - Full: #back:E3F2FD;line:1976D2 (background and line)
+      - With text: #back:E3F2FD;line:1976D2;text:333333
+    """
+    style_obj = coerce_style(style)
+
+    # Collect style parts
+    parts: list[str] = []
+
+    if style_obj.background:
+        bg = render_color(style_obj.background)
+        parts.append(f"back:{bg}")
+
+    if style_obj.line:
+        line = coerce_line_style(style_obj.line)
+        if line.color:
+            line_color = render_color(line.color)
+            parts.append(f"line:{line_color}")
+
+    if style_obj.text_color:
+        text = render_color(style_obj.text_color)
+        parts.append(f"text:{text}")
+
+    if not parts:
+        return ""
+
+    # Simple case: just background color, use short form
+    if len(parts) == 1 and parts[0].startswith("back:"):
+        bg = parts[0][5:]  # Remove "back:" prefix
+        if not bg.startswith("#"):
+            bg = f"#{bg}"
+        return bg
+
+    # Full form with multiple properties
+    full_style = ";".join(parts)
+    if not full_style.startswith("#"):
+        full_style = f"#{full_style}"
+    return full_style
 
 
 def _render_class_node(node: ClassNode) -> list[str]:
@@ -136,6 +202,10 @@ def _render_class_node(node: ClassNode) -> list[str]:
     # Stereotype
     if node.stereotype:
         decl += f" {render_stereotype(node.stereotype)}"
+
+    # Inline style (background color, line color)
+    if node.style:
+        decl += f" {_render_class_inline_style(node.style)}"
 
     # Enum values (multiline syntax required by PlantUML)
     if node.type == "enum" and node.enum_values and not node.members:
@@ -202,8 +272,10 @@ def _render_separator(sep: Separator) -> str:
     return marker
 
 
-def _render_relationship(rel: Relationship) -> str:
+def _render_relationship(rel: Relationship) -> list[str]:
     """Render a relationship between classes."""
+    lines: list[str] = []
+
     # Build arrow based on relationship type
     arrow = _build_relationship_arrow(rel)
 
@@ -227,7 +299,20 @@ def _render_relationship(rel: Relationship) -> str:
             label_text += f" {rel.label_direction}"
         parts.append(f": {label_text}")
 
-    return " ".join(parts)
+    lines.append(" ".join(parts))
+
+    # Note on link (must immediately follow the relationship)
+    if rel.note:
+        note_text = render_label(rel.note)
+        if "\n" in note_text:
+            lines.append("note on link")
+            for line in note_text.split("\n"):
+                lines.append(f"  {line}")
+            lines.append("end note")
+        else:
+            lines.append(f"note on link : {note_text}")
+
+    return lines
 
 
 def _build_relationship_arrow(rel: Relationship) -> str:
@@ -292,7 +377,7 @@ def _build_relationship_arrow(rel: Relationship) -> str:
     return base_arrow
 
 
-def _render_package(pkg: Package) -> list[str]:
+def _render_package(pkg: Package, ctx: _RenderContext) -> list[str]:
     """Render a package with its elements."""
     lines: list[str] = []
 
@@ -324,19 +409,19 @@ def _render_package(pkg: Package) -> list[str]:
 
     # Elements
     for elem in pkg.elements:
-        for line in _render_element(elem):
+        for line in _render_element(elem, ctx):
             lines.append(f"  {line}")
 
     lines.append("}")
     return lines
 
 
-def _render_together(together: Together) -> list[str]:
+def _render_together(together: Together, ctx: _RenderContext) -> list[str]:
     """Render a together block."""
     lines: list[str] = ["together {"]
 
     for elem in together.elements:
-        for line in _render_element(elem):
+        for line in _render_element(elem, ctx):
             lines.append(f"  {line}")
 
     lines.append("}")
@@ -382,15 +467,16 @@ def _render_attached_note(note: Note, target: str) -> list[str]:
     return [f"{prefix}: {content}"]
 
 
-def _render_floating_note(note: Note) -> list[str]:
+def _render_floating_note(note: Note, ctx: _RenderContext) -> list[str]:
     """Render a floating note."""
     content = render_label(note.content)
+    alias = ctx.next_note_alias()
 
     if "\n" in content:
-        lines = ["note as N"]
+        lines = [f"note as {alias}"]
         for line in content.split("\n"):
             lines.append(f"  {line}")
         lines.append("end note")
         return lines
 
-    return [f'note "{content}" as N']
+    return [f'note "{content}" as {alias}']

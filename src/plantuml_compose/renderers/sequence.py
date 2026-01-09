@@ -113,16 +113,17 @@ def _render_participant(p: Participant) -> str:
             color = f"#{color}"
         parts.append(color)
 
-    # Multiline description is handled separately
+    # Multiline description - appended after all other parts
     if p.description:
         desc = render_label(p.description)
         if "\n" in desc:
-            # Multiline participant
-            result = f"{parts[0]} {p._ref} [\n"
+            # Multiline participant - use all parts, then add description block
+            base = " ".join(parts)
+            lines = [f"{base} ["]
             for line in desc.split("\n"):
-                result += f"  {line}\n"
-            result += "]"
-            return result
+                lines.append(f"  {line}")
+            lines.append("]")
+            return "\n".join(lines)
 
     return " ".join(parts)
 

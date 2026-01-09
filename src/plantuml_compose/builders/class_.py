@@ -91,7 +91,9 @@ from ..primitives.common import (
     NotePosition,
     Scale,
     Stereotype,
+    StyleLike,
     coerce_direction,
+    coerce_style,
     validate_literal,
 )
 
@@ -109,6 +111,7 @@ class _BaseClassBuilder:
         alias: str | None = None,
         generics: str | None = None,
         stereotype: Stereotype | None = None,
+        style: StyleLike | None = None,
     ) -> ClassNode:
         """Create and register a class.
 
@@ -117,9 +120,13 @@ class _BaseClassBuilder:
             alias: Optional short reference name
             generics: Generic type parameters (e.g., "T extends Element")
             stereotype: Optional stereotype
+            style: Visual styling (background color, line color, text color)
 
         Returns:
             The created ClassNode
+
+        Example:
+            d.class_("Error", style={"background": "#FFCDD2"})
         """
         if not name:
             raise ValueError("Class name cannot be empty")
@@ -129,6 +136,7 @@ class _BaseClassBuilder:
             type="class",
             generics=generics,
             stereotype=stereotype,
+            style=coerce_style(style),
         )
         self._elements.append(node)
         return node
@@ -140,6 +148,7 @@ class _BaseClassBuilder:
         alias: str | None = None,
         generics: str | None = None,
         stereotype: Stereotype | None = None,
+        style: StyleLike | None = None,
     ) -> ClassNode:
         """Create and register an abstract class."""
         if not name:
@@ -150,6 +159,7 @@ class _BaseClassBuilder:
             type="abstract",
             generics=generics,
             stereotype=stereotype,
+            style=coerce_style(style),
         )
         self._elements.append(node)
         return node
@@ -161,6 +171,7 @@ class _BaseClassBuilder:
         alias: str | None = None,
         generics: str | None = None,
         stereotype: Stereotype | None = None,
+        style: StyleLike | None = None,
     ) -> ClassNode:
         """Create and register an interface."""
         if not name:
@@ -171,6 +182,7 @@ class _BaseClassBuilder:
             type="interface",
             generics=generics,
             stereotype=stereotype,
+            style=coerce_style(style),
         )
         self._elements.append(node)
         return node
@@ -180,6 +192,7 @@ class _BaseClassBuilder:
         name: str,
         *values: str,
         alias: str | None = None,
+        style: StyleLike | None = None,
     ) -> ClassNode:
         """Create and register an enum.
 
@@ -187,6 +200,7 @@ class _BaseClassBuilder:
             name: Enum name
             *values: Enum values (e.g., "VALUE1", "VALUE2")
             alias: Optional short reference name
+            style: Visual styling (background color, line color, text color)
 
         Example:
             d.enum("Status", "PENDING", "ACTIVE", "CLOSED")
@@ -198,23 +212,46 @@ class _BaseClassBuilder:
             alias=alias,
             type="enum",
             enum_values=values if values else None,
+            style=coerce_style(style),
         )
         self._elements.append(node)
         return node
 
-    def annotation(self, name: str, *, alias: str | None = None) -> ClassNode:
+    def annotation(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        style: StyleLike | None = None,
+    ) -> ClassNode:
         """Create and register an annotation."""
         if not name:
             raise ValueError("Annotation name cannot be empty")
-        node = ClassNode(name=name, alias=alias, type="annotation")
+        node = ClassNode(
+            name=name,
+            alias=alias,
+            type="annotation",
+            style=coerce_style(style),
+        )
         self._elements.append(node)
         return node
 
-    def entity(self, name: str, *, alias: str | None = None) -> ClassNode:
+    def entity(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        style: StyleLike | None = None,
+    ) -> ClassNode:
         """Create and register an entity."""
         if not name:
             raise ValueError("Entity name cannot be empty")
-        node = ClassNode(name=name, alias=alias, type="entity")
+        node = ClassNode(
+            name=name,
+            alias=alias,
+            type="entity",
+            style=coerce_style(style),
+        )
         self._elements.append(node)
         return node
 
@@ -227,6 +264,7 @@ class _BaseClassBuilder:
         type: ClassType = "class",
         generics: str | None = None,
         stereotype: Stereotype | None = None,
+        style: StyleLike | None = None,
     ) -> Iterator["_ClassMemberBuilder"]:
         """Create a class with a builder for adding members.
 
@@ -242,11 +280,12 @@ class _BaseClassBuilder:
             type: Class type (class, abstract, interface, etc.)
             generics: Generic type parameters
             stereotype: Optional stereotype
+            style: Visual styling (background color, line color, text color)
 
         Yields:
             A builder for adding members to the class
         """
-        builder = _ClassMemberBuilder(name, alias, type, generics, stereotype)
+        builder = _ClassMemberBuilder(name, alias, type, generics, stereotype, style)
         yield builder
         self._elements.append(builder._build())
 
@@ -293,6 +332,7 @@ class _BaseClassBuilder:
         label: str | Label | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> Relationship:
         """Create an aggregation relationship (hollow diamond).
 
@@ -310,6 +350,7 @@ class _BaseClassBuilder:
             label: Text on the line itself (describes the relationship)
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint
+            note: Note to attach to this relationship
 
         Example:
             d.has(team, player)  # Player exists without Team
@@ -328,6 +369,7 @@ class _BaseClassBuilder:
             label=label,
             style=style,
             direction=direction,
+            note=note,
         )
 
     def contains(
@@ -340,6 +382,7 @@ class _BaseClassBuilder:
         label: str | Label | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> Relationship:
         """Create a composition relationship (filled diamond).
 
@@ -357,6 +400,7 @@ class _BaseClassBuilder:
             label: Text on the line itself (describes the relationship)
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint
+            note: Note to attach to this relationship
 
         Example:
             d.contains(house, room)  # Room cannot exist without House
@@ -375,6 +419,7 @@ class _BaseClassBuilder:
             label=label,
             style=style,
             direction=direction,
+            note=note,
         )
 
     def uses(
@@ -403,6 +448,7 @@ class _BaseClassBuilder:
         label: str | Label | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> Relationship:
         """Create an association relationship.
 
@@ -417,6 +463,7 @@ class _BaseClassBuilder:
             label: Text on the line itself (describes the relationship)
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint
+            note: Note to attach to this relationship
         """
         return self._relationship(
             source,
@@ -427,6 +474,7 @@ class _BaseClassBuilder:
             label=label,
             style=style,
             direction=direction,
+            note=note,
         )
 
     def relationship(
@@ -440,6 +488,7 @@ class _BaseClassBuilder:
         label: str | Label | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> Relationship:
         """Create a custom relationship.
 
@@ -455,6 +504,7 @@ class _BaseClassBuilder:
             label: Text on the line itself (describes the relationship)
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint
+            note: Note to attach to this relationship
         """
         return self._relationship(
             source,
@@ -465,6 +515,7 @@ class _BaseClassBuilder:
             label=label,
             style=style,
             direction=direction,
+            note=note,
         )
 
     def _relationship(
@@ -478,9 +529,11 @@ class _BaseClassBuilder:
         label: str | Label | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        note: str | Label | None = None,
     ) -> Relationship:
         """Internal: Create and register a relationship."""
         label_obj = Label(label) if isinstance(label, str) else label
+        note_obj = Label(note) if isinstance(note, str) else note
         direction_val = coerce_direction(direction)
         rel = Relationship(
             source=self._to_ref(source),
@@ -491,6 +544,7 @@ class _BaseClassBuilder:
             label=label_obj,
             style=style,
             direction=direction_val,
+            note=note_obj,
         )
         self._elements.append(rel)
         return rel
@@ -591,12 +645,14 @@ class _ClassMemberBuilder:
         type: ClassType,
         generics: str | None,
         stereotype: Stereotype | None,
+        style: StyleLike | None,
     ) -> None:
         self._name = name
         self._alias = alias
         self._type = type
         self._generics = generics
         self._stereotype = stereotype
+        self._style = coerce_style(style)
         self._members: list[Member | Separator] = []
 
     @property
@@ -756,6 +812,7 @@ class _ClassMemberBuilder:
             type=self._type,
             generics=self._generics,
             stereotype=self._stereotype,
+            style=self._style,
             members=tuple(self._members),
         )
 
