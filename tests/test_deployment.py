@@ -298,6 +298,7 @@ class TestRenderMethod:
             d.database("DB")
 
         from plantuml_compose.renderers import render
+
         assert render(d.build()) == render(d.build())
 
 
@@ -337,7 +338,7 @@ class TestComplexDiagram:
         assert "title Microservices Deployment" in output
         assert 'component "Load Balancer" as lb' in output
         assert 'node "App Server 1"' in output
-        assert "cloud \"Database Cluster\"" in output
+        assert 'cloud "Database Cluster"' in output
         assert "lb --> api1" in output
         assert "primary -- replica : replicates" in output
 

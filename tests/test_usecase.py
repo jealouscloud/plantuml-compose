@@ -320,6 +320,7 @@ class TestRenderMethod:
             d.usecase("Login")
 
         from plantuml_compose.renderers import render
+
         assert render(d.build()) == render(d.build())
 
 

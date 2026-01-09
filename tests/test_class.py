@@ -486,6 +486,7 @@ class TestRenderMethod:
             d.class_("User")
 
         from plantuml_compose.renderers import render
+
         assert render(d.build()) == render(d.build())
 
 

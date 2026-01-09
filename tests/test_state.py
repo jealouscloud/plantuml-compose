@@ -56,9 +56,7 @@ class TestBulkStates:
     def test_states_with_style(self):
         """states() applies style to all created states."""
         with state_diagram() as d:
-            a, b = d.states(
-                "A", "B", style=Style(background=Color.named("lightblue"))
-            )
+            a, b = d.states("A", "B", style=Style(background=Color.named("lightblue")))
         output = render(d.build())
         assert "A #lightblue" in output
         assert "B #lightblue" in output
@@ -591,14 +589,10 @@ class TestParallel:
         assert len(fork_decl) == 1, (
             f"Expected exactly one fork declaration, got: {fork_decl}"
         )
-        declared_fork_name = (
-            fork_decl[0].split()[1].strip('"')
-        )  # "state NAME <<fork>>"
+        declared_fork_name = fork_decl[0].split()[1].strip('"')  # "state NAME <<fork>>"
 
         # Find the transition from Start
-        start_transition = [
-            line for line in lines if line.startswith("Start -->")
-        ]
+        start_transition = [line for line in lines if line.startswith("Start -->")]
         assert len(start_transition) == 1
         target = start_transition[0].split("-->")[1].strip()
 
@@ -856,9 +850,7 @@ class TestDiagramOptions:
 
         output = render(d.build())
         # Position should be included in the output
-        assert "note left" in output, (
-            f"Expected 'note left' in output, got: {output}"
-        )
+        assert "note left" in output, f"Expected 'note left' in output, got: {output}"
 
     def test_floating_note_all_positions(self):
         """Test that various floating note positions render correctly."""
@@ -1228,9 +1220,7 @@ class TestStateDiagramStyle:
     def test_title_uses_document_selector(self):
         """Title styling should use document selector, not stateDiagram."""
         with state_diagram(
-            style=StateDiagramStyle(
-                title=ElementStyle(font_color=Color.named("red"))
-            )
+            style=StateDiagramStyle(title=ElementStyle(font_color=Color.named("red")))
         ) as d:
             d.state("S1")
 
@@ -1361,9 +1351,7 @@ class TestPlantUMLValidation:
             gradient = d.state(
                 "Gradient",
                 style=Style(
-                    background=Gradient(
-                        Color.named("red"), Color.named("yellow")
-                    )
+                    background=Gradient(Color.named("red"), Color.named("yellow"))
                 ),
             )
 
@@ -1381,9 +1369,7 @@ class TestPlantUMLValidation:
             )
 
             # Stereotype
-            service = d.state(
-                "Service", style=Style(stereotype=Stereotype("service"))
-            )
+            service = d.state("Service", style=Style(stereotype=Stereotype("service")))
 
             # With spot
             critical = d.state(
@@ -1518,12 +1504,8 @@ class TestPlantUMLValidation:
                     log = r2.state("Logging")
                     r2.arrow(r2.start(), log)
 
-            error = d.state(
-                "Error", style=Style(background=Color.named("salmon"))
-            )
-            choice = d.choice(
-                "validate"
-            )  # No style - PlantUML doesn't render it
+            error = d.state("Error", style=Style(background=Color.named("salmon")))
+            choice = d.choice("validate")  # No style - PlantUML doesn't render it
 
             d.arrow(d.start(), idle)
             d.arrow(idle, choice, label="submit")
@@ -1604,9 +1586,7 @@ class TestStyleLike:
     def test_composite_with_style_dict(self):
         """Composite accepts style as dict."""
         with state_diagram() as d:
-            with d.composite(
-                "Container", style={"background": "lightyellow"}
-            ) as c:
+            with d.composite("Container", style={"background": "lightyellow"}) as c:
                 c.state("Inner")
         output = render(d.build())
         assert "Container #lightyellow" in output
@@ -1614,9 +1594,7 @@ class TestStyleLike:
     def test_concurrent_with_style_dict(self):
         """Concurrent accepts style as dict."""
         with state_diagram() as d:
-            with d.concurrent(
-                "Parallel", style={"background": "lightgreen"}
-            ) as p:
+            with d.concurrent("Parallel", style={"background": "lightgreen"}) as p:
                 with p.region() as r:
                     r.state("A")
         output = render(d.build())
@@ -1637,9 +1615,7 @@ class TestStyleLike:
     def test_style_dict_validation(self, validate_plantuml):
         """Style dicts produce valid PlantUML."""
         with state_diagram(title="Dict Styles") as d:
-            a = d.state(
-                "Error", style={"background": "#FFCCCC", "text_color": "red"}
-            )
+            a = d.state("Error", style={"background": "#FFCCCC", "text_color": "red"})
             b = d.state("Success", style={"background": "#CCFFCC"})
             d.arrow(a, b, style={"color": "green", "pattern": "dashed"})
 
@@ -1750,9 +1726,7 @@ class TestFlow:
 
         with state_diagram() as d:
             a, b = d.states("A", "B")
-            with pytest.raises(
-                ValueError, match="cannot have consecutive labels"
-            ):
+            with pytest.raises(ValueError, match="cannot have consecutive labels"):
                 d.flow(a, "first", "second", b)
 
     def test_flow_error_single_state(self):
@@ -1775,9 +1749,7 @@ class TestFlow:
     def test_flow_validation(self, validate_plantuml):
         """flow() produces valid PlantUML."""
         with state_diagram(title="Flow Example") as d:
-            idle, loading, ready, error = d.states(
-                "Idle", "Loading", "Ready", "Error"
-            )
+            idle, loading, ready, error = d.states("Idle", "Loading", "Ready", "Error")
             d.flow(d.start(), idle, "fetch", loading, "success", ready, d.end())
             d.arrow(loading, error, label="failure")
             d.arrow(error, idle, label="retry")
@@ -2137,37 +2109,50 @@ class TestBlockMisuseDetection:
     def test_states_inside_block_raises_error(self):
         with state_diagram() as d:
             with d.composite("Active"):
-                with pytest.raises(RuntimeError, match="d.states\\(\\) called inside 'composite' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.states\\(\\) called inside 'composite' block"
+                ):
                     d.states("A", "B", "C")
 
     def test_choice_inside_block_raises_error(self):
         with state_diagram() as d:
             with d.composite("Active"):
-                with pytest.raises(RuntimeError, match="d.choice\\(\\) called inside 'composite' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.choice\\(\\) called inside 'composite' block"
+                ):
                     d.choice("decide")
 
     def test_fork_inside_block_raises_error(self):
         with state_diagram() as d:
             with d.composite("Active"):
-                with pytest.raises(RuntimeError, match="d.fork\\(\\) called inside 'composite' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.fork\\(\\) called inside 'composite' block"
+                ):
                     d.fork("split")
 
     def test_join_inside_block_raises_error(self):
         with state_diagram() as d:
             with d.composite("Active"):
-                with pytest.raises(RuntimeError, match="d.join\\(\\) called inside 'composite' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.join\\(\\) called inside 'composite' block"
+                ):
                     d.join("merge")
 
     def test_sdl_receive_inside_block_raises_error(self):
         with state_diagram() as d:
             with d.composite("Active"):
-                with pytest.raises(RuntimeError, match="d.sdl_receive\\(\\) called inside 'composite' block"):
+                with pytest.raises(
+                    RuntimeError,
+                    match="d.sdl_receive\\(\\) called inside 'composite' block",
+                ):
                     d.sdl_receive("receive")
 
     def test_note_inside_block_raises_error(self):
         with state_diagram() as d:
             with d.composite("Active"):
-                with pytest.raises(RuntimeError, match="d.note\\(\\) called inside 'composite' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.note\\(\\) called inside 'composite' block"
+                ):
                     d.note("test note")
 
     def test_all_block_types_track_context(self):
@@ -2183,5 +2168,7 @@ class TestBlockMisuseDetection:
         for block_name, block_fn in block_types:
             with state_diagram() as d:
                 with block_fn(d):
-                    with pytest.raises(RuntimeError, match=f"inside '{block_name}' block"):
+                    with pytest.raises(
+                        RuntimeError, match=f"inside '{block_name}' block"
+                    ):
                         d.state("wrong")

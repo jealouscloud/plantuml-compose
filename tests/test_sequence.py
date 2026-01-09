@@ -576,6 +576,7 @@ class TestRenderMethod:
             d.message(user, api, "hello")
 
         from plantuml_compose.renderers import render
+
         assert render(d.build()) == render(d.build())
 
 
@@ -706,60 +707,78 @@ class TestBlockMisuseDetection:
         with sequence_diagram() as d:
             d.participants("User", "API")
             with d.alt("condition"):
-                with pytest.raises(RuntimeError, match="d.return_\\(\\) called inside 'alt' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.return_\\(\\) called inside 'alt' block"
+                ):
                     d.return_("result")
 
     def test_activate_inside_block_raises_error(self):
         with sequence_diagram() as d:
             user = d.participant("User")
             with d.alt("condition"):
-                with pytest.raises(RuntimeError, match="d.activate\\(\\) called inside 'alt' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.activate\\(\\) called inside 'alt' block"
+                ):
                     d.activate(user)
 
     def test_deactivate_inside_block_raises_error(self):
         with sequence_diagram() as d:
             user = d.participant("User")
             with d.alt("condition"):
-                with pytest.raises(RuntimeError, match="d.deactivate\\(\\) called inside 'alt' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.deactivate\\(\\) called inside 'alt' block"
+                ):
                     d.deactivate(user)
 
     def test_destroy_inside_block_raises_error(self):
         with sequence_diagram() as d:
             user = d.participant("User")
             with d.alt("condition"):
-                with pytest.raises(RuntimeError, match="d.destroy\\(\\) called inside 'alt' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.destroy\\(\\) called inside 'alt' block"
+                ):
                     d.destroy(user)
 
     def test_note_inside_block_raises_error(self):
         with sequence_diagram() as d:
             d.participant("User")
             with d.alt("condition"):
-                with pytest.raises(RuntimeError, match="d.note\\(\\) called inside 'alt' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.note\\(\\) called inside 'alt' block"
+                ):
                     d.note("test note")
 
     def test_ref_inside_block_raises_error(self):
         with sequence_diagram() as d:
             user = d.participant("User")
             with d.alt("condition"):
-                with pytest.raises(RuntimeError, match="d.ref\\(\\) called inside 'alt' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.ref\\(\\) called inside 'alt' block"
+                ):
                     d.ref(user, label="See other diagram")
 
     def test_divider_inside_block_raises_error(self):
         with sequence_diagram() as d:
             with d.alt("condition"):
-                with pytest.raises(RuntimeError, match="d.divider\\(\\) called inside 'alt' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.divider\\(\\) called inside 'alt' block"
+                ):
                     d.divider("Section")
 
     def test_delay_inside_block_raises_error(self):
         with sequence_diagram() as d:
             with d.alt("condition"):
-                with pytest.raises(RuntimeError, match="d.delay\\(\\) called inside 'alt' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.delay\\(\\) called inside 'alt' block"
+                ):
                     d.delay("5 minutes later")
 
     def test_space_inside_block_raises_error(self):
         with sequence_diagram() as d:
             with d.alt("condition"):
-                with pytest.raises(RuntimeError, match="d.space\\(\\) called inside 'alt' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.space\\(\\) called inside 'alt' block"
+                ):
                     d.space(50)
 
     def test_all_block_types_track_context(self):
@@ -777,5 +796,7 @@ class TestBlockMisuseDetection:
             with sequence_diagram() as d:
                 user, api = d.participants("User", "API")
                 with block_fn(d):
-                    with pytest.raises(RuntimeError, match=f"inside '{block_name}' block"):
+                    with pytest.raises(
+                        RuntimeError, match=f"inside '{block_name}' block"
+                    ):
                         d.message(user, api, "wrong")

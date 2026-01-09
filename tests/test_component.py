@@ -374,6 +374,7 @@ class TestRenderMethod:
             d.component("Database")
 
         from plantuml_compose.renderers import render
+
         assert render(d.build()) == render(d.build())
 
 

@@ -444,6 +444,7 @@ class TestRenderMethod:
             d.stop()
 
         from plantuml_compose.renderers import render
+
         assert render(d.build()) == render(d.build())
 
 
@@ -570,37 +571,49 @@ class TestBlockMisuseDetection:
     def test_start_inside_block_raises_error(self):
         with activity_diagram() as d:
             with d.if_("condition"):
-                with pytest.raises(RuntimeError, match="d.start\\(\\) called inside 'if_' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.start\\(\\) called inside 'if_' block"
+                ):
                     d.start()
 
     def test_stop_inside_block_raises_error(self):
         with activity_diagram() as d:
             with d.if_("condition"):
-                with pytest.raises(RuntimeError, match="d.stop\\(\\) called inside 'if_' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.stop\\(\\) called inside 'if_' block"
+                ):
                     d.stop()
 
     def test_end_inside_block_raises_error(self):
         with activity_diagram() as d:
             with d.if_("condition"):
-                with pytest.raises(RuntimeError, match="d.end\\(\\) called inside 'if_' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.end\\(\\) called inside 'if_' block"
+                ):
                     d.end()
 
     def test_arrow_inside_block_raises_error(self):
         with activity_diagram() as d:
             with d.if_("condition"):
-                with pytest.raises(RuntimeError, match="d.arrow\\(\\) called inside 'if_' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.arrow\\(\\) called inside 'if_' block"
+                ):
                     d.arrow("test")
 
     def test_break_inside_block_raises_error(self):
         with activity_diagram() as d:
             with d.while_("condition"):
-                with pytest.raises(RuntimeError, match="d.break_\\(\\) called inside 'while_' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.break_\\(\\) called inside 'while_' block"
+                ):
                     d.break_()
 
     def test_kill_inside_block_raises_error(self):
         with activity_diagram() as d:
             with d.if_("condition"):
-                with pytest.raises(RuntimeError, match="d.kill\\(\\) called inside 'if_' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.kill\\(\\) called inside 'if_' block"
+                ):
                     d.kill()
 
     def test_detach_inside_block_raises_error(self):
@@ -608,51 +621,67 @@ class TestBlockMisuseDetection:
             with d.fork() as f:
                 with f.branch() as b:
                     b.action("valid")
-                with pytest.raises(RuntimeError, match="d.detach\\(\\) called inside 'fork' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.detach\\(\\) called inside 'fork' block"
+                ):
                     d.detach()
 
     def test_connector_inside_block_raises_error(self):
         with activity_diagram() as d:
             with d.if_("condition"):
-                with pytest.raises(RuntimeError, match="d.connector\\(\\) called inside 'if_' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.connector\\(\\) called inside 'if_' block"
+                ):
                     d.connector("conn")
 
     def test_goto_inside_block_raises_error(self):
         with activity_diagram() as d:
             with d.if_("condition"):
-                with pytest.raises(RuntimeError, match="d.goto\\(\\) called inside 'if_' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.goto\\(\\) called inside 'if_' block"
+                ):
                     d.goto("label")
 
     def test_label_inside_block_raises_error(self):
         with activity_diagram() as d:
             with d.if_("condition"):
-                with pytest.raises(RuntimeError, match="d.label\\(\\) called inside 'if_' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.label\\(\\) called inside 'if_' block"
+                ):
                     d.label("test")
 
     def test_swimlane_inside_block_raises_error(self):
         with activity_diagram() as d:
             with d.if_("condition"):
-                with pytest.raises(RuntimeError, match="d.swimlane\\(\\) called inside 'if_' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.swimlane\\(\\) called inside 'if_' block"
+                ):
                     d.swimlane("Lane1")
 
     def test_note_inside_block_raises_error(self):
         with activity_diagram() as d:
             with d.if_("condition"):
-                with pytest.raises(RuntimeError, match="d.note\\(\\) called inside 'if_' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.note\\(\\) called inside 'if_' block"
+                ):
                     d.note("test note")
 
     def test_partition_block_tracks_context(self):
         """Verify partition is tracked as a block context."""
         with activity_diagram() as d:
             with d.partition("Section"):
-                with pytest.raises(RuntimeError, match="d.action\\(\\) called inside 'partition' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.action\\(\\) called inside 'partition' block"
+                ):
                     d.action("wrong")
 
     def test_group_block_tracks_context(self):
         """Verify group is tracked as a block context."""
         with activity_diagram() as d:
             with d.group("Section"):
-                with pytest.raises(RuntimeError, match="d.action\\(\\) called inside 'group' block"):
+                with pytest.raises(
+                    RuntimeError, match="d.action\\(\\) called inside 'group' block"
+                ):
                     d.action("wrong")
 
     def test_all_block_types_track_context(self):
@@ -668,7 +697,9 @@ class TestBlockMisuseDetection:
         for block_name, block_fn in simple_block_types:
             with activity_diagram() as d:
                 with block_fn(d):
-                    with pytest.raises(RuntimeError, match=f"inside '{block_name}' block"):
+                    with pytest.raises(
+                        RuntimeError, match=f"inside '{block_name}' block"
+                    ):
                         d.action("wrong")
 
         # fork/split require at least one branch
@@ -678,7 +709,9 @@ class TestBlockMisuseDetection:
                 with block_fn() as f:
                     with f.branch() as b:
                         b.action("valid")
-                    with pytest.raises(RuntimeError, match=f"inside '{block_name}' block"):
+                    with pytest.raises(
+                        RuntimeError, match=f"inside '{block_name}' block"
+                    ):
                         d.action("wrong")
 
         # switch requires at least one case

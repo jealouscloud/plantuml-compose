@@ -59,9 +59,7 @@ class TestObjects:
     def test_object_with_fields(self):
         with object_diagram() as d:
             d.object_with_fields(
-                "Order",
-                alias="ord",
-                fields={"id": "12345", "status": "pending"}
+                "Order", alias="ord", fields={"id": "12345", "status": "pending"}
             )
 
         output = render(d.build())
@@ -266,6 +264,7 @@ class TestRenderMethod:
             d.object("Customer")
 
         from plantuml_compose.renderers import render
+
         assert render(d.build()) == render(d.build())
 
 
@@ -278,21 +277,21 @@ class TestComplexDiagram:
             customer = d.object_with_fields(
                 "Customer",
                 alias="cust",
-                fields={"name": "John Doe", "email": "john@example.com"}
+                fields={"name": "John Doe", "email": "john@example.com"},
             )
 
             # Order object
             order = d.object_with_fields(
                 "Order",
                 alias="ord",
-                fields={"id": "ORD-123", "status": "processing", "total": "$99.99"}
+                fields={"id": "ORD-123", "status": "processing", "total": "$99.99"},
             )
 
             # Items map
             items = d.map(
                 "Order Items",
                 alias="items",
-                entries={"SKU001": "Widget x2", "SKU002": "Gadget x1"}
+                entries={"SKU001": "Widget x2", "SKU002": "Gadget x1"},
             )
 
             # Relationships
@@ -305,9 +304,9 @@ class TestComplexDiagram:
         output = render(d.build())
         assert "title Order System" in output
         assert 'object "Customer" as cust {' in output
-        assert 'name = John Doe' in output
+        assert "name = John Doe" in output
         assert 'object "Order" as ord {' in output
-        assert 'id = ORD-123' in output
+        assert "id = ORD-123" in output
         assert 'map "Order Items" as items {' in output
         assert "cust --> ord : places" in output
         assert "ord *-- items" in output
