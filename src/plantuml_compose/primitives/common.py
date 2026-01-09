@@ -443,6 +443,13 @@ class Spot:
     char: str
     color: ColorLike
 
+    def __post_init__(self) -> None:
+        """Validate that char is a single character."""
+        if len(self.char) != 1:
+            raise ValueError(
+                f"Spot char must be a single character, got {len(self.char)}: {self.char!r}"
+            )
+
 
 @dataclass(frozen=True)
 class Stereotype:

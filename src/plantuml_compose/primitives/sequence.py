@@ -151,7 +151,6 @@ class Message:
         arrow_head:     Arrow style ("normal", "thin", "lost", etc.)
         bidirectional:  If True, arrow points both directions
         activation:     Shorthand to activate/deactivate target
-        is_return:      If True, this is a return message
 
     Arrow styling via style:
         color:     Arrow color
@@ -170,8 +169,6 @@ class Message:
     # Activation shorthand
     activation: ActivationAction | None = None
     activation_color: ColorLike | None = None
-    # Return message (for auto-return syntax)
-    is_return: bool = False
 
 
 @dataclass(frozen=True)
@@ -193,13 +190,16 @@ class Activation:
     a participant is actively processing. Usually managed implicitly
     via message shortcuts (++, --), but this allows explicit control.
 
-        participant: Which participant to activate/deactivate
-        action:      "activate", "deactivate", or "destroy"
+        participant: Which participant to activate/deactivate/destroy/create
+        action:      "activate", "deactivate", "destroy", or "create"
         color:       Activation bar color (only for activate)
+
+    The "create" action marks a participant as created at this point.
+    Before creation, the participant's lifeline doesn't exist.
     """
 
     participant: str  # Participant reference
-    action: Literal["activate", "deactivate", "destroy"]
+    action: Literal["activate", "deactivate", "destroy", "create"]
     color: ColorLike | None = None  # Only for activate
 
 

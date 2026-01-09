@@ -589,3 +589,13 @@ class TestValidation:
             with pytest.raises(ValueError, match="cannot be empty"):
                 with d.package(""):
                     pass
+
+    def test_enum_with_both_values_and_members_rejected(self):
+        """ClassNode cannot have both enum_values and members set."""
+        with pytest.raises(ValueError, match="cannot have both enum_values and members"):
+            ClassNode(
+                name="Status",
+                type="enum",
+                enum_values=("ACTIVE", "INACTIVE"),
+                members=(Member(name="getValue()", is_method=True),),
+            )

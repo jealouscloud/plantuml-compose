@@ -286,6 +286,17 @@ class TestActivation:
         output = render(d.build())
         assert "activate User #red" in output
 
+    def test_explicit_create(self):
+        """Test create action marks participant as created at a point."""
+        with sequence_diagram() as d:
+            user = d.participant("User")
+            api = d.participant("API")
+            d.create(api)
+            d.message(user, api, "instantiate")
+
+        output = render(d.build())
+        assert "create API" in output
+
 
 class TestGrouping:
     """Tests for grouping blocks (alt, opt, loop, etc.)."""
@@ -738,6 +749,15 @@ class TestBlockMisuseDetection:
                     RuntimeError, match="d.destroy\\(\\) called inside 'alt' block"
                 ):
                     d.destroy(user)
+
+    def test_create_inside_block_raises_error(self):
+        with sequence_diagram() as d:
+            user = d.participant("User")
+            with d.alt("condition"):
+                with pytest.raises(
+                    RuntimeError, match="d.create\\(\\) called inside 'alt' block"
+                ):
+                    d.create(user)
 
     def test_note_inside_block_raises_error(self):
         with sequence_diagram() as d:

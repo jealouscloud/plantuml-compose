@@ -191,6 +191,14 @@ class ClassNode:
     # For enums
     enum_values: tuple[str, ...] | None = None
 
+    def __post_init__(self) -> None:
+        """Validate field combinations."""
+        if self.enum_values and self.members:
+            raise ValueError(
+                f"ClassNode '{self.name}' cannot have both enum_values and members. "
+                "Use enum_values for simple enums, or members for enums with methods/fields."
+            )
+
     @property
     def _ref(self) -> str:
         """Internal: Reference name for use in relationships."""

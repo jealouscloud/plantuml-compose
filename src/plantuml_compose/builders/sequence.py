@@ -215,6 +215,19 @@ class _BaseSequenceBuilder:
         self._elements.append(act)
         return act
 
+    def create(self, participant: Participant | str) -> Activation:
+        """Mark a participant as created at this point.
+
+        Before creation, the participant's lifeline doesn't exist.
+        The first message to this participant will show creation.
+        """
+        act = Activation(
+            participant=self._to_ref(participant),
+            action="create",
+        )
+        self._elements.append(act)
+        return act
+
     def note(
         self,
         content: str | Label,
@@ -628,6 +641,18 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         """
         self._check_not_in_block("destroy")
         return super().destroy(participant)
+
+    def create(self, participant: Participant | str) -> Activation:
+        """Mark a participant as created at this point.
+
+        Before creation, the participant's lifeline doesn't exist.
+        The first message to this participant will show creation.
+
+        Raises:
+            RuntimeError: If called inside a block context
+        """
+        self._check_not_in_block("create")
+        return super().create(participant)
 
     def note(
         self,

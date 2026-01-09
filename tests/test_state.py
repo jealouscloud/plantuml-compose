@@ -2172,3 +2172,22 @@ class TestBlockMisuseDetection:
                         RuntimeError, match=f"inside '{block_name}' block"
                     ):
                         d.state("wrong")
+
+
+class TestSpotValidation:
+    """Test Spot primitive validation."""
+
+    def test_spot_single_char_valid(self):
+        """Single character spot is valid."""
+        spot = Spot("!", Color.named("red"))
+        assert spot.char == "!"
+
+    def test_spot_multi_char_rejected(self):
+        """Multi-character spot raises ValueError."""
+        with pytest.raises(ValueError, match="single character"):
+            Spot("AB", Color.named("red"))
+
+    def test_spot_empty_char_rejected(self):
+        """Empty char raises ValueError."""
+        with pytest.raises(ValueError, match="single character"):
+            Spot("", Color.named("red"))

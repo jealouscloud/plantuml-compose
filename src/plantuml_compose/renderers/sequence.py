@@ -259,7 +259,7 @@ def _render_return(ret: Return) -> str:
 
 
 def _render_activation(act: Activation) -> str:
-    """Render an explicit activation/deactivation."""
+    """Render an explicit activation/deactivation/create."""
     if act.action == "activate":
         if act.color:
             color = render_color(act.color)
@@ -271,6 +271,8 @@ def _render_activation(act: Activation) -> str:
         return f"deactivate {act.participant}"
     if act.action == "destroy":
         return f"destroy {act.participant}"
+    if act.action == "create":
+        return f"create {act.participant}"
     raise ValueError(f"Unknown activation action: {act.action}")
 
 
