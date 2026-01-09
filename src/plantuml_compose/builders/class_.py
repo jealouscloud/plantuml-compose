@@ -288,8 +288,8 @@ class _BaseClassBuilder:
         whole: ClassNode | str,
         part: ClassNode | str,
         *,
-        source_label: str | None = None,
-        target_label: str | None = None,
+        whole_label: str | None = None,
+        part_label: str | None = None,
         label: str | Label | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
@@ -304,15 +304,18 @@ class _BaseClassBuilder:
         Args:
             whole: The containing class
             part: The contained class
-            source_label: Label at whole end (cardinality like "1", role like "owner", or both)
-            target_label: Label at part end (cardinality like "*", role, or both)
-            label: Relationship label (on the line)
+            whole_label: Text at whole end - typically how many ("1" = one,
+                "*" = many, "0..1" = optional) or a role name like "owner"
+            part_label: Text at part end - same format as whole_label
+            label: Text on the line itself (describes the relationship)
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint
 
         Example:
             d.has(team, player)  # Player exists without Team
-            d.has(library, book, source_label="1", target_label="*")
+
+            # "One library has many books"
+            d.has(library, book, whole_label="1", part_label="*")
 
         UML: Hollow diamond (o--)
         """
@@ -320,8 +323,8 @@ class _BaseClassBuilder:
             whole,
             part,
             "aggregation",
-            source_label=source_label,
-            target_label=target_label,
+            source_label=whole_label,
+            target_label=part_label,
             label=label,
             style=style,
             direction=direction,
@@ -332,8 +335,8 @@ class _BaseClassBuilder:
         whole: ClassNode | str,
         part: ClassNode | str,
         *,
-        source_label: str | None = None,
-        target_label: str | None = None,
+        whole_label: str | None = None,
+        part_label: str | None = None,
         label: str | Label | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
@@ -348,15 +351,18 @@ class _BaseClassBuilder:
         Args:
             whole: The containing class
             part: The contained class
-            source_label: Label at whole end (cardinality like "1", role, or both)
-            target_label: Label at part end (cardinality like "1..*", role, or both)
-            label: Relationship label (on the line)
+            whole_label: Text at whole end - typically how many ("1" = one,
+                "*" = many, "0..1" = optional) or a role name like "owner"
+            part_label: Text at part end - same format as whole_label
+            label: Text on the line itself (describes the relationship)
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint
 
         Example:
             d.contains(house, room)  # Room cannot exist without House
-            d.contains(order, line_item, target_label="1..*")
+
+            # "One order contains one or more line items"
+            d.contains(order, line_item, whole_label="1", part_label="1..*")
 
         UML: Filled diamond (*--)
         """
@@ -364,8 +370,8 @@ class _BaseClassBuilder:
             whole,
             part,
             "composition",
-            source_label=source_label,
-            target_label=target_label,
+            source_label=whole_label,
+            target_label=part_label,
             label=label,
             style=style,
             direction=direction,
@@ -405,9 +411,10 @@ class _BaseClassBuilder:
         Args:
             source: Source class
             target: Target class
-            source_label: Label at source end (cardinality, role, or both)
-            target_label: Label at target end (cardinality, role, or both)
-            label: Relationship label (on the line)
+            source_label: Text at source end - typically how many ("1" = one,
+                "*" = many, "0..1" = optional) or a role name like "owner"
+            target_label: Text at target end - same format as source_label
+            label: Text on the line itself (describes the relationship)
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint
         """
@@ -442,9 +449,10 @@ class _BaseClassBuilder:
             source: Source class
             target: Target class
             type: Relationship type
-            source_label: Label at source end (cardinality, role, or both)
-            target_label: Label at target end (cardinality, role, or both)
-            label: Relationship label (on the line)
+            source_label: Text at source end - typically how many ("1" = one,
+                "*" = many, "0..1" = optional) or a role name like "owner"
+            target_label: Text at target end - same format as source_label
+            label: Text on the line itself (describes the relationship)
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint
         """

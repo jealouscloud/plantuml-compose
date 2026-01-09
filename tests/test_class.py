@@ -237,7 +237,7 @@ class TestRelationships:
         with class_diagram() as d:
             user = d.class_("User")
             order = d.class_("Order")
-            d.has(user, order, source_label="1", target_label="*")
+            d.has(user, order, whole_label="1", part_label="*")
 
         output = render(d.build())
         assert '"1"' in output
@@ -259,8 +259,8 @@ class TestRelationships:
             d.has(
                 user,
                 order,
-                source_label="owner",
-                target_label="orders",
+                whole_label="owner",
+                part_label="orders",
             )
 
         output = render(d.build())
@@ -463,8 +463,8 @@ class TestComplexDiagram:
                 product.method("apply_discount(pct)", "Decimal", visibility="public")
 
             # Relationships
-            d.has(user, order, source_label="1", target_label="*", label="places")
-            d.has(order, "Product", source_label="1", target_label="*")
+            d.has(user, order, whole_label="1", part_label="*", label="places")
+            d.has(order, "Product", whole_label="1", part_label="*")
 
         output = render(d.build())
         assert "title E-Commerce Domain" in output
