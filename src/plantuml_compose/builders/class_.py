@@ -738,28 +738,25 @@ class _ClassMemberBuilder:
         self._members.append(sep)
         return sep
 
-    def static(
+    def static_field(
         self,
         name: str,
         type: str | None = None,
         *,
         visibility: Visibility | None = None,
-        is_method: bool = True,
     ) -> Member:
-        """Add a static member (field or method).
-
-        Args:
-            name: Member name
-            type: Type (return type for methods, field type for fields)
-            visibility: Visibility (+, -, #, ~)
-            is_method: If True, creates a method; if False, creates a field
-
-        Returns:
-            The created Member
-        """
-        if is_method:
-            return self.method(name, type, visibility=visibility, modifier="static")
+        """Add a static field."""
         return self.field(name, type, visibility=visibility, modifier="static")
+
+    def static_method(
+        self,
+        name: str,
+        return_type: str | None = None,
+        *,
+        visibility: Visibility | None = None,
+    ) -> Member:
+        """Add a static method."""
+        return self.method(name, return_type, visibility=visibility, modifier="static")
 
     def abstract_method(
         self,

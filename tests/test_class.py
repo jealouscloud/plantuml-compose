@@ -130,11 +130,20 @@ class TestClassMembers:
     def test_static_method(self):
         with class_diagram() as d:
             with d.class_with_members("User") as user:
-                user.static("create()", "User")
+                user.static_method("create()", "User")
 
         output = render(d.build())
         assert "{static}" in output
         assert "create() : User" in output
+
+    def test_static_field(self):
+        with class_diagram() as d:
+            with d.class_with_members("Counter") as counter:
+                counter.static_field("count", "int")
+
+        output = render(d.build())
+        assert "{static}" in output
+        assert "count : int" in output
 
     def test_abstract_method(self):
         with class_diagram() as d:
