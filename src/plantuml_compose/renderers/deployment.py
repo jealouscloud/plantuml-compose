@@ -70,7 +70,6 @@ def render_deployment_diagram(diagram: DeploymentDiagram) -> str:
 
 def _render_element(elem: DeploymentDiagramElement, indent: int = 0) -> list[str]:
     """Render a single diagram element."""
-    prefix = "  " * indent
 
     if isinstance(elem, DeploymentElement):
         return _render_deployment_element(elem, indent)

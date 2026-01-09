@@ -66,7 +66,6 @@ from typing import Iterator, Literal, TypeAlias, Union
 
 from ..primitives.common import (
     ColorLike,
-    ComponentDiagramStyle,
     ComponentDiagramStyleLike,
     Direction,
     Footer,
@@ -178,7 +177,9 @@ class _BaseComponentBuilder:
         """
         if not name:
             raise ValueError("Component name cannot be empty")
-        stereo = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        stereo = (
+            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        )
         style_obj = coerce_style(style)
         comp = Component(
             name=name,
@@ -191,11 +192,13 @@ class _BaseComponentBuilder:
 
         # Add note if provided
         if note:
-            self._elements.append(ComponentNote(
-                content=Label(note),
-                position=note_position,  # type: ignore[arg-type]
-                target=comp._ref,
-            ))
+            self._elements.append(
+                ComponentNote(
+                    content=Label(note),
+                    position=note_position,  # type: ignore[arg-type]
+                    target=comp._ref,
+                )
+            )
 
         return comp
 
@@ -229,7 +232,9 @@ class _BaseComponentBuilder:
         """
         if not name:
             raise ValueError("Interface name cannot be empty")
-        stereo = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        stereo = (
+            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        )
         style_obj = coerce_style(style)
         iface = Interface(
             name=name,
@@ -241,11 +246,13 @@ class _BaseComponentBuilder:
 
         # Add note if provided
         if note:
-            self._elements.append(ComponentNote(
-                content=Label(note),
-                position=note_position,  # type: ignore[arg-type]
-                target=iface._ref,
-            ))
+            self._elements.append(
+                ComponentNote(
+                    content=Label(note),
+                    position=note_position,  # type: ignore[arg-type]
+                    target=iface._ref,
+                )
+            )
 
         return iface
 
@@ -271,8 +278,7 @@ class _BaseComponentBuilder:
             d.arrow(api, cache)
         """
         return tuple(
-            self.component(name, stereotype=stereotype, style=style)
-            for name in names
+            self.component(name, stereotype=stereotype, style=style) for name in names
         )
 
     def interfaces(
@@ -295,8 +301,7 @@ class _BaseComponentBuilder:
             rest, graphql, grpc = d.interfaces("REST", "GraphQL", "gRPC")
         """
         return tuple(
-            self.interface(name, stereotype=stereotype, style=style)
-            for name in names
+            self.interface(name, stereotype=stereotype, style=style) for name in names
         )
 
     def service(
@@ -679,10 +684,7 @@ class _BaseComponentBuilder:
             item = items[i]
 
             # Check if this item is a component-like (not a label string)
-            is_component = (
-                not isinstance(item, str)
-                or hasattr(item, "_ref")
-            )
+            is_component = not isinstance(item, str) or hasattr(item, "_ref")
 
             if is_component:
                 if current_component is not None:

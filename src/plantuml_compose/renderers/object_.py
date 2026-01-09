@@ -71,7 +71,6 @@ def render_object_diagram(diagram: ObjectDiagram) -> str:
 
 def _render_element(elem: ObjectDiagramElement, indent: int = 0) -> list[str]:
     """Render a single diagram element."""
-    prefix = "  " * indent
 
     if isinstance(elem, Object):
         return _render_object(elem, indent)
@@ -135,7 +134,11 @@ def _render_map(map_obj: Map, indent: int = 0) -> list[str]:
         parts.append(name)
         parts.append(f"as {map_obj.alias}")
     else:
-        name = f'"{escape_quotes(map_obj.name)}"' if needs_quotes(map_obj.name) else map_obj.name
+        name = (
+            f'"{escape_quotes(map_obj.name)}"'
+            if needs_quotes(map_obj.name)
+            else map_obj.name
+        )
         parts.append(name)
 
     # Style background as element color

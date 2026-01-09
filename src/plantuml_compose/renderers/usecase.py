@@ -133,7 +133,11 @@ def _render_usecase(usecase: UseCase) -> str:
     parts.append(keyword)
 
     # Name (use cases are typically in parentheses in PlantUML syntax)
-    name = f'"{escape_quotes(usecase.name)}"' if needs_quotes(usecase.name) else usecase.name
+    name = (
+        f'"{escape_quotes(usecase.name)}"'
+        if needs_quotes(usecase.name)
+        else usecase.name
+    )
     parts.append(f"({name})")
 
     if usecase.alias:
@@ -162,7 +166,11 @@ def _render_container(container: Container, indent: int = 0) -> list[str]:
 
     parts: list[str] = [container.type]
 
-    name = f'"{escape_quotes(container.name)}"' if needs_quotes(container.name) else container.name
+    name = (
+        f'"{escape_quotes(container.name)}"'
+        if needs_quotes(container.name)
+        else container.name
+    )
     parts.append(name)
 
     if container.stereotype:

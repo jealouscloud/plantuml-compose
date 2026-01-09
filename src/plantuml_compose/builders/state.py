@@ -69,13 +69,11 @@ from ..primitives.common import (
     Header,
     Label,
     Legend,
-    LineStyle,
     LineStyleLike,
     Note,
     NotePosition,
     RegionSeparator,
     Scale,
-    StateDiagramStyle,
     StateDiagramStyleLike,
     Style,
     StyleLike,
@@ -137,9 +135,7 @@ class _BaseStateBuilder:
         desc_label = Label(description) if isinstance(description, str) else description
 
         # Convert string note to Note
-        note_obj = (
-            Note(Label(note), note_position) if isinstance(note, str) else note
-        )
+        note_obj = Note(Label(note), note_position) if isinstance(note, str) else note
 
         # Coerce style dict to Style object
         style_obj = coerce_style(style)
@@ -175,7 +171,12 @@ class _BaseStateBuilder:
 
     def arrow(
         self,
-        *states: StateNode | PseudoState | CompositeState | "_CompositeBuilder" | "_ConcurrentBuilder" | str,
+        *states: StateNode
+        | PseudoState
+        | CompositeState
+        | "_CompositeBuilder"
+        | "_ConcurrentBuilder"
+        | str,
         label: str | Label | None = None,
         trigger: str | None = None,
         guard: str | None = None,
@@ -212,13 +213,17 @@ class _BaseStateBuilder:
         # Detect common mistake: bare string intended as label
         # First two args can be strings (state references), but 3rd+ should be state objects
         for i, state in enumerate(states):
-            if i >= 2 and isinstance(state, str) and state not in self._STATE_REF_STRINGS:
+            if (
+                i >= 2
+                and isinstance(state, str)
+                and state not in self._STATE_REF_STRINGS
+            ):
                 raise ValueError(
                     f"Unexpected string '{state}' at position {i + 1} in arrow().\n\n"
                     f"If this is a label, use the label parameter:\n"
-                    f"    d.arrow(a, b, label=\"{state}\")\n\n"
+                    f'    d.arrow(a, b, label="{state}")\n\n'
                     f"If this is a state to chain through, create a state object first:\n"
-                    f"    c = d.state(\"{state}\")\n"
+                    f'    c = d.state("{state}")\n'
                     f"    d.arrow(a, b, c)"
                 )
 
@@ -253,7 +258,9 @@ class _BaseStateBuilder:
         return transitions
 
     # Special string values that are state references, not labels
-    _STATE_REF_STRINGS = frozenset({"initial", "final", "history", "deep_history", "[*]", "[H]", "[H*]"})
+    _STATE_REF_STRINGS = frozenset(
+        {"initial", "final", "history", "deep_history", "[*]", "[H]", "[H*]"}
+    )
 
     def _is_state_ref(self, item: object) -> bool:
         """Check if item is a state reference (not a label)."""
@@ -267,7 +274,12 @@ class _BaseStateBuilder:
 
     def flow(
         self,
-        *items: StateNode | PseudoState | CompositeState | "_CompositeBuilder" | "_ConcurrentBuilder" | str,
+        *items: StateNode
+        | PseudoState
+        | CompositeState
+        | "_CompositeBuilder"
+        | "_ConcurrentBuilder"
+        | str,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
     ) -> list[Transition]:
@@ -499,7 +511,9 @@ class _BaseStateBuilder:
         """
         # Coerce style dict to Style object
         style_obj = coerce_style(style)
-        builder = _ConcurrentBuilder(name, alias, style_obj, note, note_position, separator)
+        builder = _ConcurrentBuilder(
+            name, alias, style_obj, note, note_position, separator
+        )
         yield builder
         self._elements.append(builder._build())
 
@@ -539,7 +553,12 @@ class _BaseStateBuilder:
 
     def _to_ref(
         self,
-        state: StateNode | PseudoState | CompositeState | "_CompositeBuilder" | "_ConcurrentBuilder" | str,
+        state: StateNode
+        | PseudoState
+        | CompositeState
+        | "_CompositeBuilder"
+        | "_ConcurrentBuilder"
+        | str,
     ) -> str:
         """Convert a state to its reference string.
 
@@ -728,7 +747,8 @@ class _BranchBuilder(_BaseStateBuilder):
         # Find all state-like elements (StateNode, CompositeState, ConcurrentState)
         # These are elements that can serve as entry/exit points for the branch
         state_likes = [
-            e for e in self._elements
+            e
+            for e in self._elements
             if isinstance(e, (StateNode, CompositeState, ConcurrentState))
         ]
         if not state_likes:
@@ -861,19 +881,23 @@ class _ParallelBuilder:
             entry, exit_ref, branch_elements = branch._analyze()
 
             # Fork → entry
-            elements.append(Transition(
-                source=fork_name,
-                target=entry,
-            ))
+            elements.append(
+                Transition(
+                    source=fork_name,
+                    target=entry,
+                )
+            )
 
             # Branch contents
             elements.extend(branch_elements)
 
             # Exit → join
-            elements.append(Transition(
-                source=exit_ref,
-                target=join_name,
-            ))
+            elements.append(
+                Transition(
+                    source=exit_ref,
+                    target=join_name,
+                )
+            )
 
         elements.append(self._join)
         return elements
@@ -1068,7 +1092,9 @@ class StateDiagramBuilder(_BaseStateBuilder):
         self._block_stack.append("concurrent")
         try:
             style_obj = coerce_style(style)
-            builder = _ConcurrentBuilder(name, alias, style_obj, note, note_position, separator)
+            builder = _ConcurrentBuilder(
+                name, alias, style_obj, note, note_position, separator
+            )
             yield builder
             self._elements.append(builder._build())
         finally:
@@ -1111,6 +1137,7 @@ class StateDiagramBuilder(_BaseStateBuilder):
             PlantUML text representation of the diagram
         """
         from ..renderers import render
+
         return render(self.build())
 
 

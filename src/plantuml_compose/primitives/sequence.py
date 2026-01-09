@@ -28,69 +28,66 @@ from .common import (
     ColorLike,
     Footer,
     Header,
-    Label,
     LabelLike,
     Legend,
     Scale,
     LineStyleLike,
-    Note,
     Style,
-    StyleLike,
 )
 
 
 # Participant shape types - visual representation in the diagram
 ParticipantType = Literal[
     "participant",  # Default rectangle
-    "actor",        # Stick figure (human user)
-    "boundary",     # UI or external interface (circle with line)
-    "control",      # Controller/logic (circle with arrow)
-    "entity",       # Data/domain object (circle with line below)
-    "database",     # Database (cylinder)
+    "actor",  # Stick figure (human user)
+    "boundary",  # UI or external interface (circle with line)
+    "control",  # Controller/logic (circle with arrow)
+    "entity",  # Data/domain object (circle with line below)
+    "database",  # Database (cylinder)
     "collections",  # Collection/group (stacked rectangles)
-    "queue",        # Message queue
+    "queue",  # Message queue
 ]
 
 # Message arrow line styles
 MessageLineStyle = Literal[
-    "solid",   # -> Synchronous message
+    "solid",  # -> Synchronous message
     "dotted",  # --> Asynchronous or return message
 ]
 
 # Message arrow head styles
 MessageArrowHead = Literal[
     "normal",  # >   Standard filled arrow
-    "thin",    # >>  Thin/async arrow
-    "lost",    # >x  Message lost (didn't reach target)
-    "open",    # >)  Half arrow
+    "thin",  # >>  Thin/async arrow
+    "lost",  # >x  Message lost (didn't reach target)
+    "open",  # >)  Half arrow
     "circle",  # >o  Arrow with circle
-    "none",    #     No arrowhead (just a line)
+    "none",  #     No arrowhead (just a line)
 ]
 
 # Grouping block types (combined fragment operators)
 GroupType = Literal[
-    "alt",       # Alternative: if/else branches
-    "opt",       # Optional: may or may not execute
-    "loop",      # Loop: repeated execution
-    "par",       # Parallel: concurrent execution
-    "break",     # Break: exit enclosing fragment
+    "alt",  # Alternative: if/else branches
+    "opt",  # Optional: may or may not execute
+    "loop",  # Loop: repeated execution
+    "par",  # Parallel: concurrent execution
+    "break",  # Break: exit enclosing fragment
     "critical",  # Critical: atomic region (no interruption)
-    "group",     # Custom group with arbitrary label
+    "group",  # Custom group with arbitrary label
 ]
 
 # Note shape variants
 NoteShape = Literal[
-    "note",   # Standard rectangular note
+    "note",  # Standard rectangular note
     "hnote",  # Hexagonal note
     "rnote",  # Rounded note
 ]
 
 # Activation actions for shorthand syntax on messages
 ActivationAction = Literal[
-    "activate",    # ++ Start activation bar
+    "activate",  # ++ Start activation bar
     "deactivate",  # -- End activation bar
-    "create",      # ** Create new participant
-    "destroy",     # !! Destroy participant (X on lifeline)
+    "create",  # ** Create new participant
+    "destroy",  # !! Destroy participant (X on lifeline)
 ]
 
 
@@ -271,7 +268,9 @@ class SequenceNote:
 
     content: LabelLike
     position: Literal["left", "right", "over"] = "right"
-    participants: tuple[str, ...] = field(default_factory=tuple)  # For "over" - participant refs
+    participants: tuple[str, ...] = field(
+        default_factory=tuple
+    )  # For "over" - participant refs
     shape: NoteShape = "note"
     across: bool = False  # note across: spans all participants
     aligned: bool = False  # / note: aligned with previous

@@ -23,7 +23,19 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Union
 
-from .common import ColorLike, Direction, Footer, Header, Label, LabelLike, Legend, LineStyle, sanitize_ref, Scale, Stereotype, Style
+from .common import (
+    ColorLike,
+    Direction,
+    Footer,
+    Header,
+    Label,
+    Legend,
+    LineStyle,
+    sanitize_ref,
+    Scale,
+    Stereotype,
+    Style,
+)
 
 if TYPE_CHECKING:
     pass

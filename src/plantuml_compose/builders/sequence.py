@@ -87,9 +87,7 @@ from ..primitives.common import (
     Footer,
     Header,
     Label,
-    LabelLike,
     Legend,
-    LineStyle,
     LineStyleLike,
     Scale,
     StyleLike,
@@ -99,10 +97,8 @@ from ..primitives.common import (
 )
 
 # Type alias for autonumber actions - defines valid values once
-AutonumberAction = Literal["start", "stop", "resume"]
 from ..primitives.sequence import (
     Activation,
-    ActivationAction,
     Autonumber,
     Box,
     Delay,
@@ -123,6 +119,8 @@ from ..primitives.sequence import (
     SequenceNote,
     Space,
 )
+
+AutonumberAction = Literal["start", "stop", "resume"]
 
 
 class _BaseSequenceBuilder:
@@ -649,7 +647,13 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         """
         self._check_not_in_block("note")
         return super().note(
-            content, position, of=of, over=over, shape=shape, across=across, aligned=aligned
+            content,
+            position,
+            of=of,
+            over=over,
+            shape=shape,
+            across=across,
+            aligned=aligned,
         )
 
     def ref(
@@ -852,7 +856,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
     ) -> Participant:
         """Create an actor participant (stick figure)."""
         return self.participant(
-            name, alias=alias, type="actor", order=order, style=style, description=description
+            name,
+            alias=alias,
+            type="actor",
+            order=order,
+            style=style,
+            description=description,
         )
 
     def boundary(
@@ -866,7 +875,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
     ) -> Participant:
         """Create a boundary participant."""
         return self.participant(
-            name, alias=alias, type="boundary", order=order, style=style, description=description
+            name,
+            alias=alias,
+            type="boundary",
+            order=order,
+            style=style,
+            description=description,
         )
 
     def control(
@@ -880,7 +894,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
     ) -> Participant:
         """Create a control participant."""
         return self.participant(
-            name, alias=alias, type="control", order=order, style=style, description=description
+            name,
+            alias=alias,
+            type="control",
+            order=order,
+            style=style,
+            description=description,
         )
 
     def entity(
@@ -894,7 +913,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
     ) -> Participant:
         """Create an entity participant."""
         return self.participant(
-            name, alias=alias, type="entity", order=order, style=style, description=description
+            name,
+            alias=alias,
+            type="entity",
+            order=order,
+            style=style,
+            description=description,
         )
 
     def database(
@@ -908,7 +932,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
     ) -> Participant:
         """Create a database participant (cylinder)."""
         return self.participant(
-            name, alias=alias, type="database", order=order, style=style, description=description
+            name,
+            alias=alias,
+            type="database",
+            order=order,
+            style=style,
+            description=description,
         )
 
     def collections(
@@ -922,7 +951,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
     ) -> Participant:
         """Create a collections participant."""
         return self.participant(
-            name, alias=alias, type="collections", order=order, style=style, description=description
+            name,
+            alias=alias,
+            type="collections",
+            order=order,
+            style=style,
+            description=description,
         )
 
     def queue(
@@ -936,7 +970,12 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
     ) -> Participant:
         """Create a queue participant."""
         return self.participant(
-            name, alias=alias, type="queue", order=order, style=style, description=description
+            name,
+            alias=alias,
+            type="queue",
+            order=order,
+            style=style,
+            description=description,
         )
 
     @contextmanager
@@ -965,7 +1004,9 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
                 box_participants.add(p.name)
 
         # Standalone participants (not in boxes)
-        standalone = tuple(p for p in self._participants if p.name not in box_participants)
+        standalone = tuple(
+            p for p in self._participants if p.name not in box_participants
+        )
 
         return SequenceDiagram(
             elements=tuple(self._elements),
@@ -987,6 +1028,7 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         Convenience method combining build() and render() in one call.
         """
         from ..renderers import render
+
         return render(self.build())
 
 

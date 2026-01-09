@@ -28,7 +28,6 @@ from .common import (
     Direction,
     Footer,
     Header,
-    Label,
     LabelLike,
     Legend,
     Scale,
@@ -41,26 +40,26 @@ from .common import (
 
 # Class element types - determines the visual shape and semantics
 ClassType = Literal[
-    "class",       # Standard class box
-    "abstract",    # Abstract class (italicized name)
-    "interface",   # Interface (<<interface>> stereotype)
+    "class",  # Standard class box
+    "abstract",  # Abstract class (italicized name)
+    "interface",  # Interface (<<interface>> stereotype)
     "annotation",  # Java-style annotation (@interface)
-    "enum",        # Enumeration with values
-    "entity",      # JPA/database entity
-    "exception",   # Exception class
-    "metaclass",   # Python metaclass
-    "protocol",    # Python protocol (typing.Protocol)
-    "struct",      # C-style struct
-    "circle",      # Shorthand circle notation
-    "diamond",     # Shorthand diamond notation
+    "enum",  # Enumeration with values
+    "entity",  # JPA/database entity
+    "exception",  # Exception class
+    "metaclass",  # Python metaclass
+    "protocol",  # Python protocol (typing.Protocol)
+    "struct",  # C-style struct
+    "circle",  # Shorthand circle notation
+    "diamond",  # Shorthand diamond notation
 ]
 
 # Member visibility - human-readable names
 Visibility = Literal[
-    "public",     # Visible to all classes
-    "private",    # Visible only within the declaring class
+    "public",  # Visible to all classes
+    "private",  # Visible only within the declaring class
     "protected",  # Visible to the class and its subclasses
-    "package",    # Visible within the same package
+    "package",  # Visible within the same package
 ]
 
 # Visibility options for validation errors
@@ -81,33 +80,33 @@ _VISIBILITY_TO_SYMBOL: dict[str, str] = {
 
 # Member modifiers affecting display
 MemberModifier = Literal[
-    "static",    # Underlined, class-level member
+    "static",  # Underlined, class-level member
     "abstract",  # Italicized, must be implemented by subclasses
-    "field",     # Explicit field marker
-    "method",    # Explicit method marker
+    "field",  # Explicit field marker
+    "method",  # Explicit method marker
 ]
 
 # Relationship types - each renders with a distinct arrow style
 RelationType = Literal[
-    "extension",      # <|-- Inheritance (solid line, closed arrow)
-    "implementation", # <|.. Interface implementation (dotted, closed arrow)
-    "composition",    # *-- Strong ownership (solid line, filled diamond)
-    "aggregation",    # o-- Weak ownership (solid line, hollow diamond)
-    "association",    # --> Uses/references (solid line, open arrow)
-    "dependency",     # ..> Depends on (dotted line, open arrow)
-    "line",           # -- Plain connection (no arrowhead)
-    "dotted",         # .. Dotted connection (no arrowhead)
+    "extension",  # <|-- Inheritance (solid line, closed arrow)
+    "implementation",  # <|.. Interface implementation (dotted, closed arrow)
+    "composition",  # *-- Strong ownership (solid line, filled diamond)
+    "aggregation",  # o-- Weak ownership (solid line, hollow diamond)
+    "association",  # --> Uses/references (solid line, open arrow)
+    "dependency",  # ..> Depends on (dotted line, open arrow)
+    "line",  # -- Plain connection (no arrowhead)
+    "dotted",  # .. Dotted connection (no arrowhead)
 ]
 
 # Package visual styles - container appearance
 PackageStyle = Literal[
-    "package",    # Standard UML package (tab folder)
-    "node",       # 3D box (deployment diagram style)
+    "package",  # Standard UML package (tab folder)
+    "node",  # 3D box (deployment diagram style)
     "rectangle",  # Plain rectangle
-    "folder",     # Folder icon
-    "frame",      # Frame with title bar
-    "cloud",      # Cloud shape
-    "database",   # Cylinder shape
+    "folder",  # Folder icon
+    "frame",  # Frame with title bar
+    "cloud",  # Cloud shape
+    "database",  # Cylinder shape
 ]
 
 # Separator line styles within class definitions
@@ -310,7 +309,9 @@ class HideShow:
     """
 
     action: Literal["hide", "show", "remove", "restore"]
-    target: str  # What to hide/show (e.g., "empty members", "ClassName methods", "$tag")
+    target: (
+        str  # What to hide/show (e.g., "empty members", "ClassName methods", "$tag")
+    )
 
 
 @dataclass(frozen=True)
@@ -342,11 +343,5 @@ class ClassDiagram:
 
 # Type alias for elements that can appear in a class diagram
 ClassDiagramElement: TypeAlias = (
-    ClassNode
-    | Relationship
-    | Package
-    | Together
-    | ClassNote
-    | HideShow
-    | Note
+    ClassNode | Relationship | Package | Together | ClassNote | HideShow | Note
 )

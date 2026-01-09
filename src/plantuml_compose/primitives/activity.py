@@ -25,10 +25,8 @@ from typing import Literal, TypeAlias
 
 from .common import (
     ColorLike,
-    Direction,
     Footer,
     Header,
-    Label,
     LabelLike,
     Legend,
     LineStyle,
@@ -40,13 +38,13 @@ from .common import (
 
 # SDL shape types for actions - controls the visual shape
 ActionShape = Literal[
-    "default",    # :action;  Rounded rectangle (standard)
+    "default",  # :action;  Rounded rectangle (standard)
     "start_end",  # :action|  Stadium/pill shape
-    "receive",    # :action<  Left-pointing flag (receive event)
-    "send",       # :action>  Right-pointing flag (send event)
-    "slant",      # :action/  Slanted parallelogram (data flow)
-    "document",   # :action]  Document shape (wavy bottom)
-    "database",   # :action}  Cylinder shape (database operation)
+    "receive",  # :action<  Left-pointing flag (receive event)
+    "send",  # :action>  Right-pointing flag (send event)
+    "slant",  # :action/  Slanted parallelogram (data flow)
+    "document",  # :action]  Document shape (wavy bottom)
+    "database",  # :action}  Cylinder shape (database operation)
 ]
 
 # Arrow line styles
@@ -371,9 +369,9 @@ class Group:
 class ActivityNote:
     """A note annotation in an activity diagram.
 
-        content:  Note text (can include Creole markup)
-        position: "left" or "right" of the flow
-        floating: If True, not attached to specific element
+    content:  Note text (can include Creole markup)
+    position: "left" or "right" of the flow
+    floating: If True, not attached to specific element
     """
 
     content: LabelLike

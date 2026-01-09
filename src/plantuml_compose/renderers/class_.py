@@ -5,7 +5,7 @@ Pure functions that transform class diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from ..primitives.class_ import (
     ClassDiagram,
@@ -21,8 +21,6 @@ from ..primitives.class_ import (
     _VISIBILITY_TO_SYMBOL,
 )
 from ..primitives.common import (
-    Gradient,
-    LineStyle,
     Note,
     Style,
     coerce_line_style,
@@ -30,7 +28,6 @@ from ..primitives.common import (
 )
 from .common import (
     escape_quotes,
-    needs_quotes,
     quote_ref,
     render_caption,
     render_color,

@@ -84,11 +84,8 @@ from ..primitives.common import (
     Footer,
     Header,
     Label,
-    LabelLike,
     Legend,
     LineStyleLike,
-    Note,
-    NotePosition,
     Scale,
     Stereotype,
     StyleLike,
@@ -689,7 +686,7 @@ class _ClassMemberBuilder:
             ]
             raise ValueError(
                 f"Visibility prefix '{symbol}' in field name is not supported.\n"
-                f"Use: field(\"{name[1:]}\", visibility=\"{word}\")"
+                f'Use: field("{name[1:]}", visibility="{word}")'
             )
 
         # Validate visibility if provided
@@ -736,7 +733,7 @@ class _ClassMemberBuilder:
             ]
             raise ValueError(
                 f"Visibility prefix '{symbol}' in method name is not supported.\n"
-                f"Use: method(\"{name[1:]}\", visibility=\"{word}\")"
+                f'Use: method("{name[1:]}", visibility="{word}")'
             )
 
         # Validate visibility if provided
@@ -802,7 +799,9 @@ class _ClassMemberBuilder:
         visibility: Visibility | None = None,
     ) -> Member:
         """Add an abstract method."""
-        return self.method(name, return_type, visibility=visibility, modifier="abstract")
+        return self.method(
+            name, return_type, visibility=visibility, modifier="abstract"
+        )
 
     def _build(self) -> ClassNode:
         """Build the class node with members."""
@@ -912,6 +911,7 @@ class ClassDiagramBuilder(_BaseClassBuilder):
         Convenience method combining build() and render() in one call.
         """
         from ..renderers import render
+
         return render(self.build())
 
 

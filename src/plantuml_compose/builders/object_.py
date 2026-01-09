@@ -72,7 +72,6 @@ from ..primitives.common import (
     Header,
     Label,
     Legend,
-    LineStyle,
     LineStyleLike,
     Scale,
     Stereotype,
@@ -134,7 +133,9 @@ class _BaseObjectBuilder:
         """
         if not name:
             raise ValueError("Object name cannot be empty")
-        stereo = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        stereo = (
+            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        )
         style_obj = validate_style_background_only(style, "Object")
         obj = Object(
             name=name,
@@ -168,7 +169,9 @@ class _BaseObjectBuilder:
         """
         if not name:
             raise ValueError("Object name cannot be empty")
-        stereo = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        stereo = (
+            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        )
         style_obj = validate_style_background_only(style, "Object")
         field_objs = tuple(Field(name=k, value=v) for k, v in (fields or {}).items())
         obj = Object(

@@ -11,7 +11,6 @@ from ..primitives.sequence import (
     Box,
     Delay,
     Divider,
-    ElseBlock,
     GroupBlock,
     Message,
     Participant,

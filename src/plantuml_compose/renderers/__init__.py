@@ -18,7 +18,16 @@ from .state import render_state_diagram
 from .usecase import render_usecase_diagram
 
 
-def render(diagram: StateDiagram | SequenceDiagram | ClassDiagram | ActivityDiagram | ComponentDiagram | DeploymentDiagram | UseCaseDiagram | ObjectDiagram) -> str:
+def render(
+    diagram: StateDiagram
+    | SequenceDiagram
+    | ClassDiagram
+    | ActivityDiagram
+    | ComponentDiagram
+    | DeploymentDiagram
+    | UseCaseDiagram
+    | ObjectDiagram,
+) -> str:
     """Render a diagram to PlantUML text.
 
     This is a dispatch function that routes to the appropriate

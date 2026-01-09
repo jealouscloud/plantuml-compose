@@ -72,7 +72,6 @@ from ..primitives.common import (
     Header,
     Label,
     Legend,
-    LineStyle,
     LineStyleLike,
     Scale,
     Stereotype,
@@ -141,7 +140,9 @@ class _BaseUseCaseBuilder:
         """
         if not name:
             raise ValueError("Actor name cannot be empty")
-        stereo = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        stereo = (
+            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        )
         style_obj = validate_style_background_only(style, "Actor")
         a = Actor(
             name=name,
@@ -180,7 +181,9 @@ class _BaseUseCaseBuilder:
         """
         if not name:
             raise ValueError("Use case name cannot be empty")
-        stereo = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        stereo = (
+            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        )
         style_obj = validate_style_background_only(style, "UseCase")
         uc = UseCase(
             name=name,
@@ -508,7 +511,9 @@ class _ContainerBuilder(_BaseUseCaseBuilder):
         super().__init__()
         self._type = type
         self._name = name
-        self._stereotype = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        self._stereotype = (
+            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        )
         self._style = validate_style_background_only(style, "Container")
 
     def _build(self) -> Container:

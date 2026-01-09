@@ -22,7 +22,20 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Union
 
-from .common import ColorLike, ComponentDiagramStyle, Direction, Footer, Header, Label, LabelLike, Legend, LineStyle, sanitize_ref, Scale, Stereotype, Style
+from .common import (
+    ColorLike,
+    ComponentDiagramStyle,
+    Direction,
+    Footer,
+    Header,
+    Label,
+    Legend,
+    LineStyle,
+    sanitize_ref,
+    Scale,
+    Stereotype,
+    Style,
+)
 
 if TYPE_CHECKING:
     pass
@@ -33,24 +46,24 @@ ComponentType = Literal["component", "interface", "port", "portin", "portout"]
 
 # Container visual styles
 ContainerType = Literal[
-    "package",    # Tab folder (default)
-    "node",       # 3D box
-    "folder",     # Folder icon
-    "frame",      # Frame with title bar
-    "cloud",      # Cloud shape
-    "database",   # Cylinder
+    "package",  # Tab folder (default)
+    "node",  # 3D box
+    "folder",  # Folder icon
+    "frame",  # Frame with title bar
+    "cloud",  # Cloud shape
+    "database",  # Cylinder
     "rectangle",  # Plain rectangle
 ]
 
 # Relationship types - determine the arrow/connector style
 RelationType = Literal[
-    "provides",      # --( Lollipop: component provides interface
-    "requires",      # )-- Socket: component requires interface
-    "dependency",    # ..> Depends on (dotted arrow)
-    "association",   # --  Connected (solid line)
-    "line",          # --  Plain line
-    "dotted",        # ..  Dotted line
-    "arrow",         # --> Solid arrow
+    "provides",  # --( Lollipop: component provides interface
+    "requires",  # )-- Socket: component requires interface
+    "dependency",  # ..> Depends on (dotted arrow)
+    "association",  # --  Connected (solid line)
+    "line",  # --  Plain line
+    "dotted",  # ..  Dotted line
+    "arrow",  # --> Solid arrow
     "dotted_arrow",  # ..> Dotted arrow
 ]
 
@@ -214,10 +227,10 @@ class Relationship:
 class ComponentNote:
     """A note annotation in a component diagram.
 
-        content:  Note text
-        position: Placement relative to target
-        target:   Component to attach to
-        color:    Note background color
+    content:  Note text
+    position: Placement relative to target
+    target:   Component to attach to
+    color:    Note background color
     """
 
     content: Label

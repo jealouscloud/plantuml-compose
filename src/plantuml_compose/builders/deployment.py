@@ -68,7 +68,6 @@ from ..primitives.common import (
     Header,
     Label,
     Legend,
-    LineStyle,
     LineStyleLike,
     Scale,
     Stereotype,
@@ -119,7 +118,9 @@ class _BaseDeploymentBuilder:
         """Add an element of any type."""
         if not name:
             raise ValueError("Element name cannot be empty")
-        stereo = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        stereo = (
+            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        )
         style_obj = validate_style_background_only(style, "DeploymentElement")
         elem = DeploymentElement(
             name=name,
@@ -141,7 +142,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add an actor."""
-        return self._add_element(name, "actor", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "actor", alias=alias, stereotype=stereotype, style=style
+        )
 
     def agent(
         self,
@@ -152,7 +155,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add an agent."""
-        return self._add_element(name, "agent", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "agent", alias=alias, stereotype=stereotype, style=style
+        )
 
     def artifact(
         self,
@@ -163,7 +168,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add an artifact."""
-        return self._add_element(name, "artifact", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "artifact", alias=alias, stereotype=stereotype, style=style
+        )
 
     def boundary(
         self,
@@ -174,7 +181,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a boundary."""
-        return self._add_element(name, "boundary", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "boundary", alias=alias, stereotype=stereotype, style=style
+        )
 
     def card(
         self,
@@ -185,7 +194,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a card."""
-        return self._add_element(name, "card", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "card", alias=alias, stereotype=stereotype, style=style
+        )
 
     def circle(
         self,
@@ -196,7 +207,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a circle."""
-        return self._add_element(name, "circle", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "circle", alias=alias, stereotype=stereotype, style=style
+        )
 
     def cloud(
         self,
@@ -207,7 +220,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a cloud (simple, non-nested)."""
-        return self._add_element(name, "cloud", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "cloud", alias=alias, stereotype=stereotype, style=style
+        )
 
     def collections(
         self,
@@ -218,7 +233,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a collections element."""
-        return self._add_element(name, "collections", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "collections", alias=alias, stereotype=stereotype, style=style
+        )
 
     def component(
         self,
@@ -229,7 +246,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a component."""
-        return self._add_element(name, "component", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "component", alias=alias, stereotype=stereotype, style=style
+        )
 
     def control(
         self,
@@ -240,7 +259,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a control element."""
-        return self._add_element(name, "control", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "control", alias=alias, stereotype=stereotype, style=style
+        )
 
     def database(
         self,
@@ -251,7 +272,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a database (simple, non-nested)."""
-        return self._add_element(name, "database", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "database", alias=alias, stereotype=stereotype, style=style
+        )
 
     def entity(
         self,
@@ -262,7 +285,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add an entity."""
-        return self._add_element(name, "entity", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "entity", alias=alias, stereotype=stereotype, style=style
+        )
 
     def file(
         self,
@@ -273,7 +298,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a file."""
-        return self._add_element(name, "file", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "file", alias=alias, stereotype=stereotype, style=style
+        )
 
     def folder(
         self,
@@ -284,7 +311,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a folder (simple, non-nested)."""
-        return self._add_element(name, "folder", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "folder", alias=alias, stereotype=stereotype, style=style
+        )
 
     def frame(
         self,
@@ -295,7 +324,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a frame (simple, non-nested)."""
-        return self._add_element(name, "frame", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "frame", alias=alias, stereotype=stereotype, style=style
+        )
 
     def hexagon(
         self,
@@ -306,7 +337,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a hexagon."""
-        return self._add_element(name, "hexagon", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "hexagon", alias=alias, stereotype=stereotype, style=style
+        )
 
     def interface(
         self,
@@ -317,7 +350,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add an interface."""
-        return self._add_element(name, "interface", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "interface", alias=alias, stereotype=stereotype, style=style
+        )
 
     def label(
         self,
@@ -328,7 +363,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a label."""
-        return self._add_element(name, "label", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "label", alias=alias, stereotype=stereotype, style=style
+        )
 
     def package(
         self,
@@ -339,7 +376,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a package (simple, non-nested)."""
-        return self._add_element(name, "package", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "package", alias=alias, stereotype=stereotype, style=style
+        )
 
     def person(
         self,
@@ -350,7 +389,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a person."""
-        return self._add_element(name, "person", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "person", alias=alias, stereotype=stereotype, style=style
+        )
 
     def process(
         self,
@@ -361,7 +402,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a process."""
-        return self._add_element(name, "process", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "process", alias=alias, stereotype=stereotype, style=style
+        )
 
     def queue(
         self,
@@ -372,7 +415,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a queue."""
-        return self._add_element(name, "queue", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "queue", alias=alias, stereotype=stereotype, style=style
+        )
 
     def rectangle(
         self,
@@ -383,7 +428,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a rectangle (simple, non-nested)."""
-        return self._add_element(name, "rectangle", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "rectangle", alias=alias, stereotype=stereotype, style=style
+        )
 
     def stack(
         self,
@@ -394,7 +441,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a stack."""
-        return self._add_element(name, "stack", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "stack", alias=alias, stereotype=stereotype, style=style
+        )
 
     def storage(
         self,
@@ -405,7 +454,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a storage element."""
-        return self._add_element(name, "storage", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "storage", alias=alias, stereotype=stereotype, style=style
+        )
 
     def usecase(
         self,
@@ -416,7 +467,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a usecase."""
-        return self._add_element(name, "usecase", alias=alias, stereotype=stereotype, style=style)
+        return self._add_element(
+            name, "usecase", alias=alias, stereotype=stereotype, style=style
+        )
 
     # Relationship methods
     def relationship(
@@ -554,7 +607,9 @@ class _BaseDeploymentBuilder:
             direction: Layout direction hint (up, down, left, right)
         """
         for spoke in spokes:
-            self.arrow(hub, spoke, label=label, dotted=dotted, style=style, direction=direction)
+            self.arrow(
+                hub, spoke, label=label, dotted=dotted, style=style, direction=direction
+            )
 
     def note(
         self,
@@ -695,7 +750,9 @@ class _NestedElementBuilder(_BaseDeploymentBuilder):
         self._type = type
         self._name = name
         self._alias = alias
-        self._stereotype = Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        self._stereotype = (
+            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+        )
         self._style = validate_style_background_only(style, "DeploymentElement")
 
     def _build(self) -> DeploymentElement:

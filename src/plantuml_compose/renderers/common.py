@@ -9,11 +9,9 @@ from ..primitives.common import (
     Header,
     Label,
     Legend,
-    LineStyle,
     LineStyleLike,
     Scale,
     Stereotype,
-    Style,
     StyleLike,
     coerce_line_style,
     coerce_style,
@@ -98,9 +96,7 @@ def render_element_style(style: StyleLike) -> str:
     background = style.background
     text_color = style.text_color
     has_background = background is not None
-    has_line = line is not None and (
-        line.color is not None or line.pattern != "solid"
-    )
+    has_line = line is not None and (line.color is not None or line.pattern != "solid")
     has_text = text_color is not None
 
     # Background only: use simple #color format

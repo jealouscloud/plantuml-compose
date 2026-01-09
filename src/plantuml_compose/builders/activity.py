@@ -110,7 +110,6 @@ from ..primitives.common import (
     Footer,
     Header,
     Label,
-    LabelLike,
     Legend,
     LineStyleLike,
     Scale,
@@ -233,9 +232,9 @@ class _BaseActivityBuilder:
 
     def label(self, name: str) -> ActivityLabel:
         """Add a label for goto (experimental)."""
-        l = ActivityLabel(name=name)
-        self._elements.append(l)
-        return l
+        _label = ActivityLabel(name=name)
+        self._elements.append(_label)
+        return _label
 
     def swimlane(self, name: str, color: ColorLike | None = None) -> Swimlane:
         """Switch to a swimlane.
@@ -1030,6 +1029,7 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
         Convenience method combining build() and render() in one call.
         """
         from ..renderers import render
+
         return render(self.build())
 
 
