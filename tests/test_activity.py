@@ -721,3 +721,69 @@ class TestBlockMisuseDetection:
                     c.action("valid")
                 with pytest.raises(RuntimeError, match="inside 'switch' block"):
                     d.action("wrong")
+
+
+class TestNestedBuilderRestrictions:
+    """Test that nested builders don't expose diagram-only methods.
+
+    Methods like swimlane(), start(), stop(), end(), label() are only valid
+    at the diagram level, not inside nested blocks. The builder hierarchy
+    ensures these methods aren't even available on nested builders.
+    """
+
+    def test_branch_builder_has_no_swimlane(self):
+        """Branch builders (inside fork/split) shouldn't have swimlane()."""
+        with activity_diagram() as d:
+            with d.fork() as f:
+                with f.branch() as b:
+                    assert not hasattr(b, "swimlane") or not callable(
+                        getattr(b, "swimlane", None)
+                    )
+                    b.action("valid")
+
+    def test_if_builder_has_no_swimlane(self):
+        """If builders shouldn't have swimlane()."""
+        with activity_diagram() as d:
+            with d.if_("condition") as branch:
+                assert not hasattr(branch, "swimlane")
+                branch.action("valid")
+
+    def test_if_builder_has_no_start_stop(self):
+        """If builders shouldn't have start(), stop(), end()."""
+        with activity_diagram() as d:
+            with d.if_("condition") as branch:
+                assert not hasattr(branch, "start")
+                assert not hasattr(branch, "stop")
+                assert not hasattr(branch, "end")
+                branch.action("valid")
+
+    def test_while_builder_has_no_diagram_methods(self):
+        """While builders shouldn't have diagram-only methods."""
+        with activity_diagram() as d:
+            with d.while_("condition") as loop:
+                assert not hasattr(loop, "swimlane")
+                assert not hasattr(loop, "start")
+                assert not hasattr(loop, "stop")
+                loop.action("valid")
+
+    def test_else_builder_has_no_diagram_methods(self):
+        """Else builders shouldn't have diagram-only methods."""
+        with activity_diagram() as d:
+            with d.if_("condition") as branch:
+                branch.action("yes path")
+                with branch.else_() as else_block:
+                    assert not hasattr(else_block, "swimlane")
+                    assert not hasattr(else_block, "start")
+                    else_block.action("no path")
+
+    def test_nested_builders_still_have_valid_methods(self):
+        """Nested builders should still have action(), note(), etc."""
+        with activity_diagram() as d:
+            with d.if_("condition") as branch:
+                # These should all be available on nested builders
+                assert hasattr(branch, "action")
+                assert hasattr(branch, "arrow")
+                assert hasattr(branch, "note")
+                assert hasattr(branch, "break_")
+                assert hasattr(branch, "if_")  # Nesting is valid
+                branch.action("test")

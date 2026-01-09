@@ -123,29 +123,15 @@ from ..primitives.common import (
 ForkEndStyle = Literal["fork", "merge", "or", "and"]
 
 
-class _BaseActivityBuilder:
-    """Base class for activity builders with shared methods."""
+class _NestedActivityBuilder:
+    """Base class for nested activity builders (inside if_, while_, fork, etc.).
+
+    Only exposes methods that are valid within nested contexts.
+    Does NOT include diagram-level methods like swimlane(), start(), stop(), end().
+    """
 
     def __init__(self) -> None:
         self._elements: list[ActivityElement] = []
-
-    def start(self) -> Start:
-        """Add a start node."""
-        s = Start()
-        self._elements.append(s)
-        return s
-
-    def stop(self) -> Stop:
-        """Add a stop node (filled circle)."""
-        s = Stop()
-        self._elements.append(s)
-        return s
-
-    def end(self) -> End:
-        """Add an end node (circle with X)."""
-        e = End()
-        self._elements.append(e)
-        return e
 
     def action(
         self,
@@ -229,28 +215,6 @@ class _BaseActivityBuilder:
         g = Goto(label=label)
         self._elements.append(g)
         return g
-
-    def label(self, name: str) -> ActivityLabel:
-        """Add a label for goto (experimental)."""
-        _label = ActivityLabel(name=name)
-        self._elements.append(_label)
-        return _label
-
-    def swimlane(self, name: str, color: ColorLike | None = None) -> Swimlane:
-        """Switch to a swimlane.
-
-        Args:
-            name: Lane name
-            color: Lane background color
-
-        Returns:
-            The created Swimlane
-        """
-        if not name:
-            raise ValueError("Swimlane name cannot be empty")
-        s = Swimlane(name=name, color=color)
-        self._elements.append(s)
-        return s
 
     def note(
         self,
@@ -427,7 +391,56 @@ class _BaseActivityBuilder:
         self._elements.append(builder._build())
 
 
-class _IfBuilder(_BaseActivityBuilder):
+class _BaseActivityBuilder(_NestedActivityBuilder):
+    """Extends nested builder with diagram-level methods.
+
+    Only ActivityDiagramBuilder should inherit from this directly.
+    Nested builders (if_, while_, fork branches, etc.) should inherit
+    from _NestedActivityBuilder to avoid exposing invalid methods.
+    """
+
+    def start(self) -> Start:
+        """Add a start node."""
+        s = Start()
+        self._elements.append(s)
+        return s
+
+    def stop(self) -> Stop:
+        """Add a stop node (filled circle)."""
+        s = Stop()
+        self._elements.append(s)
+        return s
+
+    def end(self) -> End:
+        """Add an end node (circle with X)."""
+        e = End()
+        self._elements.append(e)
+        return e
+
+    def label(self, name: str) -> ActivityLabel:
+        """Add a label for goto (experimental)."""
+        _label = ActivityLabel(name=name)
+        self._elements.append(_label)
+        return _label
+
+    def swimlane(self, name: str, color: ColorLike | None = None) -> Swimlane:
+        """Switch to a swimlane.
+
+        Args:
+            name: Lane name
+            color: Lane background color
+
+        Returns:
+            The created Swimlane
+        """
+        if not name:
+            raise ValueError("Swimlane name cannot be empty")
+        s = Swimlane(name=name, color=color)
+        self._elements.append(s)
+        return s
+
+
+class _IfBuilder(_NestedActivityBuilder):
     """Builder for if statements."""
 
     def __init__(self, condition: str, then_label: str | None) -> None:
@@ -470,7 +483,7 @@ class _IfBuilder(_BaseActivityBuilder):
         )
 
 
-class _ElseIfBuilder(_BaseActivityBuilder):
+class _ElseIfBuilder(_NestedActivityBuilder):
     """Builder for elseif branches."""
 
     def __init__(self, condition: str, then_label: str | None) -> None:
@@ -487,7 +500,7 @@ class _ElseIfBuilder(_BaseActivityBuilder):
         )
 
 
-class _ElseBuilder(_BaseActivityBuilder):
+class _ElseBuilder(_NestedActivityBuilder):
     """Builder for else branches."""
 
     pass
@@ -523,7 +536,7 @@ class _SwitchBuilder:
         )
 
 
-class _CaseBuilder(_BaseActivityBuilder):
+class _CaseBuilder(_NestedActivityBuilder):
     """Builder for case blocks."""
 
     def __init__(self, label: str) -> None:
@@ -538,7 +551,7 @@ class _CaseBuilder(_BaseActivityBuilder):
         )
 
 
-class _WhileBuilder(_BaseActivityBuilder):
+class _WhileBuilder(_NestedActivityBuilder):
     """Builder for while loops."""
 
     def __init__(
@@ -562,7 +575,7 @@ class _WhileBuilder(_BaseActivityBuilder):
         )
 
 
-class _RepeatBuilder(_BaseActivityBuilder):
+class _RepeatBuilder(_NestedActivityBuilder):
     """Builder for repeat loops."""
 
     def __init__(
@@ -650,13 +663,13 @@ class _SplitBuilder:
         )
 
 
-class _BranchBuilder(_BaseActivityBuilder):
+class _BranchBuilder(_NestedActivityBuilder):
     """Builder for fork/split branches."""
 
     pass
 
 
-class _PartitionBuilder(_BaseActivityBuilder):
+class _PartitionBuilder(_NestedActivityBuilder):
     """Builder for partitions."""
 
     def __init__(self, name: str, color: ColorLike | None) -> None:
@@ -675,7 +688,7 @@ class _PartitionBuilder(_BaseActivityBuilder):
         )
 
 
-class _GroupBuilder(_BaseActivityBuilder):
+class _GroupBuilder(_NestedActivityBuilder):
     """Builder for groups."""
 
     def __init__(self, name: str) -> None:

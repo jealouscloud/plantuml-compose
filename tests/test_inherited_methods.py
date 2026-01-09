@@ -18,23 +18,24 @@ from plantuml_compose.builders.state import state_diagram
 class TestActivityInheritedMethods:
     """Test inherited methods on activity diagram sub-builders."""
 
-    def test_swimlane_inside_partition_rejected(self, validate_plantuml):
-        """Test whether PlantUML rejects swimlane() inside a partition.
+    def test_swimlane_not_available_on_nested_builders(self):
+        """Verify swimlane() is not exposed on nested builders.
 
-        This documents that PlantUML does NOT accept swimlanes inside partitions.
-        Our API allows this through inheritance, but PlantUML rejects it.
+        Previously our API incorrectly exposed swimlane() on partition builders
+        through inheritance. PlantUML rejects swimlanes inside partitions, so
+        we fixed the API to not expose this invalid operation.
+
+        Nested builders now inherit from _NestedActivityBuilder which doesn't
+        include diagram-level methods like swimlane(), start(), stop(), etc.
         """
         with activity_diagram() as d:
             d.start()
             with d.partition("Processing") as p:
-                p.swimlane("Lane A")
-                p.action("Task in Lane A")
+                # swimlane() should NOT be available on partition builder
+                assert not hasattr(p, "swimlane")
+                # But valid methods should still be available
+                p.action("Task in partition")
             d.stop()
-
-        puml = render(d.build())
-        is_valid = validate_plantuml(puml, "swimlane_in_partition")
-        # PlantUML rejects this - we document this behavior
-        assert not is_valid, "PlantUML should reject swimlane inside partition"
 
     def test_nested_partition_in_partition(self, validate_plantuml):
         """Test whether PlantUML accepts nested partitions."""
