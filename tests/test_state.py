@@ -179,15 +179,12 @@ class TestEdgeCases:
         assert "A --> B : go" in output
         assert validate_plantuml(output, "string_refs")
 
-    def test_duplicate_state_names(self):
-        """Duplicate state names create separate state declarations."""
+    def test_duplicate_state_names_rejected(self):
+        """Duplicate state names are rejected to prevent ref collision."""
         with state_diagram() as d:
-            s1 = d.state("Same")
-            s2 = d.state("Same")
-            d.arrow(s1, s2)
-        output = render(d.build())
-        # Both declarations appear
-        assert output.count("state Same") == 2
+            d.state("Same")
+            with pytest.raises(ValueError, match="already exists"):
+                d.state("Same")
 
 
 class TestTransition:
@@ -2203,3 +2200,21 @@ class TestSpotValidation:
         """Empty char raises ValueError."""
         with pytest.raises(ValueError, match="single character"):
             Spot("", Color.named("red"))
+
+
+class TestRefCollision:
+    """Test duplicate reference detection."""
+
+    def test_duplicate_ref_from_different_names_rejected(self):
+        """Two states producing the same ref are rejected."""
+        with state_diagram() as d:
+            d.state("Test State")  # ref: Test_State
+            with pytest.raises(ValueError, match="already exists.*Use an alias"):
+                d.state("Test_State")  # Would also be ref: Test_State
+
+    def test_alias_disambiguates_collision(self):
+        """Using an alias avoids ref collision."""
+        with state_diagram() as d:
+            d.state("Test State")  # ref: Test_State
+            d.state("Test_State", alias="test2")  # ref: test2
+        # Should not raise

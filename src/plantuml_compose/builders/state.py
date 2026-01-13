@@ -104,8 +104,19 @@ class _BaseStateBuilder:
         self._refs: set[str] = set()  # Track valid element references
 
     def _register_ref(self, element: StateNode | CompositeState | ConcurrentState) -> None:
-        """Register an element's reference for validation."""
-        self._refs.add(element._ref)
+        """Register an element's reference for validation.
+
+        Raises:
+            ValueError: If the ref already exists (collision from different names)
+        """
+        ref = element._ref
+        if ref in self._refs:
+            raise ValueError(
+                f'Reference "{ref}" already exists. '
+                f'State "{element.name}" produces the same ref as another state. '
+                f"Use an alias to disambiguate."
+            )
+        self._refs.add(ref)
         if hasattr(element, "alias") and element.alias:
             self._refs.add(element.alias)
 
