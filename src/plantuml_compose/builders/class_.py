@@ -172,7 +172,13 @@ class _BaseClassBuilder:
         stereotype: Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> ClassNode:
-        """Create and register an abstract class."""
+        """Create and register an abstract class.
+
+        Example:
+            shape = d.abstract("Shape")
+            circle = d.class_("Circle")
+            d.extends(circle, shape)
+        """
         if not name:
             raise ValueError("Abstract class name cannot be empty")
         node = ClassNode(
@@ -196,7 +202,13 @@ class _BaseClassBuilder:
         stereotype: Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> ClassNode:
-        """Create and register an interface."""
+        """Create and register an interface.
+
+        Example:
+            serializable = d.interface("Serializable")
+            user = d.class_("User")
+            d.implements(user, serializable)
+        """
         if not name:
             raise ValueError("Interface name cannot be empty")
         node = ClassNode(
@@ -249,7 +261,11 @@ class _BaseClassBuilder:
         alias: str | None = None,
         style: StyleLike | None = None,
     ) -> ClassNode:
-        """Create and register an annotation."""
+        """Create and register an annotation.
+
+        Example:
+            override = d.annotation("Override")
+        """
         if not name:
             raise ValueError("Annotation name cannot be empty")
         node = ClassNode(
@@ -269,7 +285,11 @@ class _BaseClassBuilder:
         alias: str | None = None,
         style: StyleLike | None = None,
     ) -> ClassNode:
-        """Create and register an entity."""
+        """Create and register an entity.
+
+        Example:
+            user_entity = d.entity("User")
+        """
         if not name:
             raise ValueError("Entity name cannot be empty")
         node = ClassNode(
@@ -330,6 +350,11 @@ class _BaseClassBuilder:
         """Create an extension (inheritance) relationship.
 
         Rendered as: child <|-- parent (child extends parent)
+
+        Example:
+            animal = d.class_("Animal")
+            dog = d.class_("Dog")
+            d.extends(dog, animal)  # Dog extends Animal
         """
         return self._relationship(
             parent, child, "extension", label=label, direction=direction
@@ -346,6 +371,11 @@ class _BaseClassBuilder:
         """Create an implementation relationship.
 
         Rendered as: implementer <|.. interface
+
+        Example:
+            comparable = d.interface("Comparable")
+            user = d.class_("User")
+            d.implements(user, comparable)
         """
         return self._relationship(
             interface, implementer, "implementation", label=label, direction=direction
@@ -462,6 +492,11 @@ class _BaseClassBuilder:
         """Create a uses (dependency) relationship.
 
         Rendered as: user ..> used
+
+        Example:
+            service = d.class_("OrderService")
+            logger = d.class_("Logger")
+            d.uses(service, logger)  # OrderService depends on Logger
         """
         return self._relationship(
             user, used, "dependency", label=label, direction=direction
@@ -602,6 +637,10 @@ class _BaseClassBuilder:
 
         Returns:
             The created ClassNote
+
+        Example:
+            user = d.class_("User")
+            d.note("Domain entity", of=user)
         """
         text = content.text if isinstance(content, Label) else content
         if not text:
@@ -617,13 +656,22 @@ class _BaseClassBuilder:
         return note
 
     def hide(self, target: str) -> HideShow:
-        """Hide elements (e.g., "empty members", "circle")."""
+        """Hide elements (e.g., "empty members", "circle").
+
+        Example:
+            d.hide("empty members")
+            d.hide("circle")
+        """
         hs = HideShow(action="hide", target=target)
         self._elements.append(hs)
         return hs
 
     def show(self, target: str) -> HideShow:
-        """Show elements."""
+        """Show elements.
+
+        Example:
+            d.show("methods")
+        """
         hs = HideShow(action="show", target=target)
         self._elements.append(hs)
         return hs
@@ -692,7 +740,7 @@ class _ClassMemberBuilder:
     ) -> None:
         self._name = name
         self._alias = alias
-        self._type = type
+        self._type: ClassType = type
         self._generics = generics
         self._stereotype = stereotype
         self._style = coerce_style(style)
@@ -723,6 +771,11 @@ class _ClassMemberBuilder:
 
         Returns:
             The created Member
+
+        Example:
+            with d.class_with_members("User") as user:
+                user.field("id", "int", visibility="private")
+                user.field("name", "str")
         """
         # Reject old visibility prefix pattern with helpful error
         if name and name[0] in "+-#~":
@@ -770,6 +823,11 @@ class _ClassMemberBuilder:
 
         Returns:
             The created Member
+
+        Example:
+            with d.class_with_members("User") as user:
+                user.method("login()", "bool", visibility="public")
+                user.method("validate(input: str)", visibility="private")
         """
         # Reject old visibility prefix pattern with helpful error
         if name and name[0] in "+-#~":
@@ -812,6 +870,12 @@ class _ClassMemberBuilder:
 
         Returns:
             The created Separator
+
+        Example:
+            with d.class_with_members("Service") as svc:
+                svc.field("config", "Config")
+                svc.separator(label="methods")
+                svc.method("start()")
         """
         sep = Separator(style=style, label=label)
         self._members.append(sep)
@@ -824,7 +888,11 @@ class _ClassMemberBuilder:
         *,
         visibility: Visibility | None = None,
     ) -> Member:
-        """Add a static field."""
+        """Add a static field.
+
+        Example:
+            user.static_field("instance_count", "int")
+        """
         return self.field(name, type, visibility=visibility, modifier="static")
 
     def static_method(
@@ -834,7 +902,11 @@ class _ClassMemberBuilder:
         *,
         visibility: Visibility | None = None,
     ) -> Member:
-        """Add a static method."""
+        """Add a static method.
+
+        Example:
+            user.static_method("getInstance()", "User")
+        """
         return self.method(name, return_type, visibility=visibility, modifier="static")
 
     def abstract_method(
@@ -844,7 +916,11 @@ class _ClassMemberBuilder:
         *,
         visibility: Visibility | None = None,
     ) -> Member:
-        """Add an abstract method."""
+        """Add an abstract method.
+
+        Example:
+            shape.abstract_method("draw()", "void")
+        """
         return self.method(
             name, return_type, visibility=visibility, modifier="abstract"
         )
@@ -877,7 +953,7 @@ class _PackageBuilder(_BaseClassBuilder):
         super().__init__()
         self._name = name
         self._alias = alias
-        self._style = style
+        self._style: PackageStyle = style
         self._color = color
 
     def _build(self) -> Package:
@@ -979,6 +1055,7 @@ def class_diagram(
     Usage:
         with class_diagram(title="Domain Model") as d:
             user = d.class_("User")
+            admin = d.class_("Admin")
             order = d.class_("Order")
 
             with d.class_with_members("Product") as product:

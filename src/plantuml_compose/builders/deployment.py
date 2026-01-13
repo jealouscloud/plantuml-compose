@@ -166,7 +166,12 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add an actor."""
+        """Add an actor (stick figure).
+
+        Example:
+            d.actor("User")
+            d.actor("Admin", style={"background": "LightBlue"})
+        """
         return self._add_element(
             name, "actor", alias=alias, stereotype=stereotype, style=style
         )
@@ -192,7 +197,12 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add an artifact."""
+        """Add an artifact (deployable unit like JAR, WAR, Docker image).
+
+        Example:
+            d.artifact("api.war")
+            d.artifact("Docker Image", stereotype="container")
+        """
         return self._add_element(
             name, "artifact", alias=alias, stereotype=stereotype, style=style
         )
@@ -270,7 +280,12 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a component."""
+        """Add a component (software module).
+
+        Example:
+            d.component("API Service")
+            d.component("Auth", alias="auth", stereotype="microservice")
+        """
         return self._add_element(
             name, "component", alias=alias, stereotype=stereotype, style=style
         )
@@ -296,7 +311,12 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a database (simple, non-nested)."""
+        """Add a database (simple, non-nested).
+
+        Example:
+            d.database("PostgreSQL")
+            d.database("Redis", stereotype="cache")
+        """
         return self._add_element(
             name, "database", alias=alias, stereotype=stereotype, style=style
         )
@@ -561,6 +581,12 @@ class _BaseDeploymentBuilder:
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the arrow
+
+        Example:
+            api = d.component("API")
+            db = d.database("PostgreSQL")
+            d.arrow(api, db, label="queries")
+            d.arrow("API", "Cache", dotted=True)
         """
         # Validate string refs
         if isinstance(source, str):
@@ -604,6 +630,9 @@ class _BaseDeploymentBuilder:
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the link
+
+        Example:
+            d.link("Server A", "Server B", label="sync")
         """
         # Validate string refs
         if isinstance(source, str):
@@ -648,6 +677,12 @@ class _BaseDeploymentBuilder:
             dotted: Use dotted arrow style
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
+
+        Example:
+            lb = d.component("Load Balancer")
+            s1 = d.component("Server 1")
+            s2 = d.component("Server 2")
+            d.connect(lb, [s1, s2])
         """
         for spoke in spokes:
             self.arrow(
@@ -662,7 +697,12 @@ class _BaseDeploymentBuilder:
         target: DeploymentRef | None = None,
         color: ColorLike | None = None,
     ) -> None:
-        """Add a note."""
+        """Add a note.
+
+        Example:
+            d.note("Primary database", target="PostgreSQL")
+            d.note("Scales horizontally", position="left", target="API")
+        """
         text = content.text if isinstance(content, Label) else content
         if not text:
             raise ValueError("Note content cannot be empty")
@@ -686,7 +726,13 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> Iterator["_NestedElementBuilder"]:
-        """Create a node with nested elements."""
+        """Create a node with nested elements.
+
+        Example:
+            with d.node_nested("Production Server") as server:
+                server.component("API")
+                server.database("PostgreSQL")
+        """
         builder = _NestedElementBuilder("node", name, alias, stereotype, style)
         yield builder
         elem = builder._build()
@@ -703,7 +749,13 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> Iterator["_NestedElementBuilder"]:
-        """Create a cloud with nested elements."""
+        """Create a cloud with nested elements.
+
+        Example:
+            with d.cloud_nested("AWS") as aws:
+                aws.component("Lambda")
+                aws.database("RDS")
+        """
         builder = _NestedElementBuilder("cloud", name, alias, stereotype, style)
         yield builder
         elem = builder._build()

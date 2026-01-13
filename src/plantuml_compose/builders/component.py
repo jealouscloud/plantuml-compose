@@ -475,6 +475,10 @@ class _BaseComponentBuilder:
             style: Line style (dict or LineStyle with color, pattern, thickness)
             direction: Layout direction hint ("up", "down", "left", "right")
             note: Optional note attached to relationship
+
+        Example:
+            rest = d.interface("REST")
+            d.provides(api, rest)
         """
         # Validate string refs
         if isinstance(component, str):
@@ -516,6 +520,10 @@ class _BaseComponentBuilder:
             style: Line style (dict or LineStyle with color, pattern, thickness)
             direction: Layout direction hint ("up", "down", "left", "right")
             note: Optional note attached to relationship
+
+        Example:
+            auth = d.interface("Auth")
+            d.requires(web, auth)
         """
         # Validate string refs
         if isinstance(component, str):
@@ -557,6 +565,9 @@ class _BaseComponentBuilder:
             style: Line style (dict or LineStyle with color, pattern, thickness)
             direction: Layout direction hint ("up", "down", "left", "right")
             note: Optional note attached to relationship
+
+        Example:
+            d.depends(api, logger)  # API depends on Logger
         """
         # Validate string refs
         if isinstance(source, str):
@@ -598,6 +609,9 @@ class _BaseComponentBuilder:
             style: Line style (dict or LineStyle with color, pattern, thickness)
             direction: Layout direction hint ("up", "down", "left", "right")
             note: Optional note attached to relationship
+
+        Example:
+            d.link(api, db, label="queries")
         """
         # Validate string refs
         if isinstance(source, str):
@@ -800,6 +814,9 @@ class _BaseComponentBuilder:
             position: "left", "right", "top", or "bottom"
             target: Component/interface to attach to (string, primitive, or builder)
             color: Note background color
+
+        Example:
+            d.note("Main entry point", target=api)
         """
         text = content.text if isinstance(content, Label) else content
         if not text:

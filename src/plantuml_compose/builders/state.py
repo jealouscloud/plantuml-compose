@@ -154,6 +154,11 @@ class _BaseStateBuilder:
 
         Raises:
             ValueError: If name is empty (PlantUML rejects empty state names)
+
+        Example:
+            idle = d.state("Idle")
+            active = d.state("Active", style={"background": "#E3F2FD"})
+            d.arrow(idle, active, label="start")
         """
         if not name:
             raise ValueError("State name cannot be empty")
@@ -414,6 +419,12 @@ class _BaseStateBuilder:
         """Create and register a choice pseudo-state (diamond).
 
         Note: PlantUML does not support styling choice diamonds - they always render gray.
+
+        Example:
+            check = d.choice("valid?")
+            d.arrow(processing, check)
+            d.arrow(check, success, label="yes")
+            d.arrow(check, failure, label="no")
         """
         pseudo = PseudoState(kind=PseudoStateKind.CHOICE, name=name)
         self._elements.append(pseudo)
@@ -423,6 +434,12 @@ class _BaseStateBuilder:
         """Create and register a fork pseudo-state (horizontal bar).
 
         Note: PlantUML does not support styling fork bars - they always render gray.
+
+        Example:
+            f = d.fork("split")
+            d.arrow(start_state, f)
+            d.arrow(f, branch_a)
+            d.arrow(f, branch_b)
         """
         pseudo = PseudoState(kind=PseudoStateKind.FORK, name=name)
         self._elements.append(pseudo)
@@ -432,13 +449,23 @@ class _BaseStateBuilder:
         """Create and register a join pseudo-state (horizontal bar).
 
         Note: PlantUML does not support styling join bars - they always render gray.
+
+        Example:
+            j = d.join("sync")
+            d.arrow(branch_a, j)
+            d.arrow(branch_b, j)
+            d.arrow(j, next_state)
         """
         pseudo = PseudoState(kind=PseudoStateKind.JOIN, name=name)
         self._elements.append(pseudo)
         return pseudo
 
     def sdl_receive(self, name: str) -> PseudoState:
-        """Create and register an SDL receive pseudo-state (concave polygon)."""
+        """Create and register an SDL receive pseudo-state (concave polygon).
+
+        Example:
+            recv = d.sdl_receive("WaitingForMessage")
+        """
         pseudo = PseudoState(kind=PseudoStateKind.SDL_RECEIVE, name=name)
         self._elements.append(pseudo)
         self._refs.add(sanitize_ref(name))
@@ -453,6 +480,9 @@ class _BaseStateBuilder:
 
         Raises:
             ValueError: If content is empty (PlantUML rejects empty notes)
+
+        Example:
+            d.note("Waiting for user input", position="left")
         """
         text = content.text if isinstance(content, Label) else content
         if not text:
@@ -464,19 +494,35 @@ class _BaseStateBuilder:
         return note_obj
 
     def start(self) -> str:
-        """Return the initial pseudo-state reference for use as arrow source."""
+        """Return the initial pseudo-state reference for use as arrow source.
+
+        Example:
+            d.arrow(d.start(), idle)
+        """
         return "initial"
 
     def end(self) -> str:
-        """Return the final pseudo-state reference for use as arrow target."""
+        """Return the final pseudo-state reference for use as arrow target.
+
+        Example:
+            d.arrow(completed, d.end())
+        """
         return "final"
 
     def history(self) -> str:
-        """Return the history pseudo-state reference."""
+        """Return the history pseudo-state reference.
+
+        Example:
+            d.arrow(d.history(), last_state)
+        """
         return "history"
 
     def deep_history(self) -> str:
-        """Return the deep history pseudo-state reference."""
+        """Return the deep history pseudo-state reference.
+
+        Example:
+            d.arrow(d.deep_history(), nested_state)
+        """
         return "deep_history"
 
     @contextmanager
@@ -652,42 +698,66 @@ class _CompositeBuilder(_BaseStateBuilder):
     # PlantUML crashes with IndexOutOfBoundsException if used at top level.
 
     def entry_point(self, name: str) -> PseudoState:
-        """Create an entry point pseudo-state (small circle on boundary)."""
+        """Create an entry point pseudo-state (small circle on boundary).
+
+        Example:
+            entry = active.entry_point("in")
+        """
         pseudo = PseudoState(kind=PseudoStateKind.ENTRY_POINT, name=name)
         self._elements.append(pseudo)
         self._refs.add(sanitize_ref(name))
         return pseudo
 
     def exit_point(self, name: str) -> PseudoState:
-        """Create an exit point pseudo-state (circle with X on boundary)."""
+        """Create an exit point pseudo-state (circle with X on boundary).
+
+        Example:
+            exit = active.exit_point("out")
+        """
         pseudo = PseudoState(kind=PseudoStateKind.EXIT_POINT, name=name)
         self._elements.append(pseudo)
         self._refs.add(sanitize_ref(name))
         return pseudo
 
     def input_pin(self, name: str) -> PseudoState:
-        """Create an input pin pseudo-state (small square on boundary)."""
+        """Create an input pin pseudo-state (small square on boundary).
+
+        Example:
+            pin = active.input_pin("data_in")
+        """
         pseudo = PseudoState(kind=PseudoStateKind.INPUT_PIN, name=name)
         self._elements.append(pseudo)
         self._refs.add(sanitize_ref(name))
         return pseudo
 
     def output_pin(self, name: str) -> PseudoState:
-        """Create an output pin pseudo-state (small square on boundary)."""
+        """Create an output pin pseudo-state (small square on boundary).
+
+        Example:
+            pin = active.output_pin("result_out")
+        """
         pseudo = PseudoState(kind=PseudoStateKind.OUTPUT_PIN, name=name)
         self._elements.append(pseudo)
         self._refs.add(sanitize_ref(name))
         return pseudo
 
     def expansion_input(self, name: str) -> PseudoState:
-        """Create an expansion input pseudo-state."""
+        """Create an expansion input pseudo-state.
+
+        Example:
+            exp_in = active.expansion_input("batch_in")
+        """
         pseudo = PseudoState(kind=PseudoStateKind.EXPANSION_INPUT, name=name)
         self._elements.append(pseudo)
         self._refs.add(sanitize_ref(name))
         return pseudo
 
     def expansion_output(self, name: str) -> PseudoState:
-        """Create an expansion output pseudo-state."""
+        """Create an expansion output pseudo-state.
+
+        Example:
+            exp_out = active.expansion_output("batch_out")
+        """
         pseudo = PseudoState(kind=PseudoStateKind.EXPANSION_OUTPUT, name=name)
         self._elements.append(pseudo)
         self._refs.add(sanitize_ref(name))

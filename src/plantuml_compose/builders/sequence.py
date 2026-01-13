@@ -69,8 +69,8 @@ Example with Blocks
         # Alternative paths - use block's builder for messages!
         with d.alt("valid credentials") as alt:
             alt.message(api, user, "success")
-            with alt.else_("invalid"):
-                alt.message(api, user, "error")
+            with alt.else_("invalid") as else_block:
+                else_block.message(api, user, "error")
 
         # Optional section
         with d.opt("remember me") as opt:
@@ -154,6 +154,11 @@ class _BaseSequenceBuilder:
         Returns:
             The created Message
 
+        Example:
+            d.message(client, server, "request()")
+            d.message(server, client, "response", line_style="dotted")
+            d.message("A", "B", "async", arrow_head="open")
+
         For activation control, use explicit methods:
             d.activate(participant)    # Start activation bar
             d.deactivate(participant)  # End activation bar
@@ -176,7 +181,9 @@ class _BaseSequenceBuilder:
     def return_(self, label: str | Label | None = None) -> Return:
         """Create a return message (auto-return from activation).
 
-        Rendered as: return label
+        Example:
+            d.message(client, server, "getData()")
+            d.return_("data")  # Returns to caller
         """
         label_obj = Label(label) if isinstance(label, str) else label
         ret = Return(label=label_obj)
@@ -188,7 +195,13 @@ class _BaseSequenceBuilder:
         participant: Participant | str,
         color: ColorLike | None = None,
     ) -> Activation:
-        """Explicitly activate a participant."""
+        """Explicitly activate a participant (show activation bar).
+
+        Example:
+            d.activate(server)
+            d.message(server, db, "query()")
+            d.deactivate(server)
+        """
         act = Activation(
             participant=self._to_ref(participant),
             action="activate",
@@ -198,7 +211,11 @@ class _BaseSequenceBuilder:
         return act
 
     def deactivate(self, participant: Participant | str) -> Activation:
-        """Explicitly deactivate a participant."""
+        """Explicitly deactivate a participant (end activation bar).
+
+        Example:
+            d.deactivate(server)
+        """
         act = Activation(
             participant=self._to_ref(participant),
             action="deactivate",
@@ -207,7 +224,12 @@ class _BaseSequenceBuilder:
         return act
 
     def destroy(self, participant: Participant | str) -> Activation:
-        """Destroy a participant (X on lifeline)."""
+        """Destroy a participant (X on lifeline).
+
+        Example:
+            d.message(client, worker, "process()")
+            d.destroy(worker)  # Worker terminates
+        """
         act = Activation(
             participant=self._to_ref(participant),
             action="destroy",
@@ -220,6 +242,10 @@ class _BaseSequenceBuilder:
 
         Before creation, the participant's lifeline doesn't exist.
         The first message to this participant will show creation.
+
+        Example:
+            d.create(worker)
+            d.message(factory, worker, "new()")
         """
         act = Activation(
             participant=self._to_ref(participant),
@@ -252,6 +278,10 @@ class _BaseSequenceBuilder:
 
         Returns:
             The created SequenceNote
+
+        Example:
+            d.note("Validates input", of=server)
+            d.note("Handshake", over=(client, server))
         """
         text = content.text if isinstance(content, Label) else content
         if not text:
@@ -292,6 +322,10 @@ class _BaseSequenceBuilder:
 
         Raises:
             ValueError: If no participants are provided.
+
+        Example:
+            d.ref(client, server, label="See Authentication Flow")
+            d.ref("API", "DB", label="See Database Queries")
         """
         if not participants:
             raise ValueError("ref() requires at least one participant")
@@ -307,6 +341,11 @@ class _BaseSequenceBuilder:
         """Create a divider line with title.
 
         Rendered as: == Title ==
+
+        Example:
+            d.divider("Initialization")
+            d.message(a, b, "setup()")
+            d.divider("Main Flow")
         """
         if not title:
             raise ValueError("Divider title cannot be empty")
@@ -318,6 +357,11 @@ class _BaseSequenceBuilder:
         """Create a delay indicator.
 
         Rendered as: ... or ...message...
+
+        Example:
+            d.message(client, server, "request()")
+            d.delay("waiting for response")
+            d.message(server, client, "response()")
         """
         d = Delay(message=message)
         self._elements.append(d)
@@ -327,6 +371,11 @@ class _BaseSequenceBuilder:
         """Create vertical spacing.
 
         Rendered as: ||| or ||N||
+
+        Example:
+            d.message(a, b, "first")
+            d.space(50)  # 50 pixel gap
+            d.message(a, b, "after gap")
         """
         s = Space(pixels=pixels)
         self._elements.append(s)
@@ -350,6 +399,14 @@ class _BaseSequenceBuilder:
 
         Returns:
             The created Autonumber
+
+        Example:
+            d.autonumber("start", start=10)
+            d.message(a, b, "numbered 10")
+            d.message(b, a, "numbered 11")
+            d.autonumber("stop")
+            d.message(a, b, "not numbered")
+            d.autonumber("resume")
         """
         validate_literal_type(action, AutonumberAction, "action")
         auto = Autonumber(
@@ -378,14 +435,25 @@ class _BaseSequenceBuilder:
 
     @contextmanager
     def opt(self, label: str | Label | None = None) -> Iterator[_GroupBuilder]:
-        """Create an opt (optional) grouping block."""
+        """Create an opt (optional) grouping block.
+
+        Example:
+            with d.opt("if cached") as opt:
+                opt.message(cache, client, "cached data")
+        """
         builder = _GroupBuilder("opt", label)
         yield builder
         self._elements.append(builder._build())
 
     @contextmanager
     def loop(self, label: str | Label | None = None) -> Iterator[_GroupBuilder]:
-        """Create a loop grouping block."""
+        """Create a loop grouping block.
+
+        Example:
+            with d.loop("for each item") as loop:
+                loop.message(processor, db, "fetch item")
+                loop.message(db, processor, "item data")
+        """
         builder = _GroupBuilder("loop", label)
         yield builder
         self._elements.append(builder._build())
@@ -395,6 +463,12 @@ class _BaseSequenceBuilder:
         """Create a par (parallel) grouping block.
 
         par blocks can have else branches like alt.
+
+        Example:
+            with d.par("concurrent requests") as par:
+                par.message(client, api, "request A")
+                with par.else_("") as par2:
+                    par2.message(client, api, "request B")
         """
         builder = _AltBuilder("par", label)
         yield builder
@@ -402,14 +476,26 @@ class _BaseSequenceBuilder:
 
     @contextmanager
     def break_(self, label: str | Label | None = None) -> Iterator[_GroupBuilder]:
-        """Create a break grouping block."""
+        """Create a break grouping block.
+
+        Example:
+            with d.break_("invalid input") as brk:
+                brk.message(api, client, "400 Bad Request")
+        """
         builder = _GroupBuilder("break", label)
         yield builder
         self._elements.append(builder._build())
 
     @contextmanager
     def critical(self, label: str | Label | None = None) -> Iterator[_GroupBuilder]:
-        """Create a critical grouping block."""
+        """Create a critical grouping block.
+
+        Example:
+            with d.critical("atomic operation") as crit:
+                crit.message(api, db, "BEGIN TRANSACTION")
+                crit.message(api, db, "INSERT")
+                crit.message(api, db, "COMMIT")
+        """
         builder = _GroupBuilder("critical", label)
         yield builder
         self._elements.append(builder._build())
@@ -423,6 +509,11 @@ class _BaseSequenceBuilder:
         """Create a custom group with optional secondary label.
 
         Rendered as: group Label [Secondary]
+
+        Example:
+            with d.group("Authentication", "OAuth2") as grp:
+                grp.message(client, auth, "redirect")
+                grp.message(auth, client, "token")
         """
         builder = _GroupBuilder("group", label, secondary)
         yield builder
@@ -476,9 +567,9 @@ class _AltBuilder(_GroupBuilder):
 
         Usage:
             with d.alt("condition") as alt:
-                d.message(a, b, "then")
-                with alt.else_("other"):
-                    d.message(a, b, "else")
+                alt.message(a, b, "then")
+                with alt.else_("other") as else_block:
+                    else_block.message(a, b, "else")
         """
         builder = _ElseBuilder(label)
         yield builder
@@ -838,6 +929,11 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
 
         Returns:
             The created Participant
+
+        Example:
+            user = d.participant("User")
+            api = d.participant("API Gateway", alias="api", order=1)
+            styled = d.participant("Service", style={"background": "#LightBlue"})
         """
         if not name:
             raise ValueError("Participant name cannot be empty")
@@ -879,7 +975,11 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
-        """Create an actor participant (stick figure)."""
+        """Create an actor participant (stick figure).
+
+        Example:
+            user = d.actor("Customer")
+        """
         return self.participant(
             name,
             alias=alias,
@@ -898,7 +998,11 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
-        """Create a boundary participant."""
+        """Create a boundary participant.
+
+        Example:
+            web = d.boundary("Web UI")
+        """
         return self.participant(
             name,
             alias=alias,
@@ -917,7 +1021,11 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
-        """Create a control participant."""
+        """Create a control participant.
+
+        Example:
+            handler = d.control("RequestHandler")
+        """
         return self.participant(
             name,
             alias=alias,
@@ -936,7 +1044,11 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
-        """Create an entity participant."""
+        """Create an entity participant.
+
+        Example:
+            order = d.entity("Order")
+        """
         return self.participant(
             name,
             alias=alias,
@@ -955,7 +1067,11 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
-        """Create a database participant (cylinder)."""
+        """Create a database participant (cylinder).
+
+        Example:
+            db = d.database("PostgreSQL")
+        """
         return self.participant(
             name,
             alias=alias,
@@ -974,7 +1090,11 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
-        """Create a collections participant."""
+        """Create a collections participant.
+
+        Example:
+            workers = d.collections("Workers")
+        """
         return self.participant(
             name,
             alias=alias,
@@ -993,7 +1113,11 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
-        """Create a queue participant."""
+        """Create a queue participant.
+
+        Example:
+            mq = d.queue("MessageQueue")
+        """
         return self.participant(
             name,
             alias=alias,

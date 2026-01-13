@@ -161,6 +161,10 @@ class _BaseUseCaseBuilder:
 
         Returns:
             The created Actor
+
+        Example:
+            customer = d.actor("Customer")
+            admin = d.actor("System Admin")  # alias auto-generated
         """
         if not name:
             raise ValueError("Actor name cannot be empty")
@@ -203,6 +207,10 @@ class _BaseUseCaseBuilder:
 
         Returns:
             The created UseCase
+
+        Example:
+            browse = d.usecase("Browse Products")
+            checkout = d.usecase("Checkout")
         """
         if not name:
             raise ValueError("Use case name cannot be empty")
@@ -242,6 +250,9 @@ class _BaseUseCaseBuilder:
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
+
+        Example:
+            d.relationship(customer, browse)
         """
         # Validate string refs
         if isinstance(source, str):
@@ -283,6 +294,10 @@ class _BaseUseCaseBuilder:
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the arrow
+
+        Example:
+            d.arrow(customer, browse)
+            d.arrow(customer, checkout, label="initiates")
         """
         # Validate string refs
         if isinstance(source, str):
@@ -324,6 +339,9 @@ class _BaseUseCaseBuilder:
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the link
+
+        Example:
+            d.link(admin, user)  # association without arrow
         """
         # Validate string refs
         if isinstance(source, str):
@@ -455,6 +473,9 @@ class _BaseUseCaseBuilder:
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
+
+        Example:
+            d.generalizes(admin, user)  # Admin is a kind of User
         """
         # Validate string refs
         if isinstance(child, str):
@@ -495,6 +516,9 @@ class _BaseUseCaseBuilder:
             label: Optional label for all arrows
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
+
+        Example:
+            d.connect(customer, [browse, search, checkout])
         """
         for spoke in spokes:
             self.arrow(hub, spoke, label=label, style=style, direction=direction)
@@ -507,7 +531,11 @@ class _BaseUseCaseBuilder:
         target: UseCaseRef | None = None,
         color: ColorLike | None = None,
     ) -> None:
-        """Add a note."""
+        """Add a note.
+
+        Example:
+            d.note("Primary entry point", target=browse)
+        """
         text = content.text if isinstance(content, Label) else content
         if not text:
             raise ValueError("Note content cannot be empty")

@@ -154,6 +154,9 @@ class _BaseObjectBuilder:
 
         Returns:
             The created Object
+
+        Example:
+            customer = d.object("alice : Customer")
         """
         if not name:
             raise ValueError("Object name cannot be empty")
@@ -191,6 +194,12 @@ class _BaseObjectBuilder:
 
         Returns:
             The created Object
+
+        Example:
+            order = d.object_with_fields(
+                "order1 : Order",
+                fields={"id": "12345", "total": "$99.99"}
+            )
         """
         if not name:
             raise ValueError("Object name cannot be empty")
@@ -230,6 +239,9 @@ class _BaseObjectBuilder:
 
         Returns:
             The created Map
+
+        Example:
+            config = d.map("config", entries={"env": "prod", "debug": "false"})
         """
         if not name:
             raise ValueError("Map name cannot be empty")
@@ -275,6 +287,9 @@ class _BaseObjectBuilder:
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
+
+        Example:
+            d.relationship(user, order, type="composition")
         """
         # Validate string refs
         if isinstance(source, str):
@@ -316,6 +331,9 @@ class _BaseObjectBuilder:
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the arrow
+
+        Example:
+            d.arrow(customer, order, label="places")
         """
         # Validate string refs
         if isinstance(source, str):
@@ -357,6 +375,9 @@ class _BaseObjectBuilder:
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the link
+
+        Example:
+            d.link(user1, user2, label="knows")
         """
         # Validate string refs
         if isinstance(source, str):
@@ -398,6 +419,9 @@ class _BaseObjectBuilder:
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
+
+        Example:
+            d.composition(house, room)  # room is part of house
         """
         # Validate string refs
         if isinstance(source, str):
@@ -439,6 +463,9 @@ class _BaseObjectBuilder:
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
+
+        Example:
+            d.aggregation(team, player)  # player belongs to team
         """
         # Validate string refs
         if isinstance(source, str):
@@ -480,6 +507,9 @@ class _BaseObjectBuilder:
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
+
+        Example:
+            d.extension(dog, animal)  # dog extends animal
         """
         # Validate string refs
         if isinstance(source, str):
@@ -521,6 +551,9 @@ class _BaseObjectBuilder:
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
+
+        Example:
+            d.implementation(arraylist, list)
         """
         # Validate string refs
         if isinstance(source, str):
@@ -562,6 +595,9 @@ class _BaseObjectBuilder:
             label: Optional label for all arrows
             style: Line style (color, pattern, thickness)
             direction: Layout direction hint (up, down, left, right)
+
+        Example:
+            d.connect(server, [client1, client2, client3])
         """
         for spoke in spokes:
             self.arrow(hub, spoke, label=label, style=style, direction=direction)
@@ -574,7 +610,11 @@ class _BaseObjectBuilder:
         target: ObjectRef | None = None,
         color: ColorLike | None = None,
     ) -> None:
-        """Add a note."""
+        """Add a note.
+
+        Example:
+            d.note("Current state", target=order)
+        """
         text = content.text if isinstance(content, Label) else content
         if not text:
             raise ValueError("Note content cannot be empty")

@@ -149,6 +149,11 @@ class _NestedActivityBuilder:
 
         Returns:
             The created Action
+
+        Example:
+            d.action("Validate input")
+            d.action("Send", shape="input")
+            d.action("Important", style={"background": "yellow"})
         """
         text = label.text if isinstance(label, Label) else label
         if not text:
@@ -175,6 +180,12 @@ class _NestedActivityBuilder:
 
         Returns:
             The created Arrow
+
+        Example:
+            d.action("Step 1")
+            d.arrow("next")
+            d.action("Step 2")
+            d.arrow(pattern="dashed", style={"color": "gray"})
         """
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
@@ -187,31 +198,62 @@ class _NestedActivityBuilder:
         return a
 
     def break_(self) -> Break:
-        """Add a break statement (exit loop)."""
+        """Add a break statement (exit loop).
+
+        Example:
+            with d.while_("condition") as loop:
+                loop.action("Process")
+                with loop.if_("error") as check:
+                    check.break_()  # exits the while loop
+        """
         b = Break()
         self._elements.append(b)
         return b
 
     def kill(self) -> Kill:
-        """Add a kill terminator (X symbol)."""
+        """Add a kill terminator (X symbol).
+
+        Example:
+            with d.if_("Fatal error?") as check:
+                check.kill()  # terminates with X
+        """
         k = Kill()
         self._elements.append(k)
         return k
 
     def detach(self) -> Detach:
-        """Detach from flow."""
+        """Detach from flow.
+
+        Example:
+            with d.fork() as f:
+                with f.branch() as b:
+                    b.action("Background task")
+                    b.detach()  # branch continues independently
+        """
         d = Detach()
         self._elements.append(d)
         return d
 
     def connector(self, name: str) -> Connector:
-        """Add a connector for goto-like jumps."""
+        """Add a connector for goto-like jumps.
+
+        Example:
+            d.connector("A")  # defines connection point A
+            d.action("Process")
+            d.connector("A")  # jumps back to point A
+        """
         c = Connector(name=name)
         self._elements.append(c)
         return c
 
     def goto(self, label: str) -> Goto:
-        """Add a goto statement (experimental)."""
+        """Add a goto statement (experimental).
+
+        Example:
+            d.label("retry")
+            d.action("Attempt operation")
+            d.goto("retry")  # jumps to label
+        """
         g = Goto(label=label)
         self._elements.append(g)
         return g
@@ -232,6 +274,11 @@ class _NestedActivityBuilder:
 
         Returns:
             The created ActivityNote
+
+        Example:
+            d.action("Validate")
+            d.note("Check all fields", position="right")
+            d.note("Important!", floating=True)
         """
         text = content.text if isinstance(content, Label) else content
         if not text:
@@ -400,25 +447,46 @@ class _BaseActivityBuilder(_NestedActivityBuilder):
     """
 
     def start(self) -> Start:
-        """Add a start node."""
+        """Add a start node.
+
+        Example:
+            d.start()
+            d.action("First action")
+        """
         s = Start()
         self._elements.append(s)
         return s
 
     def stop(self) -> Stop:
-        """Add a stop node (filled circle)."""
+        """Add a stop node (filled circle).
+
+        Example:
+            d.action("Final action")
+            d.stop()
+        """
         s = Stop()
         self._elements.append(s)
         return s
 
     def end(self) -> End:
-        """Add an end node (circle with X)."""
+        """Add an end node (circle with X).
+
+        Example:
+            d.action("Abnormal termination")
+            d.end()  # different visual than stop()
+        """
         e = End()
         self._elements.append(e)
         return e
 
     def label(self, name: str) -> ActivityLabel:
-        """Add a label for goto (experimental)."""
+        """Add a label for goto (experimental).
+
+        Example:
+            d.label("retry_point")
+            d.action("Try operation")
+            d.goto("retry_point")
+        """
         _label = ActivityLabel(name=name)
         self._elements.append(_label)
         return _label
