@@ -509,11 +509,23 @@ class TestEdgeCases:
         assert '"My Class"' in output
 
     def test_relationship_with_string_refs(self):
+        """Test that string refs work when classes are declared first."""
         with class_diagram() as d:
+            d.class_("User")
+            d.class_("Order")
             d.relationship("User", "Order", "association")
 
         output = render(d.build())
         assert "User --> Order" in output
+
+    def test_relationship_with_invalid_string_ref_fails(self):
+        """Test that invalid string refs raise ValueError."""
+        import pytest
+
+        with class_diagram() as d:
+            d.class_("User")
+            with pytest.raises(ValueError, match='target "NonExistent" not found'):
+                d.relationship("User", "NonExistent", "association")
 
 
 class TestComplexDiagram:

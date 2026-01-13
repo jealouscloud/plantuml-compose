@@ -92,8 +92,8 @@ from ..primitives.state import (
     StateDiagramElement,
     StateNode,
     Transition,
-    _sanitize_ref,
 )
+from ..primitives.common import sanitize_ref
 
 
 class _BaseStateBuilder:
@@ -101,6 +101,33 @@ class _BaseStateBuilder:
 
     def __init__(self) -> None:
         self._elements: list[StateDiagramElement] = []
+        self._refs: set[str] = set()  # Track valid element references
+
+    def _register_ref(self, element: StateNode | CompositeState | ConcurrentState) -> None:
+        """Register an element's reference for validation."""
+        self._refs.add(element._ref)
+        if hasattr(element, "alias") and element.alias:
+            self._refs.add(element.alias)
+
+    def _validate_ref(self, ref: str, param_name: str) -> None:
+        """Validate that a string reference exists in the diagram.
+
+        Args:
+            ref: The reference string to validate
+            param_name: Parameter name for error message
+
+        Raises:
+            ValueError: If ref is not found in registered elements
+        """
+        # Special pseudo-state refs are always valid
+        if ref in ("[*]", "[H]", "[H*]"):
+            return
+        if ref not in self._refs:
+            available = sorted(self._refs) if self._refs else ["(none)"]
+            raise ValueError(
+                f'{param_name} "{ref}" not found. '
+                f"Available: {', '.join(available)}"
+            )
 
     def state(
         self,
@@ -148,6 +175,7 @@ class _BaseStateBuilder:
             note=note_obj,
         )
         self._elements.append(node)
+        self._register_ref(node)
         return node
 
     def states(
@@ -226,6 +254,11 @@ class _BaseStateBuilder:
                     f'    c = d.state("{state}")\n'
                     f"    d.arrow(a, b, c)"
                 )
+
+        # Validate string refs (only first two positions allow string refs)
+        for i, state in enumerate(states[:2]):
+            if isinstance(state, str) and state not in self._STATE_REF_STRINGS:
+                self._validate_ref(state, f"state[{i}]")
 
         # Convert string label to Label
         label_obj = Label(label) if isinstance(label, str) else label
@@ -408,6 +441,7 @@ class _BaseStateBuilder:
         """Create and register an SDL receive pseudo-state (concave polygon)."""
         pseudo = PseudoState(kind=PseudoStateKind.SDL_RECEIVE, name=name)
         self._elements.append(pseudo)
+        self._refs.add(sanitize_ref(name))
         return pseudo
 
     def note(
@@ -476,7 +510,10 @@ class _BaseStateBuilder:
         style_obj = coerce_style(style)
         builder = _CompositeBuilder(name, alias, style_obj, note, note_position)
         yield builder
-        self._elements.append(builder._build())
+        comp = builder._build()
+        self._elements.append(comp)
+        self._register_ref(comp)
+        self._refs.update(builder._refs)
 
     @contextmanager
     def concurrent(
@@ -515,7 +552,10 @@ class _BaseStateBuilder:
             name, alias, style_obj, note, note_position, separator
         )
         yield builder
-        self._elements.append(builder._build())
+        conc = builder._build()
+        self._elements.append(conc)
+        self._register_ref(conc)
+        self._refs.update(builder._refs)
 
     @contextmanager
     def parallel(
@@ -573,7 +613,7 @@ class _BaseStateBuilder:
             return state._ref
         if isinstance(state, PseudoState):
             if state.name:
-                return _sanitize_ref(state.name)
+                return sanitize_ref(state.name)
             return state.kind.value
         # Handle builder types with ._ref property (e.g., _CompositeBuilder, _ConcurrentBuilder)
         if hasattr(state, "_ref"):
@@ -606,7 +646,7 @@ class _CompositeBuilder(_BaseStateBuilder):
         """Internal: Reference name for use in transitions."""
         if self._alias:
             return self._alias
-        return _sanitize_ref(self._name)
+        return sanitize_ref(self._name)
 
     # Boundary pseudo-states: these stereotypes only work inside composite states.
     # PlantUML crashes with IndexOutOfBoundsException if used at top level.
@@ -615,36 +655,42 @@ class _CompositeBuilder(_BaseStateBuilder):
         """Create an entry point pseudo-state (small circle on boundary)."""
         pseudo = PseudoState(kind=PseudoStateKind.ENTRY_POINT, name=name)
         self._elements.append(pseudo)
+        self._refs.add(sanitize_ref(name))
         return pseudo
 
     def exit_point(self, name: str) -> PseudoState:
         """Create an exit point pseudo-state (circle with X on boundary)."""
         pseudo = PseudoState(kind=PseudoStateKind.EXIT_POINT, name=name)
         self._elements.append(pseudo)
+        self._refs.add(sanitize_ref(name))
         return pseudo
 
     def input_pin(self, name: str) -> PseudoState:
         """Create an input pin pseudo-state (small square on boundary)."""
         pseudo = PseudoState(kind=PseudoStateKind.INPUT_PIN, name=name)
         self._elements.append(pseudo)
+        self._refs.add(sanitize_ref(name))
         return pseudo
 
     def output_pin(self, name: str) -> PseudoState:
         """Create an output pin pseudo-state (small square on boundary)."""
         pseudo = PseudoState(kind=PseudoStateKind.OUTPUT_PIN, name=name)
         self._elements.append(pseudo)
+        self._refs.add(sanitize_ref(name))
         return pseudo
 
     def expansion_input(self, name: str) -> PseudoState:
         """Create an expansion input pseudo-state."""
         pseudo = PseudoState(kind=PseudoStateKind.EXPANSION_INPUT, name=name)
         self._elements.append(pseudo)
+        self._refs.add(sanitize_ref(name))
         return pseudo
 
     def expansion_output(self, name: str) -> PseudoState:
         """Create an expansion output pseudo-state."""
         pseudo = PseudoState(kind=PseudoStateKind.EXPANSION_OUTPUT, name=name)
         self._elements.append(pseudo)
+        self._refs.add(sanitize_ref(name))
         return pseudo
 
     def _build(self) -> CompositeState:
@@ -682,13 +728,14 @@ class _ConcurrentBuilder:
         self._note_position = note_position
         self._separator = separator
         self._regions: list[Region] = []
+        self._refs: set[str] = set()  # Track valid element references
 
     @property
     def _ref(self) -> str:
         """Internal: Reference name for use in transitions."""
         if self._alias:
             return self._alias
-        return _sanitize_ref(self._name)
+        return sanitize_ref(self._name)
 
     @contextmanager
     def region(self) -> Iterator[_RegionBuilder]:
@@ -702,6 +749,7 @@ class _ConcurrentBuilder:
         builder = _RegionBuilder()
         yield builder
         self._regions.append(builder._build())
+        self._refs.update(builder._refs)
 
     def _build(self) -> ConcurrentState:
         """Build the concurrent state primitive."""
@@ -803,6 +851,7 @@ class _ParallelBuilder:
         self._fork: PseudoState | None = None
         self._join: PseudoState | None = None
         self._built = False
+        self._refs: set[str] = set()  # Track valid element references
 
     def _fork_name(self) -> str:
         """Get the fork pseudo-state name."""
@@ -858,6 +907,7 @@ class _ParallelBuilder:
         if not b._elements:
             raise ValueError("Branch must have at least one element")
         self._branches.append(b)
+        self._refs.update(b._refs)
 
     def _build(self) -> list[StateDiagramElement]:
         """Build all elements: fork, transitions to branches, branch contents, transitions to join, join.
@@ -874,6 +924,9 @@ class _ParallelBuilder:
         self._fork = PseudoState(kind=PseudoStateKind.FORK, name=fork_name)
         self._join = PseudoState(kind=PseudoStateKind.JOIN, name=join_name)
         self._built = True
+        # Register fork/join refs for validation
+        self._refs.add(fork_name)
+        self._refs.add(join_name)
 
         elements: list[StateDiagramElement] = [self._fork]
 
@@ -1073,7 +1126,10 @@ class StateDiagramBuilder(_BaseStateBuilder):
             style_obj = coerce_style(style)
             builder = _CompositeBuilder(name, alias, style_obj, note, note_position)
             yield builder
-            self._elements.append(builder._build())
+            comp = builder._build()
+            self._elements.append(comp)
+            self._register_ref(comp)
+            self._refs.update(builder._refs)
         finally:
             self._block_stack.pop()
 
@@ -1096,7 +1152,10 @@ class StateDiagramBuilder(_BaseStateBuilder):
                 name, alias, style_obj, note, note_position, separator
             )
             yield builder
-            self._elements.append(builder._build())
+            conc = builder._build()
+            self._elements.append(conc)
+            self._register_ref(conc)
+            self._refs.update(builder._refs)
         finally:
             self._block_stack.pop()
 
@@ -1111,6 +1170,7 @@ class StateDiagramBuilder(_BaseStateBuilder):
             builder = _ParallelBuilder(name)
             yield builder
             self._elements.extend(builder._build())
+            self._refs.update(builder._refs)
         finally:
             self._block_stack.pop()
 

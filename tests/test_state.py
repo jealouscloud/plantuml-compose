@@ -163,13 +163,21 @@ class TestEdgeCases:
         assert "@startuml" in output
         assert "@enduml" in output
 
-    def test_transition_to_undeclared_state(self, validate_plantuml):
-        """Transitions can reference states by string name (auto-created by PlantUML)."""
+    def test_transition_to_undeclared_state_fails(self):
+        """Transitions to undeclared states now fail with validation error."""
         with state_diagram() as d:
+            with pytest.raises(ValueError, match="not found"):
+                d.arrow("A", "B", label="go")
+
+    def test_transition_with_string_refs(self, validate_plantuml):
+        """Transitions can reference declared states by string name."""
+        with state_diagram() as d:
+            d.state("A")
+            d.state("B")
             d.arrow("A", "B", label="go")
         output = render(d.build())
         assert "A --> B : go" in output
-        assert validate_plantuml(output, "undeclared")
+        assert validate_plantuml(output, "string_refs")
 
     def test_duplicate_state_names(self):
         """Duplicate state names create separate state declarations."""
@@ -759,8 +767,9 @@ class TestStereotypes:
                 somp.arrow(entry2, sin)
                 somp.arrow(sin, sin2)
                 somp.arrow(sin2, exit_a)
+            foo = d.state("Foo")
             d.arrow(d.start(), "entry1")
-            d.arrow("exitA", "Foo")
+            d.arrow("exitA", foo)
         output = render(d.build())
         assert 'state "entry1" as entry1 <<entryPoint>>' in output
         assert 'state "exitA" as exitA <<exitPoint>>' in output
@@ -774,8 +783,9 @@ class TestStereotypes:
                 process = somp.state("process")
                 somp.arrow(input1, process)
                 somp.arrow(process, output1)
+            foo = d.state("Foo")
             d.arrow(d.start(), "input1")
-            d.arrow("output1", "Foo")
+            d.arrow("output1", foo)
         output = render(d.build())
         assert 'state "input1" as input1 <<inputPin>>' in output
         assert 'state "output1" as output1 <<outputPin>>' in output
@@ -783,8 +793,9 @@ class TestStereotypes:
     def test_sdl_receive(self):
         """SDL receive pseudo-state."""
         with state_diagram() as d:
+            idle = d.state("Idle")
             receive = d.sdl_receive("ReqId")
-            d.arrow("Idle", receive)
+            d.arrow(idle, receive)
         output = render(d.build())
         assert 'state "ReqId" as ReqId <<sdlreceive>>' in output
 
@@ -797,8 +808,9 @@ class TestStereotypes:
                 process = somp.state("process")
                 somp.arrow(exp_in, process)
                 somp.arrow(process, exp_out)
+            foo = d.state("Foo")
             d.arrow(d.start(), "expIn")
-            d.arrow("expOut", "Foo")
+            d.arrow("expOut", foo)
         output = render(d.build())
         assert 'state "expIn" as expIn <<expansionInput>>' in output
         assert 'state "expOut" as expOut <<expansionOutput>>' in output

@@ -102,6 +102,30 @@ class _BaseObjectBuilder:
 
     def __init__(self) -> None:
         self._elements: list[ObjectDiagramElement] = []
+        self._refs: set[str] = set()  # Track valid element references
+
+    def _register_ref(self, elem: Object | Map) -> None:
+        """Register an element's ref for validation."""
+        self._refs.add(elem._ref)
+        if elem.alias:
+            self._refs.add(elem.alias)
+
+    def _validate_ref(self, ref: str, param_name: str) -> None:
+        """Validate that a string reference exists in the diagram.
+
+        Args:
+            ref: The reference string to validate
+            param_name: Parameter name for error message
+
+        Raises:
+            ValueError: If ref is not found in registered elements
+        """
+        if ref not in self._refs:
+            available = sorted(self._refs) if self._refs else ["(none)"]
+            raise ValueError(
+                f'{param_name} "{ref}" not found. '
+                f"Available: {', '.join(available)}"
+            )
 
     def _to_ref(self, target: ObjectRef) -> str:
         """Convert an object reference to its string form.
@@ -144,6 +168,7 @@ class _BaseObjectBuilder:
             style=style_obj,
         )
         self._elements.append(obj)
+        self._register_ref(obj)
         return obj
 
     def object_with_fields(
@@ -182,6 +207,7 @@ class _BaseObjectBuilder:
             fields=field_objs,
         )
         self._elements.append(obj)
+        self._register_ref(obj)
         return obj
 
     def map(
@@ -225,6 +251,7 @@ class _BaseObjectBuilder:
             entries=tuple(entry_objs),
         )
         self._elements.append(map_obj)
+        self._register_ref(map_obj)
         return map_obj
 
     def relationship(
@@ -249,6 +276,12 @@ class _BaseObjectBuilder:
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
         """
+        # Validate string refs
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
@@ -284,6 +317,12 @@ class _BaseObjectBuilder:
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the arrow
         """
+        # Validate string refs
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
@@ -319,6 +358,12 @@ class _BaseObjectBuilder:
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the link
         """
+        # Validate string refs
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
@@ -354,6 +399,12 @@ class _BaseObjectBuilder:
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
         """
+        # Validate string refs
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
@@ -389,6 +440,12 @@ class _BaseObjectBuilder:
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
         """
+        # Validate string refs
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
@@ -424,6 +481,12 @@ class _BaseObjectBuilder:
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
         """
+        # Validate string refs
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
@@ -459,6 +522,12 @@ class _BaseObjectBuilder:
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
         """
+        # Validate string refs
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note

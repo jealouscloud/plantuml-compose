@@ -12,6 +12,7 @@ from ..primitives.common import (
     StateDiagramStyle,
     Style,
 )
+from ..primitives.common import sanitize_ref
 from ..primitives.state import (
     CompositeState,
     ConcurrentState,
@@ -21,7 +22,6 @@ from ..primitives.state import (
     StateDiagram,
     StateNode,
     Transition,
-    _sanitize_ref,
 )
 from .common import (
     escape_quotes,
@@ -322,7 +322,7 @@ def _render_pseudo_state(pseudo: PseudoState) -> list[str]:
     # Other pseudo-states need explicit declarations with stereotypes
     if pseudo.name:
         escaped_name = escape_quotes(pseudo.name)
-        sanitized = _sanitize_ref(pseudo.name)
+        sanitized = sanitize_ref(pseudo.name)
         # Use alias syntax so transitions can reference the sanitized name
         decl = f'state "{escaped_name}" as {sanitized} <<{pseudo.kind.value}>>'
         if pseudo.style:

@@ -58,11 +58,32 @@ def validate_literal_type(value: str, literal_type: Any, param_name: str) -> str
 def sanitize_ref(name: str) -> str:
     """Convert a name to a valid PlantUML reference.
 
-    PlantUML identifiers cannot contain spaces, so spaces are replaced with
-    underscores. This allows names like "Web Server" to be referenced as
-    "Web_Server" in relationships.
+    PlantUML identifiers have restrictions on allowed characters:
+    - Simple alphanumeric names (valid Python identifiers) pass through as-is
+    - Spaces become underscores
+    - Special characters that conflict with PlantUML syntax are removed
+
+    Examples:
+        sanitize_ref("User") -> "User"
+        sanitize_ref("Web Server") -> "Web_Server"
+        sanitize_ref("User<Admin>") -> "UserAdmin"
+        sanitize_ref("@#$") -> "_"  # fallback for all-special input
     """
-    return name.replace(" ", "_")
+    # Fast path: simple identifiers need no transformation
+    if name.isidentifier():
+        return name
+
+    # Replace spaces with underscores
+    sanitized = name.replace(" ", "_")
+
+    # Remove characters that break PlantUML identifiers
+    # This includes quotes, brackets, operators, and punctuation that
+    # PlantUML interprets as syntax (e.g., hyphen for arrows)
+    for char in "\"'`()[]{}:;,.<>!@#$%^&*+=|\\/?~-":
+        sanitized = sanitized.replace(char, "")
+
+    # Ensure we always return a valid identifier
+    return sanitized or "_"
 
 
 # All color names supported by PlantUML (extracted via test_codegen.py)

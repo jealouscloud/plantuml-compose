@@ -115,6 +115,30 @@ class _BaseComponentBuilder:
 
     def __init__(self) -> None:
         self._elements: list[ComponentElement] = []
+        self._refs: set[str] = set()  # Track valid element references
+
+    def _register_ref(self, element: Component | Interface | Container) -> None:
+        """Register an element's reference for validation."""
+        self._refs.add(element._ref)
+        if hasattr(element, "alias") and element.alias:
+            self._refs.add(element.alias)
+
+    def _validate_ref(self, ref: str, param_name: str) -> None:
+        """Validate that a string reference exists in the diagram.
+
+        Args:
+            ref: The reference string to validate
+            param_name: Parameter name for error message
+
+        Raises:
+            ValueError: If ref is not found in registered elements
+        """
+        if ref not in self._refs:
+            available = sorted(self._refs) if self._refs else ["(none)"]
+            raise ValueError(
+                f'{param_name} "{ref}" not found. '
+                f"Available: {', '.join(available)}"
+            )
 
     def _to_ref(self, target: ComponentRef) -> str:
         """Convert a component reference to its string form.
@@ -189,6 +213,7 @@ class _BaseComponentBuilder:
             style=style_obj,
         )
         self._elements.append(comp)
+        self._register_ref(comp)
 
         # Add note if provided
         if note:
@@ -243,6 +268,7 @@ class _BaseComponentBuilder:
             style=style_obj,
         )
         self._elements.append(iface)
+        self._register_ref(iface)
 
         # Add note if provided
         if note:
@@ -450,6 +476,12 @@ class _BaseComponentBuilder:
             direction: Layout direction hint ("up", "down", "left", "right")
             note: Optional note attached to relationship
         """
+        # Validate string refs
+        if isinstance(component, str):
+            self._validate_ref(component, "component")
+        if isinstance(interface, str):
+            self._validate_ref(interface, "interface")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
@@ -485,6 +517,12 @@ class _BaseComponentBuilder:
             direction: Layout direction hint ("up", "down", "left", "right")
             note: Optional note attached to relationship
         """
+        # Validate string refs
+        if isinstance(component, str):
+            self._validate_ref(component, "component")
+        if isinstance(interface, str):
+            self._validate_ref(interface, "interface")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
@@ -520,6 +558,12 @@ class _BaseComponentBuilder:
             direction: Layout direction hint ("up", "down", "left", "right")
             note: Optional note attached to relationship
         """
+        # Validate string refs
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
@@ -555,6 +599,12 @@ class _BaseComponentBuilder:
             direction: Layout direction hint ("up", "down", "left", "right")
             note: Optional note attached to relationship
         """
+        # Validate string refs
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
@@ -600,6 +650,11 @@ class _BaseComponentBuilder:
         """
         if len(components) < 2:
             raise ValueError("arrow() requires at least 2 components")
+
+        # Validate string refs before creating relationships
+        for i, comp in enumerate(components):
+            if isinstance(comp, str):
+                self._validate_ref(comp, f"component[{i}]")
 
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
@@ -779,7 +834,10 @@ class _BaseComponentBuilder:
         """
         builder = _ContainerBuilder("package", name, stereotype, style, alias)
         yield builder
-        self._elements.append(builder._build())
+        container = builder._build()
+        self._elements.append(container)
+        self._register_ref(container)
+        self._refs.update(builder._refs)
 
     @contextmanager
     def node(
@@ -798,7 +856,10 @@ class _BaseComponentBuilder:
         """
         builder = _ContainerBuilder("node", name, stereotype, style, alias)
         yield builder
-        self._elements.append(builder._build())
+        container = builder._build()
+        self._elements.append(container)
+        self._register_ref(container)
+        self._refs.update(builder._refs)
 
     @contextmanager
     def folder(
@@ -812,7 +873,10 @@ class _BaseComponentBuilder:
         """Create a folder container."""
         builder = _ContainerBuilder("folder", name, stereotype, style, alias)
         yield builder
-        self._elements.append(builder._build())
+        container = builder._build()
+        self._elements.append(container)
+        self._register_ref(container)
+        self._refs.update(builder._refs)
 
     @contextmanager
     def frame(
@@ -826,7 +890,10 @@ class _BaseComponentBuilder:
         """Create a frame container."""
         builder = _ContainerBuilder("frame", name, stereotype, style, alias)
         yield builder
-        self._elements.append(builder._build())
+        container = builder._build()
+        self._elements.append(container)
+        self._register_ref(container)
+        self._refs.update(builder._refs)
 
     @contextmanager
     def cloud(
@@ -840,7 +907,10 @@ class _BaseComponentBuilder:
         """Create a cloud container."""
         builder = _ContainerBuilder("cloud", name, stereotype, style, alias)
         yield builder
-        self._elements.append(builder._build())
+        container = builder._build()
+        self._elements.append(container)
+        self._register_ref(container)
+        self._refs.update(builder._refs)
 
     @contextmanager
     def database(
@@ -854,7 +924,10 @@ class _BaseComponentBuilder:
         """Create a database container."""
         builder = _ContainerBuilder("database", name, stereotype, style, alias)
         yield builder
-        self._elements.append(builder._build())
+        container = builder._build()
+        self._elements.append(container)
+        self._register_ref(container)
+        self._refs.update(builder._refs)
 
     @contextmanager
     def rectangle(
@@ -868,7 +941,10 @@ class _BaseComponentBuilder:
         """Create a rectangle container."""
         builder = _ContainerBuilder("rectangle", name, stereotype, style, alias)
         yield builder
-        self._elements.append(builder._build())
+        container = builder._build()
+        self._elements.append(container)
+        self._register_ref(container)
+        self._refs.update(builder._refs)
 
     @contextmanager
     def component_with_ports(
@@ -889,7 +965,9 @@ class _BaseComponentBuilder:
         """
         builder = _ComponentWithPortsBuilder(name, alias, stereotype, style)
         yield builder
-        self._elements.append(builder._build())
+        comp = builder._build()
+        self._elements.append(comp)
+        self._register_ref(comp)
 
 
 class _ContainerBuilder(_BaseComponentBuilder):

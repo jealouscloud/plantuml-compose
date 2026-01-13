@@ -103,6 +103,30 @@ class _BaseUseCaseBuilder:
 
     def __init__(self) -> None:
         self._elements: list[UseCaseDiagramElement] = []
+        self._refs: set[str] = set()  # Track valid element references
+
+    def _register_ref(self, elem: Actor | UseCase) -> None:
+        """Register an element's ref for validation."""
+        self._refs.add(elem._ref)
+        if elem.alias:
+            self._refs.add(elem.alias)
+
+    def _validate_ref(self, ref: str, param_name: str) -> None:
+        """Validate that a string reference exists in the diagram.
+
+        Args:
+            ref: The reference string to validate
+            param_name: Parameter name for error message
+
+        Raises:
+            ValueError: If ref is not found in registered elements
+        """
+        if ref not in self._refs:
+            available = sorted(self._refs) if self._refs else ["(none)"]
+            raise ValueError(
+                f'{param_name} "{ref}" not found. '
+                f"Available: {', '.join(available)}"
+            )
 
     def _to_ref(self, target: UseCaseRef) -> str:
         """Convert a use case element reference to its string form.
@@ -152,6 +176,7 @@ class _BaseUseCaseBuilder:
             business=business,
         )
         self._elements.append(a)
+        self._register_ref(a)
         return a
 
     def usecase(
@@ -193,6 +218,7 @@ class _BaseUseCaseBuilder:
             business=business,
         )
         self._elements.append(uc)
+        self._register_ref(uc)
         return uc
 
     def relationship(
@@ -217,6 +243,12 @@ class _BaseUseCaseBuilder:
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
         """
+        # Validate string refs
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
@@ -252,6 +284,12 @@ class _BaseUseCaseBuilder:
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the arrow
         """
+        # Validate string refs
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
@@ -287,6 +325,12 @@ class _BaseUseCaseBuilder:
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the link
         """
+        # Validate string refs
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
@@ -329,6 +373,12 @@ class _BaseUseCaseBuilder:
 
         UML: <<include>> relationship
         """
+        # Validate string refs
+        if isinstance(base, str):
+            self._validate_ref(base, "base")
+        if isinstance(required, str):
+            self._validate_ref(required, "required")
+
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         direction_val = coerce_direction(direction)
@@ -369,6 +419,12 @@ class _BaseUseCaseBuilder:
 
         UML: <<extends>> relationship
         """
+        # Validate string refs
+        if isinstance(extension, str):
+            self._validate_ref(extension, "extension")
+        if isinstance(base, str):
+            self._validate_ref(base, "base")
+
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         direction_val = coerce_direction(direction)
@@ -400,6 +456,12 @@ class _BaseUseCaseBuilder:
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
         """
+        # Validate string refs
+        if isinstance(child, str):
+            self._validate_ref(child, "child")
+        if isinstance(parent, str):
+            self._validate_ref(parent, "parent")
+
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
         direction_val = coerce_direction(direction)
@@ -476,6 +538,7 @@ class _BaseUseCaseBuilder:
         builder = _ContainerBuilder("rectangle", name, stereotype, style)
         yield builder
         self._elements.append(builder._build())
+        self._refs.update(builder._refs)
 
     @contextmanager
     def package(
@@ -494,6 +557,7 @@ class _BaseUseCaseBuilder:
         builder = _ContainerBuilder("package", name, stereotype, style)
         yield builder
         self._elements.append(builder._build())
+        self._refs.update(builder._refs)
 
 
 class _ContainerBuilder(_BaseUseCaseBuilder):

@@ -30,8 +30,9 @@ from .common import (
     Header,
     LabelLike,
     Legend,
-    Scale,
     LineStyleLike,
+    sanitize_ref,
+    Scale,
     Style,
 )
 
@@ -91,23 +92,6 @@ ActivationAction = Literal[
 ]
 
 
-def _sanitize_participant_ref(name: str) -> str:
-    """Create a PlantUML-friendly identifier from a participant name.
-
-    For simple alphanumeric names, returns as-is.
-    For names with spaces or special chars, they need quoting in output.
-    """
-    # If it's a simple identifier, return as-is
-    if name.isidentifier():
-        return name
-    # Otherwise, we'll need to use "name" as alias syntax in renderer
-    # Return a sanitized version for reference
-    sanitized = name.replace(" ", "_")
-    for char in "\"'`()[]{}:;,.<>!@#$%^&*+=|\\/?~-":
-        sanitized = sanitized.replace(char, "")
-    return sanitized or "_"
-
-
 @dataclass(frozen=True)
 class Participant:
     """An entity that sends or receives messages in a sequence diagram.
@@ -135,7 +119,7 @@ class Participant:
         """Internal: Reference name for use in messages."""
         if self.alias:
             return self.alias
-        return _sanitize_participant_ref(self.name)
+        return sanitize_ref(self.name)
 
 
 @dataclass(frozen=True)

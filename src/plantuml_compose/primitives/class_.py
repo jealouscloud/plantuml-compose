@@ -30,9 +30,10 @@ from .common import (
     Header,
     LabelLike,
     Legend,
-    Scale,
     LineStyleLike,
     Note,
+    sanitize_ref,
+    Scale,
     Stereotype,
     StyleLike,
 )
@@ -111,16 +112,6 @@ PackageStyle = Literal[
 
 # Separator line styles within class definitions
 SeparatorStyle = Literal["solid", "dotted", "double", "underline"]
-
-
-def _sanitize_class_ref(name: str) -> str:
-    """Create a PlantUML-friendly identifier from a class name."""
-    if name.isidentifier():
-        return name
-    sanitized = name.replace(" ", "_")
-    for char in "\"'`()[]{}:;,.<>!@#$%^&*+=|\\/?~-":
-        sanitized = sanitized.replace(char, "")
-    return sanitized or "_"
 
 
 @dataclass(frozen=True)
@@ -204,7 +195,7 @@ class ClassNode:
         """Internal: Reference name for use in relationships."""
         if self.alias:
             return self.alias
-        return _sanitize_class_ref(self.name)
+        return sanitize_ref(self.name)
 
 
 @dataclass(frozen=True)
@@ -267,7 +258,7 @@ class Package:
         """Internal: Reference name for use in relationships."""
         if self.alias:
             return self.alias
-        return _sanitize_class_ref(self.name)
+        return sanitize_ref(self.name)
 
 
 @dataclass(frozen=True)

@@ -35,26 +35,11 @@ from .common import (
     LineStyleLike,
     Note,
     RegionSeparator,
+    sanitize_ref,
     Scale,
     StateDiagramStyle,
     StyleLike,
 )
-
-
-def _sanitize_ref(name: str) -> str:
-    """Create a PlantUML-friendly identifier from a state name.
-
-    Removes/replaces characters that are invalid in PlantUML identifiers:
-    - Spaces become underscores
-    - Quotes, apostrophes, and other special chars are removed
-    """
-    # Replace spaces with underscores
-    sanitized = name.replace(" ", "_")
-    # Remove characters that break PlantUML identifiers
-    # Hyphen must be removed - PlantUML interprets it as arrow syntax
-    for char in "\"'`()[]{}:;,.<>!@#$%^&*+=|\\/?~-":
-        sanitized = sanitized.replace(char, "")
-    return sanitized or "_"
 
 
 class PseudoStateKind(Enum):
@@ -144,7 +129,7 @@ class StateNode:
         """
         if self.alias:
             return self.alias
-        return _sanitize_ref(self.name)
+        return sanitize_ref(self.name)
 
 
 @dataclass(frozen=True)
@@ -238,7 +223,7 @@ class CompositeState:
         """
         if self.alias:
             return self.alias
-        return _sanitize_ref(self.name)
+        return sanitize_ref(self.name)
 
 
 @dataclass(frozen=True)
@@ -274,7 +259,7 @@ class ConcurrentState:
         """
         if self.alias:
             return self.alias
-        return _sanitize_ref(self.name)
+        return sanitize_ref(self.name)
 
 
 @dataclass(frozen=True)

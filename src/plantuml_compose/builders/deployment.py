@@ -96,6 +96,30 @@ class _BaseDeploymentBuilder:
 
     def __init__(self) -> None:
         self._elements: list[DeploymentDiagramElement] = []
+        self._refs: set[str] = set()  # Track valid element references
+
+    def _register_ref(self, elem: DeploymentElement) -> None:
+        """Register an element's ref for validation."""
+        self._refs.add(elem._ref)
+        if elem.alias:
+            self._refs.add(elem.alias)
+
+    def _validate_ref(self, ref: str, param_name: str) -> None:
+        """Validate that a string reference exists in the diagram.
+
+        Args:
+            ref: The reference string to validate
+            param_name: Parameter name for error message
+
+        Raises:
+            ValueError: If ref is not found in registered elements
+        """
+        if ref not in self._refs:
+            available = sorted(self._refs) if self._refs else ["(none)"]
+            raise ValueError(
+                f'{param_name} "{ref}" not found. '
+                f"Available: {', '.join(available)}"
+            )
 
     def _to_ref(self, target: DeploymentRef) -> str:
         """Convert a deployment element reference to its string form.
@@ -130,6 +154,7 @@ class _BaseDeploymentBuilder:
             style=style_obj,
         )
         self._elements.append(elem)
+        self._register_ref(elem)
         return elem
 
     # Element type shortcuts
@@ -494,6 +519,12 @@ class _BaseDeploymentBuilder:
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the relationship
         """
+        # Validate string refs
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
@@ -531,6 +562,12 @@ class _BaseDeploymentBuilder:
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the arrow
         """
+        # Validate string refs
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
@@ -568,6 +605,12 @@ class _BaseDeploymentBuilder:
             direction: Layout direction hint (up, down, left, right)
             note: Note attached to the link
         """
+        # Validate string refs
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+
         label_obj = Label(label) if isinstance(label, str) else label
         style_obj = coerce_line_style(style) if style else None
         note_obj = Label(note) if isinstance(note, str) else note
@@ -646,7 +689,10 @@ class _BaseDeploymentBuilder:
         """Create a node with nested elements."""
         builder = _NestedElementBuilder("node", name, alias, stereotype, style)
         yield builder
-        self._elements.append(builder._build())
+        elem = builder._build()
+        self._elements.append(elem)
+        self._register_ref(elem)
+        self._refs.update(builder._refs)
 
     @contextmanager
     def cloud_nested(
@@ -660,7 +706,10 @@ class _BaseDeploymentBuilder:
         """Create a cloud with nested elements."""
         builder = _NestedElementBuilder("cloud", name, alias, stereotype, style)
         yield builder
-        self._elements.append(builder._build())
+        elem = builder._build()
+        self._elements.append(elem)
+        self._register_ref(elem)
+        self._refs.update(builder._refs)
 
     @contextmanager
     def database_nested(
@@ -674,7 +723,10 @@ class _BaseDeploymentBuilder:
         """Create a database with nested elements."""
         builder = _NestedElementBuilder("database", name, alias, stereotype, style)
         yield builder
-        self._elements.append(builder._build())
+        elem = builder._build()
+        self._elements.append(elem)
+        self._register_ref(elem)
+        self._refs.update(builder._refs)
 
     @contextmanager
     def folder_nested(
@@ -688,7 +740,10 @@ class _BaseDeploymentBuilder:
         """Create a folder with nested elements."""
         builder = _NestedElementBuilder("folder", name, alias, stereotype, style)
         yield builder
-        self._elements.append(builder._build())
+        elem = builder._build()
+        self._elements.append(elem)
+        self._register_ref(elem)
+        self._refs.update(builder._refs)
 
     @contextmanager
     def frame_nested(
@@ -702,7 +757,10 @@ class _BaseDeploymentBuilder:
         """Create a frame with nested elements."""
         builder = _NestedElementBuilder("frame", name, alias, stereotype, style)
         yield builder
-        self._elements.append(builder._build())
+        elem = builder._build()
+        self._elements.append(elem)
+        self._register_ref(elem)
+        self._refs.update(builder._refs)
 
     @contextmanager
     def package_nested(
@@ -716,7 +774,10 @@ class _BaseDeploymentBuilder:
         """Create a package with nested elements."""
         builder = _NestedElementBuilder("package", name, alias, stereotype, style)
         yield builder
-        self._elements.append(builder._build())
+        elem = builder._build()
+        self._elements.append(elem)
+        self._register_ref(elem)
+        self._refs.update(builder._refs)
 
     @contextmanager
     def rectangle_nested(
@@ -730,7 +791,10 @@ class _BaseDeploymentBuilder:
         """Create a rectangle with nested elements."""
         builder = _NestedElementBuilder("rectangle", name, alias, stereotype, style)
         yield builder
-        self._elements.append(builder._build())
+        elem = builder._build()
+        self._elements.append(elem)
+        self._register_ref(elem)
+        self._refs.update(builder._refs)
 
 
 class _NestedElementBuilder(_BaseDeploymentBuilder):

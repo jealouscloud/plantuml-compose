@@ -147,6 +147,11 @@ class Port:
 
         name:      Port name
         direction: "port" (bidirectional), "portin", or "portout"
+
+    Note: Port intentionally lacks a `_ref` property unlike Component and
+    Interface. Ports don't participate in relationships as standalone entities.
+    Instead, they're attached to components and rendered inline within the
+    component's declaration.
     """
 
     name: str

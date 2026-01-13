@@ -111,13 +111,20 @@ class Arrow:
         label:      Text on the arrow
         pattern:    Line pattern ("solid", "dashed", "dotted", "hidden")
         line_style: Visual styling (color, thickness, bold)
-        plain:      If True, removes arrow decoration
+        plain:      Reserved, not currently rendered (see note below)
+
+    Note on plain: PlantUML's activity diagram arrow bracket syntax (e.g.,
+    -[#red]-> ) doesn't support the "plain" modifier that removes arrow
+    decoration. The field is retained in the primitive for future compatibility
+    if PlantUML adds support. The builder API does not expose this parameter.
     """
 
     label: LabelLike | None = None
     pattern: ArrowStyle = "solid"
     line_style: LineStyle | None = None
-    plain: bool = False  # Removes arrow decoration
+    # Reserved: PlantUML bracket syntax doesn't support plain arrow decoration.
+    # Retained for future compatibility; not exposed in builder API.
+    plain: bool = False
 
 
 @dataclass(frozen=True)

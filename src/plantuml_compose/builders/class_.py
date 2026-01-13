@@ -100,6 +100,30 @@ class _BaseClassBuilder:
 
     def __init__(self) -> None:
         self._elements: list[ClassDiagramElement] = []
+        self._refs: set[str] = set()  # Track valid element references
+
+    def _register_ref(self, node: ClassNode) -> None:
+        """Register a class node's reference for validation."""
+        self._refs.add(node._ref)
+        if node.alias:
+            self._refs.add(node.alias)
+
+    def _validate_ref(self, ref: str, param_name: str) -> None:
+        """Validate that a string reference exists in the diagram.
+
+        Args:
+            ref: The reference string to validate
+            param_name: Parameter name for error message
+
+        Raises:
+            ValueError: If ref is not found in registered elements
+        """
+        if ref not in self._refs:
+            available = sorted(self._refs) if self._refs else ["(none)"]
+            raise ValueError(
+                f'{param_name} "{ref}" not found. '
+                f"Available: {', '.join(available)}"
+            )
 
     def class_(
         self,
@@ -136,6 +160,7 @@ class _BaseClassBuilder:
             style=coerce_style(style),
         )
         self._elements.append(node)
+        self._register_ref(node)
         return node
 
     def abstract(
@@ -159,6 +184,7 @@ class _BaseClassBuilder:
             style=coerce_style(style),
         )
         self._elements.append(node)
+        self._register_ref(node)
         return node
 
     def interface(
@@ -182,6 +208,7 @@ class _BaseClassBuilder:
             style=coerce_style(style),
         )
         self._elements.append(node)
+        self._register_ref(node)
         return node
 
     def enum(
@@ -212,6 +239,7 @@ class _BaseClassBuilder:
             style=coerce_style(style),
         )
         self._elements.append(node)
+        self._register_ref(node)
         return node
 
     def annotation(
@@ -231,6 +259,7 @@ class _BaseClassBuilder:
             style=coerce_style(style),
         )
         self._elements.append(node)
+        self._register_ref(node)
         return node
 
     def entity(
@@ -250,6 +279,7 @@ class _BaseClassBuilder:
             style=coerce_style(style),
         )
         self._elements.append(node)
+        self._register_ref(node)
         return node
 
     @contextmanager
@@ -284,7 +314,9 @@ class _BaseClassBuilder:
         """
         builder = _ClassMemberBuilder(name, alias, type, generics, stereotype, style)
         yield builder
-        self._elements.append(builder._build())
+        node = builder._build()
+        self._elements.append(node)
+        self._register_ref(node)
 
     # Relationship methods
     def extends(
@@ -529,6 +561,12 @@ class _BaseClassBuilder:
         note: str | Label | None = None,
     ) -> Relationship:
         """Internal: Create and register a relationship."""
+        # Validate string refs (object refs are already valid by construction)
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+
         label_obj = Label(label) if isinstance(label, str) else label
         note_obj = Label(note) if isinstance(note, str) else note
         direction_val = coerce_direction(direction)
@@ -608,7 +646,13 @@ class _BaseClassBuilder:
         """
         builder = _PackageBuilder(name, alias, style, color)
         yield builder
-        self._elements.append(builder._build())
+        pkg = builder._build()
+        self._elements.append(pkg)
+        # Register package ref and merge refs from nested classes
+        self._refs.add(pkg._ref)
+        if alias:
+            self._refs.add(alias)
+        self._refs.update(builder._refs)
 
     @contextmanager
     def together(self) -> Iterator["_TogetherBuilder"]:
@@ -624,6 +668,8 @@ class _BaseClassBuilder:
         builder = _TogetherBuilder()
         yield builder
         self._elements.append(builder._build())
+        # Merge refs from nested classes
+        self._refs.update(builder._refs)
 
     def _to_ref(self, node: ClassNode | str) -> str:
         """Convert a class node to its reference string."""
