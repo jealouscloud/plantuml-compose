@@ -693,13 +693,14 @@ class _BaseClassBuilder:
                 pkg.class_("Order")
         """
         builder = _PackageBuilder(name, alias, style, color)
+        # Register package ref before yield so it's available for relationships
+        self._refs.add(builder._ref)
+        if alias:
+            self._refs.add(alias)
         yield builder
         pkg = builder._build()
         self._elements.append(pkg)
-        # Register package ref and merge refs from nested classes
-        self._refs.add(pkg._ref)
-        if alias:
-            self._refs.add(alias)
+        # Merge refs from nested classes
         self._refs.update(builder._refs)
 
     @contextmanager
@@ -719,8 +720,10 @@ class _BaseClassBuilder:
         # Merge refs from nested classes
         self._refs.update(builder._refs)
 
-    def _to_ref(self, node: ClassNode | str) -> str:
-        """Convert a class node to its reference string."""
+    def _to_ref(
+        self, node: "ClassNode | _PackageBuilder | _ClassMemberBuilder | str"
+    ) -> str:
+        """Convert a node or builder to its reference string."""
         if isinstance(node, str):
             return node
         return node._ref
@@ -955,6 +958,17 @@ class _PackageBuilder(_BaseClassBuilder):
         self._alias = alias
         self._style: PackageStyle = style
         self._color = color
+
+    @property
+    def _ref(self) -> str:
+        """Reference name for use in relationships.
+
+        Returns alias if set, otherwise the raw name. The renderer's
+        quote_ref() will handle quoting names with special characters.
+        """
+        if self._alias:
+            return self._alias
+        return self._name
 
     def _build(self) -> Package:
         """Build the package primitive."""

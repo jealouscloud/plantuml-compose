@@ -5,6 +5,7 @@ Pure functions that transform sequence diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
+from ..primitives.common import coerce_line_style
 from ..primitives.sequence import (
     Activation,
     Autonumber,
@@ -215,14 +216,14 @@ def _build_message_arrow(msg: Message) -> str:
     bracket_parts: list[str] = []
 
     # Extract styling from style object
-    style = msg.style
-    if style:
-        if hasattr(style, "color") and style.color:
+    if msg.style:
+        style = coerce_line_style(msg.style)
+        if style.color:
             color = render_color(style.color)
             if not color.startswith("#"):
                 color = f"#{color}"
             bracket_parts.append(color)
-        if hasattr(style, "bold") and style.bold:
+        if style.bold:
             bracket_parts.append("bold")
 
     # Bracket syntax: -[style]-> (brackets go between dashes)

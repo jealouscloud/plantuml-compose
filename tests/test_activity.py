@@ -524,6 +524,17 @@ class TestValidation:
             with pytest.raises(ValueError, match="only supports 'background' styling"):
                 d.action("Test", style={"line": {"color": "red"}})
 
+    def test_elseif_after_else_rejected(self):
+        """elseif() cannot be called after else_() - else must be final branch."""
+        with activity_diagram() as d:
+            with d.if_("condition") as branch:
+                branch.action("then")
+                with branch.else_() as else_block:
+                    else_block.action("else")
+                with pytest.raises(ValueError, match="elseif.*cannot be called after else_"):
+                    with branch.elseif("another"):
+                        pass
+
 
 class TestBlockMisuseDetection:
     """Tests for detecting d.action() called inside block contexts."""

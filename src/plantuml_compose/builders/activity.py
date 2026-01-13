@@ -530,6 +530,7 @@ class _IfBuilder(_NestedActivityBuilder):
         self._elseif_branches: list[ElseIfBranch] = []
         self._else_label: str | None = None
         self._else_elements: list[ActivityElement] = []
+        self._else_called: bool = False
 
     @contextmanager
     def elseif(
@@ -538,7 +539,16 @@ class _IfBuilder(_NestedActivityBuilder):
         *,
         then_label: str | None = None,
     ) -> Iterator["_ElseIfBuilder"]:
-        """Add an elseif branch."""
+        """Add an elseif branch.
+
+        Raises:
+            ValueError: If called after else_() has been called
+        """
+        if self._else_called:
+            raise ValueError(
+                "elseif() cannot be called after else_(). "
+                "The else branch must be the final branch in an if statement."
+            )
         builder = _ElseIfBuilder(condition, then_label)
         yield builder
         self._elseif_branches.append(builder._build())
@@ -546,6 +556,7 @@ class _IfBuilder(_NestedActivityBuilder):
     @contextmanager
     def else_(self, label: str | None = None) -> Iterator["_ElseBuilder"]:
         """Add an else branch."""
+        self._else_called = True
         self._else_label = label
         builder = _ElseBuilder()
         yield builder

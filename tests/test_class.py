@@ -245,6 +245,19 @@ class TestRelationships:
         output = render(d.build())
         assert "Parent <|-- Child" in output
 
+    def test_relationship_with_member_builder_before_context_exit(self):
+        """Using _ClassMemberBuilder in relationship before context exits works."""
+        with class_diagram() as d:
+            user = d.class_("User")
+            with d.class_with_members("Admin") as admin:
+                admin.field("level", "int")
+                # Use admin in relationship BEFORE context exits
+                d.extends(admin, user)
+
+        output = render(d.build())
+        assert "User <|-- Admin" in output
+        assert "level : int" in output
+
     def test_implements(self):
         with class_diagram() as d:
             interface = d.interface("Repository")
@@ -409,6 +422,19 @@ class TestPackages:
         # com.example gets quoted because it contains a dot
         assert 'package "com.example" {' in output
         assert "package domain {" in output
+
+    def test_package_relationships(self):
+        """Packages can participate in relationships."""
+        with class_diagram() as d:
+            with d.package("com.example") as pkg1:
+                pkg1.class_("User")
+            with d.package("com.other") as pkg2:
+                pkg2.class_("Service")
+            d.uses(pkg1, pkg2, label="depends")
+
+        output = render(d.build())
+        # Package refs with dots should be quoted
+        assert '"com.example" ..> "com.other" : depends' in output
 
 
 class TestTogether:
