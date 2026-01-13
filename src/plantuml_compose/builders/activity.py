@@ -426,12 +426,24 @@ class _BaseActivityBuilder(_NestedActivityBuilder):
     def swimlane(self, name: str, color: ColorLike | None = None) -> Swimlane:
         """Switch to a swimlane.
 
+        Swimlanes organize actions into vertical columns. All subsequent
+        actions belong to the current swimlane until you switch to another.
+
         Args:
-            name: Lane name
+            name: Lane name (creates lane if new, switches if existing)
             color: Lane background color
 
         Returns:
             The created Swimlane
+
+        Example:
+            with activity_diagram() as d:
+                d.swimlane("Client")
+                d.action("Submit order")
+                d.swimlane("Server")
+                d.action("Validate order")
+                d.swimlane("Client")  # switch back
+                d.action("Receive confirmation")
         """
         if not name:
             raise ValueError("Swimlane name cannot be empty")
@@ -611,8 +623,8 @@ class _ForkBuilder:
     Only exposes branch() - actions must be added inside branches.
     """
 
-    def __init__(self, end_style: Literal["fork", "merge", "or", "and"]) -> None:
-        self._end_style = end_style
+    def __init__(self, end_style: ForkEndStyle) -> None:
+        self._end_style: ForkEndStyle = end_style
         self._branches: list[list[ActivityElement]] = []
 
     @contextmanager
