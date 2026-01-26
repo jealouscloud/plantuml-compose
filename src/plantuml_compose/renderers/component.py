@@ -5,7 +5,12 @@ Pure functions that transform component diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
-from ..primitives.common import ComponentDiagramStyle, DiagramArrowStyle, ElementStyle
+from ..primitives.common import (
+    ComponentDiagramStyle,
+    DiagramArrowStyle,
+    ElementStyle,
+    sanitize_ref,
+)
 from ..primitives.component import (
     Component,
     ComponentDiagram,
@@ -230,11 +235,17 @@ def _render_component(comp: Component, indent: int = 0) -> list[str]:
     parts.append("component")
 
     # Name with possible alias
-    name = f'"{escape_quotes(comp.name)}"' if needs_quotes(comp.name) else comp.name
+    # When names need quotes, we must add an implicit alias so notes/relationships
+    # can reference the component using the sanitized name (e.g., "Auth Service" -> Auth_Service)
+    quoted = needs_quotes(comp.name)
+    name = f'"{escape_quotes(comp.name)}"' if quoted else comp.name
     parts.append(name)
 
     if comp.alias:
         parts.append(f"as {comp.alias}")
+    elif quoted:
+        # Add implicit alias for quoted names so they can be referenced
+        parts.append(f"as {sanitize_ref(comp.name)}")
 
     if comp.stereotype:
         parts.append(render_stereotype(comp.stereotype))
@@ -262,11 +273,15 @@ def _render_interface(iface: Interface) -> str:
     # Interface can use () syntax or interface keyword
     parts.append("interface")
 
-    name = f'"{escape_quotes(iface.name)}"' if needs_quotes(iface.name) else iface.name
+    quoted = needs_quotes(iface.name)
+    name = f'"{escape_quotes(iface.name)}"' if quoted else iface.name
     parts.append(name)
 
     if iface.alias:
         parts.append(f"as {iface.alias}")
+    elif quoted:
+        # Add implicit alias for quoted names so they can be referenced
+        parts.append(f"as {sanitize_ref(iface.name)}")
 
     if iface.stereotype:
         parts.append(render_stereotype(iface.stereotype))
@@ -287,9 +302,10 @@ def _render_container(container: Container, indent: int = 0) -> list[str]:
     # Build container opening
     parts: list[str] = [container.type]
 
+    quoted = needs_quotes(container.name)
     name = (
         f'"{escape_quotes(container.name)}"'
-        if needs_quotes(container.name)
+        if quoted
         else container.name
     )
     parts.append(name)
@@ -297,6 +313,9 @@ def _render_container(container: Container, indent: int = 0) -> list[str]:
     # Alias for relationships
     if container.alias:
         parts.append(f"as {container.alias}")
+    elif quoted:
+        # Add implicit alias for quoted names so they can be referenced
+        parts.append(f"as {sanitize_ref(container.name)}")
 
     if container.stereotype:
         parts.append(render_stereotype(container.stereotype))

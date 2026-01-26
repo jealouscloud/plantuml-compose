@@ -120,6 +120,54 @@ class TestBasicElements:
         assert "interface Database" in output
 
 
+class TestImplicitAlias:
+    """Tests for implicit alias generation when names require quoting.
+
+    When element names contain spaces or special characters, PlantUML requires
+    quotes around the name. Without an alias, notes and relationships cannot
+    reference these elements. The renderer must generate implicit aliases
+    using sanitize_ref() so references work correctly.
+    """
+
+    def test_component_with_spaces_generates_implicit_alias(self):
+        """Components with spaces should get implicit aliases for note references."""
+        with component_diagram() as d:
+            auth = d.component("Auth Service")
+            d.note("Handles OAuth2", target=auth)
+
+        output = render(d.build())
+        assert 'component "Auth Service" as Auth_Service' in output
+        assert "note right of Auth_Service" in output
+
+    def test_interface_with_spaces_generates_implicit_alias(self):
+        """Interfaces with spaces should get implicit aliases for relationship references."""
+        with component_diagram() as d:
+            api = d.component("API")
+            rest = d.interface("REST API")
+            d.provides(api, rest)
+
+        output = render(d.build())
+        assert 'interface "REST API" as REST_API' in output
+
+    def test_container_with_spaces_generates_implicit_alias(self):
+        """Containers with spaces should get implicit aliases for relationship references."""
+        with component_diagram() as d:
+            with d.package("Core Services") as pkg:
+                pkg.component("Auth")
+
+        output = render(d.build())
+        assert 'package "Core Services" as Core_Services' in output
+
+    def test_explicit_alias_takes_precedence(self):
+        """Explicit aliases should not be overridden by implicit alias generation."""
+        with component_diagram() as d:
+            d.component("Auth Service", alias="auth")
+
+        output = render(d.build())
+        assert 'component "Auth Service" as auth' in output
+        assert "Auth_Service" not in output
+
+
 class TestContainers:
     """Tests for container elements (package, node, etc.)."""
 
