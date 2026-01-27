@@ -541,6 +541,12 @@ class _IfBuilder(_NestedActivityBuilder):
     ) -> Iterator["_ElseIfBuilder"]:
         """Add an elseif branch.
 
+        Usage:
+            with d.if_("Score >= 90?", then_label="A") as branch:
+                branch.action("Excellent")
+                with branch.elseif("Score >= 80?", then_label="B") as elif_branch:
+                    elif_branch.action("Good")
+
         Raises:
             ValueError: If called after else_() has been called
         """
@@ -555,7 +561,14 @@ class _IfBuilder(_NestedActivityBuilder):
 
     @contextmanager
     def else_(self, label: str | None = None) -> Iterator["_ElseBuilder"]:
-        """Add an else branch."""
+        """Add an else branch.
+
+        Usage:
+            with d.if_("Valid?", then_label="yes") as branch:
+                branch.action("Process")
+                with branch.else_("no") as else_branch:
+                    else_branch.action("Reject")
+        """
         self._else_called = True
         self._else_label = label
         builder = _ElseBuilder()
