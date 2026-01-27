@@ -337,6 +337,11 @@ class _NestedActivityBuilder:
     ) -> Iterator["_WhileBuilder"]:
         """Create a while loop.
 
+        Args:
+            condition: The loop condition shown in the diamond
+            is_label: Label for the "true" path (loop continues), e.g. "yes"
+            endwhile_label: Label for the "false" path (loop exits), e.g. "no"
+
         Usage:
             with d.while_("More items?", is_label="yes", endwhile_label="no") as loop:
                 loop.action("Process item")
@@ -355,7 +360,14 @@ class _NestedActivityBuilder:
         not_label: str | None = None,
         backward_action: str | None = None,
     ) -> Iterator["_RepeatBuilder"]:
-        """Create a repeat-while loop.
+        """Create a repeat-while loop (do-while).
+
+        Args:
+            start_label: Label shown at loop entry point
+            condition: The loop condition shown in the diamond
+            is_label: Label for the "true" path (loop repeats), e.g. "yes"
+            not_label: Label for the "false" path (loop exits), e.g. "no"
+            backward_action: Action label shown on the backward arrow
 
         Usage:
             with d.repeat(condition="More?", is_label="yes", not_label="no") as loop:
@@ -1037,7 +1049,13 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
         is_label: str | None = None,
         endwhile_label: str | None = None,
     ) -> Iterator["_WhileBuilder"]:
-        """Create a while loop."""
+        """Create a while loop.
+
+        Args:
+            condition: The loop condition shown in the diamond
+            is_label: Label for the "true" path (loop continues), e.g. "yes"
+            endwhile_label: Label for the "false" path (loop exits), e.g. "no"
+        """
         self._block_stack.append("while_")
         try:
             builder = _WhileBuilder(condition, is_label, endwhile_label)
@@ -1056,7 +1074,15 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
         not_label: str | None = None,
         backward_action: str | None = None,
     ) -> Iterator["_RepeatBuilder"]:
-        """Create a repeat-while loop."""
+        """Create a repeat-while loop (do-while).
+
+        Args:
+            start_label: Label shown at loop entry point
+            condition: The loop condition shown in the diamond
+            is_label: Label for the "true" path (loop repeats), e.g. "yes"
+            not_label: Label for the "false" path (loop exits), e.g. "no"
+            backward_action: Action label shown on the backward arrow
+        """
         self._block_stack.append("repeat")
         try:
             builder = _RepeatBuilder(
