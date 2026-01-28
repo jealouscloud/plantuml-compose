@@ -288,3 +288,72 @@ stop
             "Activity diagram floating note stopped working! "
             "PlantUML may have changed behavior."
         )
+
+
+class TestActivityKillDetachInConditionals:
+    """Verify that kill/detach don't work inside conditionals.
+
+    PlantUML does not support 'kill' or 'detach' inside if/else/switch blocks.
+    These are syntax errors that PlantUML rejects.
+
+    Our library validates this at build time, preventing users from generating
+    invalid PlantUML. If PlantUML adds support in the future, these tests will
+    fail, signaling we can remove the validation.
+    """
+
+    def test_kill_inside_if_is_invalid(self, validate_plantuml):
+        """Kill inside if/else is a PlantUML syntax error."""
+        puml = """
+@startuml
+start
+:Process;
+if (Error?) then (yes)
+  kill
+else (no)
+  :Continue;
+endif
+stop
+@enduml
+"""
+        assert not validate_plantuml(puml), (
+            "kill inside conditional now works! "
+            "PlantUML may have added support - remove _ConditionalBranchMixin.kill() restriction."
+        )
+
+    def test_detach_inside_if_is_invalid(self, validate_plantuml):
+        """Detach inside if/else is a PlantUML syntax error."""
+        puml = """
+@startuml
+start
+:Process;
+if (Error?) then (yes)
+  detach
+else (no)
+  :Continue;
+endif
+stop
+@enduml
+"""
+        assert not validate_plantuml(puml), (
+            "detach inside conditional now works! "
+            "PlantUML may have added support - remove _ConditionalBranchMixin.detach() restriction."
+        )
+
+    def test_end_inside_if_is_valid(self, validate_plantuml):
+        """End inside if/else IS supported (unlike kill/detach)."""
+        puml = """
+@startuml
+start
+:Process;
+if (Error?) then (yes)
+  end
+else (no)
+  :Continue;
+endif
+stop
+@enduml
+"""
+        assert validate_plantuml(puml), (
+            "end inside conditional stopped working! "
+            "PlantUML may have changed behavior."
+        )

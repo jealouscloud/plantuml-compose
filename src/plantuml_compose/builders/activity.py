@@ -210,29 +210,21 @@ class _NestedActivityBuilder:
         self._elements.append(b)
         return b
 
-    def kill(self) -> Kill:
-        """Add a kill terminator (X symbol).
+    def end(self) -> End:
+        """Add an end terminator (circle symbol).
+
+        Unlike kill(), end() can be used inside conditionals. Use this for
+        graceful termination of a branch.
 
         Example:
             with d.if_("Fatal error?") as check:
-                check.kill()  # terminates with X
+                check.end()  # terminates with circle (allowed in conditionals)
+                with check.else_() as else_branch:
+                    else_branch.action("Continue")
         """
-        k = Kill()
-        self._elements.append(k)
-        return k
-
-    def detach(self) -> Detach:
-        """Detach from flow.
-
-        Example:
-            with d.fork() as f:
-                with f.branch() as b:
-                    b.action("Background task")
-                    b.detach()  # branch continues independently
-        """
-        d = Detach()
-        self._elements.append(d)
-        return d
+        e = End()
+        self._elements.append(e)
+        return e
 
     def connector(self, name: str) -> Connector:
         """Add a connector for goto-like jumps.
@@ -464,7 +456,52 @@ class _NestedActivityBuilder:
         self._elements.append(builder._build())
 
 
-class _BaseActivityBuilder(_NestedActivityBuilder):
+class _TerminatorsMixin:
+    """Mixin providing kill() and detach() for contexts where PlantUML supports them.
+
+    PlantUML supports kill/detach in:
+    - Top level diagram
+    - Fork/split branches
+    - While/repeat loops
+    - Partitions and groups
+
+    PlantUML does NOT support kill/detach in:
+    - If/else conditionals
+    - Switch/case statements
+
+    Builders for unsupported contexts should NOT inherit this mixin.
+    """
+
+    _elements: list  # Provided by _NestedActivityBuilder
+
+    def kill(self) -> Kill:
+        """Add a kill terminator (X symbol).
+
+        Example:
+            with d.fork() as f:
+                with f.branch() as b:
+                    b.action("Error path")
+                    b.kill()  # terminates with X
+        """
+        k = Kill()
+        self._elements.append(k)
+        return k
+
+    def detach(self) -> Detach:
+        """Detach from flow (async continuation).
+
+        Example:
+            with d.fork() as f:
+                with f.branch() as b:
+                    b.action("Background task")
+                    b.detach()  # branch continues independently
+        """
+        d = Detach()
+        self._elements.append(d)
+        return d
+
+
+class _BaseActivityBuilder(_TerminatorsMixin, _NestedActivityBuilder):
     """Extends nested builder with diagram-level methods.
 
     Only ActivityDiagramBuilder should inherit from this directly.
@@ -681,7 +718,7 @@ class _CaseBuilder(_NestedActivityBuilder):
         )
 
 
-class _WhileBuilder(_NestedActivityBuilder):
+class _WhileBuilder(_TerminatorsMixin, _NestedActivityBuilder):
     """Builder for while loops."""
 
     def __init__(
@@ -705,7 +742,7 @@ class _WhileBuilder(_NestedActivityBuilder):
         )
 
 
-class _RepeatBuilder(_NestedActivityBuilder):
+class _RepeatBuilder(_TerminatorsMixin, _NestedActivityBuilder):
     """Builder for repeat loops."""
 
     def __init__(
@@ -793,13 +830,13 @@ class _SplitBuilder:
         )
 
 
-class _BranchBuilder(_NestedActivityBuilder):
+class _BranchBuilder(_TerminatorsMixin, _NestedActivityBuilder):
     """Builder for fork/split branches."""
 
     pass
 
 
-class _PartitionBuilder(_NestedActivityBuilder):
+class _PartitionBuilder(_TerminatorsMixin, _NestedActivityBuilder):
     """Builder for partitions."""
 
     def __init__(self, name: str, color: ColorLike | None) -> None:
@@ -818,7 +855,7 @@ class _PartitionBuilder(_NestedActivityBuilder):
         )
 
 
-class _GroupBuilder(_NestedActivityBuilder):
+class _GroupBuilder(_TerminatorsMixin, _NestedActivityBuilder):
     """Builder for groups."""
 
     def __init__(self, name: str) -> None:

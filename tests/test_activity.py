@@ -760,12 +760,13 @@ class TestNestedBuilderRestrictions:
                 branch.action("valid")
 
     def test_if_builder_has_no_start_stop(self):
-        """If builders shouldn't have start(), stop(), end()."""
+        """If builders shouldn't have start(), stop()."""
         with activity_diagram() as d:
             with d.if_("condition") as branch:
                 assert not hasattr(branch, "start")
                 assert not hasattr(branch, "stop")
-                assert not hasattr(branch, "end")
+                # Note: end() IS allowed inside conditionals (PlantUML supports it)
+                assert hasattr(branch, "end")
                 branch.action("valid")
 
     def test_while_builder_has_no_diagram_methods(self):
