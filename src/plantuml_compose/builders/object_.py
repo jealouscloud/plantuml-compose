@@ -148,8 +148,10 @@ class _BaseObjectBuilder:
 
         Args:
             name: Object name
-            alias: Short alias for relationships
-            stereotype: Stereotype annotation
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "ord" instead of "order_123")
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the object (e.g., "entity" renders as «entity»)
             style: Visual style (background, line, text_color)
 
         Returns:
@@ -187,8 +189,10 @@ class _BaseObjectBuilder:
 
         Args:
             name: Object name
-            alias: Short alias for relationships
-            stereotype: Stereotype annotation
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "ord" instead of "order_123")
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the object (e.g., "entity" renders as «entity»)
             style: Visual style (background, line, text_color)
             fields: Dictionary of field name -> value
 
@@ -232,16 +236,23 @@ class _BaseObjectBuilder:
 
         Args:
             name: Map name
-            alias: Short alias for relationships
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "ord" instead of "order_123")
             style: Visual style (background, line, text_color)
-            entries: Dictionary of key -> value
-            links: Dictionary of key -> Object or Map (for *-> syntax)
+            entries: Key-value pairs displayed as text (key => value)
+            links: Key-object pairs displayed with arrows from key to target
+                object. The key text links to the referenced Object or Map.
 
         Returns:
             The created Map
 
         Example:
+            # Simple key-value entries
             config = d.map("config", entries={"env": "prod", "debug": "false"})
+
+            # Entries with object references (arrows from key to object)
+            user = d.object_("User")
+            refs = d.map("refs", links={"owner": user})
         """
         if not name:
             raise ValueError("Map name cannot be empty")

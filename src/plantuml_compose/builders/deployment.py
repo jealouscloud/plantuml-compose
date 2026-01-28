@@ -168,6 +168,14 @@ class _BaseDeploymentBuilder:
     ) -> DeploymentElement:
         """Add an actor (stick figure).
 
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "external" renders as «external»)
+            style: Visual style (background, line, text_color)
+
         Example:
             d.actor("User")
             d.actor("Admin", style={"background": "LightBlue"})
@@ -184,7 +192,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add an agent."""
+        """Add an agent (autonomous process or service).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "bot" renders as «bot»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "agent", alias=alias, stereotype=stereotype, style=style
         )
@@ -198,6 +215,14 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add an artifact (deployable unit like JAR, WAR, Docker image).
+
+        Args:
+            name: Display name for the artifact
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "container" renders as «container»)
+            style: Visual style (background, line, text_color)
 
         Example:
             d.artifact("api.war")
@@ -215,7 +240,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a boundary."""
+        """Add a boundary (system or subsystem border).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "security" renders as «security»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "boundary", alias=alias, stereotype=stereotype, style=style
         )
@@ -228,7 +262,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a card."""
+        """Add a card (generic labeled rectangle).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "config" renders as «config»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "card", alias=alias, stereotype=stereotype, style=style
         )
@@ -241,7 +284,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a circle."""
+        """Add a circle (interface or endpoint marker).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "endpoint" renders as «endpoint»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "circle", alias=alias, stereotype=stereotype, style=style
         )
@@ -254,7 +306,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a cloud (simple, non-nested)."""
+        """Add a cloud (simple, non-nested).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "AWS" renders as «AWS»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "cloud", alias=alias, stereotype=stereotype, style=style
         )
@@ -267,7 +328,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a collections element."""
+        """Add a collections element (group of similar items, stacked icon).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "replicas" renders as «replicas»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "collections", alias=alias, stereotype=stereotype, style=style
         )
@@ -281,6 +351,14 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a component (software module).
+
+        Args:
+            name: Display name for the component
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "microservice" renders as «microservice»)
+            style: Visual style (background, line, text_color)
 
         Example:
             d.component("API Service")
@@ -298,7 +376,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a control element."""
+        """Add a control element (controller or coordinator).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "scheduler" renders as «scheduler»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "control", alias=alias, stereotype=stereotype, style=style
         )
@@ -312,6 +399,14 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> DeploymentElement:
         """Add a database (simple, non-nested).
+
+        Args:
+            name: Display name for the database
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "cache" renders as «cache»)
+            style: Visual style (background, line, text_color)
 
         Example:
             d.database("PostgreSQL")
@@ -329,7 +424,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add an entity."""
+        """Add an entity (data object or domain entity).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "domain" renders as «domain»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "entity", alias=alias, stereotype=stereotype, style=style
         )
@@ -342,7 +446,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a file."""
+        """Add a file (document icon with folded corner).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "config" renders as «config»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "file", alias=alias, stereotype=stereotype, style=style
         )
@@ -355,7 +468,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a folder (simple, non-nested)."""
+        """Add a folder (simple, non-nested).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "logs" renders as «logs»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "folder", alias=alias, stereotype=stereotype, style=style
         )
@@ -368,7 +490,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a frame (simple, non-nested)."""
+        """Add a frame (simple, non-nested).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "subsystem" renders as «subsystem»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "frame", alias=alias, stereotype=stereotype, style=style
         )
@@ -381,7 +512,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a hexagon."""
+        """Add a hexagon (often used for microservices).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "service" renders as «service»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "hexagon", alias=alias, stereotype=stereotype, style=style
         )
@@ -394,7 +534,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add an interface."""
+        """Add an interface (lollipop symbol).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "REST" renders as «REST»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "interface", alias=alias, stereotype=stereotype, style=style
         )
@@ -407,7 +556,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a label."""
+        """Add a label (text annotation without border).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "version" renders as «version»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "label", alias=alias, stereotype=stereotype, style=style
         )
@@ -420,7 +578,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a package (simple, non-nested)."""
+        """Add a package (simple, non-nested).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "library" renders as «library»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "package", alias=alias, stereotype=stereotype, style=style
         )
@@ -433,7 +600,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a person."""
+        """Add a person (full body figure, more detailed than actor).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "admin" renders as «admin»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "person", alias=alias, stereotype=stereotype, style=style
         )
@@ -446,7 +622,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a process."""
+        """Add a process (running program or daemon).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "daemon" renders as «daemon»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "process", alias=alias, stereotype=stereotype, style=style
         )
@@ -459,7 +644,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a queue."""
+        """Add a queue (message queue like RabbitMQ, SQS).
+
+        Args:
+            name: Display name for the queue
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "async" renders as «async»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "queue", alias=alias, stereotype=stereotype, style=style
         )
@@ -472,7 +666,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a rectangle (simple, non-nested)."""
+        """Add a rectangle (simple, non-nested).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "module" renders as «module»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "rectangle", alias=alias, stereotype=stereotype, style=style
         )
@@ -485,7 +688,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a stack."""
+        """Add a stack (layered or stacked components).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "tech" renders as «tech»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "stack", alias=alias, stereotype=stereotype, style=style
         )
@@ -498,7 +710,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a storage element."""
+        """Add a storage element (disk, S3, file storage).
+
+        Args:
+            name: Display name for the storage
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "S3" renders as «S3»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "storage", alias=alias, stereotype=stereotype, style=style
         )
@@ -511,7 +732,16 @@ class _BaseDeploymentBuilder:
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
     ) -> DeploymentElement:
-        """Add a usecase."""
+        """Add a usecase (ellipse shape for system capabilities).
+
+        Args:
+            name: Display name for the element
+            alias: Optional short name for referencing in relationships
+                (overrides the auto-generated reference from name)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "feature" renders as «feature»)
+            style: Visual style (background, line, text_color)
+        """
         return self._add_element(
             name, "usecase", alias=alias, stereotype=stereotype, style=style
         )

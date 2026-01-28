@@ -147,8 +147,9 @@ class _BaseSequenceBuilder:
             target: Target participant (Participant object or reference string)
             label: Message label text
             line_style: "solid" or "dotted"
-            arrow_head: Arrow head style
-            bidirectional: If True, arrow points both directions
+            arrow_head: "normal" (filled), "thin" (>>), "open" (unfilled),
+                "lost" (short with x), or "destroy" (with X at target)
+            bidirectional: If True, arrow points both directions (<->)
             style: Arrow style (color, bold)
 
         Returns:
@@ -294,7 +295,9 @@ class _BaseSequenceBuilder:
         elif over:
             participants = tuple(self._to_ref(p) for p in over)
 
-        note_pos: Literal["left", "right", "over"] = "over" if over else position
+        note_pos: Literal["left", "right", "over"] = (
+            "over" if over else position
+        )
         note = SequenceNote(
             content=content_label,
             position=note_pos,
@@ -389,13 +392,15 @@ class _BaseSequenceBuilder:
         increment: int | None = None,
         format: str | None = None,
     ) -> Autonumber:
-        """Control autonumbering.
+        """Control autonumbering of messages.
 
         Args:
-            action: "start", "stop", or "resume"
-            start: Starting number
-            increment: Increment value
-            format: Format string (e.g., "<b>[000]")
+            action: "start" begins numbering, "stop" pauses it,
+                "resume" continues from where it stopped
+            start: Starting number (default 1)
+            increment: Increment between messages (default 1)
+            format: Format string where 0s are replaced with the number.
+                Use "000" for zero-padded, add HTML like "<b>[000]</b>".
 
         Returns:
             The created Autonumber
@@ -406,7 +411,7 @@ class _BaseSequenceBuilder:
             d.message(b, a, "numbered 11")
             d.autonumber("stop")
             d.message(a, b, "not numbered")
-            d.autonumber("resume")
+            d.autonumber("resume")  # continues from 12
         """
         validate_literal_type(action, AutonumberAction, "action")
         auto = Autonumber(
@@ -475,7 +480,9 @@ class _BaseSequenceBuilder:
         self._elements.append(builder._build())
 
     @contextmanager
-    def break_(self, label: str | Label | None = None) -> Iterator[_GroupBuilder]:
+    def break_(
+        self, label: str | Label | None = None
+    ) -> Iterator[_GroupBuilder]:
         """Create a break grouping block.
 
         Example:
@@ -487,7 +494,9 @@ class _BaseSequenceBuilder:
         self._elements.append(builder._build())
 
     @contextmanager
-    def critical(self, label: str | Label | None = None) -> Iterator[_GroupBuilder]:
+    def critical(
+        self, label: str | Label | None = None
+    ) -> Iterator[_GroupBuilder]:
         """Create a critical grouping block.
 
         Example:
@@ -538,7 +547,9 @@ class _GroupBuilder(_BaseSequenceBuilder):
         super().__init__()
         self._group_type = group_type
         self._label = Label(label) if isinstance(label, str) else label
-        self._secondary = Label(secondary) if isinstance(secondary, str) else secondary
+        self._secondary = (
+            Label(secondary) if isinstance(secondary, str) else secondary
+        )
 
     def _build(self) -> GroupBlock:
         """Build the group block primitive."""
@@ -634,7 +645,9 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         self._header = Header(header) if isinstance(header, str) else header
         self._footer = Footer(footer) if isinstance(footer, str) else footer
         self._legend = Legend(legend) if isinstance(legend, str) else legend
-        self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        self._scale = (
+            Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        )
         self._autonumber = Autonumber() if autonumber else None
         self._hide_unlinked = hide_unlinked
         self._participants: list[Participant] = []
@@ -868,7 +881,9 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
             self._block_stack.pop()
 
     @contextmanager
-    def break_(self, label: str | Label | None = None) -> Iterator[_GroupBuilder]:
+    def break_(
+        self, label: str | Label | None = None
+    ) -> Iterator[_GroupBuilder]:
         """Create a break grouping block."""
         self._block_stack.append("break")
         try:
@@ -879,7 +894,9 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
             self._block_stack.pop()
 
     @contextmanager
-    def critical(self, label: str | Label | None = None) -> Iterator[_GroupBuilder]:
+    def critical(
+        self, label: str | Label | None = None
+    ) -> Iterator[_GroupBuilder]:
         """Create a critical grouping block."""
         self._block_stack.append("critical")
         try:
@@ -921,9 +938,11 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
 
         Args:
             name: Display name
-            alias: Optional short reference name
-            type: Participant shape type
-            order: Display order (lower = leftmost)
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "api" instead of "API_Gateway")
+            type: Participant shape (participant, actor, boundary, control,
+                entity, database, collections, queue)
+            order: Display order (lower numbers appear further left)
             style: Visual style (background, line, text_color)
             description: Multiline description shown under the participant
 
@@ -937,7 +956,9 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         """
         if not name:
             raise ValueError("Participant name cannot be empty")
-        desc_label = Label(description) if isinstance(description, str) else description
+        desc_label = (
+            Label(description) if isinstance(description, str) else description
+        )
         style_obj = validate_style_background_only(style, "Participant")
         p = Participant(
             name=name,
@@ -956,6 +977,10 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         type: ParticipantType = "participant",
     ) -> tuple[Participant, ...]:
         """Create multiple participants at once.
+
+        Args:
+            *names: Display names for each participant
+            type: Participant shape type (participant, actor, boundary, etc.)
 
         Returns:
             Tuple of created Participants
@@ -976,6 +1001,14 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         description: str | Label | None = None,
     ) -> Participant:
         """Create an actor participant (stick figure).
+
+        Args:
+            name: Display name
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "api" instead of "API_Gateway")
+            order: Display order (lower numbers appear further left)
+            style: Visual style (background, line, text_color)
+            description: Multiline description shown under the participant
 
         Example:
             user = d.actor("Customer")
@@ -998,7 +1031,15 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
-        """Create a boundary participant.
+        """Create a boundary participant (system boundary/interface).
+
+        Args:
+            name: Display name
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "api" instead of "API_Gateway")
+            order: Display order (lower numbers appear further left)
+            style: Visual style (background, line, text_color)
+            description: Multiline description shown under the participant
 
         Example:
             web = d.boundary("Web UI")
@@ -1021,7 +1062,15 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
-        """Create a control participant.
+        """Create a control participant (controller/coordinator).
+
+        Args:
+            name: Display name
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "api" instead of "API_Gateway")
+            order: Display order (lower numbers appear further left)
+            style: Visual style (background, line, text_color)
+            description: Multiline description shown under the participant
 
         Example:
             handler = d.control("RequestHandler")
@@ -1044,7 +1093,15 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
-        """Create an entity participant.
+        """Create an entity participant (domain object/data).
+
+        Args:
+            name: Display name
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "api" instead of "API_Gateway")
+            order: Display order (lower numbers appear further left)
+            style: Visual style (background, line, text_color)
+            description: Multiline description shown under the participant
 
         Example:
             order = d.entity("Order")
@@ -1067,7 +1124,15 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
-        """Create a database participant (cylinder).
+        """Create a database participant (cylinder shape).
+
+        Args:
+            name: Display name
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "api" instead of "API_Gateway")
+            order: Display order (lower numbers appear further left)
+            style: Visual style (background, line, text_color)
+            description: Multiline description shown under the participant
 
         Example:
             db = d.database("PostgreSQL")
@@ -1090,7 +1155,15 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
-        """Create a collections participant.
+        """Create a collections participant (group of similar items).
+
+        Args:
+            name: Display name
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "api" instead of "API_Gateway")
+            order: Display order (lower numbers appear further left)
+            style: Visual style (background, line, text_color)
+            description: Multiline description shown under the participant
 
         Example:
             workers = d.collections("Workers")
@@ -1113,7 +1186,15 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         style: StyleLike | None = None,
         description: str | Label | None = None,
     ) -> Participant:
-        """Create a queue participant.
+        """Create a queue participant (message queue).
+
+        Args:
+            name: Display name
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "api" instead of "API_Gateway")
+            order: Display order (lower numbers appear further left)
+            style: Visual style (background, line, text_color)
+            description: Multiline description shown under the participant
 
         Example:
             mq = d.queue("MessageQueue")
@@ -1134,6 +1215,10 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         color: ColorLike | None = None,
     ) -> Iterator["_BoxBuilder"]:
         """Create a box to group participants.
+
+        Args:
+            name: Box label (optional)
+            color: Background color for the box
 
         Usage:
             with d.box("Backend", color="LightBlue") as backend:
@@ -1202,7 +1287,9 @@ class _BoxBuilder:
         """Create a participant within this box."""
         if not name:
             raise ValueError("Participant name cannot be empty")
-        desc_label = Label(description) if isinstance(description, str) else description
+        desc_label = (
+            Label(description) if isinstance(description, str) else description
+        )
         style_obj = validate_style_background_only(style, "Participant")
         p = Participant(
             name=name,

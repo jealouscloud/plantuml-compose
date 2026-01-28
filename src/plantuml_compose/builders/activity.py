@@ -269,8 +269,9 @@ class _NestedActivityBuilder:
 
         Args:
             content: Note text
-            position: "left" or "right"
-            floating: If True, creates a floating note
+            position: Which side of the activity flow ("left" or "right")
+            floating: If True, note floats independently rather than attaching
+                to the previous action
 
         Returns:
             The created ActivityNote
@@ -302,6 +303,10 @@ class _NestedActivityBuilder:
     ) -> Iterator["_IfBuilder"]:
         """Create an if statement.
 
+        Args:
+            condition: The condition text shown in the decision diamond
+            then_label: Label for the "then" branch arrow (e.g., "yes")
+
         Usage:
             with d.if_("Valid?", then_label="yes") as branch:
                 branch.action("Process")
@@ -315,6 +320,9 @@ class _NestedActivityBuilder:
     @contextmanager
     def switch(self, condition: str) -> Iterator["_SwitchBuilder"]:
         """Create a switch statement.
+
+        Args:
+            condition: The condition text shown in the decision diamond
 
         Usage:
             with d.switch("Type?") as sw:
@@ -427,10 +435,14 @@ class _NestedActivityBuilder:
         name: str,
         color: ColorLike | None = None,
     ) -> Iterator["_PartitionBuilder"]:
-        """Create a partition (grouping with border).
+        """Create a partition (grouping with visible border).
+
+        Args:
+            name: Partition label
+            color: Background color for the partition
 
         Usage:
-            with d.partition("Validation") as p:
+            with d.partition("Validation", color="LightBlue") as p:
                 p.action("Validate input")
         """
         builder = _PartitionBuilder(name, color)
@@ -439,7 +451,9 @@ class _NestedActivityBuilder:
 
     @contextmanager
     def group(self, name: str) -> Iterator["_GroupBuilder"]:
-        """Create a group (lighter grouping).
+        """Create a group (minimal visual grouping, no border).
+
+        Unlike partition(), groups have a subtle header without a box border.
 
         Usage:
             with d.group("Processing") as g:

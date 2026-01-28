@@ -138,9 +138,11 @@ class _BaseClassBuilder:
 
         Args:
             name: Class name
-            alias: Optional short reference name
-            generics: Generic type parameters (e.g., "T extends Element")
-            stereotype: Optional stereotype
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "svc" instead of "UserService")
+            generics: Generic type parameters (e.g., "T" renders as Class<T>)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the class (e.g., "entity" renders as «entity»)
             style: Visual styling (background color, line color, text color)
 
         Returns:
@@ -323,10 +325,12 @@ class _BaseClassBuilder:
 
         Args:
             name: Class name
-            alias: Optional short reference name
-            type: Class type (class, abstract, interface, etc.)
-            generics: Generic type parameters
-            stereotype: Optional stereotype
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "svc" instead of "UserService")
+            type: Class type (class, abstract, interface, enum, annotation, entity)
+            generics: Generic type parameters (e.g., "T" renders as Class<T>)
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the class (e.g., "service" renders as «service»)
             style: Visual styling (background color, line color, text color)
 
         Yields:
@@ -408,7 +412,8 @@ class _BaseClassBuilder:
             part_label: Text at part end - same format as whole_label
             label: Text on the line itself (describes the relationship)
             style: Line style (color, pattern, thickness)
-            direction: Layout direction hint
+            direction: Layout hint ("up", "down", "left", "right") to
+                influence arrow routing between elements
             note: Note to attach to this relationship
 
         Example:
@@ -458,7 +463,8 @@ class _BaseClassBuilder:
             part_label: Text at part end - same format as whole_label
             label: Text on the line itself (describes the relationship)
             style: Line style (color, pattern, thickness)
-            direction: Layout direction hint
+            direction: Layout hint ("up", "down", "left", "right") to
+                influence arrow routing between elements
             note: Note to attach to this relationship
 
         Example:
@@ -526,7 +532,8 @@ class _BaseClassBuilder:
             target_label: Text at target end - same format as source_label
             label: Text on the line itself (describes the relationship)
             style: Line style (color, pattern, thickness)
-            direction: Layout direction hint
+            direction: Layout hint ("up", "down", "left", "right") to
+                influence arrow routing between elements
             note: Note to attach to this relationship
         """
         return self._relationship(
@@ -567,7 +574,8 @@ class _BaseClassBuilder:
             target_label: Text at target end - same format as source_label
             label: Text on the line itself (describes the relationship)
             style: Line style (color, pattern, thickness)
-            direction: Layout direction hint
+            direction: Layout hint ("up", "down", "left", "right") to
+                influence arrow routing between elements
             note: Note to attach to this relationship
         """
         return self._relationship(
@@ -686,6 +694,14 @@ class _BaseClassBuilder:
         color: ColorLike | None = None,
     ) -> Iterator["_PackageBuilder"]:
         """Create a package containing classes.
+
+        Args:
+            name: Package name
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "svc" instead of "UserService")
+            style: Visual style ("package", "node", "folder", "frame",
+                "cloud", "database", "rectangle")
+            color: Background color
 
         Usage:
             with d.package("domain") as pkg:

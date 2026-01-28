@@ -185,8 +185,10 @@ class _BaseComponentBuilder:
 
         Args:
             name: Component name
-            alias: Short alias for relationships
-            stereotype: Stereotype annotation (string or Stereotype object)
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "api" instead of "API_Gateway")
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the component (e.g., "service" renders as «service»)
             style: Visual styling (dict or Style with background, line, text_color)
             note: Optional note content (creates attached note)
             note_position: Position of note ("left", "right", "top", "bottom")
@@ -241,8 +243,10 @@ class _BaseComponentBuilder:
 
         Args:
             name: Interface name
-            alias: Short alias for relationships
-            stereotype: Stereotype annotation (string or Stereotype object)
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "api" instead of "API_Gateway")
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "REST" renders as «REST»)
             style: Visual styling (dict or Style with background, line, text_color)
             note: Optional note content (creates attached note)
             note_position: Position of note ("left", "right", "top", "bottom")
@@ -348,10 +352,12 @@ class _BaseComponentBuilder:
 
         Args:
             name: Service component name
-            alias: Short alias for relationships
+            alias: Optional short name to use instead of the auto-generated
+                reference (e.g., "api" instead of "API_Gateway")
             provides: Interface names this service provides (lollipop connections)
             requires: Interface names this service requires (socket connections)
-            stereotype: Stereotype annotation (e.g., "service")
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the element (e.g., "service" renders as «service»)
             color: Background color
 
         Returns:
@@ -400,9 +406,12 @@ class _BaseComponentBuilder:
     ) -> str:
         """Add a port (typically inside a component context).
 
+        Ports appear as small squares on component boundaries.
+
         Args:
             name: Port name
-            direction: "port", "portin", or "portout"
+            direction: "port" (bidirectional), "portin" (input arrow),
+                or "portout" (output arrow)
 
         Returns:
             The port name

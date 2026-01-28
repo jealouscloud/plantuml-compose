@@ -429,6 +429,9 @@ class _BaseStateBuilder:
     def choice(self, name: str) -> PseudoState:
         """Create and register a choice pseudo-state (diamond).
 
+        Args:
+            name: Identifier for the choice point (used in arrow references)
+
         Note: PlantUML does not support styling choice diamonds - they always render gray.
 
         Example:
@@ -443,6 +446,9 @@ class _BaseStateBuilder:
 
     def fork(self, name: str) -> PseudoState:
         """Create and register a fork pseudo-state (horizontal bar).
+
+        Args:
+            name: Identifier for the fork bar (used in arrow references)
 
         Note: PlantUML does not support styling fork bars - they always render gray.
 
@@ -459,6 +465,9 @@ class _BaseStateBuilder:
     def join(self, name: str) -> PseudoState:
         """Create and register a join pseudo-state (horizontal bar).
 
+        Args:
+            name: Identifier for the join bar (used in arrow references)
+
         Note: PlantUML does not support styling join bars - they always render gray.
 
         Example:
@@ -473,6 +482,9 @@ class _BaseStateBuilder:
 
     def sdl_receive(self, name: str) -> PseudoState:
         """Create and register an SDL receive pseudo-state (concave polygon).
+
+        Args:
+            name: Identifier for the receive state (used in arrow references)
 
         Example:
             recv = d.sdl_receive("WaitingForMessage")

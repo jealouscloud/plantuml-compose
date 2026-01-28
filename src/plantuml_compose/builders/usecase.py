@@ -155,9 +155,11 @@ class _BaseUseCaseBuilder:
                 replacing spaces with underscores (e.g., "System Admin"
                 becomes System_Admin). This ensures PlantUML can reference
                 the actor consistently in relationships.
-            stereotype: Stereotype annotation
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the actor (e.g., "admin" renders as «admin»)
             style: Visual style (background, line, text_color)
-            business: Use business variant (actor/)
+            business: If True, renders as business actor (rectangle with
+                stick figure inside) instead of plain stick figure
 
         Returns:
             The created Actor
@@ -201,9 +203,11 @@ class _BaseUseCaseBuilder:
                 replacing spaces with underscores (e.g., "Browse Products"
                 becomes Browse_Products). This ensures PlantUML can reference
                 the use case consistently in relationships.
-            stereotype: Stereotype annotation
+            stereotype: Label shown in «guillemets» above the name to
+                categorize the use case (e.g., "core" renders as «core»)
             style: Visual style (background, line, text_color)
-            business: Use business variant (usecase/)
+            business: If True, renders as business use case (ellipse with
+                diagonal line) to distinguish from system use cases
 
         Returns:
             The created UseCase
