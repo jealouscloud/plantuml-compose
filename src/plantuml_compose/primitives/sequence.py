@@ -60,7 +60,7 @@ MessageArrowHead = Literal[
     "normal",  # >   Standard filled arrow
     "thin",  # >>  Thin/async arrow
     "lost",  # >x  Message lost (didn't reach target)
-    "open",  # >)  Half arrow
+    "open",  # \   Upper half arrow (async-style)
     "circle",  # >o  Arrow with circle
     "none",  #     No arrowhead (just a line)
 ]

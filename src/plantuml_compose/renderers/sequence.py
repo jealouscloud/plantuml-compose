@@ -239,7 +239,7 @@ def _build_message_arrow(msg: Message) -> str:
         "normal": ">",
         "thin": ">>",
         "lost": ">x",
-        "open": ")",
+        "open": "\\",  # Upper half arrow
         "circle": ">o",
         "none": "",
     }

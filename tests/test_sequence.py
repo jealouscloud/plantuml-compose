@@ -155,6 +155,14 @@ class TestMessage:
         output = render(d.build())
         assert "User ->> API : request" in output
 
+    def test_message_open_arrow(self):
+        with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "async call", arrow_head="open")
+
+        output = render(d.build())
+        assert r"User -\ API : async call" in output
+
     def test_message_bidirectional(self):
         with sequence_diagram() as d:
             user, api = d.participants("User", "API")
@@ -186,6 +194,14 @@ class TestMessage:
 
         output = render(d.build())
         assert "<->>" in output
+
+    def test_message_bidirectional_open(self):
+        with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "msg", arrow_head="open", bidirectional=True)
+
+        output = render(d.build())
+        assert "<-\\" in output
 
     def test_explicit_activation(self):
         """Use explicit activate() instead of inline parameter."""
