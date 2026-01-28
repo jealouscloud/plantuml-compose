@@ -123,8 +123,7 @@ class _BaseObjectBuilder:
         if ref not in self._refs:
             available = sorted(self._refs) if self._refs else ["(none)"]
             raise ValueError(
-                f'{param_name} "{ref}" not found. '
-                f"Available: {', '.join(available)}"
+                f'{param_name} "{ref}" not found. Available: {", ".join(available)}'
             )
 
     def _to_ref(self, target: ObjectRef) -> str:
@@ -163,7 +162,9 @@ class _BaseObjectBuilder:
         if not name:
             raise ValueError("Object name cannot be empty")
         stereo = (
-            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+            Stereotype(name=stereotype)
+            if isinstance(stereotype, str)
+            else stereotype
         )
         style_obj = validate_style_background_only(style, "Object")
         obj = Object(
@@ -208,10 +209,14 @@ class _BaseObjectBuilder:
         if not name:
             raise ValueError("Object name cannot be empty")
         stereo = (
-            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+            Stereotype(name=stereotype)
+            if isinstance(stereotype, str)
+            else stereotype
         )
         style_obj = validate_style_background_only(style, "Object")
-        field_objs = tuple(Field(name=k, value=v) for k, v in (fields or {}).items())
+        field_objs = tuple(
+            Field(name=k, value=v) for k, v in (fields or {}).items()
+        )
         obj = Object(
             name=name,
             alias=alias,
@@ -265,7 +270,9 @@ class _BaseObjectBuilder:
 
         # Add linked entries
         for key, link in (links or {}).items():
-            entry_objs.append(MapEntry(key=key, value="", link=self._to_ref(link)))
+            entry_objs.append(
+                MapEntry(key=key, value="", link=self._to_ref(link))
+            )
 
         map_obj = Map(
             name=name,
@@ -611,7 +618,9 @@ class _BaseObjectBuilder:
             d.connect(server, [client1, client2, client3])
         """
         for spoke in spokes:
-            self.arrow(hub, spoke, label=label, style=style, direction=direction)
+            self.arrow(
+                hub, spoke, label=label, style=style, direction=direction
+            )
 
     def note(
         self,
@@ -668,7 +677,9 @@ class ObjectDiagramBuilder(_BaseObjectBuilder):
         self._header = Header(header) if isinstance(header, str) else header
         self._footer = Footer(footer) if isinstance(footer, str) else footer
         self._legend = Legend(legend) if isinstance(legend, str) else legend
-        self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        self._scale = (
+            Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        )
 
     def build(self) -> ObjectDiagram:
         """Build the complete object diagram."""

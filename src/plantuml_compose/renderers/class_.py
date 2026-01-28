@@ -108,7 +108,9 @@ def render_class_diagram(diagram: ClassDiagram) -> str:
     return "\n".join(lines)
 
 
-def _render_element(elem: ClassDiagramElement, ctx: _RenderContext) -> list[str]:
+def _render_element(
+    elem: ClassDiagramElement, ctx: _RenderContext
+) -> list[str]:
     """Render a single diagram element."""
     if isinstance(elem, ClassNode):
         return _render_class_node(elem)
@@ -252,7 +254,11 @@ def _render_member(member: Member) -> str:
     else:
         parts.append(member.name)
 
-    return " ".join(parts) if len(parts) > 1 and member.modifier else "".join(parts)
+    return (
+        " ".join(parts)
+        if len(parts) > 1 and member.modifier
+        else "".join(parts)
+    )
 
 
 def _render_separator(sep: Separator) -> str:

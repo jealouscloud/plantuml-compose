@@ -158,7 +158,9 @@ def _render_diagram_style(style: StateDiagramStyle) -> list[str]:
 
     # Root-level properties
     if style.background:
-        diagram_props.append(f"  BackgroundColor {render_color(style.background)}")
+        diagram_props.append(
+            f"  BackgroundColor {render_color(style.background)}"
+        )
     if style.font_name:
         diagram_props.append(f"  FontName {style.font_name}")
     if style.font_size:
@@ -168,7 +170,9 @@ def _render_diagram_style(style: StateDiagramStyle) -> list[str]:
 
     # State element styles
     if style.state:
-        diagram_props.extend(_render_element_style("state", style.state, indent=2))
+        diagram_props.extend(
+            _render_element_style("state", style.state, indent=2)
+        )
 
     # Arrow styles
     if style.arrow:
@@ -176,12 +180,16 @@ def _render_diagram_style(style: StateDiagramStyle) -> list[str]:
 
     # Note element styles
     if style.note:
-        diagram_props.extend(_render_element_style("note", style.note, indent=2))
+        diagram_props.extend(
+            _render_element_style("note", style.note, indent=2)
+        )
 
     # Collect document block content (for title)
     document_props: list[str] = []
     if style.title:
-        document_props.extend(_render_element_style("title", style.title, indent=2))
+        document_props.extend(
+            _render_element_style("title", style.title, indent=2)
+        )
 
     # Only emit style block if there's content
     if not diagram_props and not document_props:
@@ -214,11 +222,17 @@ def _render_element_style(
     inner_prefix = " " * (indent + 2)
 
     if style.background:
-        props.append(f"{inner_prefix}BackgroundColor {render_color(style.background)}")
+        props.append(
+            f"{inner_prefix}BackgroundColor {render_color(style.background)}"
+        )
     if style.line_color:
-        props.append(f"{inner_prefix}LineColor {render_color(style.line_color)}")
+        props.append(
+            f"{inner_prefix}LineColor {render_color(style.line_color)}"
+        )
     if style.font_color:
-        props.append(f"{inner_prefix}FontColor {render_color(style.font_color)}")
+        props.append(
+            f"{inner_prefix}FontColor {render_color(style.font_color)}"
+        )
     if style.font_name:
         props.append(f"{inner_prefix}FontName {style.font_name}")
     if style.font_size:
@@ -256,7 +270,11 @@ def _render_arrow_style(style: DiagramArrowStyle) -> list[str]:
 
 
 def _render_element(
-    elem: StateNode | PseudoState | Transition | CompositeState | ConcurrentState,
+    elem: StateNode
+    | PseudoState
+    | Transition
+    | CompositeState
+    | ConcurrentState,
 ) -> list[str]:
     """Render a single diagram element (except Note, handled separately)."""
     if isinstance(elem, StateNode):

@@ -95,7 +95,9 @@ def _render_component_diagram_style(style: ComponentDiagramStyle) -> list[str]:
 
     # Root-level properties
     if style.background:
-        diagram_props.append(f"  BackgroundColor {render_color(style.background)}")
+        diagram_props.append(
+            f"  BackgroundColor {render_color(style.background)}"
+        )
     if style.font_name:
         diagram_props.append(f"  FontName {style.font_name}")
     if style.font_size:
@@ -121,12 +123,16 @@ def _render_component_diagram_style(style: ComponentDiagramStyle) -> list[str]:
 
     # Note element styles
     if style.note:
-        diagram_props.extend(_render_style_element("note", style.note, indent=2))
+        diagram_props.extend(
+            _render_style_element("note", style.note, indent=2)
+        )
 
     # Collect document block content (for title)
     document_props: list[str] = []
     if style.title:
-        document_props.extend(_render_style_element("title", style.title, indent=2))
+        document_props.extend(
+            _render_style_element("title", style.title, indent=2)
+        )
 
     # Only emit style block if there's content
     if not diagram_props and not document_props:
@@ -159,11 +165,17 @@ def _render_style_element(
     inner_prefix = " " * (indent + 2)
 
     if style.background:
-        props.append(f"{inner_prefix}BackgroundColor {render_color(style.background)}")
+        props.append(
+            f"{inner_prefix}BackgroundColor {render_color(style.background)}"
+        )
     if style.line_color:
-        props.append(f"{inner_prefix}LineColor {render_color(style.line_color)}")
+        props.append(
+            f"{inner_prefix}LineColor {render_color(style.line_color)}"
+        )
     if style.font_color:
-        props.append(f"{inner_prefix}FontColor {render_color(style.font_color)}")
+        props.append(
+            f"{inner_prefix}FontColor {render_color(style.font_color)}"
+        )
     if style.font_name:
         props.append(f"{inner_prefix}FontName {style.font_name}")
     if style.font_size:
@@ -303,11 +315,7 @@ def _render_container(container: Container, indent: int = 0) -> list[str]:
     parts: list[str] = [container.type]
 
     quoted = needs_quotes(container.name)
-    name = (
-        f'"{escape_quotes(container.name)}"'
-        if quoted
-        else container.name
-    )
+    name = f'"{escape_quotes(container.name)}"' if quoted else container.name
     parts.append(name)
 
     # Alias for relationships

@@ -121,8 +121,7 @@ class _BaseClassBuilder:
         if ref not in self._refs:
             available = sorted(self._refs) if self._refs else ["(none)"]
             raise ValueError(
-                f'{param_name} "{ref}" not found. '
-                f"Available: {', '.join(available)}"
+                f'{param_name} "{ref}" not found. Available: {", ".join(available)}'
             )
 
     def class_(
@@ -336,7 +335,9 @@ class _BaseClassBuilder:
         Yields:
             A builder for adding members to the class
         """
-        builder = _ClassMemberBuilder(name, alias, type, generics, stereotype, style)
+        builder = _ClassMemberBuilder(
+            name, alias, type, generics, stereotype, style
+        )
         yield builder
         node = builder._build()
         self._elements.append(node)
@@ -382,7 +383,11 @@ class _BaseClassBuilder:
             d.implements(user, comparable)
         """
         return self._relationship(
-            interface, implementer, "implementation", label=label, direction=direction
+            interface,
+            implementer,
+            "implementation",
+            label=label,
+            direction=direction,
         )
 
     def has(
@@ -770,7 +775,11 @@ class _ClassMemberBuilder:
         """Reference name for use in relationships."""
         if self._alias:
             return self._alias
-        return self._name if self._name.isidentifier() else self._name.replace(" ", "_")
+        return (
+            self._name
+            if self._name.isidentifier()
+            else self._name.replace(" ", "_")
+        )
 
     def field(
         self,
@@ -799,9 +808,12 @@ class _ClassMemberBuilder:
         # Reject old visibility prefix pattern with helpful error
         if name and name[0] in "+-#~":
             symbol = name[0]
-            word = {"+": "public", "-": "private", "#": "protected", "~": "package"}[
-                symbol
-            ]
+            word = {
+                "+": "public",
+                "-": "private",
+                "#": "protected",
+                "~": "package",
+            }[symbol]
             raise ValueError(
                 f"Visibility prefix '{symbol}' in field name is not supported.\n"
                 f'Use: field("{name[1:]}", visibility="{word}")'
@@ -851,9 +863,12 @@ class _ClassMemberBuilder:
         # Reject old visibility prefix pattern with helpful error
         if name and name[0] in "+-#~":
             symbol = name[0]
-            word = {"+": "public", "-": "private", "#": "protected", "~": "package"}[
-                symbol
-            ]
+            word = {
+                "+": "public",
+                "-": "private",
+                "#": "protected",
+                "~": "package",
+            }[symbol]
             raise ValueError(
                 f"Visibility prefix '{symbol}' in method name is not supported.\n"
                 f'Use: method("{name[1:]}", visibility="{word}")'
@@ -926,7 +941,9 @@ class _ClassMemberBuilder:
         Example:
             user.static_method("getInstance()", "User")
         """
-        return self.method(name, return_type, visibility=visibility, modifier="static")
+        return self.method(
+            name, return_type, visibility=visibility, modifier="static"
+        )
 
     def abstract_method(
         self,
@@ -1040,7 +1057,9 @@ class ClassDiagramBuilder(_BaseClassBuilder):
         self._header = Header(header) if isinstance(header, str) else header
         self._footer = Footer(footer) if isinstance(footer, str) else footer
         self._legend = Legend(legend) if isinstance(legend, str) else legend
-        self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        self._scale = (
+            Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        )
 
     def build(self) -> ClassDiagram:
         """Build the complete class diagram."""

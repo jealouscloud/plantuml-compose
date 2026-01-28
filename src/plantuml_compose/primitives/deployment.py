@@ -91,7 +91,9 @@ class DeploymentElement:
     stereotype: Stereotype | None = None
     style: Style | None = None
     # For nested elements
-    elements: tuple["DeploymentDiagramElement", ...] = field(default_factory=tuple)
+    elements: tuple["DeploymentDiagramElement", ...] = field(
+        default_factory=tuple
+    )
 
     @property
     def _ref(self) -> str:
@@ -141,7 +143,9 @@ DeploymentDiagramElement = Union[
 class DeploymentDiagram:
     """A complete deployment diagram."""
 
-    elements: tuple[DeploymentDiagramElement, ...] = field(default_factory=tuple)
+    elements: tuple[DeploymentDiagramElement, ...] = field(
+        default_factory=tuple
+    )
     title: str | None = None
     caption: str | None = None
     header: Header | None = None

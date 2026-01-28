@@ -224,7 +224,9 @@ class Relationship:
     target: str  # Class reference
     type: RelationType = "association"
     label: LabelLike | None = None
-    source_label: str | None = None  # Label at source end (cardinality, role, etc.)
+    source_label: str | None = (
+        None  # Label at source end (cardinality, role, etc.)
+    )
     target_label: str | None = None  # Label at target end
     style: LineStyleLike | None = None
     direction: Direction | None = None
@@ -308,9 +310,7 @@ class HideShow:
     """
 
     action: Literal["hide", "show", "remove", "restore"]
-    target: (
-        str  # What to hide/show (e.g., "empty members", "ClassName methods", "$tag")
-    )
+    target: str  # What to hide/show (e.g., "empty members", "ClassName methods", "$tag")
 
 
 @dataclass(frozen=True)

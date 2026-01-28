@@ -103,7 +103,9 @@ class _BaseStateBuilder:
         self._elements: list[StateDiagramElement] = []
         self._refs: set[str] = set()  # Track valid element references
 
-    def _register_ref(self, element: StateNode | CompositeState | ConcurrentState) -> None:
+    def _register_ref(
+        self, element: StateNode | CompositeState | ConcurrentState
+    ) -> None:
         """Register an element's reference for validation.
 
         Raises:
@@ -136,8 +138,7 @@ class _BaseStateBuilder:
         if ref not in self._refs:
             available = sorted(self._refs) if self._refs else ["(none)"]
             raise ValueError(
-                f'{param_name} "{ref}" not found. '
-                f"Available: {', '.join(available)}"
+                f'{param_name} "{ref}" not found. Available: {", ".join(available)}'
             )
 
     def state(
@@ -175,10 +176,14 @@ class _BaseStateBuilder:
             raise ValueError("State name cannot be empty")
 
         # Convert string description to Label
-        desc_label = Label(description) if isinstance(description, str) else description
+        desc_label = (
+            Label(description) if isinstance(description, str) else description
+        )
 
         # Convert string note to Note
-        note_obj = Note(Label(note), note_position) if isinstance(note, str) else note
+        note_obj = (
+            Note(Label(note), note_position) if isinstance(note, str) else note
+        )
 
         # Coerce style dict to Style object
         style_obj = coerce_style(style)
@@ -399,11 +404,15 @@ class _BaseStateBuilder:
             elif isinstance(item, str):
                 # This is a label - must have a current state and next item must be a state
                 if current_state is None:
-                    raise ValueError("flow() must start with a state, not a label")
+                    raise ValueError(
+                        "flow() must start with a state, not a label"
+                    )
                 if i + 1 >= len(items):
                     raise ValueError("flow() cannot end with a label")
                 next_item = items[i + 1]
-                if isinstance(next_item, str) and not self._is_state_ref(next_item):
+                if isinstance(next_item, str) and not self._is_state_ref(
+                    next_item
+                ):
                     raise ValueError("flow() cannot have consecutive labels")
 
                 # Create transition with label
@@ -419,7 +428,9 @@ class _BaseStateBuilder:
                 current_state = next_item
                 i += 2  # Skip both label and next state
             else:
-                raise ValueError(f"flow() received unexpected item type: {type(item)}")
+                raise ValueError(
+                    f"flow() received unexpected item type: {type(item)}"
+                )
 
         if len(transitions) == 0:
             raise ValueError("flow() requires at least 2 states")
@@ -967,7 +978,9 @@ class _ParallelBuilder:
     def fork(self) -> PseudoState:
         """The fork pseudo-state. Only accessible after parallel block exits."""
         if not self._built:
-            raise RuntimeError("Cannot access .fork before parallel block exits")
+            raise RuntimeError(
+                "Cannot access .fork before parallel block exits"
+            )
         if self._fork is None:
             raise RuntimeError("Fork was not created")
         return self._fork
@@ -976,7 +989,9 @@ class _ParallelBuilder:
     def join(self) -> PseudoState:
         """The join pseudo-state. Only accessible after parallel block exits."""
         if not self._built:
-            raise RuntimeError("Cannot access .join before parallel block exits")
+            raise RuntimeError(
+                "Cannot access .join before parallel block exits"
+            )
         if self._join is None:
             raise RuntimeError("Join was not created")
         return self._join
@@ -1083,10 +1098,14 @@ class StateDiagramBuilder(_BaseStateBuilder):
         self._header = Header(header) if isinstance(header, str) else header
         self._footer = Footer(footer) if isinstance(footer, str) else footer
         self._legend = Legend(legend) if isinstance(legend, str) else legend
-        self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        self._scale = (
+            Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        )
         self._hide_empty_description = hide_empty_description
         # Coerce style dict to StateDiagramStyle object
-        self._style = coerce_state_diagram_style(style) if style is not None else None
+        self._style = (
+            coerce_state_diagram_style(style) if style is not None else None
+        )
         # Track block context for detecting d.state() inside blocks
         self._block_stack: list[str] = []
 
@@ -1217,7 +1236,9 @@ class StateDiagramBuilder(_BaseStateBuilder):
         self._block_stack.append("composite")
         try:
             style_obj = coerce_style(style)
-            builder = _CompositeBuilder(name, alias, style_obj, note, note_position)
+            builder = _CompositeBuilder(
+                name, alias, style_obj, note, note_position
+            )
             yield builder
             comp = builder._build()
             self._elements.append(comp)

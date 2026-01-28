@@ -179,7 +179,9 @@ class Transition:
     effect: str | None = None  # Action after /
     style: LineStyleLike | None = None
     direction: Direction | None = None
-    note: LabelLike | None = None  # Note attached to the transition (note on link)
+    note: LabelLike | None = (
+        None  # Note attached to the transition (note on link)
+    )
 
 
 @dataclass(frozen=True)
@@ -288,5 +290,10 @@ class StateDiagram:
 
 # Type alias for elements that can appear in a state diagram
 StateDiagramElement: TypeAlias = (
-    StateNode | PseudoState | Transition | CompositeState | ConcurrentState | Note
+    StateNode
+    | PseudoState
+    | Transition
+    | CompositeState
+    | ConcurrentState
+    | Note
 )

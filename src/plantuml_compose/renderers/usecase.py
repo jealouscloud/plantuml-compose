@@ -102,7 +102,11 @@ def _render_actor(actor: Actor) -> str:
     parts.append(keyword)
 
     # Name
-    name = f'"{escape_quotes(actor.name)}"' if needs_quotes(actor.name) else actor.name
+    name = (
+        f'"{escape_quotes(actor.name)}"'
+        if needs_quotes(actor.name)
+        else actor.name
+    )
     parts.append(name)
 
     if actor.alias:

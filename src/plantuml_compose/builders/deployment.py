@@ -117,8 +117,7 @@ class _BaseDeploymentBuilder:
         if ref not in self._refs:
             available = sorted(self._refs) if self._refs else ["(none)"]
             raise ValueError(
-                f'{param_name} "{ref}" not found. '
-                f"Available: {', '.join(available)}"
+                f'{param_name} "{ref}" not found. Available: {", ".join(available)}'
             )
 
     def _to_ref(self, target: DeploymentRef) -> str:
@@ -143,7 +142,9 @@ class _BaseDeploymentBuilder:
         if not name:
             raise ValueError("Element name cannot be empty")
         stereo = (
-            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+            Stereotype(name=stereotype)
+            if isinstance(stereotype, str)
+            else stereotype
         )
         style_obj = validate_style_background_only(style, "DeploymentElement")
         elem = DeploymentElement(
@@ -916,7 +917,12 @@ class _BaseDeploymentBuilder:
         """
         for spoke in spokes:
             self.arrow(
-                hub, spoke, label=label, dotted=dotted, style=style, direction=direction
+                hub,
+                spoke,
+                label=label,
+                dotted=dotted,
+                style=style,
+                direction=direction,
             )
 
     def note(
@@ -1003,7 +1009,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> Iterator["_NestedElementBuilder"]:
         """Create a database with nested elements."""
-        builder = _NestedElementBuilder("database", name, alias, stereotype, style)
+        builder = _NestedElementBuilder(
+            "database", name, alias, stereotype, style
+        )
         yield builder
         elem = builder._build()
         self._elements.append(elem)
@@ -1020,7 +1028,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> Iterator["_NestedElementBuilder"]:
         """Create a folder with nested elements."""
-        builder = _NestedElementBuilder("folder", name, alias, stereotype, style)
+        builder = _NestedElementBuilder(
+            "folder", name, alias, stereotype, style
+        )
         yield builder
         elem = builder._build()
         self._elements.append(elem)
@@ -1054,7 +1064,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> Iterator["_NestedElementBuilder"]:
         """Create a package with nested elements."""
-        builder = _NestedElementBuilder("package", name, alias, stereotype, style)
+        builder = _NestedElementBuilder(
+            "package", name, alias, stereotype, style
+        )
         yield builder
         elem = builder._build()
         self._elements.append(elem)
@@ -1071,7 +1083,9 @@ class _BaseDeploymentBuilder:
         style: StyleLike | None = None,
     ) -> Iterator["_NestedElementBuilder"]:
         """Create a rectangle with nested elements."""
-        builder = _NestedElementBuilder("rectangle", name, alias, stereotype, style)
+        builder = _NestedElementBuilder(
+            "rectangle", name, alias, stereotype, style
+        )
         yield builder
         elem = builder._build()
         self._elements.append(elem)
@@ -1097,7 +1111,9 @@ class _NestedElementBuilder(_BaseDeploymentBuilder):
         self._name = name
         self._alias = alias
         self._stereotype = (
-            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+            Stereotype(name=stereotype)
+            if isinstance(stereotype, str)
+            else stereotype
         )
         self._style = validate_style_background_only(style, "DeploymentElement")
 
@@ -1144,7 +1160,9 @@ class DeploymentDiagramBuilder(_BaseDeploymentBuilder):
         self._header = Header(header) if isinstance(header, str) else header
         self._footer = Footer(footer) if isinstance(footer, str) else footer
         self._legend = Legend(legend) if isinstance(legend, str) else legend
-        self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        self._scale = (
+            Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        )
 
     def build(self) -> DeploymentDiagram:
         """Build the complete deployment diagram."""

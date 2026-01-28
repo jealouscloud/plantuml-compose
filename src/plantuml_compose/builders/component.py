@@ -136,8 +136,7 @@ class _BaseComponentBuilder:
         if ref not in self._refs:
             available = sorted(self._refs) if self._refs else ["(none)"]
             raise ValueError(
-                f'{param_name} "{ref}" not found. '
-                f"Available: {', '.join(available)}"
+                f'{param_name} "{ref}" not found. Available: {", ".join(available)}'
             )
 
     def _to_ref(self, target: ComponentRef) -> str:
@@ -204,7 +203,9 @@ class _BaseComponentBuilder:
         if not name:
             raise ValueError("Component name cannot be empty")
         stereo = (
-            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+            Stereotype(name=stereotype)
+            if isinstance(stereotype, str)
+            else stereotype
         )
         style_obj = coerce_style(style)
         comp = Component(
@@ -262,7 +263,9 @@ class _BaseComponentBuilder:
         if not name:
             raise ValueError("Interface name cannot be empty")
         stereo = (
-            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+            Stereotype(name=stereotype)
+            if isinstance(stereotype, str)
+            else stereotype
         )
         style_obj = coerce_style(style)
         iface = Interface(
@@ -308,7 +311,8 @@ class _BaseComponentBuilder:
             d.arrow(api, cache)
         """
         return tuple(
-            self.component(name, stereotype=stereotype, style=style) for name in names
+            self.component(name, stereotype=stereotype, style=style)
+            for name in names
         )
 
     def interfaces(
@@ -331,7 +335,8 @@ class _BaseComponentBuilder:
             rest, graphql, grpc = d.interfaces("REST", "GraphQL", "gRPC")
         """
         return tuple(
-            self.interface(name, stereotype=stereotype, style=style) for name in names
+            self.interface(name, stereotype=stereotype, style=style)
+            for name in names
         )
 
     def service(
@@ -781,7 +786,9 @@ class _BaseComponentBuilder:
             elif isinstance(item, str):
                 # This is a label - must have a current component and next item must be a component
                 if current_component is None:
-                    raise ValueError("chain() must start with a component, not a label")
+                    raise ValueError(
+                        "chain() must start with a component, not a label"
+                    )
                 if i + 1 >= len(items):
                     raise ValueError("chain() cannot end with a label")
 
@@ -801,7 +808,9 @@ class _BaseComponentBuilder:
                 current_component = next_item
                 i += 2  # Skip both label and next component
             else:
-                raise ValueError(f"chain() received unexpected item type: {type(item)}")
+                raise ValueError(
+                    f"chain() received unexpected item type: {type(item)}"
+                )
 
         if len(relationships) == 0:
             raise ValueError("chain() requires at least 2 components")
@@ -1139,7 +1148,9 @@ class ComponentDiagramBuilder(_BaseComponentBuilder):
         self._header = Header(header) if isinstance(header, str) else header
         self._footer = Footer(footer) if isinstance(footer, str) else footer
         self._legend = Legend(legend) if isinstance(legend, str) else legend
-        self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        self._scale = (
+            Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        )
 
     def build(self) -> ComponentDiagram:
         """Build the complete component diagram."""

@@ -27,7 +27,9 @@ from dataclasses import dataclass
 from typing import Any, Literal, TypeAlias, TypedDict, get_args
 
 
-def validate_literal_type(value: str, literal_type: Any, param_name: str) -> str:
+def validate_literal_type(
+    value: str, literal_type: Any, param_name: str
+) -> str:
     """Validate a value against a Literal type using get_args().
 
     This extracts valid values from the Literal type definition, ensuring
@@ -249,7 +251,9 @@ FontStyle = Literal["normal", "bold", "italic", "bold italic"]
 def _validate_color_component(value: int, name: str) -> int:
     """Validate that a color component is an integer in the range 0-255."""
     if not isinstance(value, int) or isinstance(value, bool):
-        raise TypeError(f"{name} must be an integer, got {type(value).__name__}")
+        raise TypeError(
+            f"{name} must be an integer, got {type(value).__name__}"
+        )
     if not 0 <= value <= 255:
         raise ValueError(f"{name} must be 0-255, got {value}")
     return value
@@ -363,7 +367,12 @@ def _coerce_color_or_gradient(
     return coerce_color(value)
 
 
-_GRADIENT_DIRECTIONS = ("horizontal", "vertical", "diagonal_down", "diagonal_up")
+_GRADIENT_DIRECTIONS = (
+    "horizontal",
+    "vertical",
+    "diagonal_down",
+    "diagonal_up",
+)
 
 
 @dataclass(frozen=True)
@@ -388,9 +397,9 @@ class Gradient:
 
     start: ColorLike
     end: ColorLike
-    direction: Literal["horizontal", "vertical", "diagonal_down", "diagonal_up"] = (
-        "horizontal"
-    )
+    direction: Literal[
+        "horizontal", "vertical", "diagonal_down", "diagonal_up"
+    ] = "horizontal"
 
     def __post_init__(self) -> None:
         if self.direction not in _GRADIENT_DIRECTIONS:
@@ -771,7 +780,9 @@ def coerce_style(value: StyleLike | None) -> Style | None:
     return Style(
         background=_coerce_color_or_gradient(value.get("background")),
         line=coerce_line_style(value["line"]) if "line" in value else None,
-        text_color=coerce_color(value["text_color"]) if "text_color" in value else None,
+        text_color=coerce_color(value["text_color"])
+        if "text_color" in value
+        else None,
         stereotype=value.get("stereotype"),
     )
 
@@ -842,9 +853,15 @@ def coerce_element_style(value: ElementStyleLike) -> ElementStyle:
     if isinstance(value, ElementStyle):
         return value
     return ElementStyle(
-        background=coerce_color(value["background"]) if "background" in value else None,
-        line_color=coerce_color(value["line_color"]) if "line_color" in value else None,
-        font_color=coerce_color(value["font_color"]) if "font_color" in value else None,
+        background=coerce_color(value["background"])
+        if "background" in value
+        else None,
+        line_color=coerce_color(value["line_color"])
+        if "line_color" in value
+        else None,
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
         font_name=value.get("font_name"),
         font_size=value.get("font_size"),
         font_style=value.get("font_style"),
@@ -876,7 +893,9 @@ def coerce_diagram_arrow_style(
     if isinstance(value, DiagramArrowStyle):
         return value
     return DiagramArrowStyle(
-        line_color=coerce_color(value["line_color"]) if "line_color" in value else None,
+        line_color=coerce_color(value["line_color"])
+        if "line_color" in value
+        else None,
         line_thickness=value.get("line_thickness"),
         line_pattern=value.get("line_pattern"),
     )
@@ -921,11 +940,19 @@ def coerce_state_diagram_style(
         background=_coerce_color_or_gradient(value.get("background")),
         font_name=value.get("font_name"),
         font_size=value.get("font_size"),
-        font_color=coerce_color(value["font_color"]) if "font_color" in value else None,
-        state=coerce_element_style(value["state"]) if "state" in value else None,
-        arrow=coerce_diagram_arrow_style(value["arrow"]) if "arrow" in value else None,
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
+        state=coerce_element_style(value["state"])
+        if "state" in value
+        else None,
+        arrow=coerce_diagram_arrow_style(value["arrow"])
+        if "arrow" in value
+        else None,
         note=coerce_element_style(value["note"]) if "note" in value else None,
-        title=coerce_element_style(value["title"]) if "title" in value else None,
+        title=coerce_element_style(value["title"])
+        if "title" in value
+        else None,
     )
 
 
@@ -1007,7 +1034,9 @@ class ComponentDiagramStyleDict(TypedDict, total=False):
 
 
 # Type alias for component diagram style arguments
-ComponentDiagramStyleLike: TypeAlias = ComponentDiagramStyle | ComponentDiagramStyleDict
+ComponentDiagramStyleLike: TypeAlias = (
+    ComponentDiagramStyle | ComponentDiagramStyleDict
+)
 
 
 def coerce_component_diagram_style(
@@ -1020,14 +1049,20 @@ def coerce_component_diagram_style(
         background=_coerce_color_or_gradient(value.get("background")),
         font_name=value.get("font_name"),
         font_size=value.get("font_size"),
-        font_color=coerce_color(value["font_color"]) if "font_color" in value else None,
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
         component=coerce_element_style(value["component"])
         if "component" in value
         else None,
         interface=coerce_element_style(value["interface"])
         if "interface" in value
         else None,
-        arrow=coerce_diagram_arrow_style(value["arrow"]) if "arrow" in value else None,
+        arrow=coerce_diagram_arrow_style(value["arrow"])
+        if "arrow" in value
+        else None,
         note=coerce_element_style(value["note"]) if "note" in value else None,
-        title=coerce_element_style(value["title"]) if "title" in value else None,
+        title=coerce_element_style(value["title"])
+        if "title" in value
+        else None,
     )

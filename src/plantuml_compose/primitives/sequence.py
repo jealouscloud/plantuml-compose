@@ -208,7 +208,9 @@ class GroupBlock:
     type: GroupType
     label: LabelLike | None = None
     secondary_label: LabelLike | None = None  # For group [secondary]
-    elements: tuple["SequenceDiagramElement", ...] = field(default_factory=tuple)
+    elements: tuple["SequenceDiagramElement", ...] = field(
+        default_factory=tuple
+    )
     else_blocks: tuple["ElseBlock", ...] = field(default_factory=tuple)
 
 
@@ -221,7 +223,9 @@ class ElseBlock:
     """
 
     label: LabelLike | None = None
-    elements: tuple["SequenceDiagramElement", ...] = field(default_factory=tuple)
+    elements: tuple["SequenceDiagramElement", ...] = field(
+        default_factory=tuple
+    )
 
 
 @dataclass(frozen=True)
@@ -340,7 +344,9 @@ class SequenceDiagram:
         hide_unlinked: If True, hide participants with no messages
     """
 
-    elements: tuple["SequenceDiagramElement", ...] = field(default_factory=tuple)
+    elements: tuple["SequenceDiagramElement", ...] = field(
+        default_factory=tuple
+    )
     title: str | None = None
     caption: str | None = None
     header: Header | None = None

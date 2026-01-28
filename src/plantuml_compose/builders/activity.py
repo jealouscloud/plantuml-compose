@@ -864,7 +864,9 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
         self._header = Header(header) if isinstance(header, str) else header
         self._footer = Footer(footer) if isinstance(footer, str) else footer
         self._legend = Legend(legend) if isinstance(legend, str) else legend
-        self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        self._scale = (
+            Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        )
         # Track block context for detecting d.action() inside blocks
         self._block_stack: list[str] = []
 

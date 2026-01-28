@@ -96,7 +96,11 @@ def _render_object(obj: Object, indent: int = 0) -> list[str]:
         parts.append(name)
         parts.append(f"as {obj.alias}")
     else:
-        name = f'"{escape_quotes(obj.name)}"' if needs_quotes(obj.name) else obj.name
+        name = (
+            f'"{escape_quotes(obj.name)}"'
+            if needs_quotes(obj.name)
+            else obj.name
+        )
         parts.append(name)
 
     if obj.stereotype:

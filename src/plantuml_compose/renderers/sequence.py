@@ -284,7 +284,9 @@ def _render_group_block(group: GroupBlock) -> list[str]:
     # Opening line
     if group.type == "group":
         # Custom group with optional secondary label
-        opening = f"group {render_label(group.label)}" if group.label else "group"
+        opening = (
+            f"group {render_label(group.label)}" if group.label else "group"
+        )
         if group.secondary_label:
             opening += f" [{render_label(group.secondary_label)}]"
         lines.append(opening)

@@ -256,7 +256,9 @@ class Fork:
                    "and"   - Explicit AND join
     """
 
-    branches: tuple[tuple["ActivityElement", ...], ...] = field(default_factory=tuple)
+    branches: tuple[tuple["ActivityElement", ...], ...] = field(
+        default_factory=tuple
+    )
     end_style: Literal["fork", "merge", "or", "and"] = "fork"
 
 
@@ -268,7 +270,9 @@ class Split:
     Use when showing diverging paths that don't need explicit join semantics.
     """
 
-    branches: tuple[tuple["ActivityElement", ...], ...] = field(default_factory=tuple)
+    branches: tuple[tuple["ActivityElement", ...], ...] = field(
+        default_factory=tuple
+    )
 
 
 @dataclass(frozen=True)

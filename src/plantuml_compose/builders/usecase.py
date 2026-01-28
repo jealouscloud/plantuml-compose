@@ -124,8 +124,7 @@ class _BaseUseCaseBuilder:
         if ref not in self._refs:
             available = sorted(self._refs) if self._refs else ["(none)"]
             raise ValueError(
-                f'{param_name} "{ref}" not found. '
-                f"Available: {', '.join(available)}"
+                f'{param_name} "{ref}" not found. Available: {", ".join(available)}'
             )
 
     def _to_ref(self, target: UseCaseRef) -> str:
@@ -171,7 +170,9 @@ class _BaseUseCaseBuilder:
         if not name:
             raise ValueError("Actor name cannot be empty")
         stereo = (
-            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+            Stereotype(name=stereotype)
+            if isinstance(stereotype, str)
+            else stereotype
         )
         style_obj = validate_style_background_only(style, "Actor")
         a = Actor(
@@ -219,7 +220,9 @@ class _BaseUseCaseBuilder:
         if not name:
             raise ValueError("Use case name cannot be empty")
         stereo = (
-            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+            Stereotype(name=stereotype)
+            if isinstance(stereotype, str)
+            else stereotype
         )
         style_obj = validate_style_background_only(style, "UseCase")
         uc = UseCase(
@@ -525,7 +528,9 @@ class _BaseUseCaseBuilder:
             d.connect(customer, [browse, search, checkout])
         """
         for spoke in spokes:
-            self.arrow(hub, spoke, label=label, style=style, direction=direction)
+            self.arrow(
+                hub, spoke, label=label, style=style, direction=direction
+            )
 
     def note(
         self,
@@ -608,7 +613,9 @@ class _ContainerBuilder(_BaseUseCaseBuilder):
         self._type = type
         self._name = name
         self._stereotype = (
-            Stereotype(name=stereotype) if isinstance(stereotype, str) else stereotype
+            Stereotype(name=stereotype)
+            if isinstance(stereotype, str)
+            else stereotype
         )
         self._style = validate_style_background_only(style, "Container")
 
@@ -655,7 +662,9 @@ class UseCaseDiagramBuilder(_BaseUseCaseBuilder):
         self._header = Header(header) if isinstance(header, str) else header
         self._footer = Footer(footer) if isinstance(footer, str) else footer
         self._legend = Legend(legend) if isinstance(legend, str) else legend
-        self._scale = Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        self._scale = (
+            Scale(factor=scale) if isinstance(scale, (int, float)) else scale
+        )
 
     def build(self) -> UseCaseDiagram:
         """Build the complete use case diagram."""

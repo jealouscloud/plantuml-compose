@@ -68,7 +68,9 @@ def render_deployment_diagram(diagram: DeploymentDiagram) -> str:
     return "\n".join(lines)
 
 
-def _render_element(elem: DeploymentDiagramElement, indent: int = 0) -> list[str]:
+def _render_element(
+    elem: DeploymentDiagramElement, indent: int = 0
+) -> list[str]:
     """Render a single diagram element."""
 
     if isinstance(elem, DeploymentElement):
@@ -80,7 +82,9 @@ def _render_element(elem: DeploymentDiagramElement, indent: int = 0) -> list[str
     raise TypeError(f"Unknown element type: {type(elem).__name__}")
 
 
-def _render_deployment_element(elem: DeploymentElement, indent: int = 0) -> list[str]:
+def _render_deployment_element(
+    elem: DeploymentElement, indent: int = 0
+) -> list[str]:
     """Render a deployment element."""
     prefix = "  " * indent
     lines: list[str] = []
@@ -88,7 +92,11 @@ def _render_deployment_element(elem: DeploymentElement, indent: int = 0) -> list
     parts: list[str] = [elem.type]
 
     # Name with possible alias
-    name = f'"{escape_quotes(elem.name)}"' if needs_quotes(elem.name) else elem.name
+    name = (
+        f'"{escape_quotes(elem.name)}"'
+        if needs_quotes(elem.name)
+        else elem.name
+    )
     parts.append(name)
 
     if elem.alias:
