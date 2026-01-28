@@ -376,12 +376,12 @@ def _render_partition(partition: Partition, indent: int) -> list[str]:
 def _render_group(group: Group, indent: int) -> list[str]:
     """Render a group."""
     prefix = "  " * indent
-    lines: list[str] = [f"{prefix}group {group.name}"]
+    lines: list[str] = [f"{prefix}group {group.name} {{"]
 
     for elem in group.elements:
         lines.extend(_render_element(elem, indent + 1))
 
-    lines.append(f"{prefix}end group")
+    lines.append(f"{prefix}}}")
     return lines
 
 

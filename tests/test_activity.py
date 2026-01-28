@@ -349,8 +349,8 @@ class TestPartitionGroup:
                 g.action("Process")
 
         output = render(d.build())
-        assert "group Processing" in output
-        assert "end group" in output
+        assert "group Processing {" in output
+        assert "}" in output
 
 
 class TestControlFlow:
