@@ -5,6 +5,7 @@ Pure functions that transform object diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
+from ..primitives.common import sanitize_ref
 from ..primitives.object_ import (
     Map,
     Object,
@@ -90,18 +91,16 @@ def _render_object(obj: Object, indent: int = 0) -> list[str]:
 
     parts: list[str] = ["object"]
 
-    # Name with possible alias - PlantUML requires quotes when using alias
+    # Name - quote if needed or if alias provided, add implicit alias when quoted
+    quoted = needs_quotes(obj.name) or obj.alias is not None
+    name = f'"{escape_quotes(obj.name)}"' if quoted else obj.name
+    parts.append(name)
+
     if obj.alias:
-        name = f'"{escape_quotes(obj.name)}"'
-        parts.append(name)
         parts.append(f"as {obj.alias}")
-    else:
-        name = (
-            f'"{escape_quotes(obj.name)}"'
-            if needs_quotes(obj.name)
-            else obj.name
-        )
-        parts.append(name)
+    elif quoted:
+        # Quoted names need implicit alias for references to work
+        parts.append(f"as {sanitize_ref(obj.name)}")
 
     if obj.stereotype:
         parts.append(render_stereotype(obj.stereotype))
@@ -132,18 +131,16 @@ def _render_map(map_obj: Map, indent: int = 0) -> list[str]:
 
     parts: list[str] = ["map"]
 
-    # Name with possible alias - PlantUML requires quotes when using alias
+    # Name - quote if needed or if alias provided, add implicit alias when quoted
+    quoted = needs_quotes(map_obj.name) or map_obj.alias is not None
+    name = f'"{escape_quotes(map_obj.name)}"' if quoted else map_obj.name
+    parts.append(name)
+
     if map_obj.alias:
-        name = f'"{escape_quotes(map_obj.name)}"'
-        parts.append(name)
         parts.append(f"as {map_obj.alias}")
-    else:
-        name = (
-            f'"{escape_quotes(map_obj.name)}"'
-            if needs_quotes(map_obj.name)
-            else map_obj.name
-        )
-        parts.append(name)
+    elif quoted:
+        # Quoted names need implicit alias for references to work
+        parts.append(f"as {sanitize_ref(map_obj.name)}")
 
     # Style background as element color
     if map_obj.style and map_obj.style.background:
