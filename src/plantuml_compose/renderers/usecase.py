@@ -222,7 +222,7 @@ def _render_relationship(rel: Relationship, indent: int = 0) -> list[str]:
 
     # Relationship label
     if rel.label:
-        label = render_label(rel.label)
+        label = render_label(rel.label, inline=True)
         parts.append(f": {label}")
     elif rel.type == "include":
         parts.append(": <<include>>")

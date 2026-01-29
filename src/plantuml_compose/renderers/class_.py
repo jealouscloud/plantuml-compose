@@ -297,7 +297,7 @@ def _render_relationship(rel: Relationship) -> list[str]:
 
     # Relationship label (on the line)
     if rel.label:
-        label_text = render_label(rel.label)
+        label_text = render_label(rel.label, inline=True)
         if rel.label_direction:
             label_text += f" {rel.label_direction}"
         parts.append(f": {label_text}")

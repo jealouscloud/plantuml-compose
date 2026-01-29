@@ -136,7 +136,7 @@ def _render_element(elem: ActivityElement, indent: int = 0) -> list[str]:
 
 def _render_action(action: Action) -> str:
     """Render an action."""
-    label = render_label(action.label)
+    label = render_label(action.label, inline=True)
 
     # Shape suffix
     shape_suffix = {
@@ -185,7 +185,7 @@ def _render_arrow(arrow: Arrow) -> str:
     arrow_str = f"-{style_part}->"
 
     if arrow.label:
-        label = render_label(arrow.label)
+        label = render_label(arrow.label, inline=True)
         return f"{arrow_str} {label};"
     return arrow_str
 

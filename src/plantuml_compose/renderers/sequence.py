@@ -204,7 +204,7 @@ def _render_message(msg: Message) -> str:
     # Label
     label = ""
     if msg.label:
-        label = f" : {render_label(msg.label)}"
+        label = f" : {render_label(msg.label, inline=True)}"
 
     return f"{msg.source} {arrow} {msg.target}{activation}{label}"
 
@@ -255,7 +255,7 @@ def _build_message_arrow(msg: Message) -> str:
 def _render_return(ret: Return) -> str:
     """Render a return message."""
     if ret.label:
-        return f"return {render_label(ret.label)}"
+        return f"return {render_label(ret.label, inline=True)}"
     return "return"
 
 
@@ -285,16 +285,16 @@ def _render_group_block(group: GroupBlock) -> list[str]:
     if group.type == "group":
         # Custom group with optional secondary label
         opening = (
-            f"group {render_label(group.label)}" if group.label else "group"
+            f"group {render_label(group.label, inline=True)}" if group.label else "group"
         )
         if group.secondary_label:
-            opening += f" [{render_label(group.secondary_label)}]"
+            opening += f" [{render_label(group.secondary_label, inline=True)}]"
         lines.append(opening)
     else:
         # Semantic keyword (alt, opt, loop, etc.)
         opening = group.type
         if group.label:
-            opening += f" {render_label(group.label)}"
+            opening += f" {render_label(group.label, inline=True)}"
         lines.append(opening)
 
     # Elements (indented)
@@ -306,7 +306,7 @@ def _render_group_block(group: GroupBlock) -> list[str]:
     for else_block in group.else_blocks:
         else_line = "else"
         if else_block.label:
-            else_line += f" {render_label(else_block.label)}"
+            else_line += f" {render_label(else_block.label, inline=True)}"
         lines.append(else_line)
         for elem in else_block.elements:
             for line in _render_element(elem):

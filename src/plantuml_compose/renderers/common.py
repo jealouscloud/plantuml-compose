@@ -43,13 +43,27 @@ def render_color(color: Color | Gradient | str) -> str:
     raise TypeError(f"Unknown color type: {type(color)}")
 
 
-def render_label(label: Label | str | None) -> str:
-    """Convert a label to string."""
+def render_label(label: Label | str | None, *, inline: bool = False) -> str:
+    """
+    Convert a label to string.
+
+    Args:
+        label: The label to render
+        inline: If True, escape newlines to %n() for single-line PlantUML contexts
+                (message labels, relationship labels, state descriptions, etc.)
+                If False, preserve newlines for block contexts (notes, headers, etc.)
+    """
     if label is None:
         return ""
     if isinstance(label, str):
-        return escape_quotes(label)
-    return escape_quotes(label.text)
+        text = escape_quotes(label)
+    else:
+        text = escape_quotes(label.text)
+
+    if inline:
+        text = text.replace("\n", "%n()")
+
+    return text
 
 
 def render_line_style_bracket(style: LineStyleLike) -> str:

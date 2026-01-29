@@ -313,7 +313,7 @@ def _render_state_node(state: StateNode) -> list[str]:
 
     # Description (if any)
     if state.description:
-        lines.append(f"{ref} : {render_label(state.description)}")
+        lines.append(f"{ref} : {render_label(state.description, inline=True)}")
 
     # Note (if any)
     if state.note:
@@ -422,7 +422,7 @@ def _build_transition_label(trans: Transition) -> str:
 
     # Main label first
     if trans.label:
-        parts.append(render_label(trans.label))
+        parts.append(render_label(trans.label, inline=True))
 
     # Trigger (event name)
     if trans.trigger:
