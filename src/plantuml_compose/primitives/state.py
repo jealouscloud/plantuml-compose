@@ -32,7 +32,9 @@ from .common import (
     Header,
     LabelLike,
     LayoutDirection,
+    LayoutEngine,
     Legend,
+    LineType,
     LineStyleLike,
     Note,
     RegionSeparator,
@@ -288,6 +290,8 @@ class StateDiagram:
     scale: Scale | None = None
     theme: ThemeLike = None
     layout: LayoutDirection | None = None
+    layout_engine: LayoutEngine | None = None
+    linetype: LineType | None = None
     hide_empty_description: bool = False
     style: StateDiagramStyle | None = None
 

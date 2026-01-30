@@ -110,8 +110,10 @@ from ..primitives.common import (
     Footer,
     Header,
     Label,
+    LayoutEngine,
     Legend,
     LineStyleLike,
+    LineType,
     Scale,
     StyleLike,
     coerce_line_style,
@@ -895,6 +897,8 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
         theme: str | None = None,
+        layout_engine: LayoutEngine | None = None,
+        linetype: LineType | None = None,
     ) -> None:
         super().__init__()
         self._title = title
@@ -906,6 +910,8 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
         self._theme = theme
+        self._layout_engine = layout_engine
+        self._linetype = linetype
         # Track block context for detecting d.action() inside blocks
         self._block_stack: list[str] = []
 
@@ -1220,6 +1226,8 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
             legend=self._legend,
             scale=self._scale,
             theme=self._theme,
+            layout_engine=self._layout_engine,
+            linetype=self._linetype,
         )
 
     def render(self) -> str:
@@ -1242,6 +1250,8 @@ def activity_diagram(
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
     theme: str | None = None,
+    layout_engine: LayoutEngine | None = None,
+    linetype: LineType | None = None,
 ) -> Iterator[ActivityDiagramBuilder]:
     """Create an activity diagram with context manager syntax.
 
@@ -1267,6 +1277,8 @@ def activity_diagram(
         legend: Optional legend text or Legend object
         scale: Optional scale factor or Scale object
         theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
+        layout_engine: Layout engine; "smetana" uses pure-Java GraphViz alternative
+        linetype: Line routing style; "ortho" for right angles, "polyline" for direct
 
     Yields:
         An ActivityDiagramBuilder for adding diagram elements
@@ -1279,5 +1291,7 @@ def activity_diagram(
         legend=legend,
         scale=scale,
         theme=theme,
+        layout_engine=layout_engine,
+        linetype=linetype,
     )
     yield builder

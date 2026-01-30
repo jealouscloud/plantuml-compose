@@ -85,8 +85,10 @@ from ..primitives.common import (
     Header,
     Label,
     LayoutDirection,
+    LayoutEngine,
     Legend,
     LineStyleLike,
+    LineType,
     Scale,
     Stereotype,
     StyleLike,
@@ -1050,6 +1052,8 @@ class ClassDiagramBuilder(_BaseClassBuilder):
         scale: float | Scale | None = None,
         theme: str | None = None,
         layout: LayoutDirection | None = None,
+        layout_engine: LayoutEngine | None = None,
+        linetype: LineType | None = None,
     ) -> None:
         super().__init__()
         self._title = title
@@ -1065,6 +1069,8 @@ class ClassDiagramBuilder(_BaseClassBuilder):
         )
         self._theme = theme
         self._layout = layout
+        self._layout_engine = layout_engine
+        self._linetype = linetype
 
     def build(self) -> ClassDiagram:
         """Build the complete class diagram."""
@@ -1081,6 +1087,8 @@ class ClassDiagramBuilder(_BaseClassBuilder):
             scale=self._scale,
             theme=self._theme,
             layout=self._layout,
+            layout_engine=self._layout_engine,
+            linetype=self._linetype,
         )
 
     def render(self) -> str:
@@ -1107,6 +1115,8 @@ def class_diagram(
     scale: float | Scale | None = None,
     theme: str | None = None,
     layout: LayoutDirection | None = None,
+    layout_engine: LayoutEngine | None = None,
+    linetype: LineType | None = None,
 ) -> Iterator[ClassDiagramBuilder]:
     """Create a class diagram with context manager syntax.
 
@@ -1138,6 +1148,8 @@ def class_diagram(
         scale: Optional scale factor or Scale object
         theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
         layout: Diagram layout direction; None uses PlantUML default (top-to-bottom)
+        layout_engine: Layout engine; "smetana" uses pure-Java GraphViz alternative
+        linetype: Line routing style; "ortho" for right angles, "polyline" for direct
 
     Yields:
         A ClassDiagramBuilder for adding diagram elements
@@ -1154,5 +1166,7 @@ def class_diagram(
         scale=scale,
         theme=theme,
         layout=layout,
+        layout_engine=layout_engine,
+        linetype=linetype,
     )
     yield builder

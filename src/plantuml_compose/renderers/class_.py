@@ -35,8 +35,10 @@ from .common import (
     render_header,
     render_label,
     render_layout_direction,
+    render_layout_engine,
     render_legend,
     render_line_style_bracket,
+    render_linetype,
     render_scale,
     render_stereotype,
     render_theme,
@@ -97,6 +99,16 @@ def render_class_diagram(diagram: ClassDiagram) -> str:
     layout_line = render_layout_direction(diagram.layout)
     if layout_line:
         lines.append(layout_line)
+
+    # Layout engine pragma
+    engine_line = render_layout_engine(diagram.layout_engine)
+    if engine_line:
+        lines.append(engine_line)
+
+    # Line routing style
+    linetype_line = render_linetype(diagram.linetype)
+    if linetype_line:
+        lines.append(linetype_line)
 
     # Namespace separator
     if diagram.namespace_separator is not None:

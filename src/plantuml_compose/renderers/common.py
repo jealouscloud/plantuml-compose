@@ -10,8 +10,10 @@ from ..primitives.common import (
     Header,
     Label,
     LayoutDirection,
+    LayoutEngine,
     Legend,
     LineStyleLike,
+    LineType,
     PlantUMLBuiltinTheme,
     Scale,
     Stereotype,
@@ -71,6 +73,39 @@ def render_layout_direction(layout: LayoutDirection | None) -> str | None:
         return "top to bottom direction"
     # Type system guarantees exhaustiveness, but explicit error for safety
     raise ValueError(f"Unknown layout direction: {layout}")
+
+
+def render_layout_engine(engine: LayoutEngine | None) -> str | None:
+    """Render layout engine pragma.
+
+    PlantUML syntax:
+        !pragma layout smetana   (use Smetana pure-Java layout engine)
+
+    Returns None if engine is None (use default GraphViz).
+    """
+    if engine is None:
+        return None
+    if engine == "smetana":
+        return "!pragma layout smetana"
+    raise ValueError(f"Unknown layout engine: {engine}")
+
+
+def render_linetype(linetype: LineType | None) -> str | None:
+    """Render line routing style.
+
+    PlantUML syntax:
+        skinparam linetype ortho      (orthogonal/right-angle routing)
+        skinparam linetype polyline   (polyline routing with bends)
+
+    Returns None if linetype is None (use default spline routing).
+    """
+    if linetype is None:
+        return None
+    if linetype == "ortho":
+        return "skinparam linetype ortho"
+    if linetype == "polyline":
+        return "skinparam linetype polyline"
+    raise ValueError(f"Unknown linetype: {linetype}")
 
 
 def link(url: str, *, label: str | None = None, tooltip: str | None = None) -> str:

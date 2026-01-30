@@ -28,8 +28,10 @@ from .common import (
     Footer,
     Header,
     LabelLike,
+    LayoutEngine,
     Legend,
     LineStyle,
+    LineType,
     Note,
     Scale,
     Style,
@@ -410,6 +412,8 @@ class ActivityDiagram:
     legend: Legend | None = None
     scale: Scale | None = None
     theme: ThemeLike = None
+    layout_engine: LayoutEngine | None = None
+    linetype: LineType | None = None
 
 
 # Type alias for elements that can appear in an activity diagram

@@ -69,8 +69,10 @@ from ..primitives.common import (
     Header,
     Label,
     LayoutDirection,
+    LayoutEngine,
     Legend,
     LineStyleLike,
+    LineType,
     Note,
     NotePosition,
     RegionSeparator,
@@ -1091,6 +1093,8 @@ class StateDiagramBuilder(_BaseStateBuilder):
         scale: float | Scale | None = None,
         theme: str | None = None,
         layout: LayoutDirection | None = None,
+        layout_engine: LayoutEngine | None = None,
+        linetype: LineType | None = None,
         hide_empty_description: bool = False,
         style: StateDiagramStyleLike | None = None,
     ) -> None:
@@ -1106,6 +1110,8 @@ class StateDiagramBuilder(_BaseStateBuilder):
         )
         self._theme = theme
         self._layout = layout
+        self._layout_engine = layout_engine
+        self._linetype = linetype
         self._hide_empty_description = hide_empty_description
         # Coerce style dict to StateDiagramStyle object
         self._style = (
@@ -1305,6 +1311,8 @@ class StateDiagramBuilder(_BaseStateBuilder):
             scale=self._scale,
             theme=self._theme,
             layout=self._layout,
+            layout_engine=self._layout_engine,
+            linetype=self._linetype,
             hide_empty_description=self._hide_empty_description,
             style=self._style,
         )
@@ -1333,6 +1341,8 @@ def state_diagram(
     scale: float | Scale | None = None,
     theme: str | None = None,
     layout: LayoutDirection | None = None,
+    layout_engine: LayoutEngine | None = None,
+    linetype: LineType | None = None,
     hide_empty_description: bool = False,
     style: StateDiagramStyleLike | None = None,
 ) -> Iterator[StateDiagramBuilder]:
@@ -1371,6 +1381,8 @@ def state_diagram(
         scale: Optional scale factor (float) or Scale object for sizing
         theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
         layout: Diagram layout direction; None uses PlantUML default (top-to-bottom)
+        layout_engine: Layout engine; "smetana" uses pure-Java GraphViz alternative
+        linetype: Line routing style; "ortho" for right angles, "polyline" for direct
         hide_empty_description: Whether to hide empty state descriptions
         style: Optional styling (dict or StateDiagramStyle object)
 
@@ -1386,6 +1398,8 @@ def state_diagram(
         scale=scale,
         theme=theme,
         layout=layout,
+        layout_engine=layout_engine,
+        linetype=linetype,
         hide_empty_description=hide_empty_description,
         style=style,
     )

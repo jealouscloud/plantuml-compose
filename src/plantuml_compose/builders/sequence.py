@@ -87,8 +87,10 @@ from ..primitives.common import (
     Footer,
     Header,
     Label,
+    LayoutEngine,
     Legend,
     LineStyleLike,
+    LineType,
     Scale,
     StyleLike,
     coerce_line_style,
@@ -637,6 +639,8 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
         theme: str | None = None,
+        layout_engine: LayoutEngine | None = None,
+        linetype: LineType | None = None,
         autonumber: bool = False,
         hide_unlinked: bool = False,
     ) -> None:
@@ -650,6 +654,8 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
         self._theme = theme
+        self._layout_engine = layout_engine
+        self._linetype = linetype
         self._autonumber = Autonumber() if autonumber else None
         self._hide_unlinked = hide_unlinked
         self._participants: list[Participant] = []
@@ -1253,6 +1259,8 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
             legend=self._legend,
             scale=self._scale,
             theme=self._theme,
+            layout_engine=self._layout_engine,
+            linetype=self._linetype,
             participants=standalone,
             boxes=tuple(self._boxes),
             autonumber=self._autonumber,
@@ -1353,6 +1361,8 @@ def sequence_diagram(
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
     theme: str | None = None,
+    layout_engine: LayoutEngine | None = None,
+    linetype: LineType | None = None,
     autonumber: bool = False,
     hide_unlinked: bool = False,
 ) -> Iterator[SequenceDiagramBuilder]:
@@ -1381,6 +1391,8 @@ def sequence_diagram(
         legend: Optional legend content (string or Legend object)
         scale: Optional scale factor (float) or Scale object
         theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
+        layout_engine: Layout engine; "smetana" uses pure-Java GraphViz alternative
+        linetype: Line routing style; "ortho" for right angles, "polyline" for direct
         autonumber: Enable automatic message numbering
         hide_unlinked: Hide participants with no messages
 
@@ -1395,6 +1407,8 @@ def sequence_diagram(
         legend=legend,
         scale=scale,
         theme=theme,
+        layout_engine=layout_engine,
+        linetype=linetype,
         autonumber=autonumber,
         hide_unlinked=hide_unlinked,
     )

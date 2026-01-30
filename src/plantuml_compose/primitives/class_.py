@@ -30,7 +30,9 @@ from .common import (
     Header,
     LabelLike,
     LayoutDirection,
+    LayoutEngine,
     Legend,
+    LineType,
     LineStyleLike,
     Note,
     sanitize_ref,
@@ -338,6 +340,8 @@ class ClassDiagram:
     scale: Scale | None = None
     theme: ThemeLike = None
     layout: LayoutDirection | None = None
+    layout_engine: LayoutEngine | None = None
+    linetype: LineType | None = None
     # Diagram-level directives
     hide_empty_members: bool = False
     hide_circle: bool = False

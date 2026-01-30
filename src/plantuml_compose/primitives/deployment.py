@@ -29,7 +29,9 @@ from .common import (
     Header,
     Label,
     LayoutDirection,
+    LayoutEngine,
     Legend,
+    LineType,
     LineStyle,
     sanitize_ref,
     Scale,
@@ -156,3 +158,5 @@ class DeploymentDiagram:
     scale: Scale | None = None
     theme: ThemeLike = None
     layout: LayoutDirection | None = None
+    layout_engine: LayoutEngine | None = None
+    linetype: LineType | None = None

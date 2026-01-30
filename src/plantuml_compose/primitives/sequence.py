@@ -29,8 +29,10 @@ from .common import (
     Footer,
     Header,
     LabelLike,
+    LayoutEngine,
     Legend,
     LineStyleLike,
+    LineType,
     sanitize_ref,
     Scale,
     Style,
@@ -355,6 +357,8 @@ class SequenceDiagram:
     legend: Legend | None = None
     scale: Scale | None = None
     theme: ThemeLike = None
+    layout_engine: LayoutEngine | None = None
+    linetype: LineType | None = None
     # Participants declared at top (for ordering)
     participants: tuple[Participant, ...] = field(default_factory=tuple)
     # Boxes containing participants

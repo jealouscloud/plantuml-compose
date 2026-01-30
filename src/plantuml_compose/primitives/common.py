@@ -168,6 +168,12 @@ Direction = Literal["up", "down", "left", "right"]
 # Diagram layout direction (affects overall flow of the diagram)
 LayoutDirection = Literal["top_to_bottom", "left_to_right"]
 
+# Layout engine selection (smetana is pure Java alternative to GraphViz)
+LayoutEngine = Literal["smetana"]
+
+# Line routing style for arrows
+LineType = Literal["ortho", "polyline"]
+
 
 # =============================================================================
 # Validation Helpers

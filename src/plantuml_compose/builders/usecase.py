@@ -72,8 +72,10 @@ from ..primitives.common import (
     Header,
     Label,
     LayoutDirection,
+    LayoutEngine,
     Legend,
     LineStyleLike,
+    LineType,
     Scale,
     Stereotype,
     StyleLike,
@@ -648,18 +650,19 @@ class UseCaseDiagramBuilder(_BaseUseCaseBuilder):
         *,
         title: str | None = None,
         actor_style: ActorStyle | None = None,
-        layout: LayoutDirection | None = None,
         caption: str | None = None,
         header: str | Header | None = None,
         footer: str | Footer | None = None,
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
         theme: str | None = None,
+        layout: LayoutDirection | None = None,
+        layout_engine: LayoutEngine | None = None,
+        linetype: LineType | None = None,
     ) -> None:
         super().__init__()
         self._title = title
         self._actor_style = actor_style
-        self._layout = layout
         self._caption = caption
         self._header = Header(header) if isinstance(header, str) else header
         self._footer = Footer(footer) if isinstance(footer, str) else footer
@@ -668,6 +671,9 @@ class UseCaseDiagramBuilder(_BaseUseCaseBuilder):
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
         self._theme = theme
+        self._layout = layout
+        self._layout_engine = layout_engine
+        self._linetype = linetype
 
     def build(self) -> UseCaseDiagram:
         """Build the complete use case diagram."""
@@ -675,13 +681,15 @@ class UseCaseDiagramBuilder(_BaseUseCaseBuilder):
             elements=tuple(self._elements),
             title=self._title,
             actor_style=self._actor_style,
-            layout=self._layout,
             caption=self._caption,
             header=self._header,
             footer=self._footer,
             legend=self._legend,
             scale=self._scale,
             theme=self._theme,
+            layout=self._layout,
+            layout_engine=self._layout_engine,
+            linetype=self._linetype,
         )
 
     def render(self) -> str:
@@ -699,13 +707,15 @@ def usecase_diagram(
     *,
     title: str | None = None,
     actor_style: ActorStyle | None = None,
-    layout: LayoutDirection | None = None,
     caption: str | None = None,
     header: str | Header | None = None,
     footer: str | Footer | None = None,
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
     theme: str | None = None,
+    layout: LayoutDirection | None = None,
+    layout_engine: LayoutEngine | None = None,
+    linetype: LineType | None = None,
 ) -> Iterator[UseCaseDiagramBuilder]:
     """Create a use case diagram with context manager syntax.
 
@@ -720,13 +730,15 @@ def usecase_diagram(
     Args:
         title: Optional diagram title
         actor_style: Actor style ("default", "awesome", "hollow")
-        layout: Diagram layout direction; None uses PlantUML default (top-to-bottom)
         caption: Optional diagram caption
         header: Optional header text or Header object
         footer: Optional footer text or Footer object
         legend: Optional legend text or Legend object
         scale: Optional scale factor or Scale object
         theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
+        layout: Diagram layout direction; None uses PlantUML default (top-to-bottom)
+        layout_engine: Layout engine; "smetana" uses pure-Java GraphViz alternative
+        linetype: Line routing style; "ortho" for right angles, "polyline" for direct
 
     Yields:
         A UseCaseDiagramBuilder for adding diagram elements
@@ -734,12 +746,14 @@ def usecase_diagram(
     builder = UseCaseDiagramBuilder(
         title=title,
         actor_style=actor_style,
-        layout=layout,
         caption=caption,
         header=header,
         footer=footer,
         legend=legend,
         scale=scale,
         theme=theme,
+        layout=layout,
+        layout_engine=layout_engine,
+        linetype=linetype,
     )
     yield builder

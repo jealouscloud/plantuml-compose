@@ -72,8 +72,10 @@ from ..primitives.common import (
     Header,
     Label,
     LayoutDirection,
+    LayoutEngine,
     Legend,
     LineStyleLike,
+    LineType,
     NotePosition,
     sanitize_ref,
     Scale,
@@ -1136,6 +1138,8 @@ class ComponentDiagramBuilder(_BaseComponentBuilder):
         scale: float | Scale | None = None,
         theme: str | None = None,
         layout: LayoutDirection | None = None,
+        layout_engine: LayoutEngine | None = None,
+        linetype: LineType | None = None,
     ) -> None:
         super().__init__()
         self._title = title
@@ -1156,6 +1160,8 @@ class ComponentDiagramBuilder(_BaseComponentBuilder):
         )
         self._theme = theme
         self._layout = layout
+        self._layout_engine = layout_engine
+        self._linetype = linetype
 
     def build(self) -> ComponentDiagram:
         """Build the complete component diagram."""
@@ -1164,6 +1170,8 @@ class ComponentDiagramBuilder(_BaseComponentBuilder):
             title=self._title,
             style=self._style,
             layout=self._layout,
+            layout_engine=self._layout_engine,
+            linetype=self._linetype,
             diagram_style=self._diagram_style,
             hide_stereotype=self._hide_stereotype,
             caption=self._caption,
@@ -1198,6 +1206,8 @@ def component_diagram(
     scale: float | Scale | None = None,
     theme: str | None = None,
     layout: LayoutDirection | None = None,
+    layout_engine: LayoutEngine | None = None,
+    linetype: LineType | None = None,
 ) -> Iterator[ComponentDiagramBuilder]:
     """Create a component diagram with context manager syntax.
 
@@ -1236,6 +1246,8 @@ def component_diagram(
         scale: Optional scale factor or Scale object
         theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
         layout: Diagram layout direction; None uses PlantUML default (top-to-bottom)
+        layout_engine: Layout engine; "smetana" uses pure-Java GraphViz alternative
+        linetype: Line routing style; "ortho" for right angles, "polyline" for direct
 
     Yields:
         A ComponentDiagramBuilder for adding diagram elements
@@ -1252,5 +1264,7 @@ def component_diagram(
         scale=scale,
         theme=theme,
         layout=layout,
+        layout_engine=layout_engine,
+        linetype=linetype,
     )
     yield builder

@@ -29,7 +29,9 @@ from .common import (
     render_footer,
     render_header,
     render_label,
+    render_layout_engine,
     render_legend,
+    render_linetype,
     render_scale,
     render_theme,
 )
@@ -72,6 +74,16 @@ def render_sequence_diagram(diagram: SequenceDiagram) -> str:
     # Legend
     if diagram.legend:
         lines.extend(render_legend(diagram.legend))
+
+    # Layout engine pragma
+    engine_line = render_layout_engine(diagram.layout_engine)
+    if engine_line:
+        lines.append(engine_line)
+
+    # Line routing style
+    linetype_line = render_linetype(diagram.linetype)
+    if linetype_line:
+        lines.append(linetype_line)
 
     if diagram.hide_unlinked:
         lines.append("hide unlinked")
