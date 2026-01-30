@@ -141,6 +141,8 @@ class _BaseSequenceBuilder:
         arrow_head: MessageArrowHead = "normal",
         bidirectional: bool = False,
         style: LineStyleLike | None = None,
+        slant: int | None = None,
+        parallel: bool = False,
     ) -> Message:
         """Create and register a message between participants.
 
@@ -153,6 +155,8 @@ class _BaseSequenceBuilder:
                 "lost" (short with x), or "destroy" (with X at target)
             bidirectional: If True, arrow points both directions (<->)
             style: Arrow style (color, bold)
+            slant: Pixels to shift arrow head down (requires teoz=True on diagram)
+            parallel: If True, runs parallel with previous message (requires teoz=True)
 
         Returns:
             The created Message
@@ -177,6 +181,8 @@ class _BaseSequenceBuilder:
             arrow_head=arrow_head,
             bidirectional=bidirectional,
             style=style_obj,
+            slant=slant,
+            parallel=parallel,
         )
         self._elements.append(msg)
         return msg
@@ -641,6 +647,7 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         theme: str | None = None,
         layout_engine: LayoutEngine | None = None,
         linetype: LineType | None = None,
+        teoz: bool = False,
         autonumber: bool = False,
         hide_unlinked: bool = False,
     ) -> None:
@@ -656,6 +663,7 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         self._theme = theme
         self._layout_engine = layout_engine
         self._linetype = linetype
+        self._teoz = teoz
         self._autonumber = Autonumber() if autonumber else None
         self._hide_unlinked = hide_unlinked
         self._participants: list[Participant] = []
@@ -697,6 +705,8 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         arrow_head: MessageArrowHead = "normal",
         bidirectional: bool = False,
         style: LineStyleLike | None = None,
+        slant: int | None = None,
+        parallel: bool = False,
     ) -> Message:
         """Create and register a message between participants.
 
@@ -712,6 +722,8 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
             arrow_head=arrow_head,
             bidirectional=bidirectional,
             style=style,
+            slant=slant,
+            parallel=parallel,
         )
 
     def return_(self, label: str | Label | None = None) -> Return:
@@ -1237,8 +1249,42 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         yield builder
         self._boxes.append(builder._build())
 
+    def _validate_teoz_features(self) -> None:
+        """Validate teoz features and their constraints."""
+
+        # Check all messages recursively for teoz feature constraints
+        def check_elements(elements: list[SequenceDiagramElement]) -> None:
+            for elem in elements:
+                if isinstance(elem, Message):
+                    # Validate slant value if present
+                    if elem.slant is not None:
+                        if elem.slant < 0:
+                            raise ValueError(
+                                "slant must be a non-negative integer. "
+                                "Use source/target to control arrow direction."
+                            )
+                        if not self._teoz:
+                            raise ValueError(
+                                "slant requires teoz=True on the diagram. "
+                                "Use sequence_diagram(teoz=True) to enable teoz mode."
+                            )
+                    if elem.parallel and not self._teoz:
+                        raise ValueError(
+                            "parallel requires teoz=True on the diagram. "
+                            "Use sequence_diagram(teoz=True) to enable teoz mode."
+                        )
+                elif isinstance(elem, GroupBlock):
+                    check_elements(list(elem.elements))
+                    for else_block in elem.else_blocks:
+                        check_elements(list(else_block.elements))
+
+        check_elements(self._elements)
+
     def build(self) -> SequenceDiagram:
         """Build the complete sequence diagram."""
+        # Validate teoz features
+        self._validate_teoz_features()
+
         # Collect participants from boxes
         box_participants = set()
         for box in self._boxes:
@@ -1265,6 +1311,7 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
             boxes=tuple(self._boxes),
             autonumber=self._autonumber,
             hide_unlinked=self._hide_unlinked,
+            teoz=self._teoz,
         )
 
     def render(self) -> str:
@@ -1363,6 +1410,7 @@ def sequence_diagram(
     theme: str | None = None,
     layout_engine: LayoutEngine | None = None,
     linetype: LineType | None = None,
+    teoz: bool = False,
     autonumber: bool = False,
     hide_unlinked: bool = False,
 ) -> Iterator[SequenceDiagramBuilder]:
@@ -1393,6 +1441,7 @@ def sequence_diagram(
         theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
         layout_engine: Layout engine; "smetana" uses pure-Java GraphViz alternative
         linetype: Line routing style; "ortho" for right angles, "polyline" for direct
+        teoz: Enable teoz mode for parallel messages and slanted arrows
         autonumber: Enable automatic message numbering
         hide_unlinked: Hide participants with no messages
 
@@ -1409,6 +1458,7 @@ def sequence_diagram(
         theme=theme,
         layout_engine=layout_engine,
         linetype=linetype,
+        teoz=teoz,
         autonumber=autonumber,
         hide_unlinked=hide_unlinked,
     )

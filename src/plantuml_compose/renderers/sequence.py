@@ -85,6 +85,10 @@ def render_sequence_diagram(diagram: SequenceDiagram) -> str:
     if linetype_line:
         lines.append(linetype_line)
 
+    # Teoz mode for parallel messages and anchors
+    if diagram.teoz:
+        lines.append("!pragma teoz true")
+
     if diagram.hide_unlinked:
         lines.append("hide unlinked")
 
@@ -203,6 +207,11 @@ def _render_message(msg: Message) -> str:
     # Build arrow
     arrow = _build_message_arrow(msg)
 
+    # Handle slant (teoz feature) - requires teoz pragma
+    # Syntax: A ->(10) B shifts arrow head down 10 pixels
+    if msg.slant is not None:
+        arrow = f"{arrow}({msg.slant})"
+
     # Activation shorthand
     activation = ""
     if msg.activation:
@@ -224,7 +233,10 @@ def _render_message(msg: Message) -> str:
     if msg.label:
         label = f" : {render_label(msg.label, inline=True)}"
 
-    return f"{msg.source} {arrow} {msg.target}{activation}{label}"
+    # Parallel prefix (teoz feature)
+    prefix = "& " if msg.parallel else ""
+
+    return f"{prefix}{msg.source} {arrow} {msg.target}{activation}{label}"
 
 
 def _build_message_arrow(msg: Message) -> str:

@@ -138,6 +138,8 @@ class Message:
         arrow_head:     Arrow style ("normal", "thin", "lost", etc.)
         bidirectional:  If True, arrow points both directions
         activation:     Shorthand to activate/deactivate target
+        slant:          Pixels to shift arrow head down (requires teoz mode)
+        parallel:       If True, runs parallel with previous message (requires teoz)
 
     Arrow styling via style:
         color:     Arrow color
@@ -156,6 +158,9 @@ class Message:
     # Activation shorthand
     activation: ActivationAction | None = None
     activation_color: ColorLike | None = None
+    # Teoz features (require teoz=True on diagram)
+    slant: int | None = None  # Pixels to shift arrow head down (shows timing delay)
+    parallel: bool = False  # If True, message runs parallel with previous (& prefix)
 
 
 @dataclass(frozen=True)
@@ -366,6 +371,7 @@ class SequenceDiagram:
     # Diagram-wide settings
     autonumber: Autonumber | None = None
     hide_unlinked: bool = False  # hide unlinked participants
+    teoz: bool = False  # Enable teoz rendering for parallel messages and anchors
 
 
 # Type alias for elements that can appear in a sequence diagram

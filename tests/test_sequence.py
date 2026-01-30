@@ -836,3 +836,124 @@ class TestBlockMisuseDetection:
                         RuntimeError, match=f"inside '{block_name}' block"
                     ):
                         d.message(user, api, "wrong")
+
+
+class TestTeozFeatures:
+    """Tests for teoz mode features (parallel messages, slanted arrows)."""
+
+    def test_teoz_pragma_enabled(self):
+        """Test that teoz=True adds the pragma."""
+        with sequence_diagram(teoz=True) as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "request")
+
+        output = render(d.build())
+        assert "!pragma teoz true" in output
+
+    def test_teoz_pragma_not_added_by_default(self):
+        """Test that teoz pragma is not added by default."""
+        with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "request")
+
+        output = render(d.build())
+        assert "teoz" not in output
+
+    def test_slant_renders_correctly(self):
+        """Test slant parameter renders arrow with shift."""
+        with sequence_diagram(teoz=True) as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "delayed arrival", slant=10)
+
+        output = render(d.build())
+        assert "->(10)" in output
+
+    def test_slant_requires_teoz(self):
+        """Test that slant without teoz raises error."""
+        with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "request", slant=10)
+
+        with pytest.raises(ValueError, match="slant requires teoz=True"):
+            d.build()
+
+    def test_negative_slant_rejected(self):
+        """Test that negative slant values are rejected."""
+        with sequence_diagram(teoz=True) as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "request", slant=-5)
+
+        with pytest.raises(ValueError, match="slant must be a non-negative integer"):
+            d.build()
+
+    def test_slant_zero_allowed(self):
+        """Test that slant=0 is allowed (no-op but valid)."""
+        with sequence_diagram(teoz=True) as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "request", slant=0)
+
+        output = render(d.build())
+        assert "->(0)" in output
+
+    def test_parallel_renders_correctly(self):
+        """Test parallel parameter adds & prefix."""
+        with sequence_diagram(teoz=True) as d:
+            user, api, db = d.participants("User", "API", "Database")
+            d.message(user, api, "first")
+            d.message(api, db, "concurrent", parallel=True)
+
+        output = render(d.build())
+        assert "& API -> Database : concurrent" in output
+
+    def test_parallel_requires_teoz(self):
+        """Test that parallel without teoz raises error."""
+        with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "first")
+            d.message(api, user, "parallel", parallel=True)
+
+        with pytest.raises(ValueError, match="parallel requires teoz=True"):
+            d.build()
+
+    def test_slant_and_parallel_together(self):
+        """Test using both slant and parallel."""
+        with sequence_diagram(teoz=True) as d:
+            a, b, c = d.participants("A", "B", "C")
+            d.message(a, b, "first")
+            d.message(b, c, "concurrent and slanted", slant=15, parallel=True)
+
+        output = render(d.build())
+        assert "!pragma teoz true" in output
+        assert "& B ->(15) C : concurrent and slanted" in output
+
+    def test_slant_in_group_requires_teoz(self):
+        """Test that slant in group blocks also requires teoz."""
+        with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            with d.alt("condition") as alt:
+                alt.message(user, api, "in alt", slant=5)
+
+        with pytest.raises(ValueError, match="slant requires teoz=True"):
+            d.build()
+
+    def test_parallel_in_group_requires_teoz(self):
+        """Test that parallel in group blocks also requires teoz."""
+        with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.message(user, api, "first")
+            with d.opt("maybe") as opt:
+                opt.message(api, user, "parallel in opt", parallel=True)
+
+        with pytest.raises(ValueError, match="parallel requires teoz=True"):
+            d.build()
+
+    def test_teoz_with_slant_in_nested_groups(self):
+        """Test teoz features work in deeply nested groups."""
+        with sequence_diagram(teoz=True) as d:
+            a, b = d.participants("A", "B")
+            with d.alt("outer") as alt:
+                with alt.else_("inner") as else_block:
+                    else_block.message(a, b, "nested slant", slant=20)
+
+        output = render(d.build())
+        assert "->(20)" in output
