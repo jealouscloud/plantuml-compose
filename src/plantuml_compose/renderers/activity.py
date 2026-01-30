@@ -40,12 +40,18 @@ from .common import (
     render_label,
     render_legend,
     render_scale,
+    render_theme,
 )
 
 
 def render_activity_diagram(diagram: ActivityDiagram) -> str:
     """Render a complete activity diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
+
+    # Theme comes first
+    theme_line = render_theme(diagram.theme)
+    if theme_line:
+        lines.append(theme_line)
 
     # Scale (affects output size)
     if diagram.scale:

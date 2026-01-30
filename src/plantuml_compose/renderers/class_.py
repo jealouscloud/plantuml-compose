@@ -38,6 +38,7 @@ from .common import (
     render_line_style_bracket,
     render_scale,
     render_stereotype,
+    render_theme,
 )
 
 
@@ -56,6 +57,11 @@ class _RenderContext:
 def render_class_diagram(diagram: ClassDiagram) -> str:
     """Render a complete class diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
+
+    # Theme comes first
+    theme_line = render_theme(diagram.theme)
+    if theme_line:
+        lines.append(theme_line)
 
     # Scale (affects output size)
     if diagram.scale:

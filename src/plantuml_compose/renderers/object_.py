@@ -27,12 +27,18 @@ from .common import (
     render_line_style_bracket,
     render_scale,
     render_stereotype,
+    render_theme,
 )
 
 
 def render_object_diagram(diagram: ObjectDiagram) -> str:
     """Render a complete object diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
+
+    # Theme comes first
+    theme_line = render_theme(diagram.theme)
+    if theme_line:
+        lines.append(theme_line)
 
     # Scale (affects output size)
     if diagram.scale:

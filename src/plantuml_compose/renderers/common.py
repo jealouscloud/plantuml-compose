@@ -4,15 +4,18 @@ from __future__ import annotations
 
 from ..primitives.common import (
     Color,
+    ExternalTheme,
     Footer,
     Gradient,
     Header,
     Label,
     Legend,
     LineStyleLike,
+    PlantUMLBuiltinTheme,
     Scale,
     Stereotype,
     StyleLike,
+    ThemeLike,
     coerce_line_style,
     coerce_style,
 )
@@ -24,6 +27,30 @@ def escape_quotes(text: str) -> str:
     We use <U+0022> which PlantUML renders as a literal double quote.
     """
     return text.replace('"', "<U+0022>")
+
+
+def render_theme(theme: ThemeLike) -> str | None:
+    """Render theme directive.
+
+    PlantUML syntax:
+        !theme cerulean                    (built-in theme)
+        !theme mytheme from /path/to/dir   (local theme)
+        !theme amiga from https://...      (remote theme)
+
+    Returns None if theme is None or has empty/whitespace name.
+    """
+    if theme is None:
+        return None
+
+    if isinstance(theme, ExternalTheme):
+        if not theme.name.strip():
+            return None
+        return f"!theme {theme.name} from {theme.source}"
+
+    # Built-in theme (string)
+    if not theme.strip():
+        return None
+    return f"!theme {theme}"
 
 
 def link(url: str, *, label: str | None = None, tooltip: str | None = None) -> str:

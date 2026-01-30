@@ -653,6 +653,7 @@ class UseCaseDiagramBuilder(_BaseUseCaseBuilder):
         footer: str | Footer | None = None,
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
+        theme: str | None = None,
     ) -> None:
         super().__init__()
         self._title = title
@@ -665,6 +666,7 @@ class UseCaseDiagramBuilder(_BaseUseCaseBuilder):
         self._scale = (
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
+        self._theme = theme
 
     def build(self) -> UseCaseDiagram:
         """Build the complete use case diagram."""
@@ -678,6 +680,7 @@ class UseCaseDiagramBuilder(_BaseUseCaseBuilder):
             footer=self._footer,
             legend=self._legend,
             scale=self._scale,
+            theme=self._theme,
         )
 
     def render(self) -> str:
@@ -701,6 +704,7 @@ def usecase_diagram(
     footer: str | Footer | None = None,
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
+    theme: str | None = None,
 ) -> Iterator[UseCaseDiagramBuilder]:
     """Create a use case diagram with context manager syntax.
 
@@ -721,6 +725,7 @@ def usecase_diagram(
         footer: Optional footer text or Footer object
         legend: Optional legend text or Legend object
         scale: Optional scale factor or Scale object
+        theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
 
     Yields:
         A UseCaseDiagramBuilder for adding diagram elements
@@ -734,5 +739,6 @@ def usecase_diagram(
         footer=footer,
         legend=legend,
         scale=scale,
+        theme=theme,
     )
     yield builder

@@ -88,6 +88,47 @@ def sanitize_ref(name: str) -> str:
     return sanitized or "_"
 
 
+# All built-in themes supported by PlantUML (v1.2025.0)
+# Validated by test_plantuml_limitations.py::test_builtin_themes_match_plantuml
+# fmt: off
+PlantUMLBuiltinTheme = Literal[
+    "_none_", "amiga", "aws-orange", "black-knight", "bluegray", "blueprint",
+    "carbon-gray", "cerulean", "cerulean-outline", "cloudscape-design",
+    "crt-amber", "crt-green", "cyborg", "cyborg-outline", "hacker", "lightgray",
+    "mars", "materia", "materia-outline", "metal", "mimeograph", "minty", "mono",
+    "plain", "reddress-darkblue", "reddress-darkgreen", "reddress-darkorange",
+    "reddress-darkred", "reddress-lightblue", "reddress-lightgreen",
+    "reddress-lightorange", "reddress-lightred", "sandstone", "silver", "sketchy",
+    "sketchy-outline", "spacelab", "spacelab-white", "sunlust", "superhero",
+    "superhero-outline", "toy", "united", "vibrant",
+]
+# fmt: on
+
+
+@dataclass(frozen=True)
+class ExternalTheme:
+    """Theme loaded from a local path or remote URL.
+
+    Use this when you want to load a theme that is not built into PlantUML:
+
+        # Local theme file
+        theme=ExternalTheme("mytheme", source="/path/to/themes")
+
+        # Remote theme from URL
+        theme=ExternalTheme("amiga", source="https://raw.githubusercontent.com/...")
+
+    The source should be a directory path (local) or base URL (remote).
+    PlantUML will look for {source}/{name}.puml
+    """
+
+    name: str
+    source: str  # Local path or remote URL
+
+
+# Type alias for theme arguments
+ThemeLike = PlantUMLBuiltinTheme | ExternalTheme | None
+
+
 # All color names supported by PlantUML (extracted via test_codegen.py)
 # fmt: off
 PlantUMLColor = Literal[

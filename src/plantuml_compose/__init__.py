@@ -63,6 +63,7 @@ from .primitives import (
     Direction,
     ElementStyle,
     ElementStyleLike,
+    ExternalTheme,
     FontStyle,
     Gradient,
     Label,
@@ -72,6 +73,7 @@ from .primitives import (
     LineStyleLike,
     Note,
     NotePosition,
+    PlantUMLBuiltinTheme,
     PseudoState,
     PseudoStateKind,
     Region,
@@ -84,6 +86,7 @@ from .primitives import (
     Stereotype,
     Style,
     StyleLike,
+    ThemeLike,
     Transition,
 )
 from .renderers import link, render
@@ -109,6 +112,7 @@ __all__ = [
     "Direction",
     "ElementStyle",
     "ElementStyleLike",
+    "ExternalTheme",
     "FontStyle",
     "Gradient",
     "Label",
@@ -118,6 +122,7 @@ __all__ = [
     "LineStyleLike",
     "Note",
     "NotePosition",
+    "PlantUMLBuiltinTheme",
     "RegionSeparator",
     "Spot",
     "StateDiagramStyle",
@@ -125,6 +130,7 @@ __all__ = [
     "Stereotype",
     "Style",
     "StyleLike",
+    "ThemeLike",
     # State primitives
     "CompositeState",
     "ConcurrentState",

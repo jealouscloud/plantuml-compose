@@ -636,6 +636,7 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         footer: str | Footer | None = None,
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
+        theme: str | None = None,
         autonumber: bool = False,
         hide_unlinked: bool = False,
     ) -> None:
@@ -648,6 +649,7 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         self._scale = (
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
+        self._theme = theme
         self._autonumber = Autonumber() if autonumber else None
         self._hide_unlinked = hide_unlinked
         self._participants: list[Participant] = []
@@ -1250,6 +1252,7 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
             footer=self._footer,
             legend=self._legend,
             scale=self._scale,
+            theme=self._theme,
             participants=standalone,
             boxes=tuple(self._boxes),
             autonumber=self._autonumber,
@@ -1349,6 +1352,7 @@ def sequence_diagram(
     footer: str | Footer | None = None,
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
+    theme: str | None = None,
     autonumber: bool = False,
     hide_unlinked: bool = False,
 ) -> Iterator[SequenceDiagramBuilder]:
@@ -1376,6 +1380,7 @@ def sequence_diagram(
         footer: Optional footer text (string or Footer object)
         legend: Optional legend content (string or Legend object)
         scale: Optional scale factor (float) or Scale object
+        theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
         autonumber: Enable automatic message numbering
         hide_unlinked: Hide participants with no messages
 
@@ -1389,6 +1394,7 @@ def sequence_diagram(
         footer=footer,
         legend=legend,
         scale=scale,
+        theme=theme,
         autonumber=autonumber,
         hide_unlinked=hide_unlinked,
     )

@@ -31,12 +31,18 @@ from .common import (
     render_label,
     render_legend,
     render_scale,
+    render_theme,
 )
 
 
 def render_sequence_diagram(diagram: SequenceDiagram) -> str:
     """Render a complete sequence diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
+
+    # Theme comes first
+    theme_line = render_theme(diagram.theme)
+    if theme_line:
+        lines.append(theme_line)
 
     # Scale (affects output size)
     if diagram.scale:

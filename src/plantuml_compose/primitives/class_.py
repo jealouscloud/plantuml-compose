@@ -36,6 +36,7 @@ from .common import (
     Scale,
     Stereotype,
     StyleLike,
+    ThemeLike,
 )
 
 
@@ -334,6 +335,7 @@ class ClassDiagram:
     footer: Footer | None = None
     legend: Legend | None = None
     scale: Scale | None = None
+    theme: ThemeLike = None
     # Diagram-level directives
     hide_empty_members: bool = False
     hide_circle: bool = False

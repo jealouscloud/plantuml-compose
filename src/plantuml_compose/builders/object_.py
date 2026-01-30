@@ -670,6 +670,7 @@ class ObjectDiagramBuilder(_BaseObjectBuilder):
         footer: str | Footer | None = None,
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
+        theme: str | None = None,
     ) -> None:
         super().__init__()
         self._title = title
@@ -680,6 +681,7 @@ class ObjectDiagramBuilder(_BaseObjectBuilder):
         self._scale = (
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
+        self._theme = theme
 
     def build(self) -> ObjectDiagram:
         """Build the complete object diagram."""
@@ -691,6 +693,7 @@ class ObjectDiagramBuilder(_BaseObjectBuilder):
             footer=self._footer,
             legend=self._legend,
             scale=self._scale,
+            theme=self._theme,
         )
 
     def render(self) -> str:
@@ -712,6 +715,7 @@ def object_diagram(
     footer: str | Footer | None = None,
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
+    theme: str | None = None,
 ) -> Iterator[ObjectDiagramBuilder]:
     """Create an object diagram with context manager syntax.
 
@@ -734,6 +738,7 @@ def object_diagram(
         footer: Optional footer text or Footer object
         legend: Optional legend text or Legend object
         scale: Optional scale factor or Scale object
+        theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
 
     Yields:
         An ObjectDiagramBuilder for adding diagram elements
@@ -745,5 +750,6 @@ def object_diagram(
         footer=footer,
         legend=legend,
         scale=scale,
+        theme=theme,
     )
     yield builder

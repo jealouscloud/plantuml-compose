@@ -33,6 +33,7 @@ from .common import (
     Note,
     Scale,
     Style,
+    ThemeLike,
 )
 
 
@@ -408,6 +409,7 @@ class ActivityDiagram:
     footer: Footer | None = None
     legend: Legend | None = None
     scale: Scale | None = None
+    theme: ThemeLike = None
 
 
 # Type alias for elements that can appear in an activity diagram

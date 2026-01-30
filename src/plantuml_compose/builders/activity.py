@@ -894,6 +894,7 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
         footer: str | Footer | None = None,
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
+        theme: str | None = None,
     ) -> None:
         super().__init__()
         self._title = title
@@ -904,6 +905,7 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
         self._scale = (
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
+        self._theme = theme
         # Track block context for detecting d.action() inside blocks
         self._block_stack: list[str] = []
 
@@ -1217,6 +1219,7 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
             footer=self._footer,
             legend=self._legend,
             scale=self._scale,
+            theme=self._theme,
         )
 
     def render(self) -> str:
@@ -1238,6 +1241,7 @@ def activity_diagram(
     footer: str | Footer | None = None,
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
+    theme: str | None = None,
 ) -> Iterator[ActivityDiagramBuilder]:
     """Create an activity diagram with context manager syntax.
 
@@ -1262,6 +1266,7 @@ def activity_diagram(
         footer: Optional footer text or Footer object
         legend: Optional legend text or Legend object
         scale: Optional scale factor or Scale object
+        theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
 
     Yields:
         An ActivityDiagramBuilder for adding diagram elements
@@ -1273,5 +1278,6 @@ def activity_diagram(
         footer=footer,
         legend=legend,
         scale=scale,
+        theme=theme,
     )
     yield builder

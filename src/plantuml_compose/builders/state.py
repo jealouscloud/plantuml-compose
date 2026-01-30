@@ -1088,6 +1088,7 @@ class StateDiagramBuilder(_BaseStateBuilder):
         footer: str | Footer | None = None,
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
+        theme: str | None = None,
         hide_empty_description: bool = False,
         style: StateDiagramStyleLike | None = None,
     ) -> None:
@@ -1101,6 +1102,7 @@ class StateDiagramBuilder(_BaseStateBuilder):
         self._scale = (
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
+        self._theme = theme
         self._hide_empty_description = hide_empty_description
         # Coerce style dict to StateDiagramStyle object
         self._style = (
@@ -1298,6 +1300,7 @@ class StateDiagramBuilder(_BaseStateBuilder):
             footer=self._footer,
             legend=self._legend,
             scale=self._scale,
+            theme=self._theme,
             hide_empty_description=self._hide_empty_description,
             style=self._style,
         )
@@ -1324,6 +1327,7 @@ def state_diagram(
     footer: str | Footer | None = None,
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
+    theme: str | None = None,
     hide_empty_description: bool = False,
     style: StateDiagramStyleLike | None = None,
 ) -> Iterator[StateDiagramBuilder]:
@@ -1360,6 +1364,7 @@ def state_diagram(
         footer: Optional footer text (string or Footer object for positioning)
         legend: Optional legend content (string or Legend object for positioning)
         scale: Optional scale factor (float) or Scale object for sizing
+        theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
         hide_empty_description: Whether to hide empty state descriptions
         style: Optional styling (dict or StateDiagramStyle object)
 
@@ -1373,6 +1378,7 @@ def state_diagram(
         footer=footer,
         legend=legend,
         scale=scale,
+        theme=theme,
         hide_empty_description=hide_empty_description,
         style=style,
     )

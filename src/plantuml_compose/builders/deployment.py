@@ -1153,6 +1153,7 @@ class DeploymentDiagramBuilder(_BaseDeploymentBuilder):
         footer: str | Footer | None = None,
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
+        theme: str | None = None,
     ) -> None:
         super().__init__()
         self._title = title
@@ -1163,6 +1164,7 @@ class DeploymentDiagramBuilder(_BaseDeploymentBuilder):
         self._scale = (
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
+        self._theme = theme
 
     def build(self) -> DeploymentDiagram:
         """Build the complete deployment diagram."""
@@ -1174,6 +1176,7 @@ class DeploymentDiagramBuilder(_BaseDeploymentBuilder):
             footer=self._footer,
             legend=self._legend,
             scale=self._scale,
+            theme=self._theme,
         )
 
     def render(self) -> str:
@@ -1195,6 +1198,7 @@ def deployment_diagram(
     footer: str | Footer | None = None,
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
+    theme: str | None = None,
 ) -> Iterator[DeploymentDiagramBuilder]:
     """Create a deployment diagram with context manager syntax.
 
@@ -1215,6 +1219,7 @@ def deployment_diagram(
         footer: Optional footer text or Footer object
         legend: Optional legend text or Legend object
         scale: Optional scale factor or Scale object
+        theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
 
     Yields:
         A DeploymentDiagramBuilder for adding diagram elements
@@ -1226,5 +1231,6 @@ def deployment_diagram(
         footer=footer,
         legend=legend,
         scale=scale,
+        theme=theme,
     )
     yield builder

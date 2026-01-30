@@ -34,6 +34,7 @@ from .common import (
     Scale,
     Stereotype,
     Style,
+    ThemeLike,
 )
 
 if TYPE_CHECKING:
@@ -152,3 +153,4 @@ class DeploymentDiagram:
     footer: Footer | None = None
     legend: Legend | None = None
     scale: Scale | None = None
+    theme: ThemeLike = None

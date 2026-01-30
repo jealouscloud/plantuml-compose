@@ -35,6 +35,7 @@ from .common import (
     render_element_style,
     render_scale,
     render_stereotype,
+    render_theme,
 )
 
 
@@ -102,7 +103,12 @@ def render_state_diagram(diagram: StateDiagram) -> str:
     """Render a complete state diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
 
-    # Style block comes first (after @startuml)
+    # Theme comes first
+    theme_line = render_theme(diagram.theme)
+    if theme_line:
+        lines.append(theme_line)
+
+    # Style block comes after theme
     if diagram.style:
         lines.extend(_render_diagram_style(diagram.style))
 

@@ -34,6 +34,7 @@ from .common import (
     sanitize_ref,
     Scale,
     Style,
+    ThemeLike,
 )
 
 
@@ -353,6 +354,7 @@ class SequenceDiagram:
     footer: Footer | None = None
     legend: Legend | None = None
     scale: Scale | None = None
+    theme: ThemeLike = None
     # Participants declared at top (for ordering)
     participants: tuple[Participant, ...] = field(default_factory=tuple)
     # Boxes containing participants

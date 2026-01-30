@@ -11,6 +11,7 @@ from .common import (
     Direction,
     ElementStyle,
     ElementStyleLike,
+    ExternalTheme,
     FontStyle,
     Gradient,
     Label,
@@ -20,6 +21,7 @@ from .common import (
     LineStyleLike,
     Note,
     NotePosition,
+    PlantUMLBuiltinTheme,
     RegionSeparator,
     Spot,
     StateDiagramStyle,
@@ -27,6 +29,7 @@ from .common import (
     Stereotype,
     Style,
     StyleLike,
+    ThemeLike,
 )
 from .activity import (
     Action,
@@ -163,6 +166,7 @@ __all__ = [
     "Direction",
     "ElementStyle",
     "ElementStyleLike",
+    "ExternalTheme",
     "FontStyle",
     "Gradient",
     "Label",
@@ -172,6 +176,7 @@ __all__ = [
     "LineStyleLike",
     "Note",
     "NotePosition",
+    "PlantUMLBuiltinTheme",
     "RegionSeparator",
     "Spot",
     "StateDiagramStyle",
@@ -179,6 +184,7 @@ __all__ = [
     "Stereotype",
     "Style",
     "StyleLike",
+    "ThemeLike",
     # Activity
     "Action",
     "ActionShape",

@@ -39,6 +39,7 @@ from .common import (
     Scale,
     StateDiagramStyle,
     StyleLike,
+    ThemeLike,
 )
 
 
@@ -284,6 +285,7 @@ class StateDiagram:
     footer: Footer | None = None
     legend: Legend | None = None
     scale: Scale | None = None
+    theme: ThemeLike = None
     hide_empty_description: bool = False
     style: StateDiagramStyle | None = None
 

@@ -35,6 +35,7 @@ from .common import (
     Scale,
     Stereotype,
     Style,
+    ThemeLike,
 )
 
 if TYPE_CHECKING:
@@ -156,5 +157,6 @@ class UseCaseDiagram:
     footer: Footer | None = None
     legend: Legend | None = None
     scale: Scale | None = None
+    theme: ThemeLike = None
     actor_style: ActorStyle | None = None
     left_to_right: bool = False

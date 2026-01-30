@@ -1133,6 +1133,7 @@ class ComponentDiagramBuilder(_BaseComponentBuilder):
         footer: str | Footer | None = None,
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
+        theme: str | None = None,
     ) -> None:
         super().__init__()
         self._title = title
@@ -1151,6 +1152,7 @@ class ComponentDiagramBuilder(_BaseComponentBuilder):
         self._scale = (
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
+        self._theme = theme
 
     def build(self) -> ComponentDiagram:
         """Build the complete component diagram."""
@@ -1165,6 +1167,7 @@ class ComponentDiagramBuilder(_BaseComponentBuilder):
             footer=self._footer,
             legend=self._legend,
             scale=self._scale,
+            theme=self._theme,
         )
 
     def render(self) -> str:
@@ -1189,6 +1192,7 @@ def component_diagram(
     footer: str | Footer | None = None,
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
+    theme: str | None = None,
 ) -> Iterator[ComponentDiagramBuilder]:
     """Create a component diagram with context manager syntax.
 
@@ -1225,6 +1229,7 @@ def component_diagram(
         footer: Optional footer text or Footer object
         legend: Optional legend text or Legend object
         scale: Optional scale factor or Scale object
+        theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
 
     Yields:
         A ComponentDiagramBuilder for adding diagram elements
@@ -1239,5 +1244,6 @@ def component_diagram(
         footer=footer,
         legend=legend,
         scale=scale,
+        theme=theme,
     )
     yield builder

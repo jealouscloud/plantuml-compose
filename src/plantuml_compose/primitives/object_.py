@@ -35,6 +35,7 @@ from .common import (
     Scale,
     Stereotype,
     Style,
+    ThemeLike,
 )
 
 if TYPE_CHECKING:
@@ -160,3 +161,4 @@ class ObjectDiagram:
     footer: Footer | None = None
     legend: Legend | None = None
     scale: Scale | None = None
+    theme: ThemeLike = None

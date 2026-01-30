@@ -11,6 +11,10 @@ See CLAUDE.md "Only Expose What PlantUML Actually Renders" for context.
 """
 
 import re
+import subprocess
+from typing import get_args
+
+from plantuml_compose.primitives.common import PlantUMLBuiltinTheme
 
 # render_and_parse_svg fixture is provided by conftest.py
 
@@ -357,3 +361,48 @@ stop
             "end inside conditional stopped working! "
             "PlantUML may have changed behavior."
         )
+
+
+class TestBuiltinThemes:
+    """Verify that PlantUMLBuiltinTheme Literal matches actual PlantUML themes.
+
+    If these tests FAIL, it means PlantUML has added or removed themes and
+    the PlantUMLBuiltinTheme Literal in primitives/common.py needs updating.
+    """
+
+    def test_builtin_themes_match_plantuml(self):
+        """Verify PlantUMLBuiltinTheme matches PlantUML's actual theme list."""
+        # Get themes from PlantUML using %get_all_theme() function
+        # This outputs each theme name on its own line in text mode
+        result = subprocess.run(
+            ["plantuml", "-pipe", "-ttxt"],
+            input="@startjson\n%get_all_theme()\n@endjson",
+            capture_output=True,
+            text=True,
+        )
+
+        # Parse themes from output - each non-empty line is a theme name
+        plantuml_themes: set[str] = set()
+        for line in result.stdout.split("\n"):
+            theme_name = line.strip()
+            if theme_name:
+                plantuml_themes.add(theme_name)
+
+        # Get themes from our Literal type
+        our_themes = set(get_args(PlantUMLBuiltinTheme))
+
+        # Check for differences
+        missing_from_literal = plantuml_themes - our_themes
+        extra_in_literal = our_themes - plantuml_themes
+
+        if missing_from_literal:
+            raise AssertionError(
+                f"PlantUML has new themes not in PlantUMLBuiltinTheme: {sorted(missing_from_literal)}. "
+                "Add them to primitives/common.py PlantUMLBuiltinTheme Literal."
+            )
+
+        if extra_in_literal:
+            raise AssertionError(
+                f"PlantUMLBuiltinTheme has themes not in PlantUML: {sorted(extra_in_literal)}. "
+                "Remove them from primitives/common.py PlantUMLBuiltinTheme Literal."
+            )
