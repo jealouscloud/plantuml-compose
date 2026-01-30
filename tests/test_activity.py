@@ -423,6 +423,30 @@ class TestDiagramOptions:
         output = render(d.build())
         assert "title Order Process" in output
 
+    def test_vertical_if_pragma(self):
+        """Test that vertical_if=True adds the pragma."""
+        with activity_diagram(vertical_if=True) as d:
+            d.start()
+            with d.if_("condition") as branch:
+                branch.action("then")
+                with branch.else_() as else_branch:
+                    else_branch.action("else")
+            d.stop()
+
+        output = render(d.build())
+        assert "!pragma useVerticalIf on" in output
+
+    def test_vertical_if_not_added_by_default(self):
+        """Test that vertical_if pragma is not added by default."""
+        with activity_diagram() as d:
+            d.start()
+            with d.if_("condition") as branch:
+                branch.action("then")
+            d.stop()
+
+        output = render(d.build())
+        assert "useVerticalIf" not in output
+
 
 class TestRenderMethod:
     """Tests for the render() convenience method."""

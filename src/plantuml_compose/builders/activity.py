@@ -899,6 +899,7 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
         theme: str | None = None,
         layout_engine: LayoutEngine | None = None,
         linetype: LineType | None = None,
+        vertical_if: bool = False,
     ) -> None:
         super().__init__()
         self._title = title
@@ -912,6 +913,7 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
         self._theme = theme
         self._layout_engine = layout_engine
         self._linetype = linetype
+        self._vertical_if = vertical_if
         # Track block context for detecting d.action() inside blocks
         self._block_stack: list[str] = []
 
@@ -1228,6 +1230,7 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
             theme=self._theme,
             layout_engine=self._layout_engine,
             linetype=self._linetype,
+            vertical_if=self._vertical_if,
         )
 
     def render(self) -> str:
@@ -1252,6 +1255,7 @@ def activity_diagram(
     theme: str | None = None,
     layout_engine: LayoutEngine | None = None,
     linetype: LineType | None = None,
+    vertical_if: bool = False,
 ) -> Iterator[ActivityDiagramBuilder]:
     """Create an activity diagram with context manager syntax.
 
@@ -1279,6 +1283,7 @@ def activity_diagram(
         theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
         layout_engine: Layout engine; "smetana" uses pure-Java GraphViz alternative
         linetype: Line routing style; "ortho" for right angles, "polyline" for direct
+        vertical_if: If True, if/else branches render vertically instead of horizontally
 
     Yields:
         An ActivityDiagramBuilder for adding diagram elements
@@ -1293,5 +1298,6 @@ def activity_diagram(
         theme=theme,
         layout_engine=layout_engine,
         linetype=linetype,
+        vertical_if=vertical_if,
     )
     yield builder

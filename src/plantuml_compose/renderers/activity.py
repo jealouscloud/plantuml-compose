@@ -94,6 +94,10 @@ def render_activity_diagram(diagram: ActivityDiagram) -> str:
     if linetype_line:
         lines.append(linetype_line)
 
+    # Vertical if/else layout pragma
+    if diagram.vertical_if:
+        lines.append("!pragma useVerticalIf on")
+
     for elem in diagram.elements:
         lines.extend(_render_element(elem))
 

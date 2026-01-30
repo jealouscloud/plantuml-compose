@@ -400,8 +400,9 @@ class ActivityDiagram:
     Contains all actions, decisions, and control flow elements.
     Usually created via the activity_diagram() builder rather than directly.
 
-        elements: All diagram elements in flow order
-        title:    Optional diagram title
+        elements:    All diagram elements in flow order
+        title:       Optional diagram title
+        vertical_if: If True, if/else branches render vertically instead of horizontally
     """
 
     elements: tuple["ActivityElement", ...] = field(default_factory=tuple)
@@ -414,6 +415,7 @@ class ActivityDiagram:
     theme: ThemeLike = None
     layout_engine: LayoutEngine | None = None
     linetype: LineType | None = None
+    vertical_if: bool = False  # Enable vertical if/else layout
 
 
 # Type alias for elements that can appear in an activity diagram
