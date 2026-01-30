@@ -68,6 +68,7 @@ from ..primitives.common import (
     Footer,
     Header,
     Label,
+    LayoutDirection,
     Legend,
     LineStyleLike,
     Note,
@@ -1089,6 +1090,7 @@ class StateDiagramBuilder(_BaseStateBuilder):
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
         theme: str | None = None,
+        layout: LayoutDirection | None = None,
         hide_empty_description: bool = False,
         style: StateDiagramStyleLike | None = None,
     ) -> None:
@@ -1103,6 +1105,7 @@ class StateDiagramBuilder(_BaseStateBuilder):
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
         self._theme = theme
+        self._layout = layout
         self._hide_empty_description = hide_empty_description
         # Coerce style dict to StateDiagramStyle object
         self._style = (
@@ -1301,6 +1304,7 @@ class StateDiagramBuilder(_BaseStateBuilder):
             legend=self._legend,
             scale=self._scale,
             theme=self._theme,
+            layout=self._layout,
             hide_empty_description=self._hide_empty_description,
             style=self._style,
         )
@@ -1328,6 +1332,7 @@ def state_diagram(
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
     theme: str | None = None,
+    layout: LayoutDirection | None = None,
     hide_empty_description: bool = False,
     style: StateDiagramStyleLike | None = None,
 ) -> Iterator[StateDiagramBuilder]:
@@ -1365,6 +1370,7 @@ def state_diagram(
         legend: Optional legend content (string or Legend object for positioning)
         scale: Optional scale factor (float) or Scale object for sizing
         theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
+        layout: Diagram layout direction; None uses PlantUML default (top-to-bottom)
         hide_empty_description: Whether to hide empty state descriptions
         style: Optional styling (dict or StateDiagramStyle object)
 
@@ -1379,6 +1385,7 @@ def state_diagram(
         legend=legend,
         scale=scale,
         theme=theme,
+        layout=layout,
         hide_empty_description=hide_empty_description,
         style=style,
     )

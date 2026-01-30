@@ -30,6 +30,7 @@ from .common import (
     render_footer,
     render_header,
     render_label,
+    render_layout_direction,
     render_legend,
     render_line_style_bracket,
     render_element_style,
@@ -140,6 +141,11 @@ def render_state_diagram(diagram: StateDiagram) -> str:
     # Legend
     if diagram.legend:
         lines.extend(render_legend(diagram.legend))
+
+    # Layout direction
+    layout_line = render_layout_direction(diagram.layout)
+    if layout_line:
+        lines.append(layout_line)
 
     if diagram.hide_empty_description:
         lines.append("hide empty description")

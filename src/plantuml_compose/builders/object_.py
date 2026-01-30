@@ -71,6 +71,7 @@ from ..primitives.common import (
     Footer,
     Header,
     Label,
+    LayoutDirection,
     Legend,
     LineStyleLike,
     Scale,
@@ -671,6 +672,7 @@ class ObjectDiagramBuilder(_BaseObjectBuilder):
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
         theme: str | None = None,
+        layout: LayoutDirection | None = None,
     ) -> None:
         super().__init__()
         self._title = title
@@ -682,6 +684,7 @@ class ObjectDiagramBuilder(_BaseObjectBuilder):
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
         self._theme = theme
+        self._layout = layout
 
     def build(self) -> ObjectDiagram:
         """Build the complete object diagram."""
@@ -694,6 +697,7 @@ class ObjectDiagramBuilder(_BaseObjectBuilder):
             legend=self._legend,
             scale=self._scale,
             theme=self._theme,
+            layout=self._layout,
         )
 
     def render(self) -> str:
@@ -716,6 +720,7 @@ def object_diagram(
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
     theme: str | None = None,
+    layout: LayoutDirection | None = None,
 ) -> Iterator[ObjectDiagramBuilder]:
     """Create an object diagram with context manager syntax.
 
@@ -739,6 +744,7 @@ def object_diagram(
         legend: Optional legend text or Legend object
         scale: Optional scale factor or Scale object
         theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
+        layout: Diagram layout direction; None uses PlantUML default (top-to-bottom)
 
     Yields:
         An ObjectDiagramBuilder for adding diagram elements
@@ -751,5 +757,6 @@ def object_diagram(
         legend=legend,
         scale=scale,
         theme=theme,
+        layout=layout,
     )
     yield builder

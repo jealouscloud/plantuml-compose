@@ -165,6 +165,9 @@ PlantUMLColor = Literal[
 # Layout direction hints for arrows and elements
 Direction = Literal["up", "down", "left", "right"]
 
+# Diagram layout direction (affects overall flow of the diagram)
+LayoutDirection = Literal["top_to_bottom", "left_to_right"]
+
 
 # =============================================================================
 # Validation Helpers

@@ -21,6 +21,7 @@ from .common import (
     render_footer,
     render_header,
     render_label,
+    render_layout_direction,
     render_legend,
     render_line_style_bracket,
     render_scale,
@@ -66,6 +67,11 @@ def render_deployment_diagram(diagram: DeploymentDiagram) -> str:
     # Legend
     if diagram.legend:
         lines.extend(render_legend(diagram.legend))
+
+    # Layout direction
+    layout_line = render_layout_direction(diagram.layout)
+    if layout_line:
+        lines.append(layout_line)
 
     for elem in diagram.elements:
         lines.extend(_render_element(elem))

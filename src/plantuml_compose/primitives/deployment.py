@@ -28,6 +28,7 @@ from .common import (
     Footer,
     Header,
     Label,
+    LayoutDirection,
     Legend,
     LineStyle,
     sanitize_ref,
@@ -154,3 +155,4 @@ class DeploymentDiagram:
     legend: Legend | None = None
     scale: Scale | None = None
     theme: ThemeLike = None
+    layout: LayoutDirection | None = None

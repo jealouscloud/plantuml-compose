@@ -281,7 +281,7 @@ class TestDiagramOptions:
         assert "title Shopping System" in output
 
     def test_left_to_right(self):
-        with usecase_diagram(left_to_right=True) as d:
+        with usecase_diagram(layout="left_to_right") as d:
             d.usecase("Feature")
 
         output = render(d.build())
@@ -328,7 +328,7 @@ class TestComplexDiagram:
     """Integration tests with complex diagrams."""
 
     def test_ecommerce_system(self):
-        with usecase_diagram(title="E-Commerce System", left_to_right=True) as d:
+        with usecase_diagram(title="E-Commerce System", layout="left_to_right") as d:
             # Actors
             customer = d.actor("Customer", alias="customer")
             admin = d.actor("Admin", alias="admin")

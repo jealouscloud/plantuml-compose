@@ -29,6 +29,7 @@ from .common import (
     Footer,
     Header,
     Label,
+    LayoutDirection,
     Legend,
     LineStyle,
     sanitize_ref,
@@ -278,6 +279,7 @@ class ComponentDiagram:
     legend: Legend | None = None
     scale: Scale | None = None
     theme: ThemeLike = None
+    layout: LayoutDirection | None = None
     style: ComponentStyle | None = None
     diagram_style: ComponentDiagramStyle | None = None
     # Skin parameters

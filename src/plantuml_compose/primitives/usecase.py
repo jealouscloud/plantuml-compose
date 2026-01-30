@@ -29,6 +29,7 @@ from .common import (
     Footer,
     Header,
     Label,
+    LayoutDirection,
     Legend,
     LineStyle,
     sanitize_ref,
@@ -159,4 +160,4 @@ class UseCaseDiagram:
     scale: Scale | None = None
     theme: ThemeLike = None
     actor_style: ActorStyle | None = None
-    left_to_right: bool = False
+    layout: LayoutDirection | None = None

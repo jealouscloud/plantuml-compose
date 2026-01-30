@@ -29,6 +29,7 @@ from .common import (
     Footer,
     Header,
     LabelLike,
+    LayoutDirection,
     Legend,
     LineStyleLike,
     Note,
@@ -336,6 +337,7 @@ class ClassDiagram:
     legend: Legend | None = None
     scale: Scale | None = None
     theme: ThemeLike = None
+    layout: LayoutDirection | None = None
     # Diagram-level directives
     hide_empty_members: bool = False
     hide_circle: bool = False

@@ -71,6 +71,7 @@ from ..primitives.common import (
     Footer,
     Header,
     Label,
+    LayoutDirection,
     Legend,
     LineStyleLike,
     Scale,
@@ -647,7 +648,7 @@ class UseCaseDiagramBuilder(_BaseUseCaseBuilder):
         *,
         title: str | None = None,
         actor_style: ActorStyle | None = None,
-        left_to_right: bool = False,
+        layout: LayoutDirection | None = None,
         caption: str | None = None,
         header: str | Header | None = None,
         footer: str | Footer | None = None,
@@ -658,7 +659,7 @@ class UseCaseDiagramBuilder(_BaseUseCaseBuilder):
         super().__init__()
         self._title = title
         self._actor_style = actor_style
-        self._left_to_right = left_to_right
+        self._layout = layout
         self._caption = caption
         self._header = Header(header) if isinstance(header, str) else header
         self._footer = Footer(footer) if isinstance(footer, str) else footer
@@ -674,7 +675,7 @@ class UseCaseDiagramBuilder(_BaseUseCaseBuilder):
             elements=tuple(self._elements),
             title=self._title,
             actor_style=self._actor_style,
-            left_to_right=self._left_to_right,
+            layout=self._layout,
             caption=self._caption,
             header=self._header,
             footer=self._footer,
@@ -698,7 +699,7 @@ def usecase_diagram(
     *,
     title: str | None = None,
     actor_style: ActorStyle | None = None,
-    left_to_right: bool = False,
+    layout: LayoutDirection | None = None,
     caption: str | None = None,
     header: str | Header | None = None,
     footer: str | Footer | None = None,
@@ -719,7 +720,7 @@ def usecase_diagram(
     Args:
         title: Optional diagram title
         actor_style: Actor style ("default", "awesome", "hollow")
-        left_to_right: Use left to right layout direction
+        layout: Diagram layout direction; None uses PlantUML default (top-to-bottom)
         caption: Optional diagram caption
         header: Optional header text or Header object
         footer: Optional footer text or Footer object
@@ -733,7 +734,7 @@ def usecase_diagram(
     builder = UseCaseDiagramBuilder(
         title=title,
         actor_style=actor_style,
-        left_to_right=left_to_right,
+        layout=layout,
         caption=caption,
         header=header,
         footer=footer,

@@ -9,6 +9,7 @@ from ..primitives.common import (
     Gradient,
     Header,
     Label,
+    LayoutDirection,
     Legend,
     LineStyleLike,
     PlantUMLBuiltinTheme,
@@ -51,6 +52,25 @@ def render_theme(theme: ThemeLike) -> str | None:
     if not theme.strip():
         return None
     return f"!theme {theme}"
+
+
+def render_layout_direction(layout: LayoutDirection | None) -> str | None:
+    """Render diagram layout direction directive.
+
+    PlantUML syntax:
+        left to right direction   (horizontal flow)
+        top to bottom direction   (vertical flow, default)
+
+    Returns None if layout is None (use PlantUML default).
+    """
+    if layout is None:
+        return None
+    if layout == "left_to_right":
+        return "left to right direction"
+    if layout == "top_to_bottom":
+        return "top to bottom direction"
+    # Type system guarantees exhaustiveness, but explicit error for safety
+    raise ValueError(f"Unknown layout direction: {layout}")
 
 
 def link(url: str, *, label: str | None = None, tooltip: str | None = None) -> str:

@@ -71,6 +71,7 @@ from ..primitives.common import (
     Footer,
     Header,
     Label,
+    LayoutDirection,
     Legend,
     LineStyleLike,
     NotePosition,
@@ -1134,6 +1135,7 @@ class ComponentDiagramBuilder(_BaseComponentBuilder):
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
         theme: str | None = None,
+        layout: LayoutDirection | None = None,
     ) -> None:
         super().__init__()
         self._title = title
@@ -1153,6 +1155,7 @@ class ComponentDiagramBuilder(_BaseComponentBuilder):
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
         self._theme = theme
+        self._layout = layout
 
     def build(self) -> ComponentDiagram:
         """Build the complete component diagram."""
@@ -1160,6 +1163,7 @@ class ComponentDiagramBuilder(_BaseComponentBuilder):
             elements=tuple(self._elements),
             title=self._title,
             style=self._style,
+            layout=self._layout,
             diagram_style=self._diagram_style,
             hide_stereotype=self._hide_stereotype,
             caption=self._caption,
@@ -1193,6 +1197,7 @@ def component_diagram(
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
     theme: str | None = None,
+    layout: LayoutDirection | None = None,
 ) -> Iterator[ComponentDiagramBuilder]:
     """Create a component diagram with context manager syntax.
 
@@ -1230,6 +1235,7 @@ def component_diagram(
         legend: Optional legend text or Legend object
         scale: Optional scale factor or Scale object
         theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
+        layout: Diagram layout direction; None uses PlantUML default (top-to-bottom)
 
     Yields:
         A ComponentDiagramBuilder for adding diagram elements
@@ -1245,5 +1251,6 @@ def component_diagram(
         legend=legend,
         scale=scale,
         theme=theme,
+        layout=layout,
     )
     yield builder

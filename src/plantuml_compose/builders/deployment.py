@@ -67,6 +67,7 @@ from ..primitives.common import (
     Footer,
     Header,
     Label,
+    LayoutDirection,
     Legend,
     LineStyleLike,
     Scale,
@@ -1154,6 +1155,7 @@ class DeploymentDiagramBuilder(_BaseDeploymentBuilder):
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
         theme: str | None = None,
+        layout: LayoutDirection | None = None,
     ) -> None:
         super().__init__()
         self._title = title
@@ -1165,6 +1167,7 @@ class DeploymentDiagramBuilder(_BaseDeploymentBuilder):
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
         self._theme = theme
+        self._layout = layout
 
     def build(self) -> DeploymentDiagram:
         """Build the complete deployment diagram."""
@@ -1177,6 +1180,7 @@ class DeploymentDiagramBuilder(_BaseDeploymentBuilder):
             legend=self._legend,
             scale=self._scale,
             theme=self._theme,
+            layout=self._layout,
         )
 
     def render(self) -> str:
@@ -1199,6 +1203,7 @@ def deployment_diagram(
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
     theme: str | None = None,
+    layout: LayoutDirection | None = None,
 ) -> Iterator[DeploymentDiagramBuilder]:
     """Create a deployment diagram with context manager syntax.
 
@@ -1220,6 +1225,7 @@ def deployment_diagram(
         legend: Optional legend text or Legend object
         scale: Optional scale factor or Scale object
         theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
+        layout: Diagram layout direction; None uses PlantUML default (top-to-bottom)
 
     Yields:
         A DeploymentDiagramBuilder for adding diagram elements
@@ -1232,5 +1238,6 @@ def deployment_diagram(
         legend=legend,
         scale=scale,
         theme=theme,
+        layout=layout,
     )
     yield builder

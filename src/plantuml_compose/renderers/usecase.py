@@ -23,6 +23,7 @@ from .common import (
     render_footer,
     render_header,
     render_label,
+    render_layout_direction,
     render_legend,
     render_line_style_bracket,
     render_scale,
@@ -69,8 +70,10 @@ def render_usecase_diagram(diagram: UseCaseDiagram) -> str:
     if diagram.legend:
         lines.extend(render_legend(diagram.legend))
 
-    if diagram.left_to_right:
-        lines.append("left to right direction")
+    # Layout direction
+    layout_line = render_layout_direction(diagram.layout)
+    if layout_line:
+        lines.append(layout_line)
 
     if diagram.actor_style and diagram.actor_style != "default":
         lines.append(f"skinparam actorStyle {diagram.actor_style}")

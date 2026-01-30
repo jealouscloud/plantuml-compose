@@ -84,6 +84,7 @@ from ..primitives.common import (
     Footer,
     Header,
     Label,
+    LayoutDirection,
     Legend,
     LineStyleLike,
     Scale,
@@ -1048,6 +1049,7 @@ class ClassDiagramBuilder(_BaseClassBuilder):
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
         theme: str | None = None,
+        layout: LayoutDirection | None = None,
     ) -> None:
         super().__init__()
         self._title = title
@@ -1062,6 +1064,7 @@ class ClassDiagramBuilder(_BaseClassBuilder):
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
         self._theme = theme
+        self._layout = layout
 
     def build(self) -> ClassDiagram:
         """Build the complete class diagram."""
@@ -1077,6 +1080,7 @@ class ClassDiagramBuilder(_BaseClassBuilder):
             legend=self._legend,
             scale=self._scale,
             theme=self._theme,
+            layout=self._layout,
         )
 
     def render(self) -> str:
@@ -1102,6 +1106,7 @@ def class_diagram(
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
     theme: str | None = None,
+    layout: LayoutDirection | None = None,
 ) -> Iterator[ClassDiagramBuilder]:
     """Create a class diagram with context manager syntax.
 
@@ -1132,6 +1137,7 @@ def class_diagram(
         legend: Optional legend text or Legend object
         scale: Optional scale factor or Scale object
         theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
+        layout: Diagram layout direction; None uses PlantUML default (top-to-bottom)
 
     Yields:
         A ClassDiagramBuilder for adding diagram elements
@@ -1147,5 +1153,6 @@ def class_diagram(
         legend=legend,
         scale=scale,
         theme=theme,
+        layout=layout,
     )
     yield builder

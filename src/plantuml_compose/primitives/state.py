@@ -31,6 +31,7 @@ from .common import (
     Footer,
     Header,
     LabelLike,
+    LayoutDirection,
     Legend,
     LineStyleLike,
     Note,
@@ -286,6 +287,7 @@ class StateDiagram:
     legend: Legend | None = None
     scale: Scale | None = None
     theme: ThemeLike = None
+    layout: LayoutDirection | None = None
     hide_empty_description: bool = False
     style: StateDiagramStyle | None = None
 
