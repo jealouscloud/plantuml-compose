@@ -86,7 +86,7 @@ from .primitives import (
     StyleLike,
     Transition,
 )
-from .renderers import render
+from .renderers import link, render
 
 __all__ = [
     # Builders
@@ -99,6 +99,7 @@ __all__ = [
     "state_diagram",
     "usecase_diagram",
     # Renderers
+    "link",
     "render",
     # Common primitives
     "Color",

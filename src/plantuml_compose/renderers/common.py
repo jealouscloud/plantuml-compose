@@ -26,6 +26,62 @@ def escape_quotes(text: str) -> str:
     return text.replace('"', "<U+0022>")
 
 
+def link(url: str, *, label: str | None = None, tooltip: str | None = None) -> str:
+    """
+    Create a PlantUML hyperlink.
+
+    Args:
+        url: The URL to link to (must not be empty)
+        label: Optional display text (defaults to showing the URL)
+        tooltip: Optional tooltip text shown on hover
+
+    Returns:
+        PlantUML link syntax: [[url{tooltip} label]]
+
+    Raises:
+        ValueError: If url is empty
+
+    Examples:
+        link("http://example.com")
+        # [[http://example.com]]
+
+        link("http://example.com", label="Click here")
+        # [[http://example.com Click here]]
+
+        link("http://example.com", tooltip="More info")
+        # [[http://example.com{More info}]]
+
+        link("http://example.com", label="Click here", tooltip="More info")
+        # [[http://example.com{More info} Click here]]
+
+        link("http://example.com/path?foo={bar}", label="Click")
+        # [["http://example.com/path?foo={bar}"{} Click]]
+    """
+    if not url:
+        raise ValueError("url must not be empty")
+
+    # URLs with { or } need quoting per PlantUML spec
+    needs_quoting = "{" in url or "}" in url
+
+    if needs_quoting:
+        # Quoted URL format: [["url"{tooltip} label]]
+        result = f'[["{url}"'
+        if tooltip:
+            result += f"{{{tooltip}}}"
+        else:
+            # Empty tooltip {} needed to separate quoted URL from label
+            result += "{}"
+    else:
+        result = f"[[{url}"
+        if tooltip:
+            result += f"{{{tooltip}}}"
+
+    if label:
+        result += f" {label}"
+    result += "]]"
+    return result
+
+
 def render_color(color: Color | Gradient | str) -> str:
     """Convert a color to PlantUML string."""
     if isinstance(color, str):

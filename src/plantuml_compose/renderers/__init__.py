@@ -9,6 +9,7 @@ from ..primitives.sequence import SequenceDiagram
 from ..primitives.state import StateDiagram
 from ..primitives.usecase import UseCaseDiagram
 from .activity import render_activity_diagram
+from .common import link
 from .class_ import render_class_diagram
 from .component import render_component_diagram
 from .deployment import render_deployment_diagram
@@ -62,6 +63,7 @@ def render(
 
 
 __all__ = [
+    "link",
     "render",
     "render_activity_diagram",
     "render_class_diagram",
