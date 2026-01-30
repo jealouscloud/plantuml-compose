@@ -516,6 +516,29 @@ class _BaseClassBuilder:
             user, used, "dependency", label=label, direction=direction
         )
 
+    def lollipop(
+        self,
+        provider: ClassNode | str,
+        consumer: ClassNode | str,
+        *,
+        label: str | Label | None = None,
+        direction: Direction | None = None,
+    ) -> Relationship:
+        """Create a lollipop interface relationship.
+
+        Rendered as: provider ()- consumer (provider provides interface)
+
+        Use when a class provides an interface that another class uses.
+
+        Example:
+            service = d.class_("OrderService")
+            repo = d.interface("Repository")
+            d.lollipop(service, repo)  # OrderService provides Repository interface
+        """
+        return self._relationship(
+            provider, consumer, "lollipop", label=label, direction=direction
+        )
+
     def associates(
         self,
         source: ClassNode | str,

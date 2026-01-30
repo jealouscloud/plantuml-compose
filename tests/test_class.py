@@ -295,6 +295,26 @@ class TestRelationships:
         output = render(d.build())
         assert "User ..> Service" in output
 
+    def test_lollipop_interface(self):
+        """Test lollipop interface notation."""
+        with class_diagram() as d:
+            service = d.class_("OrderService")
+            repo = d.interface("Repository")
+            d.lollipop(service, repo)
+
+        output = render(d.build())
+        assert "OrderService ()- Repository" in output
+
+    def test_lollipop_via_relationship(self):
+        """Test lollipop using generic relationship method."""
+        with class_diagram() as d:
+            a = d.class_("A")
+            b = d.class_("B")
+            d.relationship(a, b, type="lollipop")
+
+        output = render(d.build())
+        assert "A ()- B" in output
+
     def test_association(self):
         with class_diagram() as d:
             a = d.class_("A")

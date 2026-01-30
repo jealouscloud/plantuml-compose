@@ -354,6 +354,17 @@ def _build_relationship_arrow(rel: Relationship) -> str:
     if rel.style:
         style_mod = render_line_style_bracket(rel.style)
 
+    # Handle lollipop interface specially (single dash, different syntax)
+    # PlantUML syntax: bar ()- Foo
+    if rel.type == "lollipop":
+        if style_mod and dir_mod:
+            return f"(){style_mod}{dir_mod}-"
+        elif style_mod:
+            return f"(){style_mod}-"
+        elif dir_mod:
+            return f"()-{dir_mod}-"
+        return "()-"
+
     # Relationship type to arrow mapping
     arrow_map = {
         "extension": "<|--",

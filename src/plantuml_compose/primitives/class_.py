@@ -101,6 +101,7 @@ RelationType = Literal[
     "dependency",  # ..> Depends on (dotted line, open arrow)
     "line",  # -- Plain connection (no arrowhead)
     "dotted",  # .. Dotted connection (no arrowhead)
+    "lollipop",  # ()- Interface provision (lollipop at source)
 ]
 
 # Package visual styles - container appearance
