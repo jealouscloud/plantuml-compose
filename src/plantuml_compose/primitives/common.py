@@ -23,6 +23,7 @@ This ensures diagrams are built from pure, predictable data structures.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Literal, TypeAlias, TypedDict, get_args
 
@@ -383,6 +384,26 @@ class Color:
 
 # Type alias for color arguments - accepts Color objects or strings
 ColorLike: TypeAlias = Color | PlantUMLColor | str
+
+
+def _validate_style_dict_keys(
+    value: Mapping[str, object],
+    allowed_keys: frozenset[str],
+    style_name: str,
+) -> None:
+    """Validate that a style dict contains only allowed keys.
+
+    Raises:
+        ValueError: If unknown keys are present, with helpful message
+    """
+    unknown = set(value.keys()) - allowed_keys
+    if unknown:
+        unknown_str = ", ".join(sorted(unknown))
+        allowed_str = ", ".join(sorted(allowed_keys))
+        raise ValueError(
+            f"Unknown keys in {style_name}: {unknown_str}. "
+            f"Allowed keys: {allowed_str}"
+        )
 
 
 def coerce_color(value: ColorLike) -> Color:
@@ -803,11 +824,14 @@ class LineStyleDict(TypedDict, total=False):
 # Type alias for line style arguments
 LineStyleLike: TypeAlias = LineStyle | LineStyleDict
 
+_LINE_STYLE_KEYS: frozenset[str] = frozenset({"pattern", "color", "thickness", "bold"})
+
 
 def coerce_line_style(value: LineStyleLike) -> LineStyle:
     """Convert a LineStyleLike value to a LineStyle object."""
     if isinstance(value, LineStyle):
         return value
+    _validate_style_dict_keys(value, _LINE_STYLE_KEYS, "LineStyle")
     return LineStyle(
         pattern=value.get("pattern", "solid"),
         color=coerce_color(value["color"]) if "color" in value else None,
@@ -832,6 +856,10 @@ class StyleDict(TypedDict, total=False):
 # Type alias for style arguments
 StyleLike: TypeAlias = Style | StyleDict
 
+_STYLE_KEYS: frozenset[str] = frozenset(
+    {"background", "line", "text_color", "stereotype"}
+)
+
 
 def coerce_style(value: StyleLike | None) -> Style | None:
     """Convert a StyleLike value to a Style object.
@@ -843,6 +871,7 @@ def coerce_style(value: StyleLike | None) -> Style | None:
         return None
     if isinstance(value, Style):
         return value
+    _validate_style_dict_keys(value, _STYLE_KEYS, "Style")
     return Style(
         background=_coerce_color_or_gradient(value.get("background")),
         line=coerce_line_style(value["line"]) if "line" in value else None,
@@ -919,11 +948,18 @@ class ElementStyleDict(TypedDict, total=False):
 # Type alias for element style arguments
 ElementStyleLike: TypeAlias = ElementStyle | ElementStyleDict
 
+_ELEMENT_STYLE_KEYS: frozenset[str] = frozenset({
+    "background", "line_color", "font_color", "font_name", "font_size",
+    "font_style", "round_corner", "line_thickness", "line_style",
+    "padding", "margin", "horizontal_alignment", "max_width", "shadowing",
+})
+
 
 def coerce_element_style(value: ElementStyleLike) -> ElementStyle:
     """Convert an ElementStyleLike value to an ElementStyle object."""
     if isinstance(value, ElementStyle):
         return value
+    _validate_style_dict_keys(value, _ELEMENT_STYLE_KEYS, "ElementStyle")
     return ElementStyle(
         background=coerce_color(value["background"])
         if "background" in value
@@ -963,6 +999,10 @@ class DiagramArrowStyleDict(TypedDict, total=False):
 # Type alias for diagram arrow style arguments
 DiagramArrowStyleLike: TypeAlias = DiagramArrowStyle | DiagramArrowStyleDict
 
+_DIAGRAM_ARROW_STYLE_KEYS: frozenset[str] = frozenset({
+    "line_color", "line_thickness", "line_pattern",
+})
+
 
 def coerce_diagram_arrow_style(
     value: DiagramArrowStyleLike,
@@ -970,6 +1010,7 @@ def coerce_diagram_arrow_style(
     """Convert a DiagramArrowStyleLike value to a DiagramArrowStyle object."""
     if isinstance(value, DiagramArrowStyle):
         return value
+    _validate_style_dict_keys(value, _DIAGRAM_ARROW_STYLE_KEYS, "DiagramArrowStyle")
     return DiagramArrowStyle(
         line_color=coerce_color(value["line_color"])
         if "line_color" in value
@@ -1007,6 +1048,11 @@ class StateDiagramStyleDict(TypedDict, total=False):
 # Type alias for state diagram style arguments
 StateDiagramStyleLike: TypeAlias = StateDiagramStyle | StateDiagramStyleDict
 
+_STATE_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
+    "background", "font_name", "font_size", "font_color",
+    "state", "arrow", "note", "title",
+})
+
 
 def coerce_state_diagram_style(
     value: StateDiagramStyleLike,
@@ -1014,6 +1060,7 @@ def coerce_state_diagram_style(
     """Convert a StateDiagramStyleLike value to a StateDiagramStyle object."""
     if isinstance(value, StateDiagramStyle):
         return value
+    _validate_style_dict_keys(value, _STATE_DIAGRAM_STYLE_KEYS, "StateDiagramStyle")
     return StateDiagramStyle(
         background=_coerce_color_or_gradient(value.get("background")),
         font_name=value.get("font_name"),
@@ -1116,6 +1163,11 @@ ComponentDiagramStyleLike: TypeAlias = (
     ComponentDiagramStyle | ComponentDiagramStyleDict
 )
 
+_COMPONENT_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
+    "background", "font_name", "font_size", "font_color",
+    "component", "interface", "arrow", "note", "title",
+})
+
 
 def coerce_component_diagram_style(
     value: ComponentDiagramStyleLike,
@@ -1123,6 +1175,9 @@ def coerce_component_diagram_style(
     """Convert a ComponentDiagramStyleLike value to a ComponentDiagramStyle object."""
     if isinstance(value, ComponentDiagramStyle):
         return value
+    _validate_style_dict_keys(
+        value, _COMPONENT_DIAGRAM_STYLE_KEYS, "ComponentDiagramStyle"
+    )
     return ComponentDiagramStyle(
         background=_coerce_color_or_gradient(value.get("background")),
         font_name=value.get("font_name"),
@@ -1248,6 +1303,13 @@ class SequenceDiagramStyleDict(TypedDict, total=False):
 # Type alias for sequence diagram style arguments
 SequenceDiagramStyleLike: TypeAlias = SequenceDiagramStyle | SequenceDiagramStyleDict
 
+_SEQUENCE_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
+    "background", "font_name", "font_size", "font_color",
+    "participant", "actor", "boundary", "control", "entity",
+    "database", "collections", "queue", "arrow", "lifeline",
+    "note", "box", "group", "divider", "reference", "title",
+})
+
 
 def coerce_sequence_diagram_style(
     value: SequenceDiagramStyleLike,
@@ -1255,6 +1317,9 @@ def coerce_sequence_diagram_style(
     """Convert a SequenceDiagramStyleLike value to a SequenceDiagramStyle object."""
     if isinstance(value, SequenceDiagramStyle):
         return value
+    _validate_style_dict_keys(
+        value, _SEQUENCE_DIAGRAM_STYLE_KEYS, "SequenceDiagramStyle"
+    )
     return SequenceDiagramStyle(
         background=_coerce_color_or_gradient(value.get("background")),
         font_name=value.get("font_name"),
@@ -1359,6 +1424,12 @@ class ActivityDiagramStyleDict(TypedDict, total=False):
 # Type alias for activity diagram style arguments
 ActivityDiagramStyleLike: TypeAlias = ActivityDiagramStyle | ActivityDiagramStyleDict
 
+_ACTIVITY_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
+    "background", "font_name", "font_size", "font_color",
+    "activity", "partition", "swimlane", "diamond",
+    "arrow", "note", "group", "title",
+})
+
 
 def coerce_activity_diagram_style(
     value: ActivityDiagramStyleLike,
@@ -1366,6 +1437,9 @@ def coerce_activity_diagram_style(
     """Convert an ActivityDiagramStyleLike value to an ActivityDiagramStyle object."""
     if isinstance(value, ActivityDiagramStyle):
         return value
+    _validate_style_dict_keys(
+        value, _ACTIVITY_DIAGRAM_STYLE_KEYS, "ActivityDiagramStyle"
+    )
     return ActivityDiagramStyle(
         background=_coerce_color_or_gradient(value.get("background")),
         font_name=value.get("font_name"),
@@ -1456,6 +1530,12 @@ class ClassDiagramStyleDict(TypedDict, total=False):
 # Type alias for class diagram style arguments
 ClassDiagramStyleLike: TypeAlias = ClassDiagramStyle | ClassDiagramStyleDict
 
+_CLASS_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
+    "background", "font_name", "font_size", "font_color",
+    "class_", "interface", "abstract", "enum", "annotation",
+    "package", "arrow", "note", "title",
+})
+
 
 def coerce_class_diagram_style(
     value: ClassDiagramStyleLike,
@@ -1463,6 +1543,7 @@ def coerce_class_diagram_style(
     """Convert a ClassDiagramStyleLike value to a ClassDiagramStyle object."""
     if isinstance(value, ClassDiagramStyle):
         return value
+    _validate_style_dict_keys(value, _CLASS_DIAGRAM_STYLE_KEYS, "ClassDiagramStyle")
     return ClassDiagramStyle(
         background=_coerce_color_or_gradient(value.get("background")),
         font_name=value.get("font_name"),
@@ -1534,6 +1615,11 @@ class ObjectDiagramStyleDict(TypedDict, total=False):
 
 ObjectDiagramStyleLike: TypeAlias = ObjectDiagramStyle | ObjectDiagramStyleDict
 
+_OBJECT_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
+    "background", "font_name", "font_size", "font_color",
+    "object", "map", "title",
+})
+
 
 def coerce_object_diagram_style(
     value: ObjectDiagramStyleLike,
@@ -1541,6 +1627,7 @@ def coerce_object_diagram_style(
     """Convert an ObjectDiagramStyleLike value to an ObjectDiagramStyle object."""
     if isinstance(value, ObjectDiagramStyle):
         return value
+    _validate_style_dict_keys(value, _OBJECT_DIAGRAM_STYLE_KEYS, "ObjectDiagramStyle")
     return ObjectDiagramStyle(
         background=_coerce_color_or_gradient(value.get("background")),
         font_name=value.get("font_name"),
@@ -1591,6 +1678,10 @@ class JsonDiagramStyleDict(TypedDict, total=False):
 
 JsonDiagramStyleLike: TypeAlias = JsonDiagramStyle | JsonDiagramStyleDict
 
+_JSON_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
+    "background", "font_name", "font_size", "font_color", "node", "highlight",
+})
+
 
 def coerce_json_diagram_style(
     value: JsonDiagramStyleLike,
@@ -1598,6 +1689,7 @@ def coerce_json_diagram_style(
     """Convert a JsonDiagramStyleLike value to a JsonDiagramStyle object."""
     if isinstance(value, JsonDiagramStyle):
         return value
+    _validate_style_dict_keys(value, _JSON_DIAGRAM_STYLE_KEYS, "JsonDiagramStyle")
     return JsonDiagramStyle(
         background=_coerce_color_or_gradient(value.get("background")),
         font_name=value.get("font_name"),
@@ -1649,6 +1741,10 @@ class YamlDiagramStyleDict(TypedDict, total=False):
 
 YamlDiagramStyleLike: TypeAlias = YamlDiagramStyle | YamlDiagramStyleDict
 
+_YAML_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
+    "background", "font_name", "font_size", "font_color", "node", "highlight",
+})
+
 
 def coerce_yaml_diagram_style(
     value: YamlDiagramStyleLike,
@@ -1656,6 +1752,7 @@ def coerce_yaml_diagram_style(
     """Convert a YamlDiagramStyleLike value to a YamlDiagramStyle object."""
     if isinstance(value, YamlDiagramStyle):
         return value
+    _validate_style_dict_keys(value, _YAML_DIAGRAM_STYLE_KEYS, "YamlDiagramStyle")
     return YamlDiagramStyle(
         background=_coerce_color_or_gradient(value.get("background")),
         font_name=value.get("font_name"),
@@ -1711,6 +1808,11 @@ class MindMapDiagramStyleDict(TypedDict, total=False):
 
 MindMapDiagramStyleLike: TypeAlias = MindMapDiagramStyle | MindMapDiagramStyleDict
 
+_MINDMAP_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
+    "background", "font_name", "font_size", "font_color",
+    "node", "root_node", "leaf_node", "arrow",
+})
+
 
 def coerce_mindmap_diagram_style(
     value: MindMapDiagramStyleLike,
@@ -1718,6 +1820,9 @@ def coerce_mindmap_diagram_style(
     """Convert a MindMapDiagramStyleLike value to a MindMapDiagramStyle object."""
     if isinstance(value, MindMapDiagramStyle):
         return value
+    _validate_style_dict_keys(
+        value, _MINDMAP_DIAGRAM_STYLE_KEYS, "MindMapDiagramStyle"
+    )
     return MindMapDiagramStyle(
         background=_coerce_color_or_gradient(value.get("background")),
         font_name=value.get("font_name"),
