@@ -5,9 +5,13 @@ Pure functions that transform MindMap diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
+from typing import Literal
+
 from ..primitives.common import MindMapDiagramStyle
 from ..primitives.mindmap import MindMapDiagram, MindMapNode
 from .common import render_color, render_diagram_style
+
+Side = Literal["left", "right"] | None
 
 
 def render_mindmap_diagram(diagram: MindMapDiagram) -> str:
@@ -25,7 +29,7 @@ def render_mindmap_diagram(diagram: MindMapDiagram) -> str:
 
     # Render all root nodes and their children
     for root in diagram.roots:
-        _render_node_recursive(root, depth=1, lines=lines)
+        _render_node_recursive(root, depth=1, lines=lines, inherited_side=None)
 
     lines.append("@endmindmap")
     return "\n".join(lines)
@@ -35,19 +39,22 @@ def _render_node_recursive(
     node: MindMapNode,
     depth: int,
     lines: list[str],
+    inherited_side: Side,
 ) -> None:
     """Recursively render a node and all its children."""
-    lines.append(_render_node(node, depth))
+    # Determine effective side: node's own side, or inherited from parent
+    effective_side = node.side if node.side else inherited_side
+    lines.append(_render_node(node, depth, effective_side))
     for child in node.children:
-        _render_node_recursive(child, depth + 1, lines)
+        _render_node_recursive(child, depth + 1, lines, effective_side)
 
 
-def _render_node(node: MindMapNode, depth: int) -> str:
+def _render_node(node: MindMapNode, depth: int, effective_side: Side) -> str:
     """Render a single MindMapNode to PlantUML syntax."""
     # Determine prefix based on side (OrgMode vs arithmetic notation)
-    if node.side == "right":
+    if effective_side == "right":
         prefix = "+" * depth
-    elif node.side == "left":
+    elif effective_side == "left":
         prefix = "-" * depth
     else:
         # OrgMode syntax

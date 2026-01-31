@@ -269,8 +269,8 @@ class TestMindMapBuilder:
         assert "*** Leaf 1.1" in lines
         assert "*** Leaf 1.2" in lines
         assert "-- Branch 2" in lines  # Left side uses - notation
-        # Children use OrgMode notation; PlantUML places them on parent's side
-        assert "*** Leaf 2.1" in lines
+        # Children inherit parent's side notation
+        assert "--- Leaf 2.1" in lines
 
     def test_builder_multiroot(self):
         """Test multiple root nodes (multi-root mindmap)."""
