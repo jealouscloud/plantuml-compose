@@ -1668,3 +1668,69 @@ def coerce_yaml_diagram_style(
         if "highlight" in value
         else None,
     )
+
+
+# ---------------------------------------------------------------------------
+# MindMap Diagram Styling
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class MindMapDiagramStyle:
+    """Diagram-wide styling for MindMap diagrams.
+
+    This generates a PlantUML <style> block that sets default appearance
+    for MindMap tree visualization.
+    """
+
+    # Root-level properties
+    background: ColorLike | Gradient | None = None
+    font_name: str | None = None
+    font_size: int | None = None
+    font_color: ColorLike | None = None
+
+    # Element-specific styles
+    node: ElementStyle | None = None
+    root_node: ElementStyle | None = None
+    leaf_node: ElementStyle | None = None
+    arrow: DiagramArrowStyle | None = None
+
+
+class MindMapDiagramStyleDict(TypedDict, total=False):
+    """Dict form of MindMapDiagramStyle for convenience."""
+
+    background: ColorLike | Gradient
+    font_name: str
+    font_size: int
+    font_color: ColorLike
+    node: ElementStyleLike
+    root_node: ElementStyleLike
+    leaf_node: ElementStyleLike
+    arrow: DiagramArrowStyleLike
+
+
+MindMapDiagramStyleLike: TypeAlias = MindMapDiagramStyle | MindMapDiagramStyleDict
+
+
+def coerce_mindmap_diagram_style(
+    value: MindMapDiagramStyleLike,
+) -> MindMapDiagramStyle:
+    """Convert a MindMapDiagramStyleLike value to a MindMapDiagramStyle object."""
+    if isinstance(value, MindMapDiagramStyle):
+        return value
+    return MindMapDiagramStyle(
+        background=_coerce_color_or_gradient(value.get("background")),
+        font_name=value.get("font_name"),
+        font_size=value.get("font_size"),
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
+        node=coerce_element_style(value["node"]) if "node" in value else None,
+        root_node=coerce_element_style(value["root_node"])
+        if "root_node" in value
+        else None,
+        leaf_node=coerce_element_style(value["leaf_node"])
+        if "leaf_node" in value
+        else None,
+        arrow=coerce_diagram_arrow_style(value["arrow"]) if "arrow" in value else None,
+    )

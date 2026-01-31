@@ -21,6 +21,8 @@ from .common import (
     JsonDiagramStyle,
     JsonDiagramStyleLike,
     Label,
+    MindMapDiagramStyle,
+    MindMapDiagramStyleLike,
     LabelLike,
     LayoutDirection,
     LayoutEngine,
@@ -174,6 +176,10 @@ from .state import (
 from .json_ import (
     JsonDiagram,
     YamlDiagram,
+)
+from .mindmap import (
+    MindMapDiagram,
+    MindMapNode,
 )
 
 __all__ = [
@@ -339,4 +345,9 @@ __all__ = [
     # JSON/YAML
     "JsonDiagram",
     "YamlDiagram",
+    # MindMap
+    "MindMapDiagram",
+    "MindMapDiagramStyle",
+    "MindMapDiagramStyleLike",
+    "MindMapNode",
 ]

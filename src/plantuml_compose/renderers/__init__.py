@@ -5,6 +5,7 @@ from ..primitives.class_ import ClassDiagram
 from ..primitives.component import ComponentDiagram
 from ..primitives.deployment import DeploymentDiagram
 from ..primitives.json_ import JsonDiagram, YamlDiagram
+from ..primitives.mindmap import MindMapDiagram
 from ..primitives.object_ import ObjectDiagram
 from ..primitives.sequence import SequenceDiagram
 from ..primitives.state import StateDiagram
@@ -15,6 +16,7 @@ from .class_ import render_class_diagram
 from .component import render_component_diagram
 from .deployment import render_deployment_diagram
 from .json_ import render_json_diagram, render_yaml_diagram
+from .mindmap import render_mindmap_diagram
 from .object_ import render_object_diagram
 from .sequence import render_sequence_diagram
 from .state import render_state_diagram
@@ -31,7 +33,8 @@ def render(
     | UseCaseDiagram
     | ObjectDiagram
     | JsonDiagram
-    | YamlDiagram,
+    | YamlDiagram
+    | MindMapDiagram,
 ) -> str:
     """Render a diagram to PlantUML text.
 
@@ -67,6 +70,8 @@ def render(
         return render_json_diagram(diagram)
     if isinstance(diagram, YamlDiagram):
         return render_yaml_diagram(diagram)
+    if isinstance(diagram, MindMapDiagram):
+        return render_mindmap_diagram(diagram)
     raise TypeError(f"Unknown diagram type: {type(diagram)}")
 
 
@@ -78,6 +83,7 @@ __all__ = [
     "render_component_diagram",
     "render_deployment_diagram",
     "render_json_diagram",
+    "render_mindmap_diagram",
     "render_object_diagram",
     "render_sequence_diagram",
     "render_state_diagram",
