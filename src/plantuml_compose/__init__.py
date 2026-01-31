@@ -16,6 +16,7 @@ Supported diagram types:
     object_diagram:     Instance snapshots with concrete values
     json_diagram:       JSON data visualization
     yaml_diagram:       YAML data visualization
+    mindmap_diagram:    Hierarchical mind maps
 
 Quick Start:
     from plantuml_compose import state_diagram
@@ -51,6 +52,7 @@ from .builders import (
     component_diagram,
     deployment_diagram,
     json_diagram,
+    mindmap_diagram,
     object_diagram,
     sequence_diagram,
     state_diagram,
@@ -81,6 +83,10 @@ from .primitives import (
     LineStyle,
     LineType,
     LineStyleLike,
+    MindMapDiagram,
+    MindMapDiagramStyle,
+    MindMapDiagramStyleLike,
+    MindMapNode,
     Note,
     NotePosition,
     PlantUMLBuiltinTheme,
@@ -111,6 +117,7 @@ __all__ = [
     "component_diagram",
     "deployment_diagram",
     "json_diagram",
+    "mindmap_diagram",
     "object_diagram",
     "sequence_diagram",
     "state_diagram",
@@ -140,6 +147,10 @@ __all__ = [
     "LineStyle",
     "LineStyleLike",
     "LineType",
+    "MindMapDiagram",
+    "MindMapDiagramStyle",
+    "MindMapDiagramStyleLike",
+    "MindMapNode",
     "Note",
     "NotePosition",
     "PlantUMLBuiltinTheme",

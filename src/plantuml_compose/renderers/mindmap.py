@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from ..primitives.common import MindMapDiagramStyle
 from ..primitives.mindmap import MindMapDiagram, MindMapNode
-from .common import render_diagram_style
+from .common import render_color, render_diagram_style
 
 
 def render_mindmap_diagram(diagram: MindMapDiagram) -> str:
@@ -23,27 +23,38 @@ def render_mindmap_diagram(diagram: MindMapDiagram) -> str:
         direction_str = diagram.direction.replace("_", " ") + " direction"
         lines.append(direction_str)
 
-    # Nodes
-    for node in diagram.nodes:
-        lines.append(_render_node(node))
+    # Render all root nodes and their children
+    for root in diagram.roots:
+        _render_node_recursive(root, depth=1, lines=lines)
 
     lines.append("@endmindmap")
     return "\n".join(lines)
 
 
-def _render_node(node: MindMapNode) -> str:
+def _render_node_recursive(
+    node: MindMapNode,
+    depth: int,
+    lines: list[str],
+) -> None:
+    """Recursively render a node and all its children."""
+    lines.append(_render_node(node, depth))
+    for child in node.children:
+        _render_node_recursive(child, depth + 1, lines)
+
+
+def _render_node(node: MindMapNode, depth: int) -> str:
     """Render a single MindMapNode to PlantUML syntax."""
     # Determine prefix based on side (OrgMode vs arithmetic notation)
     if node.side == "right":
-        prefix = "+" * node.depth
+        prefix = "+" * depth
     elif node.side == "left":
-        prefix = "-" * node.depth
+        prefix = "-" * depth
     else:
         # OrgMode syntax
-        prefix = "*" * node.depth
+        prefix = "*" * depth
 
     # Color (must come before boxless modifier)
-    color_part = f"[{node.color}]" if node.color else ""
+    color_part = f"[{render_color(node.color)}]" if node.color else ""
 
     # Boxless modifier (comes after color)
     boxless_part = "_" if node.boxless else ""
