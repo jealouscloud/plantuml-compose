@@ -717,11 +717,12 @@ class TestGanttNewRendering:
         result = render_gantt_diagram(diagram)
         assert "weeks starts on sunday" in result
 
-    def test_render_min_days_in_first_week(self):
-        # min_days alone (without week_starts_on)
+    def test_render_min_days_in_first_week_requires_week_starts_on(self):
+        # min_days alone (without week_starts_on) is not valid PlantUML syntax
+        # so it should be ignored when week_starts_on is not set
         diagram = GanttDiagram(min_days_in_first_week=4)
         result = render_gantt_diagram(diagram)
-        assert "must have at least 4 days" in result
+        assert "must have at least" not in result
 
     def test_render_week_starts_on_with_min_days(self):
         diagram = GanttDiagram(week_starts_on="sunday", min_days_in_first_week=4)
@@ -733,7 +734,7 @@ class TestGanttNewRendering:
             print_range=(date(2024, 1, 1), date(2024, 1, 31))
         )
         result = render_gantt_diagram(diagram)
-        assert "printbetween 2024-01-01 and 2024-01-31" in result
+        assert "Print between 2024-01-01 and 2024-01-31" in result
 
     def test_render_hide_resource_names(self):
         diagram = GanttDiagram(hide_resource_names=True)

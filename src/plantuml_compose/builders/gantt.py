@@ -151,7 +151,7 @@ class GanttDiagramBuilder:
             then: Task this task follows (alternative to after, mutually exclusive)
             resources: List of resource names or (name, allocation%) tuples
             completed: Completion percentage (0-100)
-            color: Task bar color ("Color" or "Color1/Color2" for gradient)
+            color: Task bar color ("Color" or "Color1/Color2" for fill/border)
             link: URL to link to
             same_row_as: Task to display on the same row as
             pauses_on: Dates or days of week when this task pauses

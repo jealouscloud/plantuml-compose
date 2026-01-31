@@ -70,21 +70,17 @@ def render_gantt_diagram(diagram: GanttDiagram) -> str:
     if diagram.project_start:
         lines.append(f"Project starts {_format_date(diagram.project_start)}")
 
-    # Week start day (with optional min days)
+    # Week start day (always includes min days - PlantUML requires it)
     if diagram.week_starts_on:
-        week_line = f"weeks starts on {diagram.week_starts_on}"
-        if diagram.min_days_in_first_week is not None:
-            week_line += f" and must have at least {diagram.min_days_in_first_week} days"
-        lines.append(week_line)
-
-    # Minimum days in first week (only if week_starts_on is not set)
-    if diagram.min_days_in_first_week is not None and diagram.week_starts_on is None:
-        lines.append(f"weeks starts and must have at least {diagram.min_days_in_first_week} days")
+        min_days = diagram.min_days_in_first_week if diagram.min_days_in_first_week is not None else 1
+        lines.append(
+            f"weeks starts on {diagram.week_starts_on} and must have at least {min_days} days"
+        )
 
     # Print range
     if diagram.print_range:
         start, end = diagram.print_range
-        lines.append(f"printbetween {_format_date(start)} and {_format_date(end)}")
+        lines.append(f"Print between {_format_date(start)} and {_format_date(end)}")
 
     # Closed days of week
     for day in diagram.closed_days:

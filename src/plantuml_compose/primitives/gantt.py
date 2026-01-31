@@ -57,7 +57,7 @@ class GanttTask:
         end_date: Explicit end date
         alias: Short alias for referencing in dependencies
         completion: Completion percentage (0-100)
-        color: Task bar color (can be "color" or "color1/color2" for gradient)
+        color: Task bar color (can be "color" or "color1/color2" for fill/border)
         resources: Resources assigned to this task
         starts_after: Task alias this task starts after
         starts_with: Task alias this task starts with (same time)
