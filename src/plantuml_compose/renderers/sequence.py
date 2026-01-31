@@ -28,7 +28,7 @@ from ..primitives.sequence import (
 from .common import (
     escape_quotes,
     render_caption,
-    render_color,
+    render_color_hash,
     render_diagram_style,
     render_footer,
     render_header,
@@ -138,10 +138,7 @@ def _render_participant(p: Participant) -> str:
 
     # Style background as element color
     if p.style and p.style.background:
-        color = render_color(p.style.background)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        parts.append(color)
+        parts.append(render_color_hash(p.style.background))
 
     # Multiline description - appended after all other parts
     if p.description:
@@ -167,10 +164,7 @@ def _render_box(box: Box) -> list[str]:
     if box.name:
         parts.append(f'"{escape_quotes(box.name)}"')
     if box.color:
-        color = render_color(box.color)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        parts.append(color)
+        parts.append(render_color_hash(box.color))
     lines.append(" ".join(parts))
 
     # Participants
@@ -231,10 +225,7 @@ def _render_message(msg: Message) -> str:
         }
         activation = activation_map[msg.activation]
         if msg.activation_color and msg.activation == "activate":
-            color = render_color(msg.activation_color)
-            if not color.startswith("#"):
-                color = f"#{color}"
-            activation += color
+            activation += render_color_hash(msg.activation_color)
 
     # Label
     label = ""
@@ -257,10 +248,7 @@ def _build_message_arrow(msg: Message) -> str:
     if msg.style:
         style = coerce_line_style(msg.style)
         if style.color:
-            color = render_color(style.color)
-            if not color.startswith("#"):
-                color = f"#{color}"
-            bracket_parts.append(color)
+            bracket_parts.append(render_color_hash(style.color))
         if style.bold:
             bracket_parts.append("bold")
 
@@ -301,10 +289,7 @@ def _render_activation(act: Activation) -> str:
     """Render an explicit activation/deactivation/create."""
     if act.action == "activate":
         if act.color:
-            color = render_color(act.color)
-            if not color.startswith("#"):
-                color = f"#{color}"
-            return f"activate {act.participant} {color}"
+            return f"activate {act.participant} {render_color_hash(act.color)}"
         return f"activate {act.participant}"
     if act.action == "deactivate":
         return f"deactivate {act.participant}"

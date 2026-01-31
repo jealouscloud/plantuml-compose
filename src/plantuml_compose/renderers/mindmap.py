@@ -9,7 +9,7 @@ from typing import Literal
 
 from ..primitives.common import MindMapDiagramStyle
 from ..primitives.mindmap import MindMapDiagram, MindMapNode
-from .common import render_color, render_diagram_style
+from .common import render_color_hash, render_diagram_style
 
 Side = Literal["left", "right"] | None
 
@@ -61,7 +61,7 @@ def _render_node(node: MindMapNode, depth: int, effective_side: Side) -> str:
         prefix = "*" * depth
 
     # Color (must come before boxless modifier)
-    color_part = f"[{render_color(node.color)}]" if node.color else ""
+    color_part = f"[{render_color_hash(node.color)}]" if node.color else ""
 
     # Boxless modifier (comes after color)
     boxless_part = "_" if node.boxless else ""

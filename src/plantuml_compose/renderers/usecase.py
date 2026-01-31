@@ -19,7 +19,7 @@ from .common import (
     needs_quotes,
     quote_ref,
     render_caption,
-    render_color,
+    render_color_hash,
     render_footer,
     render_header,
     render_label,
@@ -141,10 +141,7 @@ def _render_actor(actor: Actor) -> str:
 
     # Style background as element color
     if actor.style and actor.style.background:
-        color = render_color(actor.style.background)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        parts.append(color)
+        parts.append(render_color_hash(actor.style.background))
 
     return " ".join(parts)
 
@@ -176,10 +173,7 @@ def _render_usecase(usecase: UseCase) -> str:
 
     # Style background as element color
     if usecase.style and usecase.style.background:
-        color = render_color(usecase.style.background)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        parts.append(color)
+        parts.append(render_color_hash(usecase.style.background))
 
     return " ".join(parts)
 
@@ -203,10 +197,7 @@ def _render_container(container: Container, indent: int = 0) -> list[str]:
 
     # Style background as element color
     if container.style and container.style.background:
-        color = render_color(container.style.background)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        parts.append(color)
+        parts.append(render_color_hash(container.style.background))
 
     parts.append("{")
     lines.append(f"{prefix}{' '.join(parts)}")
@@ -313,10 +304,7 @@ def _render_note(note: UseCaseNote, indent: int = 0) -> list[str]:
 
     color_part = ""
     if note.color:
-        color = render_color(note.color)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        color_part = f" {color}"
+        color_part = f" {render_color_hash(note.color)}"
 
     if "\n" in content:
         lines = [f"{prefix}{pos}{color_part}"]

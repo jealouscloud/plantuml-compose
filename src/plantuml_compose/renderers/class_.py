@@ -31,7 +31,8 @@ from .common import (
     escape_quotes,
     quote_ref,
     render_caption,
-    render_color,
+    render_color_bare,
+    render_color_hash,
     render_diagram_style,
     render_footer,
     render_header,
@@ -166,41 +167,35 @@ def _render_class_inline_style(style: Style | dict) -> str:
       - Simple: #E3F2FD (just background color)
       - Full: #back:E3F2FD;line:1976D2 (background and line)
       - With text: #back:E3F2FD;line:1976D2;text:333333
+
+    Note: Colors in back:/line:/text: syntax must NOT have # prefix.
     """
     style_obj = coerce_style(style)
 
-    # Collect style parts
+    # Collect style parts (render_color_bare returns without #)
     parts: list[str] = []
 
     if style_obj.background:
-        bg = render_color(style_obj.background)
-        parts.append(f"back:{bg}")
+        parts.append(f"back:{render_color_bare(style_obj.background)}")
 
     if style_obj.line:
         line = coerce_line_style(style_obj.line)
         if line.color:
-            line_color = render_color(line.color)
-            parts.append(f"line:{line_color}")
+            parts.append(f"line:{render_color_bare(line.color)}")
 
     if style_obj.text_color:
-        text = render_color(style_obj.text_color)
-        parts.append(f"text:{text}")
+        parts.append(f"text:{render_color_bare(style_obj.text_color)}")
 
     if not parts:
         return ""
 
-    # Simple case: just background color, use short form
+    # Simple case: just background color, use short form (#color)
     if len(parts) == 1 and parts[0].startswith("back:"):
         bg = parts[0][5:]  # Remove "back:" prefix
-        if not bg.startswith("#"):
-            bg = f"#{bg}"
-        return bg
+        return f"#{bg}"
 
-    # Full form with multiple properties
-    full_style = ";".join(parts)
-    if not full_style.startswith("#"):
-        full_style = f"#{full_style}"
-    return full_style
+    # Full form with multiple properties (#back:color;line:color)
+    return f"#{';'.join(parts)}"
 
 
 def _render_class_node(node: ClassNode) -> list[str]:
@@ -444,10 +439,7 @@ def _render_package(pkg: Package, ctx: _RenderContext) -> list[str]:
 
     # Color
     if pkg.color:
-        color = render_color(pkg.color)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        parts.append(color)
+        parts.append(render_color_hash(pkg.color))
 
     lines.append(f"{' '.join(parts)} {{")
 

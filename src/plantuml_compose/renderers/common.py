@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from ..primitives.common import (
     Color,
     DiagramArrowStyle,
@@ -166,12 +168,42 @@ def link(url: str, *, label: str | None = None, tooltip: str | None = None) -> s
     return result
 
 
+# Pattern for valid hex color codes: #RGB, #ARGB, #RRGGBB, #AARRGGBB
+_HEX_COLOR_PATTERN = re.compile(r"^#[0-9A-Fa-f]{3,4}$|^#[0-9A-Fa-f]{6}$|^#[0-9A-Fa-f]{8}$")
+
+
+def _is_hex_color(value: str) -> bool:
+    """Check if a string is a valid hex color code."""
+    return bool(_HEX_COLOR_PATTERN.match(value))
+
+
+def _normalize_color(value: str) -> str:
+    """Normalize a color string to its canonical form.
+
+    - Hex colors keep their # prefix: "#FF0000" -> "#FF0000"
+    - Named colors have no # prefix: "red" -> "red"
+    - Erroneous # on named colors is stripped: "#red" -> "red"
+    """
+    if value.startswith("#"):
+        if _is_hex_color(value):
+            return value  # Valid hex, keep #
+        return value[1:]  # Not valid hex, strip erroneous #
+    return value
+
+
 def render_color(color: Color | Gradient | str) -> str:
-    """Convert a color to PlantUML string."""
+    """Convert a color to PlantUML string in canonical form.
+
+    Returns colors in their natural form:
+    - Named colors: "red", "LightBlue" (no #)
+    - Hex colors: "#FF0000", "#E3F2FD" (with #)
+
+    Handles user input errors like "#red" by stripping the erroneous #.
+    """
     if isinstance(color, str):
-        return color
+        return _normalize_color(color)
     if isinstance(color, Color):
-        return color.value
+        return _normalize_color(color.value)
     if isinstance(color, Gradient):
         sep = {
             "horizontal": "|",
@@ -181,6 +213,33 @@ def render_color(color: Color | Gradient | str) -> str:
         }[color.direction]
         return f"{render_color(color.start)}{sep}{render_color(color.end)}"
     raise TypeError(f"Unknown color type: {type(color)}")
+
+
+def render_color_hash(color: Color | Gradient | str) -> str:
+    """Convert a color to PlantUML string, ensuring # prefix.
+
+    Returns colors with # prefix for contexts that require it:
+    - Bracket syntax: [#color]
+    - Stereotype spots: (C,#color)
+
+    Named colors get # added: "red" -> "#red"
+    Hex colors already have #: "#FF0000" -> "#FF0000"
+    """
+    value = render_color(color)
+    return value if value.startswith("#") else f"#{value}"
+
+
+def render_color_bare(color: Color | Gradient | str) -> str:
+    """Convert a color to PlantUML string, stripping any # prefix.
+
+    Returns colors without # prefix for contexts that don't want it:
+    - Inline style syntax: back:FF0000, line:red
+
+    Named colors stay as-is: "red" -> "red"
+    Hex colors have # stripped: "#FF0000" -> "FF0000"
+    """
+    value = render_color(color)
+    return value[1:] if value.startswith("#") else value
 
 
 def render_label(label: Label | str | None, *, inline: bool = False) -> str:
@@ -212,10 +271,7 @@ def render_line_style_bracket(style: LineStyleLike) -> str:
     parts: list[str] = []
 
     if style.color:
-        color_str = render_color(style.color)
-        if not color_str.startswith("#"):
-            color_str = f"#{color_str}"
-        parts.append(color_str)
+        parts.append(render_color_hash(style.color))
 
     if style.pattern != "solid":
         parts.append(style.pattern)
@@ -257,32 +313,24 @@ def render_element_style(style: StyleLike) -> str:
 
     # Background only: use simple #color format
     if has_background and not has_line and not has_text:
-        bg = render_color(background)  # type: ignore[arg-type]
-        if not bg.startswith("#"):
-            bg = f"#{bg}"
-        return bg
+        return render_color_hash(background)  # type: ignore[arg-type]
 
     # Line or text present: use semicolon format for compatibility
     props: list[str] = []
 
     if has_background:
-        bg = render_color(background)  # type: ignore[arg-type]
-        if not bg.startswith("#"):
-            bg = f"#{bg}"
-        props.append(bg)
+        props.append(render_color_hash(background))  # type: ignore[arg-type]
 
     if has_line and line:
         if line.pattern != "solid":
             props.append(f"line.{line.pattern}")
         if line.color:
-            color = render_color(line.color)
-            props.append(f"line:{color}")
+            props.append(f"line:{render_color_bare(line.color)}")
 
     if text_color is not None:
-        tc = render_color(text_color)
-        props.append(f"text:{tc}")
+        props.append(f"text:{render_color_bare(text_color)}")
 
-    # Join with semicolons, prefix with # if needed
+    # Join with semicolons, prefix with # if first part doesn't have one
     if props:
         result = ";".join(props)
         if not result.startswith("#"):
@@ -294,9 +342,7 @@ def render_element_style(style: StyleLike) -> str:
 def render_stereotype(stereotype: Stereotype) -> str:
     """Render Stereotype as PlantUML format: <<name>> or << (C,#color) name >>"""
     if stereotype.spot:
-        color = render_color(stereotype.spot.color)
-        if not color.startswith("#"):
-            color = f"#{color}"
+        color = render_color_hash(stereotype.spot.color)
         return f"<< ({stereotype.spot.char},{color}) {stereotype.name} >>"
     return f"<<{stereotype.name}>>"
 

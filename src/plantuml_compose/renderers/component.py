@@ -24,7 +24,7 @@ from .common import (
     needs_quotes,
     quote_ref,
     render_caption,
-    render_color,
+    render_color_hash,
     render_diagram_style,
     render_element_style,
     render_footer,
@@ -389,10 +389,7 @@ def _render_note(note: ComponentNote, indent: int = 0) -> list[str]:
 
     color_part = ""
     if note.color:
-        color = render_color(note.color)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        color_part = f" {color}"
+        color_part = f" {render_color_hash(note.color)}"
 
     if "\n" in content:
         lines = [f"{prefix}{pos}{color_part}"]

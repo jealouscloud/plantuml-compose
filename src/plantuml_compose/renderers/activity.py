@@ -37,7 +37,7 @@ from ..primitives.common import (
 from .common import (
     escape_quotes,
     render_caption,
-    render_color,
+    render_color_hash,
     render_diagram_style,
     render_footer,
     render_header,
@@ -182,10 +182,7 @@ def _render_action(action: Action) -> str:
     # Color prefix (from style.background)
     color_prefix = ""
     if action.style and action.style.background:
-        color = render_color(action.style.background)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        color_prefix = color
+        color_prefix = render_color_hash(action.style.background)
 
     return f"{color_prefix}:{label}{shape_suffix}"
 
@@ -200,10 +197,7 @@ def _render_arrow(arrow: Arrow) -> str:
     # Extract color and bold from line_style
     if arrow.line_style:
         if arrow.line_style.color:
-            color = render_color(arrow.line_style.color)
-            if not color.startswith("#"):
-                color = f"#{color}"
-            parts.append(color)
+            parts.append(render_color_hash(arrow.line_style.color))
         if arrow.line_style.bold:
             parts.append("bold")
 
@@ -373,10 +367,7 @@ def _render_split(split: Split, indent: int) -> list[str]:
 def _render_swimlane(lane: Swimlane) -> str:
     """Render a swimlane."""
     if lane.color:
-        color = render_color(lane.color)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        return f"|{color}|{lane.name}|"
+        return f"|{render_color_hash(lane.color)}|{lane.name}|"
     return f"|{lane.name}|"
 
 
@@ -388,10 +379,7 @@ def _render_partition(partition: Partition, indent: int) -> list[str]:
     # Opening
     opening = f'{prefix}partition "{partition.name}"'
     if partition.color:
-        color = render_color(partition.color)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        opening += f" {color}"
+        opening += f" {render_color_hash(partition.color)}"
     opening += " {"
     lines.append(opening)
 

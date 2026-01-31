@@ -184,10 +184,12 @@ class TestWBSRenderer:
         result = render_wbs_diagram(diagram)
         assert "a -> b" in result
 
-    def test_render_direction(self):
+    def test_render_direction_ignored(self):
+        """WBS does not support diagram-wide direction; field is ignored."""
         diagram = WBSDiagram(direction="top_to_bottom")
         result = render_wbs_diagram(diagram)
-        assert "top to bottom direction" in result
+        # Direction should NOT appear - WBS doesn't support it
+        assert "direction" not in result
 
     def test_render_combined_color_boxless_direction(self):
         """Test combined color, boxless, and direction markers."""
@@ -212,7 +214,7 @@ class TestWBSRenderer:
 
         style = WBSDiagramStyle(
             background="#EEEEEE",
-            node=ElementStyle(background="#LightBlue"),
+            node=ElementStyle(background="#LightBlue"),  # Erroneous # on named color
         )
         diagram = WBSDiagram(
             roots=(WBSNode("Root"),),
@@ -221,9 +223,9 @@ class TestWBSRenderer:
         result = render_wbs_diagram(diagram)
         assert "<style>" in result
         assert "wbsDiagram" in result
-        assert "BackgroundColor #EEEEEE" in result
+        assert "BackgroundColor #EEEEEE" in result  # Hex color keeps #
         assert "node {" in result
-        assert "BackgroundColor #LightBlue" in result
+        assert "BackgroundColor LightBlue" in result  # Named color, # stripped
         assert "</style>" in result
 
 

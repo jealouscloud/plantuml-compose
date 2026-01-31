@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import Literal
 
 from ..primitives.wbs import WBSArrow, WBSDiagram, WBSDiagramStyle, WBSNode
-from .common import render_color, render_diagram_style
+from .common import render_color_hash, render_diagram_style
 
 Side = Literal["left", "right"] | None
 
@@ -21,10 +21,9 @@ def render_wbs_diagram(diagram: WBSDiagram) -> str:
     if diagram.diagram_style:
         lines.extend(_render_wbs_diagram_style(diagram.diagram_style))
 
-    # Direction
-    if diagram.direction:
-        direction_str = diagram.direction.replace("_", " ") + " direction"
-        lines.append(direction_str)
+    # Note: WBS does NOT support diagram-wide direction like mindmap.
+    # Individual node direction is controlled via side="left"/"right" on nodes,
+    # which renders as <> markers. The direction field is ignored for WBS.
 
     # Render all root nodes and their children
     for root in diagram.roots:
@@ -72,7 +71,7 @@ def _render_node(node: WBSNode, depth: int, effective_side: Side) -> str:
         prefix += ">"
 
     # Color (comes after direction)
-    color_part = f"[{render_color(node.color)}]" if node.color else ""
+    color_part = f"[{render_color_hash(node.color)}]" if node.color else ""
 
     # Alias (shown as: "Text" as alias)
     if node.alias:

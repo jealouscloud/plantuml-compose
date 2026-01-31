@@ -17,7 +17,7 @@ from .common import (
     needs_quotes,
     quote_ref,
     render_caption,
-    render_color,
+    render_color_hash,
     render_footer,
     render_header,
     render_label,
@@ -131,10 +131,7 @@ def _render_deployment_element(
 
     # Style background as element color
     if elem.style and elem.style.background:
-        color = render_color(elem.style.background)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        parts.append(color)
+        parts.append(render_color_hash(elem.style.background))
 
     if elem.elements:
         lines.append(f"{prefix}{' '.join(parts)} {{")
@@ -246,10 +243,7 @@ def _render_note(note: DeploymentNote, indent: int = 0) -> list[str]:
 
     color_part = ""
     if note.color:
-        color = render_color(note.color)
-        if not color.startswith("#"):
-            color = f"#{color}"
-        color_part = f" {color}"
+        color_part = f" {render_color_hash(note.color)}"
 
     if "\n" in content:
         lines = [f"{prefix}{pos}{color_part}"]
