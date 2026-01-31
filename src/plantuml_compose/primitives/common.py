@@ -1552,3 +1552,119 @@ def coerce_object_diagram_style(
         map=coerce_element_style(value["map"]) if "map" in value else None,
         title=coerce_element_style(value["title"]) if "title" in value else None,
     )
+
+
+# ---------------------------------------------------------------------------
+# JSON Diagram Styling
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class JsonDiagramStyle:
+    """Diagram-wide styling for JSON diagrams.
+
+    This generates a PlantUML <style> block that sets default appearance
+    for JSON data visualization.
+    """
+
+    # Root-level properties
+    background: ColorLike | Gradient | None = None
+    font_name: str | None = None
+    font_size: int | None = None
+    font_color: ColorLike | None = None
+
+    # Element-specific styles
+    node: ElementStyle | None = None
+    highlight: ElementStyle | None = None
+
+
+class JsonDiagramStyleDict(TypedDict, total=False):
+    """Dict form of JsonDiagramStyle for convenience."""
+
+    background: ColorLike | Gradient
+    font_name: str
+    font_size: int
+    font_color: ColorLike
+    node: ElementStyleLike
+    highlight: ElementStyleLike
+
+
+JsonDiagramStyleLike: TypeAlias = JsonDiagramStyle | JsonDiagramStyleDict
+
+
+def coerce_json_diagram_style(
+    value: JsonDiagramStyleLike,
+) -> JsonDiagramStyle:
+    """Convert a JsonDiagramStyleLike value to a JsonDiagramStyle object."""
+    if isinstance(value, JsonDiagramStyle):
+        return value
+    return JsonDiagramStyle(
+        background=_coerce_color_or_gradient(value.get("background")),
+        font_name=value.get("font_name"),
+        font_size=value.get("font_size"),
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
+        node=coerce_element_style(value["node"]) if "node" in value else None,
+        highlight=coerce_element_style(value["highlight"])
+        if "highlight" in value
+        else None,
+    )
+
+
+# ---------------------------------------------------------------------------
+# YAML Diagram Styling
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class YamlDiagramStyle:
+    """Diagram-wide styling for YAML diagrams.
+
+    This generates a PlantUML <style> block that sets default appearance
+    for YAML data visualization.
+    """
+
+    # Root-level properties
+    background: ColorLike | Gradient | None = None
+    font_name: str | None = None
+    font_size: int | None = None
+    font_color: ColorLike | None = None
+
+    # Element-specific styles
+    node: ElementStyle | None = None
+    highlight: ElementStyle | None = None
+
+
+class YamlDiagramStyleDict(TypedDict, total=False):
+    """Dict form of YamlDiagramStyle for convenience."""
+
+    background: ColorLike | Gradient
+    font_name: str
+    font_size: int
+    font_color: ColorLike
+    node: ElementStyleLike
+    highlight: ElementStyleLike
+
+
+YamlDiagramStyleLike: TypeAlias = YamlDiagramStyle | YamlDiagramStyleDict
+
+
+def coerce_yaml_diagram_style(
+    value: YamlDiagramStyleLike,
+) -> YamlDiagramStyle:
+    """Convert a YamlDiagramStyleLike value to a YamlDiagramStyle object."""
+    if isinstance(value, YamlDiagramStyle):
+        return value
+    return YamlDiagramStyle(
+        background=_coerce_color_or_gradient(value.get("background")),
+        font_name=value.get("font_name"),
+        font_size=value.get("font_size"),
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
+        node=coerce_element_style(value["node"]) if "node" in value else None,
+        highlight=coerce_element_style(value["highlight"])
+        if "highlight" in value
+        else None,
+    )

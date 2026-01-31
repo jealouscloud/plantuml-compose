@@ -17,6 +17,7 @@ from plantuml_compose.builders.class_ import class_diagram
 from plantuml_compose.builders.state import state_diagram
 from plantuml_compose.builders.component import component_diagram
 from plantuml_compose.builders.object_ import object_diagram
+from plantuml_compose.builders.json_ import json_diagram, yaml_diagram
 from plantuml_compose.renderers import render
 
 
@@ -698,3 +699,68 @@ class TestComprehensiveStyles:
         puml = render(d.build())
         run_plantuml_and_verify_color(puml, "E1BEE7")
         run_plantuml_and_verify_color(puml, "7B1FA2")
+
+
+# =============================================================================
+# JSON/YAML Diagram Selectors
+# =============================================================================
+
+
+@pytest.mark.skipif(not plantuml_available(), reason="PlantUML not available")
+class TestJsonDiagramSelectors:
+    """Test JSON diagram style selectors actually render."""
+
+    def test_node_background(self):
+        """Test node background color renders in JSON diagram."""
+        with json_diagram(
+            '{"name": "John", "age": 30}',
+            diagram_style={"node": {"background": "#E3F2FD"}},
+        ) as d:
+            pass
+        puml = render(d.build())
+        run_plantuml_and_verify_color(puml, "E3F2FD")
+
+    def test_highlight_background(self):
+        """Test highlight background color renders in JSON diagram."""
+        with json_diagram(
+            '{"name": "John", "age": 30}',
+            diagram_style={"highlight": {"background": "#FFEB3B"}},
+        ) as d:
+            d.highlight("name")
+        puml = render(d.build())
+        run_plantuml_and_verify_color(puml, "FFEB3B")
+
+    def test_root_background(self):
+        """Test diagram root background color renders."""
+        with json_diagram(
+            '{"key": "value"}',
+            diagram_style={"background": "#FAFAFA"},
+        ) as d:
+            pass
+        puml = render(d.build())
+        run_plantuml_and_verify_color(puml, "FAFAFA")
+
+
+@pytest.mark.skipif(not plantuml_available(), reason="PlantUML not available")
+class TestYamlDiagramSelectors:
+    """Test YAML diagram style selectors actually render."""
+
+    def test_node_background(self):
+        """Test node background color renders in YAML diagram."""
+        with yaml_diagram(
+            "name: John\nage: 30",
+            diagram_style={"node": {"background": "#E8F5E9"}},
+        ) as d:
+            pass
+        puml = render(d.build())
+        run_plantuml_and_verify_color(puml, "E8F5E9")
+
+    def test_highlight_background(self):
+        """Test highlight background color renders in YAML diagram."""
+        with yaml_diagram(
+            "name: John\nage: 30",
+            diagram_style={"highlight": {"background": "#FFF9C4"}},
+        ) as d:
+            d.highlight("name")
+        puml = render(d.build())
+        run_plantuml_and_verify_color(puml, "FFF9C4")

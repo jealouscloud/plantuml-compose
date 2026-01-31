@@ -18,6 +18,8 @@ from .common import (
     ExternalTheme,
     FontStyle,
     Gradient,
+    JsonDiagramStyle,
+    JsonDiagramStyleLike,
     Label,
     LabelLike,
     LayoutDirection,
@@ -41,6 +43,8 @@ from .common import (
     Style,
     StyleLike,
     ThemeLike,
+    YamlDiagramStyle,
+    YamlDiagramStyleLike,
 )
 from .activity import (
     Action,
@@ -167,6 +171,10 @@ from .state import (
     StateNode,
     Transition,
 )
+from .json_ import (
+    JsonDiagram,
+    YamlDiagram,
+)
 
 __all__ = [
     # Common
@@ -184,6 +192,8 @@ __all__ = [
     "ExternalTheme",
     "FontStyle",
     "Gradient",
+    "JsonDiagramStyle",
+    "JsonDiagramStyleLike",
     "Label",
     "LabelLike",
     "LayoutDirection",
@@ -207,6 +217,8 @@ __all__ = [
     "Style",
     "StyleLike",
     "ThemeLike",
+    "YamlDiagramStyle",
+    "YamlDiagramStyleLike",
     # Activity
     "Action",
     "ActionShape",
@@ -324,4 +336,7 @@ __all__ = [
     "StateDiagramElement",
     "StateNode",
     "Transition",
+    # JSON/YAML
+    "JsonDiagram",
+    "YamlDiagram",
 ]

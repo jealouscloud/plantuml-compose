@@ -14,6 +14,8 @@ Supported diagram types:
     deployment_diagram: Infrastructure and deployment topology
     usecase_diagram:    Requirements and user interactions
     object_diagram:     Instance snapshots with concrete values
+    json_diagram:       JSON data visualization
+    yaml_diagram:       YAML data visualization
 
 Quick Start:
     from plantuml_compose import state_diagram
@@ -48,10 +50,12 @@ from .builders import (
     class_diagram,
     component_diagram,
     deployment_diagram,
+    json_diagram,
     object_diagram,
     sequence_diagram,
     state_diagram,
     usecase_diagram,
+    yaml_diagram,
 )
 from .primitives import (
     Color,
@@ -66,6 +70,9 @@ from .primitives import (
     ExternalTheme,
     FontStyle,
     Gradient,
+    JsonDiagram,
+    JsonDiagramStyle,
+    JsonDiagramStyleLike,
     Label,
     LabelLike,
     LayoutDirection,
@@ -91,6 +98,9 @@ from .primitives import (
     StyleLike,
     ThemeLike,
     Transition,
+    YamlDiagram,
+    YamlDiagramStyle,
+    YamlDiagramStyleLike,
 )
 from .renderers import link, render
 
@@ -100,10 +110,12 @@ __all__ = [
     "class_diagram",
     "component_diagram",
     "deployment_diagram",
+    "json_diagram",
     "object_diagram",
     "sequence_diagram",
     "state_diagram",
     "usecase_diagram",
+    "yaml_diagram",
     # Renderers
     "link",
     "render",
@@ -118,6 +130,8 @@ __all__ = [
     "ExternalTheme",
     "FontStyle",
     "Gradient",
+    "JsonDiagramStyle",
+    "JsonDiagramStyleLike",
     "Label",
     "LabelLike",
     "LayoutDirection",
@@ -137,6 +151,8 @@ __all__ = [
     "Style",
     "StyleLike",
     "ThemeLike",
+    "YamlDiagramStyle",
+    "YamlDiagramStyleLike",
     # State primitives
     "CompositeState",
     "ConcurrentState",
@@ -146,6 +162,9 @@ __all__ = [
     "StateDiagram",
     "StateNode",
     "Transition",
+    # JSON/YAML primitives
+    "JsonDiagram",
+    "YamlDiagram",
 ]
 
 

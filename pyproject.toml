@@ -7,7 +7,9 @@ authors = [
     { name = "jealouscloud", email = "github@noaha.org" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "pyyaml>=6.0",
+]
 
 [project.scripts]
 plantuml-compose = "plantuml_compose:main"
