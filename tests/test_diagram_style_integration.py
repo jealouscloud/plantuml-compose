@@ -18,6 +18,7 @@ from plantuml_compose.builders.state import state_diagram
 from plantuml_compose.builders.component import component_diagram
 from plantuml_compose.builders.object_ import object_diagram
 from plantuml_compose.builders.json_ import json_diagram, yaml_diagram
+from plantuml_compose.builders.wbs import wbs_diagram
 from plantuml_compose.renderers import render
 
 
@@ -764,3 +765,61 @@ class TestYamlDiagramSelectors:
             d.highlight("name")
         puml = render(d.build())
         run_plantuml_and_verify_color(puml, "FFF9C4")
+
+
+# =============================================================================
+# WBS Diagram Selectors
+# =============================================================================
+
+
+@pytest.mark.skipif(not plantuml_available(), reason="PlantUML not available")
+class TestWbsDiagramSelectors:
+    """Test WBS diagram style selectors actually render."""
+
+    def test_node_background(self):
+        """Test node background color renders in WBS diagram."""
+        with wbs_diagram(
+            diagram_style={"node": {"background": "#E3F2FD"}},
+        ) as d:
+            with d.node("Project") as proj:
+                proj.leaf("Task 1")
+        puml = render(d.build())
+        run_plantuml_and_verify_color(puml, "E3F2FD")
+
+    def test_root_node_background(self):
+        """Test root node background color renders in WBS diagram."""
+        with wbs_diagram(
+            diagram_style={"root_node": {"background": "#FFA500"}},
+        ) as d:
+            with d.node("Project") as proj:
+                proj.leaf("Task 1")
+        puml = render(d.build())
+        run_plantuml_and_verify_color(puml, "FFA500")
+
+    def test_leaf_node_background(self):
+        """Test leaf node background color renders in WBS diagram."""
+        with wbs_diagram(
+            diagram_style={"leaf_node": {"background": "#90EE90"}},
+        ) as d:
+            with d.node("Project") as proj:
+                proj.leaf("Task 1")
+        puml = render(d.build())
+        run_plantuml_and_verify_color(puml, "90EE90")
+
+    def test_diagram_background(self):
+        """Test diagram background color renders in WBS diagram."""
+        with wbs_diagram(
+            diagram_style={"background": "#FAFAFA"},
+        ) as d:
+            with d.node("Project") as proj:
+                proj.leaf("Task 1")
+        puml = render(d.build())
+        run_plantuml_and_verify_color(puml, "FAFAFA")
+
+    def test_inline_node_color(self):
+        """Test inline node color renders in WBS diagram."""
+        with wbs_diagram() as d:
+            with d.node("Project", color="#FF5722") as proj:
+                proj.leaf("Task 1")
+        puml = render(d.build())
+        run_plantuml_and_verify_color(puml, "FF5722")

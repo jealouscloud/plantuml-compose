@@ -181,6 +181,13 @@ from .mindmap import (
     MindMapDiagram,
     MindMapNode,
 )
+from .wbs import (
+    WBSArrow,
+    WBSDiagram,
+    WBSDiagramStyle,
+    WBSDiagramStyleLike,
+    WBSNode,
+)
 
 __all__ = [
     # Common
@@ -350,4 +357,10 @@ __all__ = [
     "MindMapDiagramStyle",
     "MindMapDiagramStyleLike",
     "MindMapNode",
+    # WBS
+    "WBSArrow",
+    "WBSDiagram",
+    "WBSDiagramStyle",
+    "WBSDiagramStyleLike",
+    "WBSNode",
 ]

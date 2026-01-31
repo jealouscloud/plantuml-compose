@@ -17,6 +17,7 @@ Supported diagram types:
     json_diagram:       JSON data visualization
     yaml_diagram:       YAML data visualization
     mindmap_diagram:    Hierarchical mind maps
+    wbs_diagram:        Work breakdown structures
 
 Quick Start:
     from plantuml_compose import state_diagram
@@ -57,6 +58,7 @@ from .builders import (
     sequence_diagram,
     state_diagram,
     usecase_diagram,
+    wbs_diagram,
     yaml_diagram,
 )
 from .primitives import (
@@ -88,6 +90,10 @@ from .primitives import (
     MindMapDiagramStyleLike,
     MindMapNode,
     Note,
+    WBSArrow,
+    WBSDiagram,
+    WBSDiagramStyle,
+    WBSNode,
     NotePosition,
     PlantUMLBuiltinTheme,
     PseudoState,
@@ -122,6 +128,7 @@ __all__ = [
     "sequence_diagram",
     "state_diagram",
     "usecase_diagram",
+    "wbs_diagram",
     "yaml_diagram",
     # Renderers
     "link",
@@ -152,6 +159,10 @@ __all__ = [
     "MindMapDiagramStyleLike",
     "MindMapNode",
     "Note",
+    "WBSArrow",
+    "WBSDiagram",
+    "WBSDiagramStyle",
+    "WBSNode",
     "NotePosition",
     "PlantUMLBuiltinTheme",
     "RegionSeparator",

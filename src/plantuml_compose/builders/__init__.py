@@ -6,6 +6,7 @@ from .component import component_diagram
 from .deployment import deployment_diagram
 from .json_ import json_diagram, yaml_diagram
 from .mindmap import mindmap_diagram
+from .wbs import wbs_diagram
 from .object_ import object_diagram
 from .sequence import sequence_diagram
 from .state import state_diagram
@@ -22,5 +23,6 @@ __all__ = [
     "sequence_diagram",
     "state_diagram",
     "usecase_diagram",
+    "wbs_diagram",
     "yaml_diagram",
 ]
