@@ -35,6 +35,7 @@ from .common import (
     LineType,
     sanitize_ref,
     Scale,
+    SequenceDiagramStyle,
     Style,
     ThemeLike,
 )
@@ -372,6 +373,7 @@ class SequenceDiagram:
     autonumber: Autonumber | None = None
     hide_unlinked: bool = False  # hide unlinked participants
     teoz: bool = False  # Enable teoz rendering for parallel messages and anchors
+    diagram_style: SequenceDiagramStyle | None = None  # CSS-like diagram styling
 
 
 # Type alias for elements that can appear in a sequence diagram

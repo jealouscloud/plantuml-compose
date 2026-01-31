@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from ..primitives.common import (
     Color,
+    DiagramArrowStyle,
+    ElementStyle,
     ExternalTheme,
     Footer,
     Gradient,
@@ -457,3 +459,161 @@ def quote_ref(ref: str) -> str:
     if needs_quotes(ref):
         return f'"{escape_quotes(ref)}"'
     return ref
+
+
+# =============================================================================
+# Diagram Style Rendering (shared across all diagram types)
+# =============================================================================
+
+
+def render_element_style_block(
+    selector: str, style: ElementStyle, indent: int = 2
+) -> list[str]:
+    """Render an ElementStyle as a nested CSS block.
+
+    Args:
+        selector: CSS selector name (e.g., "class", "participant", "node")
+        style: The ElementStyle to render
+        indent: Base indentation level (spaces)
+
+    Returns:
+        Lines for the style block, empty list if no properties set
+    """
+    props: list[str] = []
+    prefix = " " * indent
+    inner_prefix = " " * (indent + 2)
+
+    if style.background:
+        props.append(f"{inner_prefix}BackgroundColor {render_color(style.background)}")
+    if style.line_color:
+        props.append(f"{inner_prefix}LineColor {render_color(style.line_color)}")
+    if style.font_color:
+        props.append(f"{inner_prefix}FontColor {render_color(style.font_color)}")
+    if style.font_name:
+        props.append(f"{inner_prefix}FontName {style.font_name}")
+    if style.font_size:
+        props.append(f"{inner_prefix}FontSize {style.font_size}")
+    if style.font_style:
+        props.append(f"{inner_prefix}FontStyle {style.font_style}")
+    if style.round_corner is not None:
+        props.append(f"{inner_prefix}RoundCorner {style.round_corner}")
+    if style.line_thickness is not None:
+        props.append(f"{inner_prefix}LineThickness {style.line_thickness}")
+    if style.line_style:
+        props.append(f"{inner_prefix}LineStyle {style.line_style}")
+    if style.padding is not None:
+        props.append(f"{inner_prefix}Padding {style.padding}")
+    if style.margin is not None:
+        props.append(f"{inner_prefix}Margin {style.margin}")
+    if style.horizontal_alignment:
+        props.append(f"{inner_prefix}HorizontalAlignment {style.horizontal_alignment}")
+    if style.max_width is not None:
+        props.append(f"{inner_prefix}MaximumWidth {style.max_width}")
+    if style.shadowing is not None:
+        props.append(f"{inner_prefix}Shadowing {str(style.shadowing).lower()}")
+
+    if not props:
+        return []
+
+    return [f"{prefix}{selector} {{"] + props + [f"{prefix}}}"]
+
+
+def render_arrow_style_block(style: DiagramArrowStyle, indent: int = 2) -> list[str]:
+    """Render a DiagramArrowStyle as a nested CSS block.
+
+    Args:
+        style: The DiagramArrowStyle to render
+        indent: Base indentation level (spaces)
+
+    Returns:
+        Lines for the arrow style block, empty list if no properties set
+    """
+    props: list[str] = []
+    inner_prefix = " " * (indent + 2)
+
+    if style.line_color:
+        props.append(f"{inner_prefix}LineColor {render_color(style.line_color)}")
+    if style.line_thickness is not None:
+        props.append(f"{inner_prefix}LineThickness {style.line_thickness}")
+    if style.line_pattern:
+        props.append(f"{inner_prefix}LineStyle {style.line_pattern}")
+
+    if not props:
+        return []
+
+    prefix = " " * indent
+    return [f"{prefix}arrow {{"] + props + [f"{prefix}}}"]
+
+
+def render_diagram_style(
+    diagram_type: str,
+    root_background: Color | Gradient | str | None,
+    root_font_name: str | None,
+    root_font_size: int | None,
+    root_font_color: Color | str | None,
+    element_styles: list[tuple[str, ElementStyle | None]],
+    arrow_style: DiagramArrowStyle | None,
+    title_style: ElementStyle | None,
+) -> list[str]:
+    """Render a complete <style> block for any diagram type.
+
+    Args:
+        diagram_type: PlantUML diagram type name (e.g., "classDiagram", "sequenceDiagram")
+        root_background: Diagram background color/gradient
+        root_font_name: Default font name
+        root_font_size: Default font size
+        root_font_color: Default font color
+        element_styles: List of (selector, ElementStyle) tuples for diagram elements
+        arrow_style: Arrow/line styling
+        title_style: Title element styling (rendered in document block)
+
+    Returns:
+        Lines for the complete <style>...</style> block, empty list if no styles set
+    """
+    # Collect diagram block content
+    diagram_props: list[str] = []
+
+    # Root-level properties
+    if root_background:
+        diagram_props.append(f"  BackgroundColor {render_color(root_background)}")
+    if root_font_name:
+        diagram_props.append(f"  FontName {root_font_name}")
+    if root_font_size:
+        diagram_props.append(f"  FontSize {root_font_size}")
+    if root_font_color:
+        diagram_props.append(f"  FontColor {render_color(root_font_color)}")
+
+    # Element-specific styles
+    for selector, elem_style in element_styles:
+        if elem_style:
+            diagram_props.extend(render_element_style_block(selector, elem_style))
+
+    # Arrow styles
+    if arrow_style:
+        diagram_props.extend(render_arrow_style_block(arrow_style))
+
+    # Collect document block content (for title)
+    document_props: list[str] = []
+    if title_style:
+        document_props.extend(render_element_style_block("title", title_style))
+
+    # Only emit style block if there's content
+    if not diagram_props and not document_props:
+        return []
+
+    lines: list[str] = ["<style>"]
+
+    # Emit diagram-specific block if it has content
+    if diagram_props:
+        lines.append(f"{diagram_type} {{")
+        lines.extend(diagram_props)
+        lines.append("}")
+
+    # Emit document block for title styling
+    if document_props:
+        lines.append("document {")
+        lines.extend(document_props)
+        lines.append("}")
+
+    lines.append("</style>")
+    return lines

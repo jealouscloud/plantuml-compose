@@ -30,11 +30,15 @@ from ..primitives.activity import (
     While,
 )
 from ..primitives.activity import GotoLabel as ActivityLabel
-from ..primitives.common import Note
+from ..primitives.common import (
+    ActivityDiagramStyle,
+    Note,
+)
 from .common import (
     escape_quotes,
     render_caption,
     render_color,
+    render_diagram_style,
     render_footer,
     render_header,
     render_label,
@@ -97,6 +101,10 @@ def render_activity_diagram(diagram: ActivityDiagram) -> str:
     # Vertical if/else layout pragma
     if diagram.vertical_if:
         lines.append("!pragma useVerticalIf on")
+
+    # Diagram-wide CSS-like styling
+    if diagram.diagram_style:
+        lines.extend(_render_activity_diagram_style(diagram.diagram_style))
 
     for elem in diagram.elements:
         lines.extend(_render_element(elem))
@@ -441,3 +449,24 @@ def _render_floating_note(note: Note, indent: int) -> list[str]:
         return lines
 
     return [f"{prefix}note {note.position}: {content}"]
+
+
+def _render_activity_diagram_style(style: ActivityDiagramStyle) -> list[str]:
+    """Render an ActivityDiagramStyle to PlantUML <style> block."""
+    return render_diagram_style(
+        diagram_type="activityDiagram",
+        root_background=style.background,
+        root_font_name=style.font_name,
+        root_font_size=style.font_size,
+        root_font_color=style.font_color,
+        element_styles=[
+            ("activity", style.activity),
+            ("partition", style.partition),
+            ("swimlane", style.swimlane),
+            ("diamond", style.diamond),
+            ("note", style.note),
+            ("group", style.group),
+        ],
+        arrow_style=style.arrow,
+        title_style=style.title,
+    )

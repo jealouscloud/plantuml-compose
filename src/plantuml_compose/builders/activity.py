@@ -106,6 +106,9 @@ from ..primitives.activity import (
 )
 from ..primitives.activity import GotoLabel as ActivityLabel
 from ..primitives.common import (
+    ActivityDiagramStyleLike,
+    coerce_activity_diagram_style,
+    coerce_line_style,
     ColorLike,
     Footer,
     Header,
@@ -116,7 +119,6 @@ from ..primitives.common import (
     LineType,
     Scale,
     StyleLike,
-    coerce_line_style,
     validate_literal_type,
     validate_style_background_only,
 )
@@ -899,6 +901,7 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
         theme: str | None = None,
         layout_engine: LayoutEngine | None = None,
         linetype: LineType | None = None,
+        diagram_style: ActivityDiagramStyleLike | None = None,
         vertical_if: bool = False,
     ) -> None:
         super().__init__()
@@ -913,6 +916,11 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
         self._theme = theme
         self._layout_engine = layout_engine
         self._linetype = linetype
+        self._diagram_style = (
+            coerce_activity_diagram_style(diagram_style)
+            if diagram_style
+            else None
+        )
         self._vertical_if = vertical_if
         # Track block context for detecting d.action() inside blocks
         self._block_stack: list[str] = []
@@ -1230,6 +1238,7 @@ class ActivityDiagramBuilder(_BaseActivityBuilder):
             theme=self._theme,
             layout_engine=self._layout_engine,
             linetype=self._linetype,
+            diagram_style=self._diagram_style,
             vertical_if=self._vertical_if,
         )
 
@@ -1255,6 +1264,7 @@ def activity_diagram(
     theme: str | None = None,
     layout_engine: LayoutEngine | None = None,
     linetype: LineType | None = None,
+    diagram_style: ActivityDiagramStyleLike | None = None,
     vertical_if: bool = False,
 ) -> Iterator[ActivityDiagramBuilder]:
     """Create an activity diagram with context manager syntax.
@@ -1283,6 +1293,7 @@ def activity_diagram(
         theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
         layout_engine: Layout engine; "smetana" uses pure-Java GraphViz alternative
         linetype: Line routing style; "ortho" for right angles, "polyline" for direct
+        diagram_style: CSS-like diagram styling (ActivityDiagramStyle or dict)
         vertical_if: If True, if/else branches render vertically instead of horizontally
 
     Yields:
@@ -1298,6 +1309,7 @@ def activity_diagram(
         theme=theme,
         layout_engine=layout_engine,
         linetype=linetype,
+        diagram_style=diagram_style,
         vertical_if=vertical_if,
     )
     yield builder

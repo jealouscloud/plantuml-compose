@@ -1096,7 +1096,7 @@ class StateDiagramBuilder(_BaseStateBuilder):
         layout_engine: LayoutEngine | None = None,
         linetype: LineType | None = None,
         hide_empty_description: bool = False,
-        style: StateDiagramStyleLike | None = None,
+        diagram_style: StateDiagramStyleLike | None = None,
     ) -> None:
         super().__init__()
         self._title = title
@@ -1113,9 +1113,9 @@ class StateDiagramBuilder(_BaseStateBuilder):
         self._layout_engine = layout_engine
         self._linetype = linetype
         self._hide_empty_description = hide_empty_description
-        # Coerce style dict to StateDiagramStyle object
-        self._style = (
-            coerce_state_diagram_style(style) if style is not None else None
+        # Coerce diagram_style dict to StateDiagramStyle object
+        self._diagram_style = (
+            coerce_state_diagram_style(diagram_style) if diagram_style is not None else None
         )
         # Track block context for detecting d.state() inside blocks
         self._block_stack: list[str] = []
@@ -1314,7 +1314,7 @@ class StateDiagramBuilder(_BaseStateBuilder):
             layout_engine=self._layout_engine,
             linetype=self._linetype,
             hide_empty_description=self._hide_empty_description,
-            style=self._style,
+            diagram_style=self._diagram_style,
         )
 
     def render(self) -> str:
@@ -1344,7 +1344,7 @@ def state_diagram(
     layout_engine: LayoutEngine | None = None,
     linetype: LineType | None = None,
     hide_empty_description: bool = False,
-    style: StateDiagramStyleLike | None = None,
+    diagram_style: StateDiagramStyleLike | None = None,
 ) -> Iterator[StateDiagramBuilder]:
     """Create a state diagram with context manager syntax.
 
@@ -1363,7 +1363,7 @@ def state_diagram(
 
     With dict-based styling (no extra imports needed):
         with state_diagram(
-            style={
+            diagram_style={
                 "background": "white",
                 "font_name": "Arial",
                 "state": {"background": "#E3F2FD", "line_color": "#1976D2"},
@@ -1384,7 +1384,7 @@ def state_diagram(
         layout_engine: Layout engine; "smetana" uses pure-Java GraphViz alternative
         linetype: Line routing style; "ortho" for right angles, "polyline" for direct
         hide_empty_description: Whether to hide empty state descriptions
-        style: Optional styling (dict or StateDiagramStyle object)
+        diagram_style: CSS-style styling for the diagram (colors, fonts, etc.)
 
     Yields:
         A StateDiagramBuilder for adding diagram elements
@@ -1401,6 +1401,6 @@ def state_diagram(
         layout_engine=layout_engine,
         linetype=linetype,
         hide_empty_description=hide_empty_description,
-        style=style,
+        diagram_style=diagram_style,
     )
     yield builder

@@ -34,6 +34,7 @@ from .common import (
     Legend,
     LineType,
     LineStyle,
+    ObjectDiagramStyle,
     sanitize_ref,
     Scale,
     Stereotype,
@@ -168,3 +169,4 @@ class ObjectDiagram:
     layout: LayoutDirection | None = None
     layout_engine: LayoutEngine | None = None
     linetype: LineType | None = None
+    diagram_style: ObjectDiagramStyle | None = None

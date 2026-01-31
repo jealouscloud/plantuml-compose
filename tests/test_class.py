@@ -516,6 +516,54 @@ class TestDiagramOptions:
         assert "set separator ::" in output
 
 
+class TestDiagramStyle:
+    """Tests for CSS-style diagram styling."""
+
+    def test_diagram_style_with_dict(self):
+        with class_diagram(
+            diagram_style={
+                "background": "white",
+                "class_": {"background": "#E3F2FD"},
+                "arrow": {"line_color": "#757575"},
+            }
+        ) as d:
+            a = d.class_("A")
+            b = d.class_("B")
+            d.associates(a, b)
+
+        output = render(d.build())
+        assert "<style>" in output
+        assert "classDiagram {" in output
+        assert "BackgroundColor #E3F2FD" in output
+        assert "LineColor #757575" in output
+        assert "</style>" in output
+
+    def test_diagram_style_interface(self):
+        with class_diagram(
+            diagram_style={
+                "interface": {"background": "#FFF3E0"},
+            }
+        ) as d:
+            d.interface("IService")
+
+        output = render(d.build())
+        assert "interface {" in output
+        assert "BackgroundColor #FFF3E0" in output
+
+    def test_diagram_style_package(self):
+        with class_diagram(
+            diagram_style={
+                "package": {"background": "#E8F5E9"},
+            }
+        ) as d:
+            with d.package("domain"):
+                pass
+
+        output = render(d.build())
+        assert "package {" in output
+        assert "BackgroundColor #E8F5E9" in output
+
+
 class TestRenderMethod:
     """Tests for the render() convenience method."""
 

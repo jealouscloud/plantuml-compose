@@ -681,6 +681,10 @@ class Scale:
     max_height: int | None = None
 
 
+# Horizontal text alignment options
+HorizontalAlignment = Literal["left", "center", "right"]
+
+
 @dataclass(frozen=True)
 class ElementStyle:
     """Comprehensive style properties for diagram elements.
@@ -689,14 +693,20 @@ class ElementStyle:
     element types (states, notes, etc.). These properties map to PlantUML's
     CSS-like <style> block syntax.
 
-        background:     Fill color
-        line_color:     Border/outline color
-        font_color:     Text color
-        font_name:      Font family (e.g., "Arial", "Courier")
-        font_size:      Font size in points
-        font_style:     "normal", "bold", "italic", or "bold italic"
-        round_corner:   Corner radius in pixels (0 for sharp corners)
-        line_thickness: Border width in pixels
+        background:           Fill color
+        line_color:           Border/outline color
+        font_color:           Text color
+        font_name:            Font family (e.g., "Arial", "Courier")
+        font_size:            Font size in points
+        font_style:           "normal", "bold", "italic", or "bold italic"
+        round_corner:         Corner radius in pixels (0 for sharp corners)
+        line_thickness:       Border width in pixels
+        line_style:           Border pattern ("solid", "dashed", "dotted", "hidden")
+        padding:              Inner padding in pixels
+        margin:               Outer margin in pixels
+        horizontal_alignment: Text alignment ("left", "center", "right")
+        max_width:            Maximum element width in pixels
+        shadowing:            Whether to show drop shadow (True/False)
     """
 
     background: ColorLike | None = None
@@ -707,6 +717,12 @@ class ElementStyle:
     font_style: FontStyle | None = None
     round_corner: int | None = None
     line_thickness: int | None = None
+    line_style: LinePattern | None = None
+    padding: int | None = None
+    margin: int | None = None
+    horizontal_alignment: HorizontalAlignment | None = None
+    max_width: int | None = None
+    shadowing: bool | None = None
 
 
 @dataclass(frozen=True)
@@ -892,6 +908,12 @@ class ElementStyleDict(TypedDict, total=False):
     font_style: FontStyle
     round_corner: int
     line_thickness: int
+    line_style: LinePattern
+    padding: int
+    margin: int
+    horizontal_alignment: HorizontalAlignment
+    max_width: int
+    shadowing: bool
 
 
 # Type alias for element style arguments
@@ -917,6 +939,12 @@ def coerce_element_style(value: ElementStyleLike) -> ElementStyle:
         font_style=value.get("font_style"),
         round_corner=value.get("round_corner"),
         line_thickness=value.get("line_thickness"),
+        line_style=value.get("line_style"),
+        padding=value.get("padding"),
+        margin=value.get("margin"),
+        horizontal_alignment=value.get("horizontal_alignment"),
+        max_width=value.get("max_width"),
+        shadowing=value.get("shadowing"),
     )
 
 
@@ -1115,4 +1143,412 @@ def coerce_component_diagram_style(
         title=coerce_element_style(value["title"])
         if "title" in value
         else None,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Sequence Diagram Styling
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class SequenceDiagramStyle:
+    """Diagram-wide styling for sequence diagrams.
+
+    This generates a PlantUML <style> block that sets default appearance
+    for all elements in the diagram. Individual elements can still override
+    these defaults with inline styles.
+
+    Root-level properties apply to the diagram background and default fonts.
+    Element-specific properties (participant, arrow, note, etc.) let you
+    style each element type independently.
+
+    Example:
+        with sequence_diagram(
+            diagram_style=SequenceDiagramStyle(
+                background="white",
+                font_name="Arial",
+                participant=ElementStyle(
+                    background="#E3F2FD",
+                    line_color="#1976D2",
+                ),
+                arrow=DiagramArrowStyle(
+                    line_color="#757575",
+                ),
+            )
+        ) as d:
+            ...
+
+    This generates a <style> block in the PlantUML output that themes
+    all participants with blue backgrounds and gray arrows.
+    """
+
+    # Root-level properties
+    background: ColorLike | Gradient | None = None
+    font_name: str | None = None
+    font_size: int | None = None
+    font_color: ColorLike | None = None
+
+    # Element-specific styles
+    participant: ElementStyle | None = None
+    actor: ElementStyle | None = None
+    boundary: ElementStyle | None = None
+    control: ElementStyle | None = None
+    entity: ElementStyle | None = None
+    database: ElementStyle | None = None
+    collections: ElementStyle | None = None
+    queue: ElementStyle | None = None
+    arrow: DiagramArrowStyle | None = None
+    lifeline: ElementStyle | None = None
+    note: ElementStyle | None = None
+    box: ElementStyle | None = None
+    group: ElementStyle | None = None
+    divider: ElementStyle | None = None
+    reference: ElementStyle | None = None
+    title: ElementStyle | None = None
+
+
+class SequenceDiagramStyleDict(TypedDict, total=False):
+    """Dict form of SequenceDiagramStyle for convenience.
+
+    Example:
+        with sequence_diagram(
+            diagram_style={
+                "background": "white",
+                "font_name": "Arial",
+                "participant": {"background": "#E3F2FD", "line_color": "#1976D2"},
+                "arrow": {"line_color": "#757575"},
+            }
+        ) as d:
+            ...
+    """
+
+    background: ColorLike | Gradient
+    font_name: str
+    font_size: int
+    font_color: ColorLike
+    participant: ElementStyleLike
+    actor: ElementStyleLike
+    boundary: ElementStyleLike
+    control: ElementStyleLike
+    entity: ElementStyleLike
+    database: ElementStyleLike
+    collections: ElementStyleLike
+    queue: ElementStyleLike
+    arrow: DiagramArrowStyleLike
+    lifeline: ElementStyleLike
+    note: ElementStyleLike
+    box: ElementStyleLike
+    group: ElementStyleLike
+    divider: ElementStyleLike
+    reference: ElementStyleLike
+    title: ElementStyleLike
+
+
+# Type alias for sequence diagram style arguments
+SequenceDiagramStyleLike: TypeAlias = SequenceDiagramStyle | SequenceDiagramStyleDict
+
+
+def coerce_sequence_diagram_style(
+    value: SequenceDiagramStyleLike,
+) -> SequenceDiagramStyle:
+    """Convert a SequenceDiagramStyleLike value to a SequenceDiagramStyle object."""
+    if isinstance(value, SequenceDiagramStyle):
+        return value
+    return SequenceDiagramStyle(
+        background=_coerce_color_or_gradient(value.get("background")),
+        font_name=value.get("font_name"),
+        font_size=value.get("font_size"),
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
+        participant=coerce_element_style(value["participant"])
+        if "participant" in value
+        else None,
+        actor=coerce_element_style(value["actor"]) if "actor" in value else None,
+        boundary=coerce_element_style(value["boundary"])
+        if "boundary" in value
+        else None,
+        control=coerce_element_style(value["control"])
+        if "control" in value
+        else None,
+        entity=coerce_element_style(value["entity"]) if "entity" in value else None,
+        database=coerce_element_style(value["database"])
+        if "database" in value
+        else None,
+        collections=coerce_element_style(value["collections"])
+        if "collections" in value
+        else None,
+        queue=coerce_element_style(value["queue"]) if "queue" in value else None,
+        arrow=coerce_diagram_arrow_style(value["arrow"])
+        if "arrow" in value
+        else None,
+        lifeline=coerce_element_style(value["lifeline"])
+        if "lifeline" in value
+        else None,
+        note=coerce_element_style(value["note"]) if "note" in value else None,
+        box=coerce_element_style(value["box"]) if "box" in value else None,
+        group=coerce_element_style(value["group"]) if "group" in value else None,
+        divider=coerce_element_style(value["divider"])
+        if "divider" in value
+        else None,
+        reference=coerce_element_style(value["reference"])
+        if "reference" in value
+        else None,
+        title=coerce_element_style(value["title"]) if "title" in value else None,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Activity Diagram Styling
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ActivityDiagramStyle:
+    """Diagram-wide styling for activity diagrams.
+
+    This generates a PlantUML <style> block that sets default appearance
+    for all elements in the diagram.
+
+    Example:
+        with activity_diagram(
+            diagram_style=ActivityDiagramStyle(
+                background="white",
+                activity=ElementStyle(background="#E3F2FD"),
+                arrow=DiagramArrowStyle(line_color="#757575"),
+            )
+        ) as d:
+            ...
+    """
+
+    # Root-level properties
+    background: ColorLike | Gradient | None = None
+    font_name: str | None = None
+    font_size: int | None = None
+    font_color: ColorLike | None = None
+
+    # Element-specific styles
+    activity: ElementStyle | None = None
+    partition: ElementStyle | None = None
+    swimlane: ElementStyle | None = None
+    diamond: ElementStyle | None = None
+    arrow: DiagramArrowStyle | None = None
+    note: ElementStyle | None = None
+    group: ElementStyle | None = None
+    title: ElementStyle | None = None
+
+
+class ActivityDiagramStyleDict(TypedDict, total=False):
+    """Dict form of ActivityDiagramStyle for convenience."""
+
+    background: ColorLike | Gradient
+    font_name: str
+    font_size: int
+    font_color: ColorLike
+    activity: ElementStyleLike
+    partition: ElementStyleLike
+    swimlane: ElementStyleLike
+    diamond: ElementStyleLike
+    arrow: DiagramArrowStyleLike
+    note: ElementStyleLike
+    group: ElementStyleLike
+    title: ElementStyleLike
+
+
+# Type alias for activity diagram style arguments
+ActivityDiagramStyleLike: TypeAlias = ActivityDiagramStyle | ActivityDiagramStyleDict
+
+
+def coerce_activity_diagram_style(
+    value: ActivityDiagramStyleLike,
+) -> ActivityDiagramStyle:
+    """Convert an ActivityDiagramStyleLike value to an ActivityDiagramStyle object."""
+    if isinstance(value, ActivityDiagramStyle):
+        return value
+    return ActivityDiagramStyle(
+        background=_coerce_color_or_gradient(value.get("background")),
+        font_name=value.get("font_name"),
+        font_size=value.get("font_size"),
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
+        activity=coerce_element_style(value["activity"])
+        if "activity" in value
+        else None,
+        partition=coerce_element_style(value["partition"])
+        if "partition" in value
+        else None,
+        swimlane=coerce_element_style(value["swimlane"])
+        if "swimlane" in value
+        else None,
+        diamond=coerce_element_style(value["diamond"])
+        if "diamond" in value
+        else None,
+        arrow=coerce_diagram_arrow_style(value["arrow"])
+        if "arrow" in value
+        else None,
+        note=coerce_element_style(value["note"]) if "note" in value else None,
+        group=coerce_element_style(value["group"]) if "group" in value else None,
+        title=coerce_element_style(value["title"]) if "title" in value else None,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Class Diagram Styling
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ClassDiagramStyle:
+    """Diagram-wide styling for class diagrams.
+
+    This generates a PlantUML <style> block that sets default appearance
+    for all elements in the diagram.
+
+    Example:
+        with class_diagram(
+            diagram_style=ClassDiagramStyle(
+                background="white",
+                class_=ElementStyle(background="#E3F2FD"),
+                arrow=DiagramArrowStyle(line_color="#757575"),
+            )
+        ) as d:
+            ...
+    """
+
+    # Root-level properties
+    background: ColorLike | Gradient | None = None
+    font_name: str | None = None
+    font_size: int | None = None
+    font_color: ColorLike | None = None
+
+    # Element-specific styles (class_ because class is a keyword)
+    class_: ElementStyle | None = None
+    interface: ElementStyle | None = None
+    abstract: ElementStyle | None = None
+    enum: ElementStyle | None = None
+    annotation: ElementStyle | None = None
+    package: ElementStyle | None = None
+    arrow: DiagramArrowStyle | None = None
+    note: ElementStyle | None = None
+    title: ElementStyle | None = None
+
+
+class ClassDiagramStyleDict(TypedDict, total=False):
+    """Dict form of ClassDiagramStyle for convenience."""
+
+    background: ColorLike | Gradient
+    font_name: str
+    font_size: int
+    font_color: ColorLike
+    class_: ElementStyleLike
+    interface: ElementStyleLike
+    abstract: ElementStyleLike
+    enum: ElementStyleLike
+    annotation: ElementStyleLike
+    package: ElementStyleLike
+    arrow: DiagramArrowStyleLike
+    note: ElementStyleLike
+    title: ElementStyleLike
+
+
+# Type alias for class diagram style arguments
+ClassDiagramStyleLike: TypeAlias = ClassDiagramStyle | ClassDiagramStyleDict
+
+
+def coerce_class_diagram_style(
+    value: ClassDiagramStyleLike,
+) -> ClassDiagramStyle:
+    """Convert a ClassDiagramStyleLike value to a ClassDiagramStyle object."""
+    if isinstance(value, ClassDiagramStyle):
+        return value
+    return ClassDiagramStyle(
+        background=_coerce_color_or_gradient(value.get("background")),
+        font_name=value.get("font_name"),
+        font_size=value.get("font_size"),
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
+        class_=coerce_element_style(value["class_"]) if "class_" in value else None,
+        interface=coerce_element_style(value["interface"])
+        if "interface" in value
+        else None,
+        abstract=coerce_element_style(value["abstract"])
+        if "abstract" in value
+        else None,
+        enum=coerce_element_style(value["enum"]) if "enum" in value else None,
+        annotation=coerce_element_style(value["annotation"])
+        if "annotation" in value
+        else None,
+        package=coerce_element_style(value["package"])
+        if "package" in value
+        else None,
+        arrow=coerce_diagram_arrow_style(value["arrow"])
+        if "arrow" in value
+        else None,
+        note=coerce_element_style(value["note"]) if "note" in value else None,
+        title=coerce_element_style(value["title"]) if "title" in value else None,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Object Diagram Styling
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ObjectDiagramStyle:
+    """Diagram-wide styling for object diagrams.
+
+    This generates a PlantUML <style> block that sets default appearance
+    for all elements in the diagram.
+
+    Note: PlantUML ignores arrow and note CSS selectors for object diagrams.
+    Use inline styles for those elements if needed.
+    """
+
+    # Root-level properties
+    background: ColorLike | Gradient | None = None
+    font_name: str | None = None
+    font_size: int | None = None
+    font_color: ColorLike | None = None
+
+    # Element-specific styles (only object and map render)
+    object: ElementStyle | None = None
+    map: ElementStyle | None = None
+    title: ElementStyle | None = None
+
+
+class ObjectDiagramStyleDict(TypedDict, total=False):
+    """Dict form of ObjectDiagramStyle for convenience."""
+
+    background: ColorLike | Gradient
+    font_name: str
+    font_size: int
+    font_color: ColorLike
+    object: ElementStyleLike
+    map: ElementStyleLike
+    title: ElementStyleLike
+
+
+ObjectDiagramStyleLike: TypeAlias = ObjectDiagramStyle | ObjectDiagramStyleDict
+
+
+def coerce_object_diagram_style(
+    value: ObjectDiagramStyleLike,
+) -> ObjectDiagramStyle:
+    """Convert an ObjectDiagramStyleLike value to an ObjectDiagramStyle object."""
+    if isinstance(value, ObjectDiagramStyle):
+        return value
+    return ObjectDiagramStyle(
+        background=_coerce_color_or_gradient(value.get("background")),
+        font_name=value.get("font_name"),
+        font_size=value.get("font_size"),
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
+        object=coerce_element_style(value["object"]) if "object" in value else None,
+        map=coerce_element_style(value["map"]) if "map" in value else None,
+        title=coerce_element_style(value["title"]) if "title" in value else None,
     )

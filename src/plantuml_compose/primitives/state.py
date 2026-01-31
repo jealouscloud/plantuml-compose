@@ -278,7 +278,7 @@ class StateDiagram:
         elements:               All diagram elements (states, transitions, notes)
         title:                  Optional diagram title
         hide_empty_description: If True, hides the separator line in empty states
-        style:                  Diagram-wide styling (colors, fonts, etc.)
+        diagram_style:          Diagram-wide styling (colors, fonts, etc.)
     """
 
     elements: tuple["StateDiagramElement", ...] = field(default_factory=tuple)
@@ -293,7 +293,7 @@ class StateDiagram:
     layout_engine: LayoutEngine | None = None
     linetype: LineType | None = None
     hide_empty_description: bool = False
-    style: StateDiagramStyle | None = None
+    diagram_style: StateDiagramStyle | None = None
 
 
 # Type alias for elements that can appear in a state diagram

@@ -6,13 +6,11 @@ Pure functions that transform state diagram primitives to PlantUML text.
 from __future__ import annotations
 
 from ..primitives.common import (
-    DiagramArrowStyle,
-    ElementStyle,
     Note,
     StateDiagramStyle,
     Style,
+    sanitize_ref,
 )
-from ..primitives.common import sanitize_ref
 from ..primitives.state import (
     CompositeState,
     ConcurrentState,
@@ -27,6 +25,7 @@ from .common import (
     escape_quotes,
     render_caption,
     render_color,
+    render_diagram_style,
     render_footer,
     render_header,
     render_label,
@@ -112,8 +111,8 @@ def render_state_diagram(diagram: StateDiagram) -> str:
         lines.append(theme_line)
 
     # Style block comes after theme
-    if diagram.style:
-        lines.extend(_render_diagram_style(diagram.style))
+    if diagram.diagram_style:
+        lines.extend(_render_state_diagram_style(diagram.diagram_style))
 
     # Scale (affects output size)
     if diagram.scale:
@@ -175,122 +174,21 @@ def render_state_diagram(diagram: StateDiagram) -> str:
     return "\n".join(lines)
 
 
-def _render_diagram_style(style: StateDiagramStyle) -> list[str]:
-    """Render a typed StateDiagramStyle to PlantUML <style> block."""
-    # Collect stateDiagram block content
-    diagram_props: list[str] = []
-
-    # Root-level properties
-    if style.background:
-        diagram_props.append(
-            f"  BackgroundColor {render_color(style.background)}"
-        )
-    if style.font_name:
-        diagram_props.append(f"  FontName {style.font_name}")
-    if style.font_size:
-        diagram_props.append(f"  FontSize {style.font_size}")
-    if style.font_color:
-        diagram_props.append(f"  FontColor {render_color(style.font_color)}")
-
-    # State element styles
-    if style.state:
-        diagram_props.extend(
-            _render_element_style("state", style.state, indent=2)
-        )
-
-    # Arrow styles
-    if style.arrow:
-        diagram_props.extend(_render_arrow_style(style.arrow))
-
-    # Note element styles
-    if style.note:
-        diagram_props.extend(
-            _render_element_style("note", style.note, indent=2)
-        )
-
-    # Collect document block content (for title)
-    document_props: list[str] = []
-    if style.title:
-        document_props.extend(
-            _render_element_style("title", style.title, indent=2)
-        )
-
-    # Only emit style block if there's content
-    if not diagram_props and not document_props:
-        return []
-
-    lines: list[str] = ["<style>"]
-
-    # Emit stateDiagram block if it has content
-    if diagram_props:
-        lines.append("stateDiagram {")
-        lines.extend(diagram_props)
-        lines.append("}")
-
-    # Emit document block for title styling (separate from stateDiagram)
-    if document_props:
-        lines.append("document {")
-        lines.extend(document_props)
-        lines.append("}")
-
-    lines.append("</style>")
-    return lines
-
-
-def _render_element_style(
-    selector: str, style: ElementStyle, indent: int = 2
-) -> list[str]:
-    """Render an ElementStyle as a nested block. Returns empty list if no properties."""
-    props: list[str] = []
-    prefix = " " * indent
-    inner_prefix = " " * (indent + 2)
-
-    if style.background:
-        props.append(
-            f"{inner_prefix}BackgroundColor {render_color(style.background)}"
-        )
-    if style.line_color:
-        props.append(
-            f"{inner_prefix}LineColor {render_color(style.line_color)}"
-        )
-    if style.font_color:
-        props.append(
-            f"{inner_prefix}FontColor {render_color(style.font_color)}"
-        )
-    if style.font_name:
-        props.append(f"{inner_prefix}FontName {style.font_name}")
-    if style.font_size:
-        props.append(f"{inner_prefix}FontSize {style.font_size}")
-    if style.font_style:
-        props.append(f"{inner_prefix}FontStyle {style.font_style}")
-    if style.round_corner is not None:
-        props.append(f"{inner_prefix}RoundCorner {style.round_corner}")
-    if style.line_thickness is not None:
-        props.append(f"{inner_prefix}LineThickness {style.line_thickness}")
-
-    # Only return block if there are properties
-    if not props:
-        return []
-
-    return [f"{prefix}{selector} {{"] + props + [f"{prefix}}}"]
-
-
-def _render_arrow_style(style: DiagramArrowStyle) -> list[str]:
-    """Render a DiagramArrowStyle as a nested block. Returns empty list if no properties."""
-    props: list[str] = []
-
-    if style.line_color:
-        props.append(f"    LineColor {render_color(style.line_color)}")
-    if style.line_thickness is not None:
-        props.append(f"    LineThickness {style.line_thickness}")
-    if style.line_pattern:
-        props.append(f"    LineStyle {style.line_pattern}")
-
-    # Only return block if there are properties
-    if not props:
-        return []
-
-    return ["  arrow {"] + props + ["  }"]
+def _render_state_diagram_style(style: StateDiagramStyle) -> list[str]:
+    """Render a StateDiagramStyle to PlantUML <style> block."""
+    return render_diagram_style(
+        diagram_type="stateDiagram",
+        root_background=style.background,
+        root_font_name=style.font_name,
+        root_font_size=style.font_size,
+        root_font_color=style.font_color,
+        element_styles=[
+            ("state", style.state),
+            ("note", style.note),
+        ],
+        arrow_style=style.arrow,
+        title_style=style.title,
+    )
 
 
 def _render_element(

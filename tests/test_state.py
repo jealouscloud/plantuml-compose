@@ -1064,7 +1064,7 @@ class TestStateDiagramStyle:
     def test_style_with_background(self):
         """Style with root-level background color."""
         with state_diagram(
-            style=StateDiagramStyle(background=Color.named("white"))
+            diagram_style=StateDiagramStyle(background=Color.named("white"))
         ) as d:
             d.state("S1")
 
@@ -1077,7 +1077,7 @@ class TestStateDiagramStyle:
     def test_style_with_font_properties(self):
         """Style with font properties."""
         with state_diagram(
-            style=StateDiagramStyle(
+            diagram_style=StateDiagramStyle(
                 font_name="Arial",
                 font_size=14,
                 font_color=Color.named("black"),
@@ -1094,7 +1094,7 @@ class TestStateDiagramStyle:
         """Style block should appear before title in the output."""
         with state_diagram(
             title="My Diagram",
-            style=StateDiagramStyle(background=Color.named("white")),
+            diagram_style=StateDiagramStyle(background=Color.named("white")),
         ) as d:
             d.state("S1")
 
@@ -1114,7 +1114,7 @@ class TestStateDiagramStyle:
     def test_state_element_style(self):
         """Style for state elements."""
         with state_diagram(
-            style=StateDiagramStyle(
+            diagram_style=StateDiagramStyle(
                 state=ElementStyle(
                     background=Color.hex("#E3F2FD"),
                     line_color=Color.hex("#1976D2"),
@@ -1135,7 +1135,7 @@ class TestStateDiagramStyle:
     def test_arrow_style(self):
         """Style for arrows."""
         with state_diagram(
-            style=StateDiagramStyle(
+            diagram_style=StateDiagramStyle(
                 arrow=DiagramArrowStyle(
                     line_color=Color.hex("#757575"),
                     line_thickness=2,
@@ -1156,7 +1156,7 @@ class TestStateDiagramStyle:
     def test_full_style_block(self):
         """Complete style block with all element types."""
         with state_diagram(
-            style=StateDiagramStyle(
+            diagram_style=StateDiagramStyle(
                 background=Color.named("white"),
                 font_name="Arial",
                 state=ElementStyle(
@@ -1186,7 +1186,7 @@ class TestStateDiagramStyle:
     def test_element_style_font_properties(self):
         """Element style with font properties."""
         with state_diagram(
-            style=StateDiagramStyle(
+            diagram_style=StateDiagramStyle(
                 state=ElementStyle(
                     font_name="Courier",
                     font_size=12,
@@ -1203,7 +1203,7 @@ class TestStateDiagramStyle:
 
     def test_empty_style_no_output(self):
         """Empty StateDiagramStyle should not emit style block."""
-        with state_diagram(style=StateDiagramStyle()) as d:
+        with state_diagram(diagram_style=StateDiagramStyle()) as d:
             d.state("S1")
 
         output = render(d.build())
@@ -1213,7 +1213,7 @@ class TestStateDiagramStyle:
     def test_empty_element_style_no_nested_block(self):
         """Empty ElementStyle should not emit nested block."""
         with state_diagram(
-            style=StateDiagramStyle(
+            diagram_style=StateDiagramStyle(
                 background=Color.named("white"),
                 state=ElementStyle(),  # Empty - should not emit state {}
             )
@@ -1229,7 +1229,7 @@ class TestStateDiagramStyle:
     def test_title_uses_document_selector(self):
         """Title styling should use document selector, not stateDiagram."""
         with state_diagram(
-            style=StateDiagramStyle(title=ElementStyle(font_color=Color.named("red")))
+            diagram_style=StateDiagramStyle(title=ElementStyle(font_color=Color.named("red")))
         ) as d:
             d.state("S1")
 
@@ -1256,7 +1256,7 @@ class TestStateDiagramStyle:
         """Gradient should work in style block background."""
 
         with state_diagram(
-            style=StateDiagramStyle(
+            diagram_style=StateDiagramStyle(
                 background=Gradient(Color.named("red"), Color.named("green"))
             )
         ) as d:
@@ -1269,7 +1269,7 @@ class TestStateDiagramStyle:
         """Dict-based styling for minimal imports."""
         # No need to import StateDiagramStyle, ElementStyle, DiagramArrowStyle
         with state_diagram(
-            style={
+            diagram_style={
                 "background": "white",
                 "font_name": "Arial",
                 "state": {
@@ -1300,7 +1300,7 @@ class TestStateDiagramStyle:
     def test_dict_based_style_gradient_background(self):
         """Dict-based root styles should accept Gradient values."""
         with state_diagram(
-            style={
+            diagram_style={
                 "background": Gradient(Color.named("red"), Color.named("blue")),
             }
         ) as d:

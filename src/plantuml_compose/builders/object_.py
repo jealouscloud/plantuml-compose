@@ -76,11 +76,13 @@ from ..primitives.common import (
     Legend,
     LineStyleLike,
     LineType,
+    ObjectDiagramStyleLike,
     Scale,
     Stereotype,
     StyleLike,
     coerce_direction,
     coerce_line_style,
+    coerce_object_diagram_style,
     validate_style_background_only,
 )
 from ..primitives.object_ import (
@@ -677,6 +679,7 @@ class ObjectDiagramBuilder(_BaseObjectBuilder):
         layout: LayoutDirection | None = None,
         layout_engine: LayoutEngine | None = None,
         linetype: LineType | None = None,
+        diagram_style: ObjectDiagramStyleLike | None = None,
     ) -> None:
         super().__init__()
         self._title = title
@@ -691,6 +694,9 @@ class ObjectDiagramBuilder(_BaseObjectBuilder):
         self._layout = layout
         self._layout_engine = layout_engine
         self._linetype = linetype
+        self._diagram_style = (
+            coerce_object_diagram_style(diagram_style) if diagram_style else None
+        )
 
     def build(self) -> ObjectDiagram:
         """Build the complete object diagram."""
@@ -706,6 +712,7 @@ class ObjectDiagramBuilder(_BaseObjectBuilder):
             layout=self._layout,
             layout_engine=self._layout_engine,
             linetype=self._linetype,
+            diagram_style=self._diagram_style,
         )
 
     def render(self) -> str:
@@ -731,6 +738,7 @@ def object_diagram(
     layout: LayoutDirection | None = None,
     layout_engine: LayoutEngine | None = None,
     linetype: LineType | None = None,
+    diagram_style: ObjectDiagramStyleLike | None = None,
 ) -> Iterator[ObjectDiagramBuilder]:
     """Create an object diagram with context manager syntax.
 
@@ -757,6 +765,7 @@ def object_diagram(
         layout: Diagram layout direction; None uses PlantUML default (top-to-bottom)
         layout_engine: Layout engine; "smetana" uses pure-Java GraphViz alternative
         linetype: Line routing style; "ortho" for right angles, "polyline" for direct
+        diagram_style: CSS-style styling for the diagram (colors, fonts, etc.)
 
     Yields:
         An ObjectDiagramBuilder for adding diagram elements
@@ -772,5 +781,6 @@ def object_diagram(
         layout=layout,
         layout_engine=layout_engine,
         linetype=linetype,
+        diagram_style=diagram_style,
     )
     yield builder

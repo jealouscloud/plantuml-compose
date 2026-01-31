@@ -5,7 +5,10 @@ Pure functions that transform object diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
-from ..primitives.common import sanitize_ref
+from ..primitives.common import (
+    sanitize_ref,
+    ObjectDiagramStyle,
+)
 from ..primitives.object_ import (
     Map,
     Object,
@@ -20,6 +23,7 @@ from .common import (
     quote_ref,
     render_caption,
     render_color,
+    render_diagram_style,
     render_footer,
     render_header,
     render_label,
@@ -86,6 +90,10 @@ def render_object_diagram(diagram: ObjectDiagram) -> str:
     linetype_line = render_linetype(diagram.linetype)
     if linetype_line:
         lines.append(linetype_line)
+
+    # Diagram-wide CSS styling
+    if diagram.diagram_style:
+        lines.extend(_render_object_diagram_style(diagram.diagram_style))
 
     for elem in diagram.elements:
         lines.extend(_render_element(elem))
@@ -299,3 +307,23 @@ def _render_note(note: ObjectNote, indent: int = 0) -> list[str]:
         return lines
 
     return [f"{prefix}{pos}{color_part}: {content}"]
+
+
+def _render_object_diagram_style(style: ObjectDiagramStyle) -> list[str]:
+    """Render an ObjectDiagramStyle to PlantUML <style> block.
+
+    Note: PlantUML ignores arrow and note CSS selectors for object diagrams.
+    """
+    return render_diagram_style(
+        diagram_type="objectDiagram",
+        root_background=style.background,
+        root_font_name=style.font_name,
+        root_font_size=style.font_size,
+        root_font_color=style.font_color,
+        element_styles=[
+            ("object", style.object),
+            ("map", style.map),
+        ],
+        arrow_style=None,  # PlantUML ignores arrow CSS for object diagrams
+        title_style=style.title,
+    )

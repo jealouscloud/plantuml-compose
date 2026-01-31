@@ -957,3 +957,135 @@ class TestTeozFeatures:
 
         output = render(d.build())
         assert "->(20)" in output
+
+
+class TestDiagramStyle:
+    """Tests for CSS-like diagram-wide styling."""
+
+    def test_diagram_style_with_dict(self):
+        """Test diagram_style with dict input."""
+        with sequence_diagram(
+            diagram_style={
+                "background": "white",
+                "font_name": "Arial",
+                "participant": {"background": "#E3F2FD", "line_color": "#1976D2"},
+                "arrow": {"line_color": "#757575"},
+            }
+        ) as d:
+            a, b = d.participants("A", "B")
+            d.message(a, b, "hello")
+
+        output = render(d.build())
+        assert "<style>" in output
+        assert "</style>" in output
+        assert "sequenceDiagram {" in output
+        assert "BackgroundColor white" in output
+        assert "FontName Arial" in output
+        assert "participant {" in output
+        assert "BackgroundColor #E3F2FD" in output
+        assert "LineColor #1976D2" in output
+        assert "arrow {" in output
+        assert "LineColor #757575" in output
+
+    def test_diagram_style_with_typed_objects(self):
+        """Test diagram_style with typed style objects."""
+        from plantuml_compose.primitives import (
+            SequenceDiagramStyle,
+            ElementStyle,
+            DiagramArrowStyle,
+        )
+
+        style = SequenceDiagramStyle(
+            background="white",
+            participant=ElementStyle(background="#BBDEFB"),
+            arrow=DiagramArrowStyle(line_color="blue", line_thickness=2),
+        )
+        with sequence_diagram(diagram_style=style) as d:
+            a, b = d.participants("A", "B")
+            d.message(a, b, "test")
+
+        output = render(d.build())
+        assert "BackgroundColor white" in output
+        assert "participant {" in output
+        assert "BackgroundColor #BBDEFB" in output
+        assert "arrow {" in output
+        assert "LineColor blue" in output
+        assert "LineThickness 2" in output
+
+    def test_diagram_style_actor_specific(self):
+        """Test styling specific participant types."""
+        with sequence_diagram(
+            diagram_style={
+                "actor": {"background": "yellow"},
+                "database": {"background": "green"},
+            }
+        ) as d:
+            user = d.actor("User")
+            db = d.database("DB")
+            d.message(user, db, "query")
+
+        output = render(d.build())
+        assert "actor {" in output
+        assert "database {" in output
+
+    def test_diagram_style_note_and_box(self):
+        """Test note and box styling."""
+        with sequence_diagram(
+            diagram_style={
+                "note": {"background": "#FFFDE7", "font_color": "black"},
+                "box": {"background": "#E8EAF6"},
+            }
+        ) as d:
+            with d.box("Services") as box:
+                a = box.participant("A")
+            b = d.participant("B")
+            d.message(a, b, "msg")
+            d.note("A note", of=a)
+
+        output = render(d.build())
+        assert "note {" in output
+        assert "BackgroundColor #FFFDE7" in output
+        assert "FontColor black" in output
+        assert "box {" in output
+        assert "BackgroundColor #E8EAF6" in output
+
+    def test_diagram_style_title(self):
+        """Test title styling goes to document block."""
+        with sequence_diagram(
+            title="My Title",
+            diagram_style={
+                "title": {"font_size": 24, "font_color": "navy"},
+            }
+        ) as d:
+            a, b = d.participants("A", "B")
+            d.message(a, b, "msg")
+
+        output = render(d.build())
+        assert "document {" in output
+        assert "title {" in output
+        assert "FontSize 24" in output
+        assert "FontColor navy" in output
+
+    def test_diagram_style_empty_produces_no_block(self):
+        """Test that empty style doesn't produce style block."""
+        from plantuml_compose.primitives import SequenceDiagramStyle
+
+        with sequence_diagram(diagram_style=SequenceDiagramStyle()) as d:
+            a, b = d.participants("A", "B")
+            d.message(a, b, "msg")
+
+        output = render(d.build())
+        assert "<style>" not in output
+
+    def test_diagram_style_arrow_line_pattern(self):
+        """Test arrow line pattern styling."""
+        with sequence_diagram(
+            diagram_style={
+                "arrow": {"line_pattern": "dashed"},
+            }
+        ) as d:
+            a, b = d.participants("A", "B")
+            d.message(a, b, "msg")
+
+        output = render(d.build())
+        assert "LineStyle dashed" in output

@@ -24,6 +24,7 @@ from dataclasses import dataclass, field
 from typing import Literal, TypeAlias
 
 from .common import (
+    ActivityDiagramStyle,
     ColorLike,
     Footer,
     Header,
@@ -415,6 +416,7 @@ class ActivityDiagram:
     theme: ThemeLike = None
     layout_engine: LayoutEngine | None = None
     linetype: LineType | None = None
+    diagram_style: ActivityDiagramStyle | None = None  # CSS-like diagram styling
     vertical_if: bool = False  # Enable vertical if/else layout
 
 

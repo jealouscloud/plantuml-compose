@@ -363,6 +363,384 @@ stop
         )
 
 
+class TestCssStyleSelectorLimitations:
+    """Verify that certain CSS-style selectors are NOT rendered by PlantUML.
+
+    PlantUML accepts these selectors in <style> blocks but ignores them.
+    If any of these tests FAIL, PlantUML has added support and we should
+    add proper rendering tests for those selectors.
+
+    The selectors that DO work are tested in test_diagram_style_integration.py.
+    """
+
+    # --- Class Diagram Selectors That Don't Render ---
+
+    def test_class_interface_style_not_rendered(self, render_and_parse_svg):
+        """Class diagram 'interface' selector is ignored by PlantUML."""
+        puml = """
+@startuml
+<style>
+classDiagram {
+  interface {
+    BackgroundColor #FF0000
+  }
+}
+</style>
+interface MyInterface
+@enduml
+"""
+        svg = render_and_parse_svg(puml)
+        assert not svg_contains_color(svg, "#FF0000"), (
+            "PlantUML now renders 'interface' CSS-style selector in class diagrams! "
+            "Add interface selector tests to test_diagram_style_integration.py."
+        )
+
+    def test_class_abstract_style_not_rendered(self, render_and_parse_svg):
+        """Class diagram 'abstract' selector is ignored by PlantUML."""
+        puml = """
+@startuml
+<style>
+classDiagram {
+  abstract {
+    BackgroundColor #FF0000
+  }
+}
+</style>
+abstract class MyAbstract
+@enduml
+"""
+        svg = render_and_parse_svg(puml)
+        assert not svg_contains_color(svg, "#FF0000"), (
+            "PlantUML now renders 'abstract' CSS-style selector in class diagrams! "
+            "Add abstract selector tests to test_diagram_style_integration.py."
+        )
+
+    def test_class_enum_style_not_rendered(self, render_and_parse_svg):
+        """Class diagram 'enum' selector is ignored by PlantUML."""
+        puml = """
+@startuml
+<style>
+classDiagram {
+  enum {
+    BackgroundColor #FF0000
+  }
+}
+</style>
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+@enduml
+"""
+        svg = render_and_parse_svg(puml)
+        assert not svg_contains_color(svg, "#FF0000"), (
+            "PlantUML now renders 'enum' CSS-style selector in class diagrams! "
+            "Add enum selector tests to test_diagram_style_integration.py."
+        )
+
+    def test_class_annotation_style_not_rendered(self, render_and_parse_svg):
+        """Class diagram 'annotation' selector is ignored by PlantUML."""
+        puml = """
+@startuml
+<style>
+classDiagram {
+  annotation {
+    BackgroundColor #FF0000
+  }
+}
+</style>
+annotation MyAnnotation
+@enduml
+"""
+        svg = render_and_parse_svg(puml)
+        assert not svg_contains_color(svg, "#FF0000"), (
+            "PlantUML now renders 'annotation' CSS-style selector in class diagrams! "
+            "Add annotation selector tests to test_diagram_style_integration.py."
+        )
+
+    # --- Sequence Diagram Selectors That Don't Render ---
+
+    def test_sequence_lifeline_style_not_rendered(self, render_and_parse_svg):
+        """Sequence diagram 'lifeline' selector is ignored by PlantUML."""
+        puml = """
+@startuml
+<style>
+sequenceDiagram {
+  lifeline {
+    BackgroundColor #FF0000
+  }
+}
+</style>
+participant A
+participant B
+A -> B : message
+@enduml
+"""
+        svg = render_and_parse_svg(puml)
+        assert not svg_contains_color(svg, "#FF0000"), (
+            "PlantUML now renders 'lifeline' CSS-style selector! "
+            "Add lifeline selector tests to test_diagram_style_integration.py."
+        )
+
+    # NOTE: 'box' selector DOES render - tested in test_diagram_style_integration.py
+
+    # --- Component Diagram Selectors That Don't Render ---
+
+    def test_component_interface_style_not_rendered(self, render_and_parse_svg):
+        """Component diagram 'interface' selector is ignored by PlantUML."""
+        puml = """
+@startuml
+<style>
+componentDiagram {
+  interface {
+    BackgroundColor #FF0000
+  }
+}
+</style>
+interface MyInterface
+@enduml
+"""
+        svg = render_and_parse_svg(puml)
+        assert not svg_contains_color(svg, "#FF0000"), (
+            "PlantUML now renders 'interface' CSS-style selector in component diagrams! "
+            "Add interface selector tests to test_diagram_style_integration.py."
+        )
+
+    # --- Deployment Diagram - ALL Selectors Don't Render ---
+
+    def test_deployment_node_style_not_rendered(self, render_and_parse_svg):
+        """Deployment diagram 'node' selector is ignored by PlantUML."""
+        puml = """
+@startuml
+<style>
+deploymentDiagram {
+  node {
+    BackgroundColor #FF0000
+  }
+}
+</style>
+node Server
+@enduml
+"""
+        svg = render_and_parse_svg(puml)
+        assert not svg_contains_color(svg, "#FF0000"), (
+            "PlantUML now renders 'node' CSS-style selector in deployment diagrams! "
+            "Add deployment node style tests to test_diagram_style_integration.py."
+        )
+
+    def test_deployment_database_style_not_rendered(self, render_and_parse_svg):
+        """Deployment diagram 'database' selector is ignored by PlantUML."""
+        puml = """
+@startuml
+<style>
+deploymentDiagram {
+  database {
+    BackgroundColor #FF0000
+  }
+}
+</style>
+database MyDB
+@enduml
+"""
+        svg = render_and_parse_svg(puml)
+        assert not svg_contains_color(svg, "#FF0000"), (
+            "PlantUML now renders 'database' CSS-style selector in deployment diagrams! "
+            "Add deployment database style tests to test_diagram_style_integration.py."
+        )
+
+    def test_deployment_arrow_style_not_rendered(self, render_and_parse_svg):
+        """Deployment diagram 'arrow' selector is ignored by PlantUML."""
+        puml = """
+@startuml
+<style>
+deploymentDiagram {
+  arrow {
+    LineColor #FF0000
+  }
+}
+</style>
+node A
+node B
+A --> B
+@enduml
+"""
+        svg = render_and_parse_svg(puml)
+        assert not svg_contains_color(svg, "#FF0000"), (
+            "PlantUML now renders 'arrow' CSS-style selector in deployment diagrams! "
+            "Add deployment arrow style tests to test_diagram_style_integration.py."
+        )
+
+    # --- Use Case Diagram - ALL Selectors Don't Render ---
+
+    def test_usecase_actor_style_not_rendered(self, render_and_parse_svg):
+        """Use case diagram 'actor' selector is ignored by PlantUML."""
+        puml = """
+@startuml
+<style>
+usecaseDiagram {
+  actor {
+    BackgroundColor #FF0000
+  }
+}
+</style>
+actor User
+@enduml
+"""
+        svg = render_and_parse_svg(puml)
+        assert not svg_contains_color(svg, "#FF0000"), (
+            "PlantUML now renders 'actor' CSS-style selector in use case diagrams! "
+            "Add usecase actor style tests to test_diagram_style_integration.py."
+        )
+
+    def test_usecase_usecase_style_not_rendered(self, render_and_parse_svg):
+        """Use case diagram 'usecase' selector is ignored by PlantUML."""
+        puml = """
+@startuml
+<style>
+usecaseDiagram {
+  usecase {
+    BackgroundColor #FF0000
+  }
+}
+</style>
+usecase (Login)
+@enduml
+"""
+        svg = render_and_parse_svg(puml)
+        assert not svg_contains_color(svg, "#FF0000"), (
+            "PlantUML now renders 'usecase' CSS-style selector in use case diagrams! "
+            "Add usecase style tests to test_diagram_style_integration.py."
+        )
+
+    def test_usecase_arrow_style_not_rendered(self, render_and_parse_svg):
+        """Use case diagram 'arrow' selector is ignored by PlantUML."""
+        puml = """
+@startuml
+<style>
+usecaseDiagram {
+  arrow {
+    LineColor #FF0000
+  }
+}
+</style>
+actor User
+usecase (Login)
+User --> Login
+@enduml
+"""
+        svg = render_and_parse_svg(puml)
+        assert not svg_contains_color(svg, "#FF0000"), (
+            "PlantUML now renders 'arrow' CSS-style selector in use case diagrams! "
+            "Add usecase arrow style tests to test_diagram_style_integration.py."
+        )
+
+    # --- Object Diagram Selectors That Don't Render ---
+
+    def test_object_arrow_style_not_rendered(self, render_and_parse_svg):
+        """Object diagram 'arrow' selector is ignored by PlantUML."""
+        puml = """
+@startuml
+<style>
+objectDiagram {
+  arrow {
+    LineColor #FF0000
+  }
+}
+</style>
+object A
+object B
+A --> B
+@enduml
+"""
+        svg = render_and_parse_svg(puml)
+        assert not svg_contains_color(svg, "#FF0000"), (
+            "PlantUML now renders 'arrow' CSS-style selector in object diagrams! "
+            "Add object arrow style tests to test_diagram_style_integration.py."
+        )
+
+    def test_object_note_style_not_rendered(self, render_and_parse_svg):
+        """Object diagram 'note' selector is ignored by PlantUML."""
+        puml = """
+@startuml
+<style>
+objectDiagram {
+  note {
+    BackgroundColor #FF0000
+  }
+}
+</style>
+object MyObj
+note right of MyObj: A note
+@enduml
+"""
+        svg = render_and_parse_svg(puml)
+        assert not svg_contains_color(svg, "#FF0000"), (
+            "PlantUML now renders 'note' CSS-style selector in object diagrams! "
+            "Add object note style tests to test_diagram_style_integration.py."
+        )
+
+    def test_sequence_delay_style_not_rendered(self, render_and_parse_svg):
+        """Sequence diagram 'delay' selector is ignored by PlantUML."""
+        puml = """
+@startuml
+<style>
+sequenceDiagram {
+  delay {
+    BackgroundColor #FF0000
+  }
+}
+</style>
+participant A
+participant B
+A -> B : Before
+...
+A -> B : After
+@enduml
+"""
+        svg = render_and_parse_svg(puml)
+        assert not svg_contains_color(svg, "#FF0000"), (
+            "PlantUML now renders 'delay' CSS-style selector! "
+            "Add delay selector tests to test_diagram_style_integration.py."
+        )
+
+
+class TestElementStylePropertyLimitations:
+    """Verify that certain ElementStyle CSS properties are NOT rendered.
+
+    If any of these tests FAIL, PlantUML has added support and we should
+    update the ElementStyle field documentation.
+    """
+
+    def test_line_style_not_rendered(self, render_and_parse_svg):
+        """ElementStyle LineStyle property is ignored by PlantUML CSS."""
+        puml = """
+@startuml
+<style>
+classDiagram {
+  class {
+    BackgroundColor #AABBCC
+    LineStyle dashed
+  }
+}
+</style>
+class Test
+@enduml
+"""
+        svg = render_and_parse_svg(puml)
+        # LineStyle dashed should NOT produce dash patterns in the SVG
+        # We check that background color IS rendered (syntax accepted)
+        # but no dashed stroke pattern appears
+        assert svg_contains_color(svg, "#AABBCC"), (
+            "Background color not rendered. Test may be broken."
+        )
+        # If PlantUML starts rendering LineStyle, the class border would become dashed
+        # Check that the class border is NOT dashed (no stroke-dasharray on the rect)
+        assert "stroke-dasharray" not in svg, (
+            "PlantUML now renders 'LineStyle' CSS property! "
+            "Update ElementStyle documentation and consider exposing in API."
+        )
+
+
 class TestBuiltinThemes:
     """Verify that PlantUMLBuiltinTheme Literal matches actual PlantUML themes.
 

@@ -21,6 +21,7 @@ from ..primitives.class_ import (
     _VISIBILITY_TO_SYMBOL,
 )
 from ..primitives.common import (
+    ClassDiagramStyle,
     Note,
     Style,
     coerce_line_style,
@@ -31,6 +32,7 @@ from .common import (
     quote_ref,
     render_caption,
     render_color,
+    render_diagram_style,
     render_footer,
     render_header,
     render_label,
@@ -109,6 +111,10 @@ def render_class_diagram(diagram: ClassDiagram) -> str:
     linetype_line = render_linetype(diagram.linetype)
     if linetype_line:
         lines.append(linetype_line)
+
+    # Diagram-wide CSS styling
+    if diagram.diagram_style:
+        lines.extend(_render_class_diagram_style(diagram.diagram_style))
 
     # Namespace separator
     if diagram.namespace_separator is not None:
@@ -518,3 +524,25 @@ def _render_floating_note(note: Note, ctx: _RenderContext) -> list[str]:
         return lines
 
     return [f'note "{content}" as {alias}']
+
+
+def _render_class_diagram_style(style: ClassDiagramStyle) -> list[str]:
+    """Render a ClassDiagramStyle to PlantUML <style> block."""
+    return render_diagram_style(
+        diagram_type="classDiagram",
+        root_background=style.background,
+        root_font_name=style.font_name,
+        root_font_size=style.font_size,
+        root_font_color=style.font_color,
+        element_styles=[
+            ("class", style.class_),
+            ("interface", style.interface),
+            ("abstract", style.abstract),
+            ("enum", style.enum),
+            ("annotation", style.annotation),
+            ("package", style.package),
+            ("note", style.note),
+        ],
+        arrow_style=style.arrow,
+        title_style=style.title,
+    )

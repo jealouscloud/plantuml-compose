@@ -5,7 +5,10 @@ Pure functions that transform sequence diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
-from ..primitives.common import coerce_line_style
+from ..primitives.common import (
+    coerce_line_style,
+    SequenceDiagramStyle,
+)
 from ..primitives.sequence import (
     Activation,
     Autonumber,
@@ -26,6 +29,7 @@ from .common import (
     escape_quotes,
     render_caption,
     render_color,
+    render_diagram_style,
     render_footer,
     render_header,
     render_label,
@@ -91,6 +95,10 @@ def render_sequence_diagram(diagram: SequenceDiagram) -> str:
 
     if diagram.hide_unlinked:
         lines.append("hide unlinked")
+
+    # Diagram-wide CSS-like styling
+    if diagram.diagram_style:
+        lines.extend(_render_sequence_diagram_style(diagram.diagram_style))
 
     # Autonumber at start
     if diagram.autonumber:
@@ -414,3 +422,32 @@ def _render_autonumber(auto: Autonumber) -> str:
         parts.append(f'"{auto.format}"')
 
     return " ".join(parts)
+
+
+def _render_sequence_diagram_style(style: SequenceDiagramStyle) -> list[str]:
+    """Render a SequenceDiagramStyle to PlantUML <style> block."""
+    return render_diagram_style(
+        diagram_type="sequenceDiagram",
+        root_background=style.background,
+        root_font_name=style.font_name,
+        root_font_size=style.font_size,
+        root_font_color=style.font_color,
+        element_styles=[
+            ("participant", style.participant),
+            ("actor", style.actor),
+            ("boundary", style.boundary),
+            ("control", style.control),
+            ("entity", style.entity),
+            ("database", style.database),
+            ("collections", style.collections),
+            ("queue", style.queue),
+            ("lifeLine", style.lifeline),
+            ("note", style.note),
+            ("box", style.box),
+            ("group", style.group),
+            ("separator", style.divider),
+            ("reference", style.reference),
+        ],
+        arrow_style=style.arrow,
+        title_style=style.title,
+    )

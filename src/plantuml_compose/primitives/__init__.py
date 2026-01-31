@@ -4,6 +4,10 @@ All types are frozen dataclasses - immutable data with no behavior.
 """
 
 from .common import (
+    ActivityDiagramStyle,
+    ActivityDiagramStyleLike,
+    ClassDiagramStyle,
+    ClassDiagramStyleLike,
     Color,
     ColorLike,
     DiagramArrowStyle,
@@ -24,8 +28,12 @@ from .common import (
     LineType,
     Note,
     NotePosition,
+    ObjectDiagramStyle,
+    ObjectDiagramStyleLike,
     PlantUMLBuiltinTheme,
     RegionSeparator,
+    SequenceDiagramStyle,
+    SequenceDiagramStyleLike,
     Spot,
     StateDiagramStyle,
     StateDiagramStyleLike,
@@ -162,6 +170,10 @@ from .state import (
 
 __all__ = [
     # Common
+    "ActivityDiagramStyle",
+    "ActivityDiagramStyleLike",
+    "ClassDiagramStyle",
+    "ClassDiagramStyleLike",
     "Color",
     "ColorLike",
     "DiagramArrowStyle",
@@ -182,8 +194,12 @@ __all__ = [
     "LineType",
     "Note",
     "NotePosition",
+    "ObjectDiagramStyle",
+    "ObjectDiagramStyleLike",
     "PlantUMLBuiltinTheme",
     "RegionSeparator",
+    "SequenceDiagramStyle",
+    "SequenceDiagramStyleLike",
     "Spot",
     "StateDiagramStyle",
     "StateDiagramStyleLike",

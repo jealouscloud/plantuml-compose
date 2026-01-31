@@ -823,3 +823,62 @@ class TestNestedBuilderRestrictions:
                 assert hasattr(branch, "break_")
                 assert hasattr(branch, "if_")  # Nesting is valid
                 branch.action("test")
+
+
+class TestDiagramStyle:
+    """Tests for CSS-like diagram-wide styling."""
+
+    def test_diagram_style_with_dict(self):
+        """Test diagram_style with dict input."""
+        with activity_diagram(
+            diagram_style={
+                "background": "white",
+                "font_name": "Arial",
+                "activity": {"background": "#E3F2FD", "line_color": "#1976D2"},
+                "arrow": {"line_color": "#757575"},
+            }
+        ) as d:
+            d.start()
+            d.action("Test Action")
+            d.stop()
+
+        output = render(d.build())
+        assert "<style>" in output
+        assert "</style>" in output
+        assert "activityDiagram {" in output
+        assert "BackgroundColor white" in output
+        assert "FontName Arial" in output
+        assert "activity {" in output
+        assert "BackgroundColor #E3F2FD" in output
+        assert "LineColor #1976D2" in output
+        assert "arrow {" in output
+        assert "LineColor #757575" in output
+
+    def test_diagram_style_partition_and_diamond(self):
+        """Test partition and diamond styling."""
+        with activity_diagram(
+            diagram_style={
+                "partition": {"background": "#EEEEEE"},
+                "diamond": {"background": "yellow"},
+            }
+        ) as d:
+            d.start()
+            with d.partition("Test") as p:
+                with p.if_("Condition?") as branch:
+                    branch.action("Yes")
+            d.stop()
+
+        output = render(d.build())
+        assert "partition {" in output
+        assert "diamond {" in output
+
+    def test_diagram_style_empty_produces_no_block(self):
+        """Test that empty style doesn't produce style block."""
+        from plantuml_compose.primitives import ActivityDiagramStyle
+
+        with activity_diagram(diagram_style=ActivityDiagramStyle()) as d:
+            d.start()
+            d.stop()
+
+        output = render(d.build())
+        assert "<style>" not in output

@@ -24,6 +24,7 @@ from dataclasses import dataclass, field
 from typing import Literal, TypeAlias
 
 from .common import (
+    ClassDiagramStyle,
     ColorLike,
     Direction,
     Footer,
@@ -343,6 +344,7 @@ class ClassDiagram:
     layout: LayoutDirection | None = None
     layout_engine: LayoutEngine | None = None
     linetype: LineType | None = None
+    diagram_style: ClassDiagramStyle | None = None
     # Diagram-level directives
     hide_empty_members: bool = False
     hide_circle: bool = False

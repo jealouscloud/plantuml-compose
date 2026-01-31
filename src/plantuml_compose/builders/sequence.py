@@ -84,6 +84,8 @@ from typing import Iterator, Literal
 
 from ..primitives.common import (
     ColorLike,
+    coerce_line_style,
+    coerce_sequence_diagram_style,
     Footer,
     Header,
     Label,
@@ -92,8 +94,8 @@ from ..primitives.common import (
     LineStyleLike,
     LineType,
     Scale,
+    SequenceDiagramStyleLike,
     StyleLike,
-    coerce_line_style,
     validate_literal_type,
     validate_style_background_only,
 )
@@ -647,6 +649,7 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         theme: str | None = None,
         layout_engine: LayoutEngine | None = None,
         linetype: LineType | None = None,
+        diagram_style: SequenceDiagramStyleLike | None = None,
         teoz: bool = False,
         autonumber: bool = False,
         hide_unlinked: bool = False,
@@ -663,6 +666,11 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
         self._theme = theme
         self._layout_engine = layout_engine
         self._linetype = linetype
+        self._diagram_style = (
+            coerce_sequence_diagram_style(diagram_style)
+            if diagram_style
+            else None
+        )
         self._teoz = teoz
         self._autonumber = Autonumber() if autonumber else None
         self._hide_unlinked = hide_unlinked
@@ -1307,6 +1315,7 @@ class SequenceDiagramBuilder(_BaseSequenceBuilder):
             theme=self._theme,
             layout_engine=self._layout_engine,
             linetype=self._linetype,
+            diagram_style=self._diagram_style,
             participants=standalone,
             boxes=tuple(self._boxes),
             autonumber=self._autonumber,
@@ -1410,6 +1419,7 @@ def sequence_diagram(
     theme: str | None = None,
     layout_engine: LayoutEngine | None = None,
     linetype: LineType | None = None,
+    diagram_style: SequenceDiagramStyleLike | None = None,
     teoz: bool = False,
     autonumber: bool = False,
     hide_unlinked: bool = False,
@@ -1441,6 +1451,7 @@ def sequence_diagram(
         theme: Optional PlantUML theme name (e.g., "cerulean", "amiga")
         layout_engine: Layout engine; "smetana" uses pure-Java GraphViz alternative
         linetype: Line routing style; "ortho" for right angles, "polyline" for direct
+        diagram_style: CSS-like diagram styling (SequenceDiagramStyle or dict)
         teoz: Enable teoz mode for parallel messages and slanted arrows
         autonumber: Enable automatic message numbering
         hide_unlinked: Hide participants with no messages
@@ -1458,6 +1469,7 @@ def sequence_diagram(
         theme=theme,
         layout_engine=layout_engine,
         linetype=linetype,
+        diagram_style=diagram_style,
         teoz=teoz,
         autonumber=autonumber,
         hide_unlinked=hide_unlinked,
