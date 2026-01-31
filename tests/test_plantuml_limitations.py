@@ -784,3 +784,72 @@ class TestBuiltinThemes:
                 f"PlantUMLBuiltinTheme has themes not in PlantUML: {sorted(extra_in_literal)}. "
                 "Remove them from primitives/common.py PlantUMLBuiltinTheme Literal."
             )
+
+
+class TestGanttNotePositionLimitation:
+    """Verify that Gantt chart notes only support 'bottom' position.
+
+    PlantUML Gantt charts accept 'note bottom' but reject 'note left', 'note right',
+    and 'note top'. If these tests fail, PlantUML has added support for other
+    positions and we should expose `note_position` parameter in the builder API.
+    """
+
+    def test_gantt_note_left_is_invalid(self, validate_plantuml):
+        """Gantt note left should be a syntax error."""
+        puml = """
+@startgantt
+[Task] lasts 5 days
+note left
+memo
+end note
+@endgantt
+"""
+        assert not validate_plantuml(puml), (
+            "PlantUML now accepts 'note left' in Gantt charts! "
+            "Consider exposing `note_position` parameter in task() and milestone() builder methods."
+        )
+
+    def test_gantt_note_right_is_invalid(self, validate_plantuml):
+        """Gantt note right should be a syntax error."""
+        puml = """
+@startgantt
+[Task] lasts 5 days
+note right
+memo
+end note
+@endgantt
+"""
+        assert not validate_plantuml(puml), (
+            "PlantUML now accepts 'note right' in Gantt charts! "
+            "Consider exposing `note_position` parameter in task() and milestone() builder methods."
+        )
+
+    def test_gantt_note_top_is_invalid(self, validate_plantuml):
+        """Gantt note top should be a syntax error."""
+        puml = """
+@startgantt
+[Task] lasts 5 days
+note top
+memo
+end note
+@endgantt
+"""
+        assert not validate_plantuml(puml), (
+            "PlantUML now accepts 'note top' in Gantt charts! "
+            "Consider exposing `note_position` parameter in task() and milestone() builder methods."
+        )
+
+    def test_gantt_note_bottom_works(self, validate_plantuml):
+        """Gantt note bottom should be valid (positive control)."""
+        puml = """
+@startgantt
+[Task] lasts 5 days
+note bottom
+memo
+end note
+@endgantt
+"""
+        assert validate_plantuml(puml), (
+            "Gantt 'note bottom' stopped working! "
+            "PlantUML may have changed behavior."
+        )

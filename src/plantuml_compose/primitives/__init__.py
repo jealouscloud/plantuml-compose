@@ -188,6 +188,24 @@ from .wbs import (
     WBSDiagramStyleLike,
     WBSNode,
 )
+from .gantt import (
+    DayOfWeek,
+    GanttClosedDateRange,
+    GanttColoredDate,
+    GanttColoredDateRange,
+    GanttDependency,
+    GanttDiagram,
+    GanttDiagramStyle,
+    GanttDiagramStyleLike,
+    GanttElement,
+    GanttMilestone,
+    GanttOpenDate,
+    GanttResource,
+    GanttResourceOff,
+    GanttSeparator,
+    GanttTask,
+    GanttVerticalSeparator,
+)
 
 __all__ = [
     # Common
@@ -363,4 +381,21 @@ __all__ = [
     "WBSDiagramStyle",
     "WBSDiagramStyleLike",
     "WBSNode",
+    # Gantt
+    "DayOfWeek",
+    "GanttClosedDateRange",
+    "GanttColoredDate",
+    "GanttColoredDateRange",
+    "GanttDependency",
+    "GanttDiagram",
+    "GanttDiagramStyle",
+    "GanttDiagramStyleLike",
+    "GanttElement",
+    "GanttMilestone",
+    "GanttOpenDate",
+    "GanttResource",
+    "GanttResourceOff",
+    "GanttSeparator",
+    "GanttTask",
+    "GanttVerticalSeparator",
 ]

@@ -52,6 +52,7 @@ from .builders import (
     class_diagram,
     component_diagram,
     deployment_diagram,
+    gantt_diagram,
     json_diagram,
     mindmap_diagram,
     object_diagram,
@@ -60,6 +61,9 @@ from .builders import (
     usecase_diagram,
     wbs_diagram,
     yaml_diagram,
+    # Gantt references
+    MilestoneRef,
+    TaskRef,
 )
 from .primitives import (
     Color,
@@ -94,6 +98,20 @@ from .primitives import (
     WBSDiagram,
     WBSDiagramStyle,
     WBSNode,
+    GanttClosedDateRange,
+    GanttColoredDate,
+    GanttColoredDateRange,
+    GanttDiagram,
+    GanttDiagramStyle,
+    GanttDiagramStyleLike,
+    GanttTask,
+    GanttMilestone,
+    GanttDependency,
+    GanttOpenDate,
+    GanttResource,
+    GanttResourceOff,
+    GanttSeparator,
+    GanttVerticalSeparator,
     NotePosition,
     PlantUMLBuiltinTheme,
     PseudoState,
@@ -122,6 +140,7 @@ __all__ = [
     "class_diagram",
     "component_diagram",
     "deployment_diagram",
+    "gantt_diagram",
     "json_diagram",
     "mindmap_diagram",
     "object_diagram",
@@ -187,6 +206,24 @@ __all__ = [
     # JSON/YAML primitives
     "JsonDiagram",
     "YamlDiagram",
+    # Gantt primitives
+    "GanttClosedDateRange",
+    "GanttColoredDate",
+    "GanttColoredDateRange",
+    "GanttDependency",
+    "GanttDiagram",
+    "GanttDiagramStyle",
+    "GanttDiagramStyleLike",
+    "GanttMilestone",
+    "GanttOpenDate",
+    "GanttResource",
+    "GanttResourceOff",
+    "GanttSeparator",
+    "GanttTask",
+    "GanttVerticalSeparator",
+    # Gantt references
+    "MilestoneRef",
+    "TaskRef",
 ]
 
 
