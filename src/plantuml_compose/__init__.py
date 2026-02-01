@@ -59,6 +59,7 @@ from .builders import (
     object_diagram,
     sequence_diagram,
     state_diagram,
+    timing_diagram,
     usecase_diagram,
     wbs_diagram,
     yaml_diagram,
@@ -67,6 +68,9 @@ from .builders import (
     TaskRef,
     # Network references
     NodeRef,
+    # Timing references
+    AnchorRef,
+    ParticipantRef,
 )
 from .primitives import (
     Color,
@@ -132,6 +136,20 @@ from .primitives import (
     Style,
     StyleLike,
     ThemeLike,
+    # Timing diagram
+    HiddenState,
+    IntricatedState,
+    TimeAnchor,
+    TimingConstraint,
+    TimingDiagram,
+    TimingDiagramStyle,
+    TimingDiagramStyleLike,
+    TimingHighlight,
+    TimingMessage,
+    TimingNote,
+    TimingParticipant,
+    TimingScale,
+    TimingStateChange,
     Transition,
     YamlDiagram,
     YamlDiagramStyle,
@@ -151,6 +169,7 @@ __all__ = [
     "object_diagram",
     "sequence_diagram",
     "state_diagram",
+    "timing_diagram",
     "usecase_diagram",
     "wbs_diagram",
     "yaml_diagram",
@@ -234,6 +253,22 @@ __all__ = [
     "NetworkDiagramStyle",
     "NetworkDiagramStyleLike",
     "NodeRef",
+    # Timing diagram references and primitives
+    "AnchorRef",
+    "ParticipantRef",
+    "HiddenState",
+    "IntricatedState",
+    "TimeAnchor",
+    "TimingConstraint",
+    "TimingDiagram",
+    "TimingDiagramStyle",
+    "TimingDiagramStyleLike",
+    "TimingHighlight",
+    "TimingMessage",
+    "TimingNote",
+    "TimingParticipant",
+    "TimingScale",
+    "TimingStateChange",
 ]
 
 

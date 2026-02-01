@@ -12,6 +12,7 @@ from .gantt import gantt_diagram, TaskRef, MilestoneRef
 from .object_ import object_diagram
 from .sequence import sequence_diagram
 from .state import state_diagram
+from .timing import timing_diagram, ParticipantRef, AnchorRef
 from .usecase import usecase_diagram
 
 __all__ = [
@@ -26,6 +27,7 @@ __all__ = [
     "object_diagram",
     "sequence_diagram",
     "state_diagram",
+    "timing_diagram",
     "usecase_diagram",
     "wbs_diagram",
     "yaml_diagram",
@@ -34,4 +36,7 @@ __all__ = [
     "TaskRef",
     # Network references
     "NodeRef",
+    # Timing references
+    "AnchorRef",
+    "ParticipantRef",
 ]

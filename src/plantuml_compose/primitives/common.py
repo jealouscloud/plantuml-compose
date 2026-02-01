@@ -1958,3 +1958,112 @@ def coerce_network_diagram_style(
         group=coerce_element_style(value["group"]) if "group" in value else None,
         arrow=coerce_diagram_arrow_style(value["arrow"]) if "arrow" in value else None,
     )
+
+
+# ---------------------------------------------------------------------------
+# Timing Diagram Styling
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class TimingDiagramStyle:
+    """Diagram-wide styling for timing diagrams.
+
+    This generates a PlantUML <style> block that sets default appearance
+    for timing diagram elements.
+
+    CSS selectors used:
+        timingDiagram: Root diagram styling
+        robust:        Robust signal appearance
+        concise:       Concise signal appearance
+        clock:         Clock signal appearance
+        binary:        Binary signal appearance
+        analog:        Analog signal appearance
+        highlight:     Highlight region appearance
+        note:          Note appearance
+        arrow:         Message arrow styling
+
+    Example:
+        with timing_diagram(
+            diagram_style=TimingDiagramStyle(
+                background="white",
+                robust=ElementStyle(background="LightBlue"),
+                highlight=ElementStyle(background="Yellow"),
+            )
+        ) as d:
+            ...
+    """
+
+    # Root-level properties (timingDiagram)
+    background: ColorLike | Gradient | None = None
+    font_name: str | None = None
+    font_size: int | None = None
+    font_color: ColorLike | None = None
+
+    # Element-specific styles
+    robust: ElementStyle | None = None
+    concise: ElementStyle | None = None
+    clock: ElementStyle | None = None
+    binary: ElementStyle | None = None
+    analog: ElementStyle | None = None
+    highlight: ElementStyle | None = None
+    note: ElementStyle | None = None
+    arrow: DiagramArrowStyle | None = None
+    title: ElementStyle | None = None
+
+
+class TimingDiagramStyleDict(TypedDict, total=False):
+    """Dict form of TimingDiagramStyle for convenience."""
+
+    background: ColorLike | Gradient
+    font_name: str
+    font_size: int
+    font_color: ColorLike
+    robust: ElementStyleLike
+    concise: ElementStyleLike
+    clock: ElementStyleLike
+    binary: ElementStyleLike
+    analog: ElementStyleLike
+    highlight: ElementStyleLike
+    note: ElementStyleLike
+    arrow: DiagramArrowStyleLike
+    title: ElementStyleLike
+
+
+TimingDiagramStyleLike: TypeAlias = TimingDiagramStyle | TimingDiagramStyleDict
+
+_TIMING_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
+    "background", "font_name", "font_size", "font_color",
+    "robust", "concise", "clock", "binary", "analog",
+    "highlight", "note", "arrow", "title",
+})
+
+
+def coerce_timing_diagram_style(
+    value: TimingDiagramStyleLike,
+) -> TimingDiagramStyle:
+    """Convert a TimingDiagramStyleLike value to a TimingDiagramStyle object."""
+    if isinstance(value, TimingDiagramStyle):
+        return value
+    _validate_style_dict_keys(
+        value, _TIMING_DIAGRAM_STYLE_KEYS, "TimingDiagramStyle"
+    )
+    return TimingDiagramStyle(
+        background=_coerce_color_or_gradient(value.get("background")),
+        font_name=value.get("font_name"),
+        font_size=value.get("font_size"),
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
+        robust=coerce_element_style(value["robust"]) if "robust" in value else None,
+        concise=coerce_element_style(value["concise"]) if "concise" in value else None,
+        clock=coerce_element_style(value["clock"]) if "clock" in value else None,
+        binary=coerce_element_style(value["binary"]) if "binary" in value else None,
+        analog=coerce_element_style(value["analog"]) if "analog" in value else None,
+        highlight=coerce_element_style(value["highlight"])
+        if "highlight" in value
+        else None,
+        note=coerce_element_style(value["note"]) if "note" in value else None,
+        arrow=coerce_diagram_arrow_style(value["arrow"]) if "arrow" in value else None,
+        title=coerce_element_style(value["title"]) if "title" in value else None,
+    )
