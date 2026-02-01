@@ -124,7 +124,8 @@ from ..primitives.sequence import (
     Space,
 )
 
-AutonumberAction = Literal["start", "stop", "resume"]
+AutonumberAction = Literal["start", "stop", "resume", "inc"]
+AutonumberLevel = Literal["A", "B"]
 
 
 class _BaseSequenceBuilder:
@@ -398,37 +399,55 @@ class _BaseSequenceBuilder:
         self,
         action: AutonumberAction = "start",
         *,
-        start: int | None = None,
+        start: int | str | None = None,
         increment: int | None = None,
         format: str | None = None,
+        level: AutonumberLevel | None = None,
     ) -> Autonumber:
         """Control autonumbering of messages.
 
         Args:
             action: "start" begins numbering, "stop" pauses it,
-                "resume" continues from where it stopped
-            start: Starting number (default 1)
+                "resume" continues from where it stopped,
+                "inc" increments a specific level in hierarchical numbering
+            start: Starting number (int) or hierarchical string like "1.1.1"
             increment: Increment between messages (default 1)
             format: Format string where 0s are replaced with the number.
                 Use "000" for zero-padded, add HTML like "<b>[000]</b>".
+            level: For "inc" action only - "A" increments first digit,
+                "B" increments second digit. Digits to the right reset to 1.
 
         Returns:
             The created Autonumber
 
         Example:
+            # Simple numbering
             d.autonumber("start", start=10)
             d.message(a, b, "numbered 10")
-            d.message(b, a, "numbered 11")
             d.autonumber("stop")
-            d.message(a, b, "not numbered")
-            d.autonumber("resume")  # continues from 12
+
+            # Hierarchical numbering (1.1.1, 1.1.2, 2.1.1, etc.)
+            d.autonumber("start", start="1.1.1")
+            d.message(a, b, "shows 1.1.1")
+            d.message(a, b, "shows 1.1.2")
+            d.autonumber("inc", level="A")  # increments first digit
+            d.message(a, b, "shows 2.1.1")
+            d.autonumber("inc", level="B")  # increments second digit
+            d.message(a, b, "shows 2.2.1")
         """
         validate_literal_type(action, AutonumberAction, "action")
+        if level is not None:
+            validate_literal_type(level, AutonumberLevel, "level")
+        if action == "inc" and level is None:
+            raise ValueError("'level' is required when action is 'inc'")
+        if action != "inc" and level is not None:
+            raise ValueError("'level' can only be used with action='inc'")
         auto = Autonumber(
             action=action,
             start=start,
             increment=increment,
             format=format,
+            level=level,
         )
         self._elements.append(auto)
         return auto

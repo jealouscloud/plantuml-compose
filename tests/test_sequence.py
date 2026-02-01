@@ -564,6 +564,53 @@ class TestAutonumber:
         output = render(d.build())
         assert "autonumber resume" in output
 
+    def test_autonumber_hierarchical_start(self):
+        """Test starting autonumber with hierarchical format."""
+        with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.autonumber("start", start="1.1.1")
+            d.message(user, api, "first")
+
+        output = render(d.build())
+        assert "autonumber 1.1.1" in output
+
+    def test_autonumber_inc_level_a(self):
+        """Test incrementing first level in hierarchical numbering."""
+        with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.autonumber("start", start="1.1.1")
+            d.message(user, api, "first")
+            d.autonumber("inc", level="A")
+            d.message(user, api, "second")
+
+        output = render(d.build())
+        assert "autonumber 1.1.1" in output
+        assert "autonumber inc A" in output
+
+    def test_autonumber_inc_level_b(self):
+        """Test incrementing second level in hierarchical numbering."""
+        with sequence_diagram() as d:
+            user, api = d.participants("User", "API")
+            d.autonumber("start", start="1.1.1")
+            d.message(user, api, "first")
+            d.autonumber("inc", level="B")
+            d.message(user, api, "second")
+
+        output = render(d.build())
+        assert "autonumber inc B" in output
+
+    def test_autonumber_inc_requires_level(self):
+        """Test that 'inc' action requires level parameter."""
+        with sequence_diagram() as d:
+            with pytest.raises(ValueError, match="'level' is required"):
+                d.autonumber("inc")
+
+    def test_autonumber_level_only_with_inc(self):
+        """Test that level parameter only works with 'inc' action."""
+        with sequence_diagram() as d:
+            with pytest.raises(ValueError, match="can only be used with"):
+                d.autonumber("start", level="A")
+
 
 class TestDiagramOptions:
     """Tests for diagram-level options."""

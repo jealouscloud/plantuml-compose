@@ -325,17 +325,21 @@ class Autonumber:
     """Control for automatic message numbering.
 
     Adds sequence numbers (1, 2, 3...) to messages for easy reference.
+    Supports hierarchical numbering (1.1.1, 1.1.2, etc.) with inc action.
 
-        action:    "start", "stop", or "resume"
-        start:     Starting number
+        action:    "start", "stop", "resume", or "inc"
+        start:     Starting number (int) or hierarchical string ("1.1.1")
         increment: Step between numbers
         format:    Display format (e.g., "<b>[000]" for bold three-digit)
+        level:     For "inc" action: "A" increments first digit, "B" second.
+                   When incremented, digits to the right reset to 1.
     """
 
-    action: Literal["start", "stop", "resume"] = "start"
-    start: int | None = None
+    action: Literal["start", "stop", "resume", "inc"] = "start"
+    start: int | str | None = None
     increment: int | None = None
     format: str | None = None  # e.g., "<b>[000]"
+    level: Literal["A", "B"] | None = None  # For hierarchical inc
 
 
 @dataclass(frozen=True)

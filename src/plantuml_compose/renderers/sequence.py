@@ -396,6 +396,9 @@ def _render_autonumber(auto: Autonumber) -> str:
         return "autonumber stop"
     if auto.action == "resume":
         return "autonumber resume"
+    if auto.action == "inc":
+        # Hierarchical increment: autonumber inc A or autonumber inc B
+        return f"autonumber inc {auto.level}"
 
     # Start
     parts = ["autonumber"]
