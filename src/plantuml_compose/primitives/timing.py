@@ -19,9 +19,13 @@ from .common import (
 
 
 # Participant types for timing diagrams
-TimingParticipantType = Literal["robust", "concise", "clock", "binary", "analog"]
+# rectangle is a variant of concise displayed in rectangular shape
+TimingParticipantType = Literal[
+    "robust", "concise", "clock", "binary", "analog", "rectangle"
+]
 
 # Time value can be an integer (time units) or string (dates/times like "2020/07/04" or "1:15:00")
+# Also supports relative time strings like "+50"
 TimeValue: TypeAlias = int | str
 
 
@@ -30,21 +34,67 @@ class TimingParticipant:
     """A timing diagram participant (signal line).
 
     Attributes:
-        type: Participant type ("robust", "concise", "clock", "binary", "analog")
+        type: Participant type ("robust", "concise", "clock", "binary", "analog", "rectangle")
         name: Display name for the participant
         alias: Optional short alias for referencing
+        stereotype: Optional stereotype annotation (e.g., "<<hw>>")
+        compact: If True, use compact display mode for this participant
         period: Clock period (only for clock type)
         pulse: Clock pulse width (only for clock type)
         offset: Clock offset (only for clock type)
+        min_value: Minimum value for analog range (only for analog type)
+        max_value: Maximum value for analog range (only for analog type)
+        height_pixels: Explicit height in pixels (only for analog type)
     """
 
     type: TimingParticipantType
     name: str
     alias: str | None = None
+    stereotype: str | None = None
+    compact: bool = False
     # Clock-specific parameters
     period: int | None = None
     pulse: int | None = None
     offset: int | None = None
+    # Analog-specific parameters
+    min_value: int | float | None = None
+    max_value: int | float | None = None
+    height_pixels: int | None = None
+
+
+@dataclass(frozen=True)
+class TimingStateOrder:
+    """Define the order and labels of states for a participant.
+
+    PlantUML syntax:
+        R has Idle,Active,Done
+        R has "Ready" as ready, "Running" as running
+
+    Attributes:
+        participant: Participant alias or name
+        states: Tuple of state names in display order
+        labels: Optional dict mapping state names to display labels
+    """
+
+    participant: str
+    states: tuple[str, ...]
+    labels: dict[str, str] | None = None
+
+
+@dataclass(frozen=True)
+class TimingTicks:
+    """Tick mark configuration for analog signals.
+
+    PlantUML syntax:
+        V ticks num on multiple 1
+
+    Attributes:
+        participant: Participant alias or name
+        multiple: Tick interval value
+    """
+
+    participant: str
+    multiple: int | float
 
 
 @dataclass(frozen=True)
@@ -65,6 +115,22 @@ class TimeAnchor:
 
 
 @dataclass(frozen=True)
+class TimingInitialState:
+    """Initial state declared before the timeline.
+
+    PlantUML syntax (before any @time):
+        R is Idle
+
+    Attributes:
+        participant: Participant alias or name
+        state: Initial state value
+    """
+
+    participant: str
+    state: str
+
+
+@dataclass(frozen=True)
 class StateChange:
     """State change at a specific time.
 
@@ -73,12 +139,14 @@ class StateChange:
         time: Time for the state change
         state: New state value
         color: Optional color for the state region
+        comment: Optional inline comment (renders as ": comment")
     """
 
     participant: str
     time: TimeValue
     state: str
     color: ColorLike | None = None
+    comment: str | None = None
 
 
 @dataclass(frozen=True)
@@ -207,7 +275,10 @@ class TimingNote:
 # Union type for all timing diagram elements
 TimingElement: TypeAlias = (
     TimingParticipant
+    | TimingStateOrder
+    | TimingTicks
     | TimeAnchor
+    | TimingInitialState
     | StateChange
     | IntricatedState
     | HiddenState
@@ -237,6 +308,9 @@ class TimingDiagram:
         date_format: Date format string (e.g., "YY-MM-dd")
         theme: PlantUML theme
         diagram_style: Diagram-wide styling
+        compact_mode: Enable global compact mode
+        hide_time_axis: Hide the time axis
+        manual_time_axis: Use manual time axis control
     """
 
     elements: tuple[TimingElement, ...] = field(default_factory=tuple)
@@ -248,3 +322,6 @@ class TimingDiagram:
     date_format: str | None = None
     theme: ThemeLike | None = None
     diagram_style: TimingDiagramStyle | None = None
+    compact_mode: bool = False
+    hide_time_axis: bool = False
+    manual_time_axis: bool = False

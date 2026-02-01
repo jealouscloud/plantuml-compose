@@ -30,11 +30,14 @@ from ..primitives.timing import (
     TimingDiagram,
     TimingElement,
     TimingHighlight,
+    TimingInitialState,
     TimingMessage,
     TimingNote,
     TimingParticipant,
     TimingParticipantType,
     TimingScale,
+    TimingStateOrder,
+    TimingTicks,
 )
 from ..renderers import render as render_diagram
 
@@ -126,6 +129,9 @@ class TimingDiagramBuilder:
         date_format: str | None,
         theme: ThemeLike | None,
         diagram_style: TimingDiagramStyle | None,
+        compact_mode: bool,
+        hide_time_axis: bool,
+        manual_time_axis: bool,
     ) -> None:
         self._title = title
         self._caption = caption
@@ -135,6 +141,9 @@ class TimingDiagramBuilder:
         self._date_format = date_format
         self._theme = theme
         self._diagram_style = diagram_style
+        self._compact_mode = compact_mode
+        self._hide_time_axis = hide_time_axis
+        self._manual_time_axis = manual_time_axis
         self._elements: list[TimingElement] = []
         self._alias_counter = 0
 
@@ -148,9 +157,14 @@ class TimingDiagramBuilder:
         type_: TimingParticipantType,
         name: str,
         alias: str | None = None,
+        stereotype: str | None = None,
+        compact: bool = False,
         period: int | None = None,
         pulse: int | None = None,
         offset: int | None = None,
+        min_value: int | float | None = None,
+        max_value: int | float | None = None,
+        height_pixels: int | None = None,
     ) -> ParticipantRef:
         """Add a participant and return a reference.
 
@@ -164,14 +178,26 @@ class TimingDiagramBuilder:
             type=type_,
             name=name,
             alias=actual_alias,
+            stereotype=stereotype,
+            compact=compact,
             period=period,
             pulse=pulse,
             offset=offset,
+            min_value=min_value,
+            max_value=max_value,
+            height_pixels=height_pixels,
         )
         self._elements.append(participant)
         return ParticipantRef(actual_alias)
 
-    def robust(self, name: str, *, alias: str | None = None) -> ParticipantRef:
+    def robust(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        stereotype: str | None = None,
+        compact: bool = False,
+    ) -> ParticipantRef:
         """Add robust (multi-state) participant.
 
         Robust participants can have multiple named states and show
@@ -180,13 +206,24 @@ class TimingDiagramBuilder:
         Args:
             name: Display name for the participant
             alias: Optional short alias for referencing
+            stereotype: Optional stereotype annotation (e.g., "<<hw>>")
+            compact: Use compact display mode for this participant
 
         Returns:
             ParticipantRef for use in state changes
         """
-        return self._add_participant("robust", name, alias)
+        return self._add_participant(
+            "robust", name, alias, stereotype=stereotype, compact=compact
+        )
 
-    def concise(self, name: str, *, alias: str | None = None) -> ParticipantRef:
+    def concise(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        stereotype: str | None = None,
+        compact: bool = False,
+    ) -> ParticipantRef:
         """Add concise (simple-state) participant.
 
         Concise participants show a simplified, binary-like display
@@ -195,17 +232,49 @@ class TimingDiagramBuilder:
         Args:
             name: Display name for the participant
             alias: Optional short alias for referencing
+            stereotype: Optional stereotype annotation (e.g., "<<hw>>")
+            compact: Use compact display mode for this participant
 
         Returns:
             ParticipantRef for use in state changes
         """
-        return self._add_participant("concise", name, alias)
+        return self._add_participant(
+            "concise", name, alias, stereotype=stereotype, compact=compact
+        )
+
+    def rectangle(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        stereotype: str | None = None,
+        compact: bool = False,
+    ) -> ParticipantRef:
+        """Add rectangle participant.
+
+        Rectangle participants are a variant of concise displayed
+        within a rectangular shape.
+
+        Args:
+            name: Display name for the participant
+            alias: Optional short alias for referencing
+            stereotype: Optional stereotype annotation (e.g., "<<hw>>")
+            compact: Use compact display mode for this participant
+
+        Returns:
+            ParticipantRef for use in state changes
+        """
+        return self._add_participant(
+            "rectangle", name, alias, stereotype=stereotype, compact=compact
+        )
 
     def clock(
         self,
         name: str,
         *,
         alias: str | None = None,
+        stereotype: str | None = None,
+        compact: bool = False,
         period: int,
         pulse: int | None = None,
         offset: int | None = None,
@@ -217,6 +286,8 @@ class TimingDiagramBuilder:
         Args:
             name: Display name for the clock
             alias: Optional short alias for referencing
+            stereotype: Optional stereotype annotation (e.g., "<<hw>>")
+            compact: Use compact display mode for this participant
             period: Clock period in time units (must be positive)
             pulse: Optional pulse width (defaults to period/2)
             offset: Optional offset from time 0
@@ -229,9 +300,25 @@ class TimingDiagramBuilder:
         """
         if period <= 0:
             raise ValueError(f"Clock period must be positive, got {period}")
-        return self._add_participant("clock", name, alias, period, pulse, offset)
+        return self._add_participant(
+            "clock",
+            name,
+            alias,
+            stereotype=stereotype,
+            compact=compact,
+            period=period,
+            pulse=pulse,
+            offset=offset,
+        )
 
-    def binary(self, name: str, *, alias: str | None = None) -> ParticipantRef:
+    def binary(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        stereotype: str | None = None,
+        compact: bool = False,
+    ) -> ParticipantRef:
         """Add binary (high/low) participant.
 
         Binary participants have only two states: high and low.
@@ -239,13 +326,27 @@ class TimingDiagramBuilder:
         Args:
             name: Display name for the participant
             alias: Optional short alias for referencing
+            stereotype: Optional stereotype annotation (e.g., "<<hw>>")
+            compact: Use compact display mode for this participant
 
         Returns:
             ParticipantRef for use in state changes
         """
-        return self._add_participant("binary", name, alias)
+        return self._add_participant(
+            "binary", name, alias, stereotype=stereotype, compact=compact
+        )
 
-    def analog(self, name: str, *, alias: str | None = None) -> ParticipantRef:
+    def analog(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        stereotype: str | None = None,
+        compact: bool = False,
+        min_value: int | float | None = None,
+        max_value: int | float | None = None,
+        height: int | None = None,
+    ) -> ParticipantRef:
         """Add analog (continuous) participant.
 
         Analog participants show continuous value transitions
@@ -254,11 +355,92 @@ class TimingDiagramBuilder:
         Args:
             name: Display name for the participant
             alias: Optional short alias for referencing
+            stereotype: Optional stereotype annotation (e.g., "<<hw>>")
+            compact: Use compact display mode for this participant
+            min_value: Minimum value for analog range
+            max_value: Maximum value for analog range
+            height: Explicit height in pixels
 
         Returns:
             ParticipantRef for use in state changes
         """
-        return self._add_participant("analog", name, alias)
+        return self._add_participant(
+            "analog",
+            name,
+            alias,
+            stereotype=stereotype,
+            compact=compact,
+            min_value=min_value,
+            max_value=max_value,
+            height_pixels=height,
+        )
+
+    def define_states(
+        self,
+        participant: str | ParticipantRef,
+        *states: str,
+        labels: dict[str, str] | None = None,
+    ) -> None:
+        """Define the order and optional labels of states for a participant.
+
+        This controls the vertical ordering of states on the diagram axis.
+
+        Args:
+            participant: Participant reference or name
+            *states: State names in display order
+            labels: Optional dict mapping state names to display labels
+
+        Example:
+            d.define_states(signal, "Idle", "Active", "Done")
+            d.define_states(signal, "idle", "active", labels={"idle": "Idle State"})
+        """
+        self._elements.append(
+            TimingStateOrder(
+                participant=_resolve_participant(participant),
+                states=states,
+                labels=labels,
+            )
+        )
+
+    def ticks(
+        self,
+        participant: str | ParticipantRef,
+        *,
+        multiple: int | float,
+    ) -> None:
+        """Set tick marks for analog signal.
+
+        Args:
+            participant: Participant reference or name (must be analog)
+            multiple: Tick interval value
+        """
+        self._elements.append(
+            TimingTicks(
+                participant=_resolve_participant(participant),
+                multiple=multiple,
+            )
+        )
+
+    def initial_state(
+        self,
+        participant: str | ParticipantRef,
+        state: str,
+    ) -> None:
+        """Set initial state before the timeline starts.
+
+        This declares a state before any @time reference, setting the
+        initial condition of the signal.
+
+        Args:
+            participant: Participant reference or name
+            state: Initial state value
+        """
+        self._elements.append(
+            TimingInitialState(
+                participant=_resolve_participant(participant),
+                state=state,
+            )
+        )
 
     def anchor(self, name: str, *, at: TimeSpec) -> AnchorRef:
         """Create named time anchor.
@@ -284,6 +466,7 @@ class TimingDiagramBuilder:
         *,
         at: TimeSpec,
         color: ColorLike | None = None,
+        comment: str | None = None,
     ) -> None:
         """Set participant state at a specific time.
 
@@ -292,6 +475,7 @@ class TimingDiagramBuilder:
             state: New state value
             at: Time for the state change
             color: Optional color for the state
+            comment: Optional inline comment annotation
         """
         self._elements.append(
             StateChange(
@@ -299,6 +483,7 @@ class TimingDiagramBuilder:
                 time=_resolve_time(at),
                 state=state,
                 color=color,
+                comment=comment,
             )
         )
 
@@ -490,6 +675,9 @@ class TimingDiagramBuilder:
             date_format=self._date_format,
             theme=self._theme,
             diagram_style=self._diagram_style,
+            compact_mode=self._compact_mode,
+            hide_time_axis=self._hide_time_axis,
+            manual_time_axis=self._manual_time_axis,
         )
 
     def render(self) -> str:
@@ -508,6 +696,9 @@ def timing_diagram(
     date_format: str | None = None,
     theme: ThemeLike | None = None,
     diagram_style: TimingDiagramStyleLike | None = None,
+    compact_mode: bool = False,
+    hide_time_axis: bool = False,
+    manual_time_axis: bool = False,
 ) -> Iterator[TimingDiagramBuilder]:
     """Create a timing diagram.
 
@@ -520,6 +711,9 @@ def timing_diagram(
         date_format: Date format string (e.g., "YY-MM-dd")
         theme: PlantUML theme
         diagram_style: Diagram-wide styling (TimingDiagramStyle or dict)
+        compact_mode: Enable global compact mode for all participants
+        hide_time_axis: Hide the time axis
+        manual_time_axis: Use manual time axis control
 
     Yields:
         TimingDiagramBuilder for adding participants and states
@@ -534,7 +728,7 @@ def timing_diagram(
             rst = d.binary("ResetN")
 
             # Scale
-            d.scale(100, 50)
+            d.scale(time_units=100, pixels=50)
 
             # Anchors with arithmetic support
             start = d.anchor("start", at=0)
@@ -577,5 +771,8 @@ def timing_diagram(
         date_format=date_format,
         theme=theme,
         diagram_style=style,
+        compact_mode=compact_mode,
+        hide_time_axis=hide_time_axis,
+        manual_time_axis=manual_time_axis,
     )
     yield builder

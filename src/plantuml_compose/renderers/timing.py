@@ -15,15 +15,17 @@ from ..primitives.timing import (
     TimingDiagram,
     TimingElement,
     TimingHighlight,
+    TimingInitialState,
     TimingMessage,
     TimingNote,
     TimingParticipant,
     TimingScale,
+    TimingStateOrder,
+    TimingTicks,
     TimeValue,
 )
 from .common import (
     render_caption,
-    render_color,
     render_color_hash,
     render_diagram_style,
     render_footer,
@@ -46,6 +48,16 @@ def render_timing_diagram(diagram: TimingDiagram) -> str:
     # Diagram style
     if diagram.diagram_style:
         lines.extend(_render_timing_diagram_style(diagram.diagram_style))
+
+    # Global compact mode
+    if diagram.compact_mode:
+        lines.append("mode compact")
+
+    # Time axis control
+    if diagram.hide_time_axis:
+        lines.append("hide time-axis")
+    if diagram.manual_time_axis:
+        lines.append("manual time-axis")
 
     # Date format
     if diagram.date_format:
@@ -82,9 +94,15 @@ def render_timing_diagram(diagram: TimingDiagram) -> str:
 def _render_element(elem: TimingElement) -> list[str]:
     """Dispatch to specific renderer based on element type."""
     if isinstance(elem, TimingParticipant):
-        return [_render_participant(elem)]
+        return _render_participant(elem)
+    if isinstance(elem, TimingStateOrder):
+        return [_render_state_order(elem)]
+    if isinstance(elem, TimingTicks):
+        return [_render_ticks(elem)]
     if isinstance(elem, TimeAnchor):
         return [_render_anchor(elem)]
+    if isinstance(elem, TimingInitialState):
+        return [_render_initial_state(elem)]
     if isinstance(elem, StateChange):
         return [_render_state_change(elem)]
     if isinstance(elem, IntricatedState):
@@ -118,12 +136,39 @@ def _format_time_ref(time: TimeValue) -> str:
     return f"@{time}"
 
 
-def _render_participant(p: TimingParticipant) -> str:
-    """Render participant declaration."""
-    parts = [p.type]
+def _render_participant(p: TimingParticipant) -> list[str]:
+    """Render participant declaration.
+
+    PlantUML syntax variants:
+        robust "Name" as R
+        clock "CLK" <<hw>> as C with period 50
+        compact concise "Status" as S
+        analog "Voltage" between 0 and 5 as V
+    """
+    lines: list[str] = []
+    parts: list[str] = []
+
+    # Compact keyword comes first
+    if p.compact:
+        parts.append("compact")
+
+    # Type and name
+    parts.append(p.type)
     parts.append(f'"{p.name}"')
+
+    # Analog range (between min and max)
+    if p.type == "analog" and p.min_value is not None and p.max_value is not None:
+        parts.append(f"between {p.min_value} and {p.max_value}")
+
+    # Stereotype comes after name, before alias
+    if p.stereotype:
+        parts.append(p.stereotype)
+
+    # Alias
     if p.alias:
         parts.append(f"as {p.alias}")
+
+    # Clock parameters
     if p.type == "clock":
         if p.period is not None:
             parts.append(f"with period {p.period}")
@@ -131,12 +176,51 @@ def _render_participant(p: TimingParticipant) -> str:
             parts.append(f"pulse {p.pulse}")
         if p.offset is not None:
             parts.append(f"offset {p.offset}")
-    return " ".join(parts)
+
+    lines.append(" ".join(parts))
+
+    # Analog height (separate line)
+    if p.type == "analog" and p.height_pixels is not None:
+        ref = p.alias if p.alias else p.name
+        lines.append(f"{ref} is {p.height_pixels} pixels height")
+
+    return lines
+
+
+def _render_state_order(order: TimingStateOrder) -> str:
+    """Render state ordering directive.
+
+    PlantUML syntax:
+        R has Idle,Active,Done
+        R has "Ready" as ready, "Running" as running
+    """
+    if order.labels:
+        # With labels: "Label" as state
+        state_parts = []
+        for state in order.states:
+            if state in order.labels:
+                state_parts.append(f'"{order.labels[state]}" as {state}')
+            else:
+                state_parts.append(state)
+        return f"{order.participant} has {', '.join(state_parts)}"
+    else:
+        # Simple: state1,state2,state3
+        return f"{order.participant} has {','.join(order.states)}"
+
+
+def _render_ticks(ticks: TimingTicks) -> str:
+    """Render tick marks for analog signal."""
+    return f"{ticks.participant} ticks num on multiple {ticks.multiple}"
 
 
 def _render_anchor(anchor: TimeAnchor) -> str:
     """Render time anchor definition."""
     return f"{_format_time_ref(anchor.time)} as :{anchor.name}"
+
+
+def _render_initial_state(state: TimingInitialState) -> str:
+    """Render initial state before timeline."""
+    return f"{state.participant} is {state.state}"
 
 
 def _render_state_change(state: StateChange) -> str:
@@ -146,14 +230,19 @@ def _render_state_change(state: StateChange) -> str:
         @0
         R is Idle
 
-    Or with participant-oriented syntax:
-        @R
-        0 is Idle
+    With color:
+        @0
+        R is Idle #Blue
+
+    With comment:
+        @0
+        R is Idle: starts here
     """
-    # Global time-oriented syntax
     state_str = f"{state.participant} is {state.state}"
     if state.color:
         state_str += f" {render_color_hash(state.color)}"
+    if state.comment:
+        state_str += f": {state.comment}"
     return f"{_format_time_ref(state.time)}\n{state_str}"
 
 

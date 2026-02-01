@@ -18,11 +18,14 @@ from plantuml_compose import (
     TimingDiagram,
     TimingDiagramStyle,
     TimingHighlight,
+    TimingInitialState,
     TimingMessage,
     TimingNote,
     TimingParticipant,
     TimingScale,
     TimingStateChange,
+    TimingStateOrder,
+    TimingTicks,
 )
 from plantuml_compose.primitives.common import coerce_timing_diagram_style
 from plantuml_compose.renderers.timing import render_timing_diagram
@@ -771,6 +774,316 @@ class TestTimingPlantUMLIntegration:
             d.state(data, "Idle", at=0)
 
         puml_file = tmp_path / "timing_style.puml"
+        puml_file.write_text(d.render())
+
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+
+class TestTimingExtendedFeatures:
+    """Tests for extended timing diagram features."""
+
+    def test_rectangle_participant(self):
+        """Test rectangle participant type."""
+        with timing_diagram() as d:
+            rect = d.rectangle("Status")
+            d.state(rect, "Active", at=0)
+
+        result = d.render()
+        assert 'rectangle "Status"' in result
+
+    def test_compact_mode_global(self):
+        """Test global compact mode."""
+        with timing_diagram(compact_mode=True) as d:
+            d.robust("Signal")
+
+        result = d.render()
+        assert "mode compact" in result
+
+    def test_compact_mode_per_participant(self):
+        """Test per-participant compact mode."""
+        with timing_diagram() as d:
+            d.robust("Signal", compact=True)
+
+        result = d.render()
+        assert 'compact robust "Signal"' in result
+
+    def test_hide_time_axis(self):
+        """Test hiding time axis."""
+        with timing_diagram(hide_time_axis=True) as d:
+            d.robust("Signal")
+
+        result = d.render()
+        assert "hide time-axis" in result
+
+    def test_manual_time_axis(self):
+        """Test manual time axis."""
+        with timing_diagram(manual_time_axis=True) as d:
+            d.robust("Signal")
+
+        result = d.render()
+        assert "manual time-axis" in result
+
+    def test_analog_with_range(self):
+        """Test analog participant with min/max range."""
+        with timing_diagram() as d:
+            d.analog("Voltage", min_value=0, max_value=5)
+
+        result = d.render()
+        assert 'analog "Voltage" between 0 and 5' in result
+
+    def test_analog_with_height(self):
+        """Test analog participant with explicit height."""
+        with timing_diagram() as d:
+            v = d.analog("Voltage", alias="V", height=100)
+            d.state(v, "2.5", at=0)
+
+        result = d.render()
+        assert "V is 100 pixels height" in result
+
+    def test_analog_ticks(self):
+        """Test analog tick marks."""
+        with timing_diagram() as d:
+            v = d.analog("Voltage", alias="V")
+            d.ticks(v, multiple=1)
+
+        result = d.render()
+        assert "V ticks num on multiple 1" in result
+
+    def test_define_states_simple(self):
+        """Test simple state ordering."""
+        with timing_diagram() as d:
+            sig = d.robust("Signal", alias="S")
+            d.define_states(sig, "Idle", "Active", "Done")
+
+        result = d.render()
+        assert "S has Idle,Active,Done" in result
+
+    def test_define_states_with_labels(self):
+        """Test state ordering with labels."""
+        with timing_diagram() as d:
+            sig = d.robust("Signal", alias="S")
+            d.define_states(sig, "idle", "active", labels={"idle": "Idle State"})
+
+        result = d.render()
+        assert 'S has "Idle State" as idle, active' in result
+
+    def test_initial_state(self):
+        """Test initial state before timeline."""
+        with timing_diagram() as d:
+            sig = d.robust("Signal", alias="S")
+            d.initial_state(sig, "Idle")
+            d.state(sig, "Active", at=10)
+
+        result = d.render()
+        assert "S is Idle" in result
+        # Initial state should come before @time references
+        lines = result.split("\n")
+        initial_idx = next(i for i, line in enumerate(lines) if "S is Idle" in line and "@" not in line)
+        time_idx = next(i for i, line in enumerate(lines) if "@10" in line)
+        assert initial_idx < time_idx
+
+    def test_stereotype(self):
+        """Test stereotype on participant."""
+        with timing_diagram() as d:
+            d.robust("Data", stereotype="<<hw>>")
+
+        result = d.render()
+        assert 'robust "Data" <<hw>>' in result
+
+    def test_state_with_comment(self):
+        """Test state change with inline comment."""
+        with timing_diagram() as d:
+            sig = d.robust("Signal", alias="S")
+            d.state(sig, "Active", at=0, comment="starts here")
+
+        result = d.render()
+        assert "S is Active: starts here" in result
+
+
+class TestTimingExtendedPrimitives:
+    """Tests for extended timing diagram primitives."""
+
+    def test_timing_state_order(self):
+        order = TimingStateOrder(
+            participant="S",
+            states=("Idle", "Active", "Done"),
+            labels=None,
+        )
+        assert order.participant == "S"
+        assert order.states == ("Idle", "Active", "Done")
+
+    def test_timing_state_order_with_labels(self):
+        order = TimingStateOrder(
+            participant="S",
+            states=("idle", "active"),
+            labels={"idle": "Idle State"},
+        )
+        assert order.labels == {"idle": "Idle State"}
+
+    def test_timing_ticks(self):
+        ticks = TimingTicks(participant="V", multiple=0.5)
+        assert ticks.participant == "V"
+        assert ticks.multiple == 0.5
+
+    def test_timing_initial_state(self):
+        init = TimingInitialState(participant="S", state="Idle")
+        assert init.participant == "S"
+        assert init.state == "Idle"
+
+    def test_participant_with_extended_fields(self):
+        p = TimingParticipant(
+            type="analog",
+            name="Voltage",
+            alias="V",
+            stereotype="<<hw>>",
+            compact=True,
+            min_value=0,
+            max_value=5,
+            height_pixels=100,
+        )
+        assert p.stereotype == "<<hw>>"
+        assert p.compact is True
+        assert p.min_value == 0
+        assert p.max_value == 5
+        assert p.height_pixels == 100
+
+    def test_state_change_with_comment(self):
+        sc = TimingStateChange(
+            participant="S",
+            time=0,
+            state="Active",
+            comment="starts here",
+        )
+        assert sc.comment == "starts here"
+
+    def test_timing_diagram_extended_options(self):
+        diagram = TimingDiagram(
+            compact_mode=True,
+            hide_time_axis=True,
+            manual_time_axis=True,
+        )
+        assert diagram.compact_mode is True
+        assert diagram.hide_time_axis is True
+        assert diagram.manual_time_axis is True
+
+
+class TestTimingExtendedPlantUMLIntegration:
+    """Integration tests for extended timing features."""
+
+    @pytest.fixture
+    def plantuml_check(self):
+        """Check if PlantUML is available."""
+        try:
+            result = subprocess.run(
+                ["plantuml", "-version"],
+                capture_output=True,
+                timeout=5,
+            )
+            return result.returncode == 0
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            return False
+
+    def test_rectangle_and_compact(self, plantuml_check, tmp_path):
+        if not plantuml_check:
+            pytest.skip("PlantUML not available")
+
+        with timing_diagram(compact_mode=True) as d:
+            status = d.rectangle("Status")
+            d.state(status, "OK", at=0)
+            d.state(status, "Error", at=50)
+
+        puml_file = tmp_path / "timing_rect.puml"
+        puml_file.write_text(d.render())
+
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+    def test_analog_with_range_and_ticks(self, plantuml_check, tmp_path):
+        if not plantuml_check:
+            pytest.skip("PlantUML not available")
+
+        with timing_diagram() as d:
+            v = d.analog("Voltage", alias="V", min_value=0, max_value=5, height=80)
+            d.ticks(v, multiple=1)
+            d.state(v, "0", at=0)
+            d.state(v, "2.5", at=10)
+            d.state(v, "5", at=20)
+
+        puml_file = tmp_path / "timing_analog.puml"
+        puml_file.write_text(d.render())
+
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+    def test_state_ordering(self, plantuml_check, tmp_path):
+        if not plantuml_check:
+            pytest.skip("PlantUML not available")
+
+        with timing_diagram() as d:
+            sig = d.robust("Signal", alias="S")
+            d.define_states(sig, "Idle", "Active", "Done")
+            d.state(sig, "Idle", at=0)
+            d.state(sig, "Active", at=10)
+            d.state(sig, "Done", at=30)
+
+        puml_file = tmp_path / "timing_state_order.puml"
+        puml_file.write_text(d.render())
+
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+    def test_initial_state_integration(self, plantuml_check, tmp_path):
+        if not plantuml_check:
+            pytest.skip("PlantUML not available")
+
+        with timing_diagram() as d:
+            sig = d.robust("Signal", alias="S")
+            d.initial_state(sig, "Off")
+            d.state(sig, "On", at=10)
+            d.state(sig, "Off", at=50)
+
+        puml_file = tmp_path / "timing_initial.puml"
+        puml_file.write_text(d.render())
+
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+    def test_stereotype_integration(self, plantuml_check, tmp_path):
+        if not plantuml_check:
+            pytest.skip("PlantUML not available")
+
+        with timing_diagram() as d:
+            data = d.robust("Data", stereotype="<<hw>>")
+            d.state(data, "Idle", at=0)
+            d.state(data, "Active", at=10)
+
+        puml_file = tmp_path / "timing_stereotype.puml"
         puml_file.write_text(d.render())
 
         result = subprocess.run(

@@ -232,11 +232,14 @@ from .timing import (
     TimingDiagram,
     TimingElement,
     TimingHighlight,
+    TimingInitialState,
     TimingMessage,
     TimingNote,
     TimingParticipant,
     TimingParticipantType,
     TimingScale,
+    TimingStateOrder,
+    TimingTicks,
 )
 
 __all__ = [
@@ -454,10 +457,13 @@ __all__ = [
     "TimingDiagramStyleLike",
     "TimingElement",
     "TimingHighlight",
+    "TimingInitialState",
     "TimingMessage",
     "TimingNote",
     "TimingParticipant",
     "TimingParticipantType",
     "TimingScale",
     "TimingStateChange",
+    "TimingStateOrder",
+    "TimingTicks",
 ]
