@@ -96,7 +96,7 @@ def _render_element(elem: TimingElement) -> list[str]:
     if isinstance(elem, TimingParticipant):
         return _render_participant(elem)
     if isinstance(elem, TimingStateOrder):
-        return [_render_state_order(elem)]
+        return _render_state_order(elem)
     if isinstance(elem, TimingTicks):
         return [_render_ticks(elem)]
     if isinstance(elem, TimeAnchor):
@@ -141,9 +141,10 @@ def _render_participant(p: TimingParticipant) -> list[str]:
 
     PlantUML syntax variants:
         robust "Name" as R
-        clock "CLK" <<hw>> as C with period 50
+        clock "CLK" as C with period 50
         compact concise "Status" as S
         analog "Voltage" between 0 and 5 as V
+        robust "Data" <<hw>> as D
     """
     lines: list[str] = []
     parts: list[str] = []
@@ -187,25 +188,28 @@ def _render_participant(p: TimingParticipant) -> list[str]:
     return lines
 
 
-def _render_state_order(order: TimingStateOrder) -> str:
+def _render_state_order(order: TimingStateOrder) -> list[str]:
     """Render state ordering directive.
 
     PlantUML syntax:
         R has Idle,Active,Done
-        R has "Ready" as ready, "Running" as running
+
+    With labels (each on separate line):
+        R has "Ready" as ready
+        R has "Running" as running
     """
     if order.labels:
-        # With labels: "Label" as state
-        state_parts = []
+        # With labels: each state needs its own "has" statement
+        lines = []
         for state in order.states:
             if state in order.labels:
-                state_parts.append(f'"{order.labels[state]}" as {state}')
+                lines.append(f'{order.participant} has "{order.labels[state]}" as {state}')
             else:
-                state_parts.append(state)
-        return f"{order.participant} has {', '.join(state_parts)}"
+                lines.append(f"{order.participant} has {state}")
+        return lines
     else:
-        # Simple: state1,state2,state3
-        return f"{order.participant} has {','.join(order.states)}"
+        # Simple: state1,state2,state3 (no spaces after commas)
+        return [f"{order.participant} has {','.join(order.states)}"]
 
 
 def _render_ticks(ticks: TimingTicks) -> str:

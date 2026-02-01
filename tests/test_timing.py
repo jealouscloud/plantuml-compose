@@ -871,7 +871,9 @@ class TestTimingExtendedFeatures:
             d.define_states(sig, "idle", "active", labels={"idle": "Idle State"})
 
         result = d.render()
-        assert 'S has "Idle State" as idle, active' in result
+        # Each labeled state now gets its own line
+        assert 'S has "Idle State" as idle' in result
+        assert "S has active" in result
 
     def test_initial_state(self):
         """Test initial state before timeline."""
@@ -894,7 +896,8 @@ class TestTimingExtendedFeatures:
             d.robust("Data", stereotype="<<hw>>")
 
         result = d.render()
-        assert 'robust "Data" <<hw>>' in result
+        # Stereotype comes after name, before alias
+        assert 'robust "Data" <<hw>> as' in result
 
     def test_state_with_comment(self):
         """Test state change with inline comment."""
