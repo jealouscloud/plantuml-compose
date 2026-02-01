@@ -6,6 +6,7 @@ from ..primitives.component import ComponentDiagram
 from ..primitives.deployment import DeploymentDiagram
 from ..primitives.json_ import JsonDiagram, YamlDiagram
 from ..primitives.mindmap import MindMapDiagram
+from ..primitives.network import NetworkDiagram
 from ..primitives.wbs import WBSDiagram
 from ..primitives.gantt import GanttDiagram
 from ..primitives.object_ import ObjectDiagram
@@ -19,6 +20,7 @@ from .component import render_component_diagram
 from .deployment import render_deployment_diagram
 from .json_ import render_json_diagram, render_yaml_diagram
 from .mindmap import render_mindmap_diagram
+from .network import render_network_diagram
 from .wbs import render_wbs_diagram
 from .gantt import render_gantt_diagram
 from .object_ import render_object_diagram
@@ -39,6 +41,7 @@ def render(
     | JsonDiagram
     | YamlDiagram
     | MindMapDiagram
+    | NetworkDiagram
     | WBSDiagram
     | GanttDiagram,
 ) -> str:
@@ -78,6 +81,8 @@ def render(
         return render_yaml_diagram(diagram)
     if isinstance(diagram, MindMapDiagram):
         return render_mindmap_diagram(diagram)
+    if isinstance(diagram, NetworkDiagram):
+        return render_network_diagram(diagram)
     if isinstance(diagram, WBSDiagram):
         return render_wbs_diagram(diagram)
     if isinstance(diagram, GanttDiagram):
@@ -95,6 +100,7 @@ __all__ = [
     "render_gantt_diagram",
     "render_json_diagram",
     "render_mindmap_diagram",
+    "render_network_diagram",
     "render_object_diagram",
     "render_sequence_diagram",
     "render_state_diagram",

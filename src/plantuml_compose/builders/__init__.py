@@ -6,6 +6,7 @@ from .component import component_diagram
 from .deployment import deployment_diagram
 from .json_ import json_diagram, yaml_diagram
 from .mindmap import mindmap_diagram
+from .network import network_diagram, NodeRef
 from .wbs import wbs_diagram
 from .gantt import gantt_diagram, TaskRef, MilestoneRef
 from .object_ import object_diagram
@@ -21,6 +22,7 @@ __all__ = [
     "gantt_diagram",
     "json_diagram",
     "mindmap_diagram",
+    "network_diagram",
     "object_diagram",
     "sequence_diagram",
     "state_diagram",
@@ -30,4 +32,6 @@ __all__ = [
     # Gantt references
     "MilestoneRef",
     "TaskRef",
+    # Network references
+    "NodeRef",
 ]

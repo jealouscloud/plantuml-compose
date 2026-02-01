@@ -1868,3 +1868,93 @@ def coerce_mindmap_diagram_style(
         else None,
         arrow=coerce_diagram_arrow_style(value["arrow"]) if "arrow" in value else None,
     )
+
+
+# ---------------------------------------------------------------------------
+# Network Diagram Styling
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class NetworkDiagramStyle:
+    """Diagram-wide styling for network diagrams (nwdiag).
+
+    This generates a PlantUML <style> block that sets default appearance
+    for network diagram elements.
+
+    CSS selectors used:
+        nwdiagDiagram: Root diagram styling
+        network:       Network bar appearance
+        server:        Node/server appearance
+        group:         Group box appearance
+        arrow:         Address label and connector styling
+
+    Example:
+        with network_diagram(
+            diagram_style=NetworkDiagramStyle(
+                background="white",
+                network=ElementStyle(background="LightYellow"),
+                server=ElementStyle(background="LightGreen"),
+                group=ElementStyle(background="PaleGreen"),
+            )
+        ) as d:
+            ...
+    """
+
+    # Root-level properties (nwdiagDiagram)
+    background: ColorLike | Gradient | None = None
+    font_name: str | None = None
+    font_size: int | None = None
+    font_color: ColorLike | None = None
+
+    # Element-specific styles
+    network: ElementStyle | None = None
+    server: ElementStyle | None = None
+    group: ElementStyle | None = None
+    arrow: DiagramArrowStyle | None = None
+
+
+class NetworkDiagramStyleDict(TypedDict, total=False):
+    """Dict form of NetworkDiagramStyle for convenience."""
+
+    background: ColorLike | Gradient
+    font_name: str
+    font_size: int
+    font_color: ColorLike
+    network: ElementStyleLike
+    server: ElementStyleLike
+    group: ElementStyleLike
+    arrow: DiagramArrowStyleLike
+
+
+NetworkDiagramStyleLike: TypeAlias = NetworkDiagramStyle | NetworkDiagramStyleDict
+
+_NETWORK_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
+    "background", "font_name", "font_size", "font_color",
+    "network", "server", "group", "arrow",
+})
+
+
+def coerce_network_diagram_style(
+    value: NetworkDiagramStyleLike,
+) -> NetworkDiagramStyle:
+    """Convert a NetworkDiagramStyleLike value to a NetworkDiagramStyle object."""
+    if isinstance(value, NetworkDiagramStyle):
+        return value
+    _validate_style_dict_keys(
+        value, _NETWORK_DIAGRAM_STYLE_KEYS, "NetworkDiagramStyle"
+    )
+    return NetworkDiagramStyle(
+        background=_coerce_color_or_gradient(value.get("background")),
+        font_name=value.get("font_name"),
+        font_size=value.get("font_size"),
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
+        network=coerce_element_style(value["network"])
+        if "network" in value
+        else None,
+        server=coerce_element_style(value["server"]) if "server" in value else None,
+        group=coerce_element_style(value["group"]) if "group" in value else None,
+        arrow=coerce_diagram_arrow_style(value["arrow"]) if "arrow" in value else None,
+    )

@@ -25,6 +25,8 @@ from .common import (
     Label,
     MindMapDiagramStyle,
     MindMapDiagramStyleLike,
+    NetworkDiagramStyle,
+    NetworkDiagramStyleLike,
     LabelLike,
     LayoutDirection,
     LayoutEngine,
@@ -207,6 +209,16 @@ from .gantt import (
     GanttSeparator,
     GanttTask,
     GanttVerticalSeparator,
+)
+from .network import (
+    Network,
+    NetworkDiagram,
+    NetworkElement,
+    NetworkGroup,
+    NetworkNode,
+    NodeShape,
+    PeerLink,
+    StandaloneNode,
 )
 
 __all__ = [
@@ -402,4 +414,15 @@ __all__ = [
     "GanttSeparator",
     "GanttTask",
     "GanttVerticalSeparator",
+    # Network
+    "Network",
+    "NetworkDiagram",
+    "NetworkDiagramStyle",
+    "NetworkDiagramStyleLike",
+    "NetworkElement",
+    "NetworkGroup",
+    "NetworkNode",
+    "NodeShape",
+    "PeerLink",
+    "StandaloneNode",
 ]

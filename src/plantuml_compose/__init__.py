@@ -55,6 +55,7 @@ from .builders import (
     gantt_diagram,
     json_diagram,
     mindmap_diagram,
+    network_diagram,
     object_diagram,
     sequence_diagram,
     state_diagram,
@@ -64,6 +65,8 @@ from .builders import (
     # Gantt references
     MilestoneRef,
     TaskRef,
+    # Network references
+    NodeRef,
 )
 from .primitives import (
     Color,
@@ -93,6 +96,8 @@ from .primitives import (
     MindMapDiagramStyle,
     MindMapDiagramStyleLike,
     MindMapNode,
+    NetworkDiagramStyle,
+    NetworkDiagramStyleLike,
     Note,
     WBSArrow,
     WBSDiagram,
@@ -224,6 +229,11 @@ __all__ = [
     # Gantt references
     "MilestoneRef",
     "TaskRef",
+    # Network diagram
+    "network_diagram",
+    "NetworkDiagramStyle",
+    "NetworkDiagramStyleLike",
+    "NodeRef",
 ]
 
 
