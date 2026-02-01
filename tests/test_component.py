@@ -496,3 +496,124 @@ class TestValidation:
             with pytest.raises(ValueError, match="cannot be empty"):
                 with d.package(""):
                     pass
+
+
+class TestDiagramStyle:
+    """Tests for diagram-level CSS styling."""
+
+    def test_diagram_style_component(self):
+        """Test styling component elements."""
+        with component_diagram(
+            diagram_style={"component": {"background": "#E3F2FD"}}
+        ) as d:
+            d.component("API")
+
+        output = render(d.build())
+        assert "<style>" in output
+        assert "componentDiagram" in output
+        assert "component {" in output
+        assert "BackgroundColor #E3F2FD" in output
+
+    def test_diagram_style_interface(self):
+        """Test styling interface elements."""
+        with component_diagram(
+            diagram_style={"interface": {"background": "#FFF9C4"}}
+        ) as d:
+            d.interface("IService")
+
+        output = render(d.build())
+        assert "interface {" in output
+        assert "BackgroundColor #FFF9C4" in output
+
+    def test_diagram_style_package(self):
+        """Test styling package containers."""
+        with component_diagram(
+            diagram_style={"package": {"background": "#C8E6C9"}}
+        ) as d:
+            with d.package("Services"):
+                d.component("API")
+
+        output = render(d.build())
+        assert "package {" in output
+        assert "BackgroundColor #C8E6C9" in output
+
+    def test_diagram_style_node(self):
+        """Test styling node containers."""
+        with component_diagram(
+            diagram_style={"node": {"background": "#BBDEFB"}}
+        ) as d:
+            with d.node("Server"):
+                d.component("App")
+
+        output = render(d.build())
+        assert "node {" in output
+        assert "BackgroundColor #BBDEFB" in output
+
+    def test_diagram_style_folder(self):
+        """Test styling folder containers."""
+        with component_diagram(
+            diagram_style={"folder": {"background": "#FFE0B2"}}
+        ) as d:
+            with d.folder("Config"):
+                d.component("Settings")
+
+        output = render(d.build())
+        assert "folder {" in output
+        assert "BackgroundColor #FFE0B2" in output
+
+    def test_diagram_style_cloud(self):
+        """Test styling cloud containers."""
+        with component_diagram(
+            diagram_style={"cloud": {"background": "#E1BEE7"}}
+        ) as d:
+            with d.cloud("AWS"):
+                d.component("Lambda")
+
+        output = render(d.build())
+        assert "cloud {" in output
+        assert "BackgroundColor #E1BEE7" in output
+
+    def test_diagram_style_database(self):
+        """Test styling database containers."""
+        with component_diagram(
+            diagram_style={"database": {"background": "#FFCCBC"}}
+        ) as d:
+            with d.database("PostgreSQL"):
+                d.component("Tables")
+
+        output = render(d.build())
+        assert "database {" in output
+        assert "BackgroundColor #FFCCBC" in output
+
+    def test_diagram_style_frame(self):
+        """Test styling frame containers."""
+        with component_diagram(
+            diagram_style={"frame": {"background": "#B2EBF2"}}
+        ) as d:
+            with d.frame("System"):
+                d.component("Core")
+
+        output = render(d.build())
+        assert "frame {" in output
+        assert "BackgroundColor #B2EBF2" in output
+
+    def test_diagram_style_multiple_containers(self):
+        """Test styling multiple container types at once."""
+        with component_diagram(
+            diagram_style={
+                "package": {"background": "#E8F5E9"},
+                "node": {"background": "#E3F2FD"},
+                "database": {"background": "#FFF3E0"},
+            }
+        ) as d:
+            with d.package("Services"):
+                d.component("API")
+            with d.node("Server"):
+                d.component("App")
+            with d.database("DB"):
+                d.component("Data")
+
+        output = render(d.build())
+        assert "package {" in output
+        assert "node {" in output
+        assert "database {" in output

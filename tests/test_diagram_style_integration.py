@@ -460,6 +460,60 @@ class TestComponentDiagramStyles:
             d.note("A note", target=c)
         run_plantuml_and_verify_color(render(d.build()), "FFF9C4")
 
+    def test_package_background(self):
+        """Verify package container background color renders."""
+        with component_diagram(
+            diagram_style={"package": {"background": "#C8E6C9"}}
+        ) as d:
+            with d.package("Services"):
+                d.component("API")
+        run_plantuml_and_verify_color(render(d.build()), "C8E6C9")
+
+    def test_node_background(self):
+        """Verify node container background color renders."""
+        with component_diagram(
+            diagram_style={"node": {"background": "#BBDEFB"}}
+        ) as d:
+            with d.node("Server"):
+                d.component("App")
+        run_plantuml_and_verify_color(render(d.build()), "BBDEFB")
+
+    def test_folder_background(self):
+        """Verify folder container background color renders."""
+        with component_diagram(
+            diagram_style={"folder": {"background": "#FFE0B2"}}
+        ) as d:
+            with d.folder("Config"):
+                d.component("Settings")
+        run_plantuml_and_verify_color(render(d.build()), "FFE0B2")
+
+    def test_cloud_background(self):
+        """Verify cloud container background color renders."""
+        with component_diagram(
+            diagram_style={"cloud": {"background": "#E1BEE7"}}
+        ) as d:
+            with d.cloud("AWS"):
+                d.component("Lambda")
+        run_plantuml_and_verify_color(render(d.build()), "E1BEE7")
+
+    def test_database_background(self):
+        """Verify database container background color renders."""
+        with component_diagram(
+            diagram_style={"database": {"background": "#FFCCBC"}}
+        ) as d:
+            with d.database("PostgreSQL"):
+                d.component("Tables")
+        run_plantuml_and_verify_color(render(d.build()), "FFCCBC")
+
+    def test_frame_background(self):
+        """Verify frame container background color renders."""
+        with component_diagram(
+            diagram_style={"frame": {"background": "#B2EBF2"}}
+        ) as d:
+            with d.frame("System"):
+                d.component("Core")
+        run_plantuml_and_verify_color(render(d.build()), "B2EBF2")
+
 
 # =============================================================================
 # Object Diagram Selectors - Only object verified to render

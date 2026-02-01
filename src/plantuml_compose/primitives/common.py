@@ -1095,18 +1095,18 @@ class ComponentDiagramStyle:
     these defaults with inline styles.
 
     Root-level properties apply to the diagram background and default fonts.
-    Element-specific properties (component, interface, arrow, note, title)
-    let you style each element type independently.
+    Element-specific properties let you style each element type independently.
 
     Example:
         with component_diagram(
-            style=ComponentDiagramStyle(
+            diagram_style=ComponentDiagramStyle(
                 background="white",
                 font_name="Arial",
                 component=ElementStyle(
                     background="#E3F2FD",
                     line_color="#1976D2",
                 ),
+                package=ElementStyle(background="#F5F5F5"),
                 arrow=DiagramArrowStyle(
                     line_color="#757575",
                 ),
@@ -1115,7 +1115,8 @@ class ComponentDiagramStyle:
             ...
 
     This generates a <style> block in the PlantUML output that themes
-    all components with blue backgrounds and gray arrows.
+    all components with blue backgrounds, packages with gray backgrounds,
+    and gray arrows.
     """
 
     # Root-level properties
@@ -1131,16 +1132,25 @@ class ComponentDiagramStyle:
     note: ElementStyle | None = None
     title: ElementStyle | None = None
 
+    # Container-specific styles
+    package: ElementStyle | None = None
+    node: ElementStyle | None = None
+    folder: ElementStyle | None = None
+    frame: ElementStyle | None = None
+    cloud: ElementStyle | None = None
+    database: ElementStyle | None = None
+
 
 class ComponentDiagramStyleDict(TypedDict, total=False):
     """Dict form of ComponentDiagramStyle for convenience.
 
     Example:
         with component_diagram(
-            style={
+            diagram_style={
                 "background": "white",
                 "font_name": "Arial",
                 "component": {"background": "#E3F2FD", "line_color": "#1976D2"},
+                "package": {"background": "#F5F5F5"},
                 "arrow": {"line_color": "#757575"},
             }
         ) as d:
@@ -1156,6 +1166,12 @@ class ComponentDiagramStyleDict(TypedDict, total=False):
     arrow: DiagramArrowStyleLike
     note: ElementStyleLike
     title: ElementStyleLike
+    package: ElementStyleLike
+    node: ElementStyleLike
+    folder: ElementStyleLike
+    frame: ElementStyleLike
+    cloud: ElementStyleLike
+    database: ElementStyleLike
 
 
 # Type alias for component diagram style arguments
@@ -1166,6 +1182,7 @@ ComponentDiagramStyleLike: TypeAlias = (
 _COMPONENT_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
     "background", "font_name", "font_size", "font_color",
     "component", "interface", "arrow", "note", "title",
+    "package", "node", "folder", "frame", "cloud", "database",
 })
 
 
@@ -1197,6 +1214,18 @@ def coerce_component_diagram_style(
         note=coerce_element_style(value["note"]) if "note" in value else None,
         title=coerce_element_style(value["title"])
         if "title" in value
+        else None,
+        package=coerce_element_style(value["package"])
+        if "package" in value
+        else None,
+        node=coerce_element_style(value["node"]) if "node" in value else None,
+        folder=coerce_element_style(value["folder"])
+        if "folder" in value
+        else None,
+        frame=coerce_element_style(value["frame"]) if "frame" in value else None,
+        cloud=coerce_element_style(value["cloud"]) if "cloud" in value else None,
+        database=coerce_element_style(value["database"])
+        if "database" in value
         else None,
     )
 
