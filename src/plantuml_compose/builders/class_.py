@@ -60,6 +60,7 @@ from contextlib import contextmanager
 from typing import Iterator, Literal
 
 from ..primitives.class_ import (
+    AssociationClass,
     ClassDiagram,
     ClassDiagramElement,
     ClassNode,
@@ -302,6 +303,173 @@ class _BaseClassBuilder:
             name=name,
             alias=alias,
             type="entity",
+            style=coerce_style(style),
+        )
+        self._elements.append(node)
+        self._register_ref(node)
+        return node
+
+    def exception(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        generics: str | None = None,
+        stereotype: Stereotype | None = None,
+        style: StyleLike | None = None,
+    ) -> ClassNode:
+        """Create and register an exception class.
+
+        Example:
+            d.exception("ValidationError")
+            d.exception("HttpError", generics="T")
+        """
+        if not name:
+            raise ValueError("Exception name cannot be empty")
+        node = ClassNode(
+            name=name,
+            alias=alias,
+            type="exception",
+            generics=generics,
+            stereotype=stereotype,
+            style=coerce_style(style),
+        )
+        self._elements.append(node)
+        self._register_ref(node)
+        return node
+
+    def metaclass(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        generics: str | None = None,
+        stereotype: Stereotype | None = None,
+        style: StyleLike | None = None,
+    ) -> ClassNode:
+        """Create and register a metaclass.
+
+        Example:
+            d.metaclass("Singleton")
+        """
+        if not name:
+            raise ValueError("Metaclass name cannot be empty")
+        node = ClassNode(
+            name=name,
+            alias=alias,
+            type="metaclass",
+            generics=generics,
+            stereotype=stereotype,
+            style=coerce_style(style),
+        )
+        self._elements.append(node)
+        self._register_ref(node)
+        return node
+
+    def protocol(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        generics: str | None = None,
+        stereotype: Stereotype | None = None,
+        style: StyleLike | None = None,
+    ) -> ClassNode:
+        """Create and register a protocol (typing.Protocol).
+
+        Example:
+            d.protocol("Comparable")
+            d.protocol("Iterator", generics="T")
+        """
+        if not name:
+            raise ValueError("Protocol name cannot be empty")
+        node = ClassNode(
+            name=name,
+            alias=alias,
+            type="protocol",
+            generics=generics,
+            stereotype=stereotype,
+            style=coerce_style(style),
+        )
+        self._elements.append(node)
+        self._register_ref(node)
+        return node
+
+    def struct(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        generics: str | None = None,
+        stereotype: Stereotype | None = None,
+        style: StyleLike | None = None,
+    ) -> ClassNode:
+        """Create and register a struct.
+
+        Example:
+            d.struct("Point")
+            d.struct("Vector", generics="T")
+        """
+        if not name:
+            raise ValueError("Struct name cannot be empty")
+        node = ClassNode(
+            name=name,
+            alias=alias,
+            type="struct",
+            generics=generics,
+            stereotype=stereotype,
+            style=coerce_style(style),
+        )
+        self._elements.append(node)
+        self._register_ref(node)
+        return node
+
+    def circle(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        style: StyleLike | None = None,
+    ) -> ClassNode:
+        """Create and register a circle (shorthand notation).
+
+        Renders as: () name
+
+        Example:
+            d.circle("Interface")
+        """
+        if not name:
+            raise ValueError("Circle name cannot be empty")
+        node = ClassNode(
+            name=name,
+            alias=alias,
+            type="circle",
+            style=coerce_style(style),
+        )
+        self._elements.append(node)
+        self._register_ref(node)
+        return node
+
+    def diamond(
+        self,
+        name: str,
+        *,
+        alias: str | None = None,
+        style: StyleLike | None = None,
+    ) -> ClassNode:
+        """Create and register a diamond (shorthand notation).
+
+        Renders as: <> name
+
+        Example:
+            d.diamond("Choice")
+        """
+        if not name:
+            raise ValueError("Diamond name cannot be empty")
+        node = ClassNode(
+            name=name,
+            alias=alias,
+            type="diamond",
             style=coerce_style(style),
         )
         self._elements.append(node)
@@ -552,6 +720,7 @@ class _BaseClassBuilder:
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
         note: str | Label | None = None,
+        qualifier: str | None = None,
     ) -> Relationship:
         """Create an association relationship.
 
@@ -568,6 +737,11 @@ class _BaseClassBuilder:
             direction: Layout hint ("up", "down", "left", "right") to
                 influence arrow routing between elements
             note: Note to attach to this relationship
+            qualifier: Key/qualifier for qualified associations - adds a small
+                box at the source end showing how the source accesses targets.
+                Example: Bank [accountNumber] --> Account means Bank uses
+                accountNumber to look up Accounts.
+                Note: Qualifier replaces source_label - you cannot use both.
         """
         return self._relationship(
             source,
@@ -579,6 +753,7 @@ class _BaseClassBuilder:
             style=style,
             direction=direction,
             note=note,
+            qualifier=qualifier,
         )
 
     def relationship(
@@ -593,6 +768,7 @@ class _BaseClassBuilder:
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
         note: str | Label | None = None,
+        qualifier: str | None = None,
     ) -> Relationship:
         """Create a custom relationship.
 
@@ -610,6 +786,7 @@ class _BaseClassBuilder:
             direction: Layout hint ("up", "down", "left", "right") to
                 influence arrow routing between elements
             note: Note to attach to this relationship
+            qualifier: Key/qualifier for qualified associations
         """
         return self._relationship(
             source,
@@ -621,6 +798,7 @@ class _BaseClassBuilder:
             style=style,
             direction=direction,
             note=note,
+            qualifier=qualifier,
         )
 
     def _relationship(
@@ -635,8 +813,16 @@ class _BaseClassBuilder:
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
         note: str | Label | None = None,
+        qualifier: str | None = None,
     ) -> Relationship:
         """Internal: Create and register a relationship."""
+        # Validate: qualifier and source_label can't both be used
+        if qualifier and source_label:
+            raise ValueError(
+                "Cannot use both 'qualifier' and 'source_label' - "
+                "qualifier replaces the source label position in PlantUML"
+            )
+
         # Validate string refs (object refs are already valid by construction)
         if isinstance(source, str):
             self._validate_ref(source, "source")
@@ -656,9 +842,65 @@ class _BaseClassBuilder:
             style=style,
             direction=direction_val,
             note=note_obj,
+            qualifier=qualifier,
         )
         self._elements.append(rel)
         return rel
+
+    def association_class(
+        self,
+        source: ClassNode | str,
+        target: ClassNode | str,
+        association: ClassNode | str,
+    ) -> AssociationClass:
+        """Link a class to a relationship, making it an association class.
+
+        Use when a relationship itself has attributes or behavior. For example,
+        when a Student enrolls in a Course, the Enrollment has its own data
+        (grade, date) that belongs to neither Student nor Course individually,
+        but to their relationship.
+
+        Note: You should also create a regular relationship between source and
+        target (e.g., using associates()). This method just adds the dotted
+        line from that relationship to the association class.
+
+        Args:
+            source: First class in the relationship
+            target: Second class in the relationship
+            association: The class representing the relationship's attributes
+
+        Returns:
+            The AssociationClass link
+
+        Example:
+            student = d.class_("Student")
+            course = d.class_("Course")
+
+            with d.class_with_members("Enrollment") as enrollment:
+                enrollment.field("grade", "str")
+                enrollment.field("enrolled_date", "date")
+
+            # Create the many-to-many relationship
+            d.associates(student, course, source_label="0..*", target_label="1..*")
+
+            # Link Enrollment as the association class
+            d.association_class(student, course, enrollment)
+        """
+        # Validate refs
+        if isinstance(source, str):
+            self._validate_ref(source, "source")
+        if isinstance(target, str):
+            self._validate_ref(target, "target")
+        if isinstance(association, str):
+            self._validate_ref(association, "association")
+
+        assoc = AssociationClass(
+            source=self._to_ref(source),
+            target=self._to_ref(target),
+            association_class=self._to_ref(association),
+        )
+        self._elements.append(assoc)
+        return assoc
 
     def note(
         self,

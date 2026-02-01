@@ -64,6 +64,48 @@ class TestClassNode:
         output = render(d.build())
         assert "entity Order" in output
 
+    def test_exception(self):
+        with class_diagram() as d:
+            d.exception("ValidationError")
+
+        output = render(d.build())
+        assert "exception ValidationError" in output
+
+    def test_metaclass(self):
+        with class_diagram() as d:
+            d.metaclass("Singleton")
+
+        output = render(d.build())
+        assert "metaclass Singleton" in output
+
+    def test_protocol(self):
+        with class_diagram() as d:
+            d.protocol("Comparable")
+
+        output = render(d.build())
+        assert "protocol Comparable" in output
+
+    def test_struct(self):
+        with class_diagram() as d:
+            d.struct("Point")
+
+        output = render(d.build())
+        assert "struct Point" in output
+
+    def test_circle(self):
+        with class_diagram() as d:
+            d.circle("Interface")
+
+        output = render(d.build())
+        assert "circle Interface" in output
+
+    def test_diamond(self):
+        with class_diagram() as d:
+            d.diamond("Choice")
+
+        output = render(d.build())
+        assert "diamond Choice" in output
+
     def test_class_with_generics(self):
         with class_diagram() as d:
             d.class_("Repository", generics="T extends Entity")
@@ -400,6 +442,77 @@ class TestRelationships:
         assert "User o-- Order" in output
         assert "note on link : Ownership relationship" in output
 
+    def test_qualified_association(self):
+        """Test qualified association adds qualifier box at source end.
+
+        Qualified associations model how one object uses a key to access
+        another. For example, a Bank uses accountNumber to look up Accounts.
+        Note: qualifier replaces source_label - they can't both be used.
+        """
+        with class_diagram() as d:
+            bank = d.class_("Bank")
+            account = d.class_("Account")
+            d.associates(
+                bank, account,
+                target_label="*",
+                qualifier="accountNumber"
+            )
+
+        output = render(d.build())
+        # PlantUML syntax: Bank [accountNumber] --> "*" Account
+        assert "[accountNumber]" in output
+        assert '"*"' in output
+        assert "Bank" in output
+        assert "Account" in output
+
+    def test_qualified_association_rejects_source_label(self):
+        """Test that using both qualifier and source_label raises an error."""
+        with class_diagram() as d:
+            bank = d.class_("Bank")
+            account = d.class_("Account")
+            with pytest.raises(ValueError, match="Cannot use both"):
+                d.associates(
+                    bank, account,
+                    source_label="1",
+                    qualifier="accountNumber"
+                )
+
+    def test_qualified_association_via_relationship(self):
+        """Test qualifier works via the generic relationship() method."""
+        with class_diagram() as d:
+            bank = d.class_("Bank")
+            account = d.class_("Account")
+            d.relationship(
+                bank, account, "association",
+                target_label="*",
+                qualifier="accountNumber"
+            )
+
+        output = render(d.build())
+        assert "[accountNumber]" in output
+        assert '"*"' in output
+
+    def test_association_class(self):
+        """Test association class links a class to a relationship.
+
+        Association classes model relationships that have their own attributes.
+        The Enrollment class captures grade/date for the Student-Course relationship.
+        """
+        with class_diagram() as d:
+            student = d.class_("Student")
+            course = d.class_("Course")
+            enrollment = d.class_("Enrollment")
+
+            # Create the many-to-many relationship
+            d.associates(student, course, source_label="0..*", target_label="1..*")
+
+            # Link Enrollment as the association class
+            d.association_class(student, course, enrollment)
+
+        output = render(d.build())
+        # PlantUML syntax: (Student, Course) .. Enrollment
+        assert "(Student, Course) .. Enrollment" in output
+
 
 class TestPackages:
     """Tests for packages."""
@@ -684,6 +797,36 @@ class TestValidation:
         with class_diagram() as d:
             with pytest.raises(ValueError, match="cannot be empty"):
                 d.entity("")
+
+    def test_empty_exception_name_rejected(self):
+        with class_diagram() as d:
+            with pytest.raises(ValueError, match="cannot be empty"):
+                d.exception("")
+
+    def test_empty_metaclass_name_rejected(self):
+        with class_diagram() as d:
+            with pytest.raises(ValueError, match="cannot be empty"):
+                d.metaclass("")
+
+    def test_empty_protocol_name_rejected(self):
+        with class_diagram() as d:
+            with pytest.raises(ValueError, match="cannot be empty"):
+                d.protocol("")
+
+    def test_empty_struct_name_rejected(self):
+        with class_diagram() as d:
+            with pytest.raises(ValueError, match="cannot be empty"):
+                d.struct("")
+
+    def test_empty_circle_name_rejected(self):
+        with class_diagram() as d:
+            with pytest.raises(ValueError, match="cannot be empty"):
+                d.circle("")
+
+    def test_empty_diamond_name_rejected(self):
+        with class_diagram() as d:
+            with pytest.raises(ValueError, match="cannot be empty"):
+                d.diamond("")
 
     def test_empty_note_content_rejected(self):
         with class_diagram() as d:

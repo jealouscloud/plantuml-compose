@@ -8,6 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ..primitives.class_ import (
+    AssociationClass,
     ClassDiagram,
     ClassDiagramElement,
     ClassNode,
@@ -147,6 +148,8 @@ def _render_element(
         return _render_class_node(elem)
     if isinstance(elem, Relationship):
         return _render_relationship(elem)
+    if isinstance(elem, AssociationClass):
+        return _render_association_class(elem)
     if isinstance(elem, Package):
         return _render_package(elem, ctx)
     if isinstance(elem, Together):
@@ -307,10 +310,15 @@ def _render_relationship(rel: Relationship) -> list[str]:
     # Build arrow based on relationship type
     arrow = _build_relationship_arrow(rel)
 
-    # PlantUML syntax: source "label" --> "label" target : label
+    # PlantUML syntax: source [qualifier] --> "label" target : label
+    # Note: qualifier replaces source_label - they can't both be used
     parts: list[str] = [quote_ref(rel.source)]
 
-    if rel.source_label:
+    # Qualified association: adds a qualifier box at the source end
+    # This replaces the source_label position
+    if rel.qualifier:
+        parts.append(f"[{rel.qualifier}]")
+    elif rel.source_label:
         parts.append(f'"{rel.source_label}"')
 
     parts.append(arrow)
@@ -341,6 +349,18 @@ def _render_relationship(rel: Relationship) -> list[str]:
             lines.append(f"note on link : {note_text}")
 
     return lines
+
+
+def _render_association_class(assoc: AssociationClass) -> list[str]:
+    """Render an association class link.
+
+    PlantUML syntax: (ClassA, ClassB) .. AssociationClass
+    This links the AssociationClass to the relationship between ClassA and ClassB.
+    """
+    source = quote_ref(assoc.source)
+    target = quote_ref(assoc.target)
+    assoc_class = quote_ref(assoc.association_class)
+    return [f"({source}, {target}) .. {assoc_class}"]
 
 
 def _build_relationship_arrow(rel: Relationship) -> str:

@@ -239,6 +239,42 @@ class Relationship:
     note: LabelLike | None = None
     # Arrow direction indicator in label
     label_direction: Literal["<", ">", None] = None
+    # Qualified association: adds a qualifier box at the source end
+    # e.g., Bank [accountNumber] -- Account
+    qualifier: str | None = None
+
+
+@dataclass(frozen=True)
+class AssociationClass:
+    """Links a class to a relationship, making the class an association class.
+
+    Association classes model relationships that have their own attributes.
+    For example, when a Student enrolls in a Course, the Enrollment itself
+    has properties (grade, date) that belong to neither Student nor Course
+    but to their relationship.
+
+    PlantUML syntax: (Student, Course) .. Enrollment
+
+    The two endpoints define which relationship this association class belongs to,
+    and the association_class is the class that represents the relationship.
+
+        source:            First class in the relationship (e.g., "Student")
+        target:            Second class in the relationship (e.g., "Course")
+        association_class: The class representing the relationship (e.g., "Enrollment")
+
+    Example:
+        # Student and Course have a many-to-many relationship
+        # Enrollment captures the grade for each student-course pair
+        AssociationClass(
+            source="Student",
+            target="Course",
+            association_class="Enrollment"
+        )
+    """
+
+    source: str  # First class in the relationship
+    target: str  # Second class in the relationship
+    association_class: str  # The class that represents the relationship
 
 
 @dataclass(frozen=True)
@@ -353,5 +389,5 @@ class ClassDiagram:
 
 # Type alias for elements that can appear in a class diagram
 ClassDiagramElement: TypeAlias = (
-    ClassNode | Relationship | Package | Together | ClassNote | HideShow | Note
+    ClassNode | Relationship | AssociationClass | Package | Together | ClassNote | HideShow | Note
 )
