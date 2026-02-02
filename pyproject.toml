@@ -1,7 +1,7 @@
 [project]
 name = "plantuml-compose"
 version = "0.1.0"
-description = "Add your description here"
+description = "A Python library that makes creating PlantUML diagrams intuitive via type hints"
 readme = "README.md"
 authors = [
     { name = "jealouscloud", email = "github@noaha.org" }
