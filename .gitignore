@@ -11,3 +11,8 @@ wheels/
 
 idk/
 .claude/
+tests/output/
+sandbox/
+examples-puml
+planning
+journal
