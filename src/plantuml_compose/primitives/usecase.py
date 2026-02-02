@@ -26,6 +26,7 @@ from typing import TYPE_CHECKING, Literal, Union
 from .common import (
     ColorLike,
     Direction,
+    EmbeddableContent,
     Footer,
     Header,
     Label,
@@ -133,7 +134,7 @@ class Relationship:
 class UseCaseNote:
     """A note attached to a use case diagram element."""
 
-    content: Label
+    content: EmbeddableContent
     position: Literal["left", "right", "top", "bottom"] = "right"
     target: str | None = None
     color: ColorLike | None = None

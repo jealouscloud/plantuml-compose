@@ -43,6 +43,8 @@ from dataclasses import dataclass
 from io import StringIO
 from pathlib import Path
 
+from svg_utils import check_svg_for_subdiagram_errors
+
 
 @dataclass
 class DiagramInfo:
@@ -55,9 +57,76 @@ class DiagramInfo:
     end_pos: int
 
 
+def extract_subdiagrams(content: str) -> list[str]:
+    """
+    Extract subdiagram content from {{ }} blocks.
+
+    PlantUML's -checkonly doesn't validate content inside {{ }} blocks,
+    so we need to extract and validate them separately.
+
+    Args:
+        content: PlantUML diagram text that may contain {{ }} blocks.
+
+    Returns:
+        List of subdiagram content strings (without the {{ }} wrapper).
+    """
+    subdiagrams = []
+    # Match {{ ... }} blocks, handling both multi-line and inline formats
+    # Multi-line: {{\n...\n}}
+    # Inline: {{...}} (may contain %breakline())
+    pattern = r"\{\{(.*?)\}\}"
+    for match in re.finditer(pattern, content, re.DOTALL):
+        inner = match.group(1).strip()
+        if inner:
+            # Remove <style>...</style> blocks (transparency styling)
+            inner = re.sub(r"<style>.*?</style>\s*", "", inner, flags=re.DOTALL)
+            # Replace %breakline() with actual newlines for validation
+            inner = inner.replace("%breakline()", "\n")
+            inner = inner.strip()
+            if inner:
+                subdiagrams.append(inner)
+    return subdiagrams
+
+
+def verify_subdiagram(content: str, tmp_path: Path, index: int) -> str | None:
+    """
+    Verify a single subdiagram by wrapping it and running plantuml -checkonly.
+
+    Args:
+        content: The inner content of a {{ }} block.
+        tmp_path: Temporary directory for test files.
+        index: Index for unique filename.
+
+    Returns:
+        Error message if validation fails, None if successful.
+    """
+    # Wrap the subdiagram content in @startuml/@enduml
+    wrapped = f"@startuml\n{content}\n@enduml"
+    puml_file = tmp_path / f"subdiagram_{index:04d}.puml"
+    puml_file.write_text(wrapped)
+
+    try:
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if result.returncode != 0:
+            return result.stderr.strip() or "Subdiagram syntax error"
+    except subprocess.TimeoutExpired:
+        return "Subdiagram verification timed out"
+    except Exception as e:
+        return f"Subdiagram verification failed: {e}"
+    return None
+
+
 def batch_verify_plantuml(diagrams: list[DiagramInfo]) -> dict[int, str]:
     """
     Verify multiple PlantUML diagrams in a single plantuml invocation.
+
+    Also validates content inside {{ }} subdiagram blocks, which PlantUML's
+    -checkonly doesn't catch.
 
     Args:
         diagrams: List of DiagramInfo objects to verify.
@@ -118,6 +187,49 @@ def batch_verify_plantuml(diagrams: list[DiagramInfo]) -> dict[int, str]:
         except Exception as e:
             for i in range(len(diagrams)):
                 errors[i] = f"PlantUML verification failed: {e}"
+
+        # Phase 2: Validate diagrams containing {{ }} subdiagrams by rendering SVG
+        # Local -checkonly doesn't catch subdiagram errors - they render as
+        # "Syntax Error" text inside base64-encoded embedded images.
+        #
+        # Batch approach: write all subdiagram files, run plantuml once, then check SVGs
+        subdiag_indices: list[int] = []
+        for i, diagram in enumerate(diagrams):
+            if i in errors:
+                continue
+            if "{{" in diagram.output:
+                puml_file = tmp_path / f"subdiag_{i:04d}.puml"
+                puml_file.write_text(diagram.output)
+                subdiag_indices.append(i)
+
+        if subdiag_indices:
+            # Render all subdiagram files to SVG in one call
+            try:
+                subprocess.run(
+                    ["plantuml", "-tsvg", str(tmp_path / "subdiag_*.puml")],
+                    capture_output=True,
+                    text=True,
+                    timeout=120,
+                )
+            except subprocess.TimeoutExpired:
+                for i in subdiag_indices:
+                    errors[i] = "Subdiagram SVG generation timed out"
+            except Exception as e:
+                for i in subdiag_indices:
+                    errors[i] = f"Subdiagram SVG generation failed: {e}"
+
+            # Check each generated SVG for errors
+            for i in subdiag_indices:
+                if i in errors:
+                    continue
+                svg_file = tmp_path / f"subdiag_{i:04d}.svg"
+                if svg_file.exists():
+                    svg_content = svg_file.read_text()
+                    error = check_svg_for_subdiagram_errors(svg_content)
+                    if error:
+                        errors[i] = error
+                else:
+                    errors[i] = "SVG file not generated"
 
     return errors
 

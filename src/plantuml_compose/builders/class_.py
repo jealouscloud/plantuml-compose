@@ -99,6 +99,7 @@ from ..primitives.common import (
     coerce_style,
     validate_literal,
 )
+from .base import EmbeddableDiagramMixin
 
 
 class _BaseClassBuilder:
@@ -1292,7 +1293,7 @@ class _TogetherBuilder(_BaseClassBuilder):
         return Together(elements=tuple(self._elements))
 
 
-class ClassDiagramBuilder(_BaseClassBuilder):
+class ClassDiagramBuilder(EmbeddableDiagramMixin, _BaseClassBuilder):
     """Builder for complete class diagrams.
 
     Usage:

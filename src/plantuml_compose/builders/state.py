@@ -85,6 +85,7 @@ from ..primitives.common import (
     coerce_state_diagram_style,
     coerce_style,
 )
+from .base import EmbeddableDiagramMixin
 from ..primitives.state import (
     CompositeState,
     ConcurrentState,
@@ -1067,7 +1068,7 @@ class _ParallelBuilder:
         return elements
 
 
-class StateDiagramBuilder(_BaseStateBuilder):
+class StateDiagramBuilder(EmbeddableDiagramMixin, _BaseStateBuilder):
     """Builder for complete state diagrams.
 
     Usage:

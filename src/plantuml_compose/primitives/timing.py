@@ -10,6 +10,7 @@ from typing import Literal, TypeAlias
 
 from .common import (
     ColorLike,
+    EmbeddableContent,
     Footer,
     Header,
     Legend,
@@ -262,13 +263,13 @@ class TimingNote:
     Attributes:
         participant: Participant alias or name
         time: Time for the note
-        text: Note text content
+        text: Note text content or EmbeddedDiagram
         position: Note position relative to the signal
     """
 
     participant: str
     time: TimeValue
-    text: str
+    text: EmbeddableContent
     position: Literal["top", "bottom"] = "top"
 
 

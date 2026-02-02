@@ -18,6 +18,7 @@ from ..primitives.common import (
 )
 from ..primitives.mindmap import MindMapDiagram, MindMapNode
 from ..renderers import render as render_diagram
+from .base import EmbeddableDiagramMixin
 
 
 class _MindMapNodeBuilder:
@@ -129,8 +130,10 @@ class _MindMapNodeContext:
             self._parent._add_root(node)
 
 
-class MindMapDiagramBuilder:
+class MindMapDiagramBuilder(EmbeddableDiagramMixin):
     """Builder for MindMap tree diagrams."""
+
+    _keep_diagram_markers = True
 
     def __init__(
         self,

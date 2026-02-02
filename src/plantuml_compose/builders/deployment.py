@@ -79,6 +79,7 @@ from ..primitives.common import (
     coerce_line_style,
     validate_style_background_only,
 )
+from .base import EmbeddableDiagramMixin
 from ..primitives.deployment import (
     DeploymentDiagram,
     DeploymentDiagramElement,
@@ -1132,7 +1133,7 @@ class _NestedElementBuilder(_BaseDeploymentBuilder):
         )
 
 
-class DeploymentDiagramBuilder(_BaseDeploymentBuilder):
+class DeploymentDiagramBuilder(EmbeddableDiagramMixin, _BaseDeploymentBuilder):
     """Builder for complete deployment diagrams.
 
     Usage:

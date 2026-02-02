@@ -20,6 +20,7 @@ from ..primitives.common import (
     TimingDiagramStyleLike,
     coerce_timing_diagram_style,
 )
+from .base import EmbeddableDiagramMixin
 from ..primitives.timing import (
     HiddenState,
     IntricatedState,
@@ -112,7 +113,7 @@ def _resolve_participant(participant: str | ParticipantRef) -> str:
     return participant
 
 
-class TimingDiagramBuilder:
+class TimingDiagramBuilder(EmbeddableDiagramMixin):
     """Builder for timing diagrams.
 
     Follows the same parameter-based pattern as other diagram builders.

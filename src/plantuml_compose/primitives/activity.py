@@ -26,6 +26,7 @@ from typing import Literal, TypeAlias
 from .common import (
     ActivityDiagramStyle,
     ColorLike,
+    EmbeddableContent,
     Footer,
     Header,
     LabelLike,
@@ -384,12 +385,12 @@ class Group:
 class ActivityNote:
     """A note annotation in an activity diagram.
 
-    content:  Note text (can include Creole markup)
+    content:  Note text (can include Creole markup) or EmbeddedDiagram
     position: "left" or "right" of the flow
     floating: If True, not attached to specific element
     """
 
-    content: LabelLike
+    content: EmbeddableContent
     position: Literal["left", "right"] = "right"
     floating: bool = False
 

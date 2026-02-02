@@ -26,6 +26,7 @@ from .common import (
     ColorLike,
     ComponentDiagramStyle,
     Direction,
+    EmbeddableContent,
     Footer,
     Header,
     Label,
@@ -236,13 +237,13 @@ class Relationship:
 class ComponentNote:
     """A note annotation in a component diagram.
 
-    content:  Note text
+    content:  Note text or EmbeddedDiagram
     position: Placement relative to target
     target:   Component to attach to
     color:    Note background color
     """
 
-    content: Label
+    content: EmbeddableContent
     position: Literal["left", "right", "top", "bottom"] = "right"
     target: str | None = None  # Component/interface to attach to
     color: ColorLike | None = None

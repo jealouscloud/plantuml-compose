@@ -122,6 +122,7 @@ from ..primitives.common import (
     validate_literal_type,
     validate_style_background_only,
 )
+from .base import EmbeddableDiagramMixin
 
 # Type alias for fork end styles - defines valid values once
 ForkEndStyle = Literal["fork", "merge", "or", "and"]
@@ -876,7 +877,7 @@ class _GroupBuilder(_TerminatorsMixin, _NestedActivityBuilder):
         )
 
 
-class ActivityDiagramBuilder(_BaseActivityBuilder):
+class ActivityDiagramBuilder(EmbeddableDiagramMixin, _BaseActivityBuilder):
     """Builder for complete activity diagrams.
 
     Usage:

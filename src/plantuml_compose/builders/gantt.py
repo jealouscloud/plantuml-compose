@@ -29,6 +29,7 @@ from ..primitives.gantt import (
     coerce_gantt_diagram_style,
 )
 from ..renderers import render as render_diagram
+from .base import EmbeddableDiagramMixin
 
 
 class ElementRef:
@@ -54,8 +55,11 @@ TaskRef = ElementRef
 MilestoneRef = ElementRef
 
 
-class GanttDiagramBuilder:
+class GanttDiagramBuilder(EmbeddableDiagramMixin):
     """Builder for Gantt chart diagrams."""
+
+    # Keep diagram markers for specialized diagram types
+    _keep_diagram_markers = True
 
     # Explicit type annotations to preserve Literal types
     _scale: Literal["daily", "weekly", "monthly", "quarterly", "yearly"] | None

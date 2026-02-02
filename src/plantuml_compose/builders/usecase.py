@@ -83,6 +83,7 @@ from ..primitives.common import (
     coerce_line_style,
     validate_style_background_only,
 )
+from .base import EmbeddableDiagramMixin
 from ..primitives.usecase import (
     Actor,
     ActorStyle,
@@ -633,7 +634,7 @@ class _ContainerBuilder(_BaseUseCaseBuilder):
         )
 
 
-class UseCaseDiagramBuilder(_BaseUseCaseBuilder):
+class UseCaseDiagramBuilder(EmbeddableDiagramMixin, _BaseUseCaseBuilder):
     """Builder for complete use case diagrams.
 
     Usage:

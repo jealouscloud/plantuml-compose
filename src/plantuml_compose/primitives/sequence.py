@@ -26,6 +26,7 @@ from typing import Literal, TypeAlias
 
 from .common import (
     ColorLike,
+    EmbeddableContent,
     Footer,
     Header,
     LabelLike,
@@ -150,7 +151,7 @@ class Message:
 
     source: str  # Participant reference
     target: str  # Participant reference
-    label: LabelLike | None = None
+    label: EmbeddableContent | None = None
     line_style: MessageLineStyle = "solid"
     arrow_head: MessageArrowHead = "normal"
     bidirectional: bool = False
@@ -263,7 +264,7 @@ class SequenceNote:
         shape: "note" (rectangle), "hnote" (hexagon), "rnote" (rounded)
     """
 
-    content: LabelLike
+    content: EmbeddableContent
     position: Literal["left", "right", "over"] = "right"
     participants: tuple[str, ...] = field(
         default_factory=tuple

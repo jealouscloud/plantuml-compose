@@ -15,6 +15,7 @@ from ..primitives.common import (
     coerce_color,
     coerce_mindmap_diagram_style,
 )
+from .base import EmbeddableDiagramMixin
 from ..primitives.wbs import (
     WBSArrow,
     WBSDiagram,
@@ -133,8 +134,10 @@ class _WBSNodeContext:
             self._parent._add_root(node)
 
 
-class WBSDiagramBuilder:
+class WBSDiagramBuilder(EmbeddableDiagramMixin):
     """Builder for WBS tree diagrams."""
+
+    _keep_diagram_markers = True
 
     def __init__(
         self,

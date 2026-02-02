@@ -28,6 +28,7 @@ from .common import (
     render_caption,
     render_color_hash,
     render_diagram_style,
+    render_embeddable_content,
     render_footer,
     render_header,
     render_legend,
@@ -311,11 +312,12 @@ def _render_scale(scale: TimingScale) -> str:
 def _render_note(note: TimingNote) -> list[str]:
     """Render note attached to a participant at a specific time."""
     # Set the time context first, then render the note
+    content = render_embeddable_content(note.text)
     lines = [
         _format_time_ref(note.time),
         f"note {note.position} of {note.participant}",
     ]
-    lines.extend(note.text.split("\n"))
+    lines.extend(content.split("\n"))
     lines.append("end note")
     return lines
 

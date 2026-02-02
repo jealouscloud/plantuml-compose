@@ -35,6 +35,7 @@ from .common import (
     render_color_bare,
     render_color_hash,
     render_diagram_style,
+    render_embeddable_content,
     render_footer,
     render_header,
     render_label,
@@ -486,7 +487,7 @@ def _render_together(together: Together, ctx: _RenderContext) -> list[str]:
 
 def _render_class_note(note: ClassNote) -> list[str]:
     """Render a note attached to a class or member."""
-    content = render_label(note.content)
+    content = render_embeddable_content(note.content)
 
     # Position prefix
     if note.target:
@@ -510,7 +511,7 @@ def _render_class_note(note: ClassNote) -> list[str]:
 
 def _render_attached_note(note: Note, target: str) -> list[str]:
     """Render a note attached to an element (from node.note)."""
-    content = render_label(note.content)
+    content = render_embeddable_content(note.content)
     prefix = f"note {note.position} of {target}"
 
     if "\n" in content:
@@ -525,7 +526,7 @@ def _render_attached_note(note: Note, target: str) -> list[str]:
 
 def _render_floating_note(note: Note, ctx: _RenderContext) -> list[str]:
     """Render a floating note."""
-    content = render_label(note.content)
+    content = render_embeddable_content(note.content)
     alias = ctx.next_note_alias()
 
     if "\n" in content:

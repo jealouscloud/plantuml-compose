@@ -24,6 +24,7 @@ from .common import (
     render_caption,
     render_color_hash,
     render_diagram_style,
+    render_embeddable_content,
     render_footer,
     render_header,
     render_label,
@@ -279,7 +280,7 @@ def _build_arrow(base_arrow: str, direction: str | None, style) -> str:
 def _render_note(note: ObjectNote, indent: int = 0) -> list[str]:
     """Render a note."""
     prefix = "  " * indent
-    content = render_label(note.content)
+    content = render_embeddable_content(note.content)
 
     if note.target:
         pos = f"note {note.position} of {note.target}"

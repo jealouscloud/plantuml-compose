@@ -43,6 +43,7 @@ from ..primitives.common import (
     ThemeLike,
     coerce_network_diagram_style,
 )
+from .base import EmbeddableDiagramMixin
 from ..primitives.network import (
     Network,
     NetworkDiagram,
@@ -132,7 +133,7 @@ class NetworkBuilder:
         )
 
 
-class NetworkDiagramBuilder:
+class NetworkDiagramBuilder(EmbeddableDiagramMixin):
     """Builder for constructing network diagrams."""
 
     def __init__(

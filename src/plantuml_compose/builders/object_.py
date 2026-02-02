@@ -85,6 +85,7 @@ from ..primitives.common import (
     coerce_object_diagram_style,
     validate_style_background_only,
 )
+from .base import EmbeddableDiagramMixin
 from ..primitives.object_ import (
     Field,
     Map,
@@ -654,7 +655,7 @@ class _BaseObjectBuilder:
         self._elements.append(n)
 
 
-class ObjectDiagramBuilder(_BaseObjectBuilder):
+class ObjectDiagramBuilder(EmbeddableDiagramMixin, _BaseObjectBuilder):
     """Builder for complete object diagrams.
 
     Usage:

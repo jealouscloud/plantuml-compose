@@ -27,6 +27,7 @@ from .common import (
     render_color_hash,
     render_diagram_style,
     render_element_style,
+    render_embeddable_content,
     render_footer,
     render_header,
     render_label,
@@ -386,7 +387,7 @@ def _get_arrow_for_type(
 def _render_note(note: ComponentNote, indent: int = 0) -> list[str]:
     """Render a note."""
     prefix = "  " * indent
-    content = render_label(note.content)
+    content = render_embeddable_content(note.content)
 
     if note.target:
         pos = f"note {note.position} of {note.target}"

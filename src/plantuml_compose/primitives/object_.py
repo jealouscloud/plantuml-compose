@@ -26,6 +26,7 @@ from typing import TYPE_CHECKING, Literal, Union
 from .common import (
     ColorLike,
     Direction,
+    EmbeddableContent,
     Footer,
     Header,
     Label,
@@ -139,7 +140,7 @@ class Relationship:
 class ObjectNote:
     """A note attached to an object diagram element."""
 
-    content: Label
+    content: EmbeddableContent
     position: Literal["left", "right", "top", "bottom"] = "right"
     target: str | None = None
     color: ColorLike | None = None

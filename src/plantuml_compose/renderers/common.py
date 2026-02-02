@@ -8,6 +8,8 @@ from ..primitives.common import (
     Color,
     DiagramArrowStyle,
     ElementStyle,
+    EmbeddableContent,
+    EmbeddedDiagram,
     ExternalTheme,
     Footer,
     Gradient,
@@ -265,6 +267,31 @@ def render_label(label: Label | str | None, *, inline: bool = False) -> str:
     return text
 
 
+def render_embeddable_content(
+    content: EmbeddableContent | None, *, inline: bool = False
+) -> str:
+    """Render content that may include embedded diagrams.
+
+    This function handles str, Label, and EmbeddedDiagram uniformly,
+    making it easy for renderers to support embedded sub-diagrams
+    in notes, messages, legends, and other content fields.
+
+    Args:
+        content: The content to render (str, Label, or EmbeddedDiagram)
+        inline: If True, use single-line format for EmbeddedDiagram
+               (uses %breakline()) and escape newlines for regular text.
+               If False, use multi-line format.
+
+    Returns:
+        Rendered string suitable for PlantUML output
+    """
+    if content is None:
+        return ""
+    if isinstance(content, EmbeddedDiagram):
+        return content.render(inline=inline)
+    return render_label(content, inline=inline)
+
+
 def render_line_style_bracket(style: LineStyleLike) -> str:
     """Render line style as bracket modifier: [#red,dashed,thickness=2]"""
     style = coerce_line_style(style)
@@ -415,8 +442,9 @@ def render_legend(legend: Legend) -> list[str]:
         endlegend
 
     Legends are always multiline blocks in PlantUML.
+    Supports embedded sub-diagrams in content.
     """
-    text = render_label(legend.content)
+    text = render_embeddable_content(legend.content)
 
     # Build opening line with position
     if legend.position == "right":

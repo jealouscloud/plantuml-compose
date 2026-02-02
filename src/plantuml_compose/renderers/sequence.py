@@ -30,6 +30,7 @@ from .common import (
     render_caption,
     render_color_hash,
     render_diagram_style,
+    render_embeddable_content,
     render_footer,
     render_header,
     render_label,
@@ -227,10 +228,10 @@ def _render_message(msg: Message) -> str:
         if msg.activation_color and msg.activation == "activate":
             activation += render_color_hash(msg.activation_color)
 
-    # Label
+    # Label (supports embedded diagrams via inline format)
     label = ""
     if msg.label:
-        label = f" : {render_label(msg.label, inline=True)}"
+        label = f" : {render_embeddable_content(msg.label, inline=True)}"
 
     # Parallel prefix (teoz feature)
     prefix = "& " if msg.parallel else ""
@@ -342,7 +343,7 @@ def _render_group_block(group: GroupBlock) -> list[str]:
 def _render_note(note: SequenceNote) -> list[str]:
     """Render a note."""
     lines: list[str] = []
-    content = render_label(note.content)
+    content = render_embeddable_content(note.content)
 
     # Build position prefix
     if note.across:

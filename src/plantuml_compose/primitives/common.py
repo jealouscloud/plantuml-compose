@@ -528,6 +528,77 @@ LabelLike: TypeAlias = Label | str
 
 
 @dataclass(frozen=True)
+class EmbeddedDiagram:
+    """A sub-diagram for embedding in notes, messages, legends, etc.
+
+    PlantUML supports embedding diagrams using {{ }} wrapper syntax. This allows
+    rich diagram content inside notes, sequence messages, and legends.
+
+    Sub-diagrams are rendered with transparent background by default so they
+    blend naturally into their container.
+
+    Example:
+        # Create a component diagram to embed
+        with component_diagram() as arch:
+            api = arch.component("API")
+            db = arch.component("DB")
+            arch.link(api, db)
+
+        # Embed it in a sequence diagram note
+        with sequence_diagram() as d:
+            alice = d.participant("Alice")
+            d.note(alice, arch.embed(), position="right")
+
+    Attributes:
+        content: Inner PlantUML content (without @startuml/@enduml wrapper)
+        transparent: If True, applies transparent background CSS styling
+    """
+
+    content: str
+    transparent: bool = True
+
+    def render(self, inline: bool = False) -> str:
+        """Render the embedded diagram for placement in PlantUML.
+
+        Args:
+            inline: If True, use %breakline() for single-line contexts like
+                   message labels and state descriptions. If False, use actual
+                   newlines for multi-line contexts like notes and legends.
+
+        Returns:
+            PlantUML sub-diagram syntax with {{ }} wrapper
+        """
+        inner_lines: list[str] = []
+
+        if self.transparent:
+            # Style block needs newlines around the content to parse correctly
+            inner_lines.append("<style>")
+            inner_lines.append("root { BackgroundColor transparent }")
+            inner_lines.append("</style>")
+
+        # Add the content, preserving its structure
+        inner_lines.append(self.content)
+
+        if inline:
+            # For single-line contexts: join with %breakline()
+            # First flatten any existing newlines in content
+            flattened_inner = " %breakline() ".join(
+                line for part in inner_lines
+                for line in part.split("\n")
+                if line.strip()
+            )
+            # Double braces {{ }} are required - single braces don't work
+            return f"{{{{{flattened_inner}}}}}"
+        else:
+            # For multi-line contexts: use actual newlines
+            return "{{\n" + "\n".join(inner_lines) + "\n}}"
+
+
+# Type alias for content that can include embedded diagrams
+EmbeddableContent: TypeAlias = str | Label | EmbeddedDiagram
+
+
+@dataclass(frozen=True)
 class Spot:
     """A colored circle with a single character, displayed in stereotypes.
 
@@ -613,10 +684,11 @@ class Note:
         top, bottom:  Above or below an element
         floating:     Not attached to any specific element
 
-    The content can include Creole markup for rich text formatting.
+    The content can include Creole markup for rich text formatting,
+    or an EmbeddedDiagram for sub-diagram content.
     """
 
-    content: LabelLike
+    content: "EmbeddableContent"
     position: NotePosition = "right"
 
 
@@ -667,14 +739,14 @@ class Legend:
     """A bordered legend box for diagram annotations.
 
     Legends are bordered boxes that can contain explanatory text, typically
-    used for diagram keys or additional context. Supports multiline text
-    and Creole markup.
+    used for diagram keys or additional context. Supports multiline text,
+    Creole markup, or embedded sub-diagrams.
 
-        content:  Legend text (can include Creole markup)
+        content:  Legend text (can include Creole markup) or EmbeddedDiagram
         position: Where to place the legend relative to the diagram
     """
 
-    content: LabelLike
+    content: "EmbeddableContent"
     position: LegendPosition = "right"
 
 

@@ -26,6 +26,7 @@ from .common import (
     render_caption,
     render_color,
     render_diagram_style,
+    render_embeddable_content,
     render_footer,
     render_header,
     render_label,
@@ -84,7 +85,7 @@ def _render_floating_note(note: Note, note_id: int = 0) -> list[str]:
     For position="floating", uses PlantUML's `note "content" as N1` syntax.
     For other positions (left, right, etc.), uses `note position: content`.
     """
-    text = render_label(note.content)
+    text = render_embeddable_content(note.content)
 
     if note.position == "floating":
         # PlantUML floating note syntax: note "content" as alias
@@ -233,16 +234,16 @@ def _render_state_node(state: StateNode) -> list[str]:
 
     lines.append(decl)
 
-    # Description (if any)
+    # Description (if any) - supports embedded diagrams via inline format
     if state.description:
-        lines.append(f"{ref} : {render_label(state.description, inline=True)}")
+        lines.append(f"{ref} : {render_embeddable_content(state.description, inline=True)}")
 
     # Note (if any)
     if state.note:
         lines.extend(
             _render_note_lines(
                 _note_prefix(state.note.position, ref),
-                render_label(state.note.content),
+                render_embeddable_content(state.note.content),
             )
         )
 
@@ -395,7 +396,7 @@ def _render_composite_state(comp: CompositeState) -> list[str]:
         lines.extend(
             _render_note_lines(
                 _note_prefix(comp.note.position, ref),
-                render_label(comp.note.content),
+                render_embeddable_content(comp.note.content),
             )
         )
 
@@ -439,7 +440,7 @@ def _render_concurrent_state(conc: ConcurrentState) -> list[str]:
         lines.extend(
             _render_note_lines(
                 _note_prefix(conc.note.position, ref),
-                render_label(conc.note.content),
+                render_embeddable_content(conc.note.content),
             )
         )
 

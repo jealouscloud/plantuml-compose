@@ -27,6 +27,7 @@ from .common import (
     ClassDiagramStyle,
     ColorLike,
     Direction,
+    EmbeddableContent,
     Footer,
     Header,
     LabelLike,
@@ -323,13 +324,13 @@ class ClassNote:
 
     Notes can be attached to classes, specific members, or float freely.
 
-        content:   Note text (can include Creole markup)
+        content:   Note text (can include Creole markup) or EmbeddedDiagram
         position:  Where to place relative to target
         target:    Class to attach to (None for floating)
         member:    Specific member to annotate (e.g., "getId()")
     """
 
-    content: LabelLike
+    content: EmbeddableContent
     position: Literal["left", "right", "top", "bottom"] = "right"
     target: str | None = None  # Class reference to attach to
     # For notes on specific members

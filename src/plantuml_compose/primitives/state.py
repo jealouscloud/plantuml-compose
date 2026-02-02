@@ -28,6 +28,7 @@ from typing import Literal, TypeAlias
 
 from .common import (
     Direction,
+    EmbeddableContent,
     Footer,
     Header,
     LabelLike,
@@ -119,7 +120,7 @@ class StateNode:
 
     name: str
     alias: str | None = None
-    description: LabelLike | None = None
+    description: EmbeddableContent | None = None
     style: StyleLike | None = None
     note: Note | None = None
 

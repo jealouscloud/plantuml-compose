@@ -99,6 +99,7 @@ from ..primitives.common import (
     validate_literal_type,
     validate_style_background_only,
 )
+from .base import EmbeddableDiagramMixin
 
 # Type alias for autonumber actions - defines valid values once
 from ..primitives.sequence import (
@@ -640,7 +641,7 @@ class _ElseBuilder(_BaseSequenceBuilder):
         )
 
 
-class SequenceDiagramBuilder(_BaseSequenceBuilder):
+class SequenceDiagramBuilder(EmbeddableDiagramMixin, _BaseSequenceBuilder):
     """Builder for complete sequence diagrams.
 
     Usage:

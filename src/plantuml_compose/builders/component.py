@@ -86,6 +86,7 @@ from ..primitives.common import (
     coerce_line_style,
     coerce_style,
 )
+from .base import EmbeddableDiagramMixin
 from ..primitives.component import (
     Component,
     ComponentDiagram,
@@ -1100,7 +1101,7 @@ class _ComponentWithPortsBuilder:
         )
 
 
-class ComponentDiagramBuilder(_BaseComponentBuilder):
+class ComponentDiagramBuilder(EmbeddableDiagramMixin, _BaseComponentBuilder):
     """Builder for complete component diagrams.
 
     Usage:

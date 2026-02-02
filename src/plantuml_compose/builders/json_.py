@@ -20,6 +20,7 @@ from ..primitives.common import (
     coerce_json_diagram_style,
     coerce_yaml_diagram_style,
 )
+from .base import EmbeddableDiagramMixin
 from ..primitives.json_ import JsonDiagram, YamlDiagram
 from ..renderers import render as render_diagram
 
@@ -28,8 +29,10 @@ JsonData = str | dict[str, Any] | list[Any]
 YamlData = str | dict[str, Any] | list[Any]
 
 
-class JsonDiagramBuilder:
+class JsonDiagramBuilder(EmbeddableDiagramMixin):
     """Builder for JSON data visualization diagrams."""
+
+    _keep_diagram_markers = True
 
     def __init__(
         self,
@@ -79,8 +82,10 @@ class JsonDiagramBuilder:
         return render_diagram(self.build())
 
 
-class YamlDiagramBuilder:
+class YamlDiagramBuilder(EmbeddableDiagramMixin):
     """Builder for YAML data visualization diagrams."""
+
+    _keep_diagram_markers = True
 
     def __init__(
         self,
