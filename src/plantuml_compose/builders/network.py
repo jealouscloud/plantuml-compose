@@ -144,7 +144,7 @@ class NetworkDiagramBuilder(EmbeddableDiagramMixin):
         footer: Footer | None,
         legend: Legend | None,
         scale: Scale | None,
-        theme: ThemeLike | None,
+        theme: ThemeLike,
         diagram_style: NetworkDiagramStyle | None,
     ):
         self._title = title
@@ -319,7 +319,7 @@ def network_diagram(
     footer: Footer | None = None,
     legend: Legend | None = None,
     scale: Scale | None = None,
-    theme: ThemeLike | None = None,
+    theme: ThemeLike = None,
     diagram_style: NetworkDiagramStyleLike | None = None,
 ) -> Iterator[NetworkDiagramBuilder]:
     """Create a network diagram.

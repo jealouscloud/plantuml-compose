@@ -80,6 +80,7 @@ from ..primitives.common import (
     StateDiagramStyleLike,
     Style,
     StyleLike,
+    ThemeLike,
     coerce_direction,
     coerce_line_style,
     coerce_state_diagram_style,
@@ -723,7 +724,7 @@ class _CompositeBuilder(_BaseStateBuilder):
         self._alias = alias
         self._style = style
         self._note = note
-        self._note_position = note_position
+        self._note_position: NotePosition = note_position
 
     @property
     def _ref(self) -> str:
@@ -833,8 +834,8 @@ class _ConcurrentBuilder:
         self._alias = alias
         self._style = style
         self._note = note
-        self._note_position = note_position
-        self._separator = separator
+        self._note_position: NotePosition = note_position
+        self._separator: RegionSeparator = separator
         self._regions: list[Region] = []
         self._refs: set[str] = set()  # Track valid element references
 
@@ -1092,7 +1093,7 @@ class StateDiagramBuilder(EmbeddableDiagramMixin, _BaseStateBuilder):
         footer: str | Footer | None = None,
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
-        theme: str | None = None,
+        theme: ThemeLike = None,
         layout: LayoutDirection | None = None,
         layout_engine: LayoutEngine | None = None,
         linetype: LineType | None = None,
@@ -1109,10 +1110,10 @@ class StateDiagramBuilder(EmbeddableDiagramMixin, _BaseStateBuilder):
         self._scale = (
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
-        self._theme = theme
-        self._layout = layout
-        self._layout_engine = layout_engine
-        self._linetype = linetype
+        self._theme: ThemeLike = theme
+        self._layout: LayoutDirection | None = layout
+        self._layout_engine: LayoutEngine | None = layout_engine
+        self._linetype: LineType | None = linetype
         self._hide_empty_description = hide_empty_description
         # Coerce diagram_style dict to StateDiagramStyle object
         self._diagram_style = (
@@ -1340,7 +1341,7 @@ def state_diagram(
     footer: str | Footer | None = None,
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
-    theme: str | None = None,
+    theme: ThemeLike = None,
     layout: LayoutDirection | None = None,
     layout_engine: LayoutEngine | None = None,
     linetype: LineType | None = None,

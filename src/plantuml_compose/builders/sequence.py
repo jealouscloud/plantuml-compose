@@ -96,6 +96,7 @@ from ..primitives.common import (
     Scale,
     SequenceDiagramStyleLike,
     StyleLike,
+    ThemeLike,
     validate_literal_type,
     validate_style_background_only,
 )
@@ -575,7 +576,7 @@ class _GroupBuilder(_BaseSequenceBuilder):
         secondary: str | Label | None = None,
     ) -> None:
         super().__init__()
-        self._group_type = group_type
+        self._group_type: GroupType = group_type
         self._label = Label(label) if isinstance(label, str) else label
         self._secondary = (
             Label(secondary) if isinstance(secondary, str) else secondary
@@ -666,7 +667,7 @@ class SequenceDiagramBuilder(EmbeddableDiagramMixin, _BaseSequenceBuilder):
         footer: str | Footer | None = None,
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
-        theme: str | None = None,
+        theme: ThemeLike = None,
         layout_engine: LayoutEngine | None = None,
         linetype: LineType | None = None,
         diagram_style: SequenceDiagramStyleLike | None = None,
@@ -683,9 +684,9 @@ class SequenceDiagramBuilder(EmbeddableDiagramMixin, _BaseSequenceBuilder):
         self._scale = (
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
-        self._theme = theme
-        self._layout_engine = layout_engine
-        self._linetype = linetype
+        self._theme: ThemeLike = theme
+        self._layout_engine: LayoutEngine | None = layout_engine
+        self._linetype: LineType | None = linetype
         self._diagram_style = (
             coerce_sequence_diagram_style(diagram_style)
             if diagram_style
@@ -1436,7 +1437,7 @@ def sequence_diagram(
     footer: str | Footer | None = None,
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
-    theme: str | None = None,
+    theme: ThemeLike = None,
     layout_engine: LayoutEngine | None = None,
     linetype: LineType | None = None,
     diagram_style: SequenceDiagramStyleLike | None = None,

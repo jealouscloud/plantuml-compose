@@ -119,6 +119,7 @@ from ..primitives.common import (
     LineType,
     Scale,
     StyleLike,
+    ThemeLike,
     validate_literal_type,
     validate_style_background_only,
 )
@@ -899,7 +900,7 @@ class ActivityDiagramBuilder(EmbeddableDiagramMixin, _BaseActivityBuilder):
         footer: str | Footer | None = None,
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
-        theme: str | None = None,
+        theme: ThemeLike = None,
         layout_engine: LayoutEngine | None = None,
         linetype: LineType | None = None,
         diagram_style: ActivityDiagramStyleLike | None = None,
@@ -914,9 +915,9 @@ class ActivityDiagramBuilder(EmbeddableDiagramMixin, _BaseActivityBuilder):
         self._scale = (
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
-        self._theme = theme
-        self._layout_engine = layout_engine
-        self._linetype = linetype
+        self._theme: ThemeLike = theme
+        self._layout_engine: LayoutEngine | None = layout_engine
+        self._linetype: LineType | None = linetype
         self._diagram_style = (
             coerce_activity_diagram_style(diagram_style)
             if diagram_style
@@ -1262,7 +1263,7 @@ def activity_diagram(
     footer: str | Footer | None = None,
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
-    theme: str | None = None,
+    theme: ThemeLike = None,
     layout_engine: LayoutEngine | None = None,
     linetype: LineType | None = None,
     diagram_style: ActivityDiagramStyleLike | None = None,

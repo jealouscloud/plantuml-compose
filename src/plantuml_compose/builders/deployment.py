@@ -75,6 +75,7 @@ from ..primitives.common import (
     Scale,
     Stereotype,
     StyleLike,
+    ThemeLike,
     coerce_direction,
     coerce_line_style,
     validate_style_background_only,
@@ -1111,7 +1112,7 @@ class _NestedElementBuilder(_BaseDeploymentBuilder):
         if not name:
             raise ValueError("Element name cannot be empty")
         super().__init__()
-        self._type = type
+        self._type: ElementType = type
         self._name = name
         self._alias = alias
         self._stereotype = (
@@ -1157,7 +1158,7 @@ class DeploymentDiagramBuilder(EmbeddableDiagramMixin, _BaseDeploymentBuilder):
         footer: str | Footer | None = None,
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
-        theme: str | None = None,
+        theme: ThemeLike = None,
         layout: LayoutDirection | None = None,
         layout_engine: LayoutEngine | None = None,
         linetype: LineType | None = None,
@@ -1171,10 +1172,10 @@ class DeploymentDiagramBuilder(EmbeddableDiagramMixin, _BaseDeploymentBuilder):
         self._scale = (
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
-        self._theme = theme
-        self._layout = layout
-        self._layout_engine = layout_engine
-        self._linetype = linetype
+        self._theme: ThemeLike = theme
+        self._layout: LayoutDirection | None = layout
+        self._layout_engine: LayoutEngine | None = layout_engine
+        self._linetype: LineType | None = linetype
 
     def build(self) -> DeploymentDiagram:
         """Build the complete deployment diagram."""
@@ -1211,7 +1212,7 @@ def deployment_diagram(
     footer: str | Footer | None = None,
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
-    theme: str | None = None,
+    theme: ThemeLike = None,
     layout: LayoutDirection | None = None,
     layout_engine: LayoutEngine | None = None,
     linetype: LineType | None = None,

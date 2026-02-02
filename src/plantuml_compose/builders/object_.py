@@ -80,6 +80,7 @@ from ..primitives.common import (
     Scale,
     Stereotype,
     StyleLike,
+    ThemeLike,
     coerce_direction,
     coerce_line_style,
     coerce_object_diagram_style,
@@ -676,7 +677,7 @@ class ObjectDiagramBuilder(EmbeddableDiagramMixin, _BaseObjectBuilder):
         footer: str | Footer | None = None,
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
-        theme: str | None = None,
+        theme: ThemeLike = None,
         layout: LayoutDirection | None = None,
         layout_engine: LayoutEngine | None = None,
         linetype: LineType | None = None,
@@ -691,10 +692,10 @@ class ObjectDiagramBuilder(EmbeddableDiagramMixin, _BaseObjectBuilder):
         self._scale = (
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
-        self._theme = theme
-        self._layout = layout
-        self._layout_engine = layout_engine
-        self._linetype = linetype
+        self._theme: ThemeLike = theme
+        self._layout: LayoutDirection | None = layout
+        self._layout_engine: LayoutEngine | None = layout_engine
+        self._linetype: LineType | None = linetype
         self._diagram_style = (
             coerce_object_diagram_style(diagram_style) if diagram_style else None
         )
@@ -735,7 +736,7 @@ def object_diagram(
     footer: str | Footer | None = None,
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
-    theme: str | None = None,
+    theme: ThemeLike = None,
     layout: LayoutDirection | None = None,
     layout_engine: LayoutEngine | None = None,
     linetype: LineType | None = None,

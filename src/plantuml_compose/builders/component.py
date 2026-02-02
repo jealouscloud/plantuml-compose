@@ -81,6 +81,7 @@ from ..primitives.common import (
     Scale,
     Stereotype,
     StyleLike,
+    ThemeLike,
     coerce_component_diagram_style,
     coerce_direction,
     coerce_line_style,
@@ -1023,7 +1024,7 @@ class _ContainerBuilder(_BaseComponentBuilder):
         if not name:
             raise ValueError("Container name cannot be empty")
         super().__init__()
-        self._type = type
+        self._type: ContainerType = type
         self._name = name
         self._stereotype = stereotype
         self._style = coerce_style(style)
@@ -1137,14 +1138,14 @@ class ComponentDiagramBuilder(EmbeddableDiagramMixin, _BaseComponentBuilder):
         footer: str | Footer | None = None,
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
-        theme: str | None = None,
+        theme: ThemeLike = None,
         layout: LayoutDirection | None = None,
         layout_engine: LayoutEngine | None = None,
         linetype: LineType | None = None,
     ) -> None:
         super().__init__()
         self._title = title
-        self._style = style
+        self._style: ComponentStyle | None = style
         # Coerce diagram_style dict to ComponentDiagramStyle object
         self._diagram_style = (
             coerce_component_diagram_style(diagram_style)
@@ -1159,10 +1160,10 @@ class ComponentDiagramBuilder(EmbeddableDiagramMixin, _BaseComponentBuilder):
         self._scale = (
             Scale(factor=scale) if isinstance(scale, (int, float)) else scale
         )
-        self._theme = theme
-        self._layout = layout
-        self._layout_engine = layout_engine
-        self._linetype = linetype
+        self._theme: ThemeLike = theme
+        self._layout: LayoutDirection | None = layout
+        self._layout_engine: LayoutEngine | None = layout_engine
+        self._linetype: LineType | None = linetype
 
     def build(self) -> ComponentDiagram:
         """Build the complete component diagram."""
@@ -1205,7 +1206,7 @@ def component_diagram(
     footer: str | Footer | None = None,
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
-    theme: str | None = None,
+    theme: ThemeLike = None,
     layout: LayoutDirection | None = None,
     layout_engine: LayoutEngine | None = None,
     linetype: LineType | None = None,
