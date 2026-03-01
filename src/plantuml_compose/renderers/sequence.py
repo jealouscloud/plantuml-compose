@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from ..primitives.common import (
     coerce_line_style,
+    Newpage,
     SequenceDiagramStyle,
 )
 from ..primitives.sequence import (
@@ -37,6 +38,8 @@ from .common import (
     render_layout_engine,
     render_legend,
     render_linetype,
+    render_mainframe,
+    render_newpage,
     render_scale,
     render_theme,
 )
@@ -45,6 +48,9 @@ from .common import (
 def render_sequence_diagram(diagram: SequenceDiagram) -> str:
     """Render a complete sequence diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
+
+    if diagram.mainframe:
+        lines.append(render_mainframe(diagram.mainframe))
 
     # Theme comes first
     theme_line = render_theme(diagram.theme)
@@ -202,6 +208,8 @@ def _render_element(elem: SequenceDiagramElement) -> list[str]:
         return ["|||"]
     if isinstance(elem, Autonumber):
         return [_render_autonumber(elem)]
+    if isinstance(elem, Newpage):
+        return [render_newpage(elem.title)]
     raise TypeError(f"Unknown element type: {type(elem).__name__}")
 
 

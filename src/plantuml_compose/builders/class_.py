@@ -1311,6 +1311,7 @@ class ClassDiagramBuilder(EmbeddableDiagramMixin, _BaseClassBuilder):
         self,
         *,
         title: str | None = None,
+        mainframe: str | None = None,
         hide_empty_members: bool = False,
         hide_circle: bool = False,
         namespace_separator: str | None = None,
@@ -1327,6 +1328,7 @@ class ClassDiagramBuilder(EmbeddableDiagramMixin, _BaseClassBuilder):
     ) -> None:
         super().__init__()
         self._title = title
+        self._mainframe = mainframe
         self._hide_empty_members = hide_empty_members
         self._hide_circle = hide_circle
         self._namespace_separator = namespace_separator
@@ -1345,11 +1347,21 @@ class ClassDiagramBuilder(EmbeddableDiagramMixin, _BaseClassBuilder):
             coerce_class_diagram_style(diagram_style) if diagram_style else None
         )
 
+    def newpage(self, title: str | None = None) -> None:
+        """Insert a page break in the diagram output.
+
+        Args:
+            title: Optional title for the new page
+        """
+        from ..primitives.common import Newpage
+        self._elements.append(Newpage(title=title))
+
     def build(self) -> ClassDiagram:
         """Build the complete class diagram."""
         return ClassDiagram(
             elements=tuple(self._elements),
             title=self._title,
+            mainframe=self._mainframe,
             hide_empty_members=self._hide_empty_members,
             hide_circle=self._hide_circle,
             namespace_separator=self._namespace_separator,
@@ -1379,6 +1391,7 @@ class ClassDiagramBuilder(EmbeddableDiagramMixin, _BaseClassBuilder):
 def class_diagram(
     *,
     title: str | None = None,
+    mainframe: str | None = None,
     hide_empty_members: bool = False,
     hide_circle: bool = False,
     namespace_separator: str | None = None,
@@ -1413,6 +1426,7 @@ def class_diagram(
 
     Args:
         title: Optional diagram title
+        mainframe: Optional frame label drawn around the entire diagram
         hide_empty_members: Hide classes with no members
         hide_circle: Hide the circle icons
         namespace_separator: Namespace separator (e.g., "::" or "none")
@@ -1432,6 +1446,7 @@ def class_diagram(
     """
     builder = ClassDiagramBuilder(
         title=title,
+        mainframe=mainframe,
         hide_empty_members=hide_empty_members,
         hide_circle=hide_circle,
         namespace_separator=namespace_separator,

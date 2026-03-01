@@ -239,6 +239,19 @@ class TestRenderer:
         assert 'width = "full";' in result
 
 
+class TestDiagramOptions:
+    """Tests for diagram-level options."""
+
+    def test_mainframe(self):
+        with network_diagram(mainframe="Network Layout") as d:
+            pass
+        output = d.render()
+        assert "mainframe Network Layout" in output
+        lines = output.split("\n")
+        assert lines[0] == "@startuml"
+        assert lines[1] == "mainframe Network Layout"
+
+
 class TestBuilder:
     """Test network diagram builder."""
 

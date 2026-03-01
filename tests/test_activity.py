@@ -415,6 +415,37 @@ class TestNotes:
 class TestDiagramOptions:
     """Tests for diagram-level options."""
 
+    def test_mainframe(self):
+        with activity_diagram(mainframe="Order Workflow") as d:
+            d.start()
+            d.action("Process")
+            d.stop()
+        output = render(d.build())
+        assert "mainframe Order Workflow" in output
+        lines = output.split("\n")
+        assert lines[0] == "@startuml"
+        assert lines[1] == "mainframe Order Workflow"
+
+    def test_newpage(self):
+        with activity_diagram() as d:
+            d.start()
+            d.action("Step 1")
+            d.newpage()
+            d.action("Step 2")
+            d.stop()
+        output = render(d.build())
+        assert "newpage" in output
+
+    def test_newpage_with_title(self):
+        with activity_diagram() as d:
+            d.start()
+            d.action("Step 1")
+            d.newpage("Page 2")
+            d.action("Step 2")
+            d.stop()
+        output = render(d.build())
+        assert "newpage Page 2" in output
+
     def test_title(self):
         with activity_diagram(title="Order Process") as d:
             d.start()

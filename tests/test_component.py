@@ -376,6 +376,31 @@ class TestNotes:
 class TestDiagramOptions:
     """Tests for diagram-level options."""
 
+    def test_mainframe(self):
+        with component_diagram(mainframe="System Components") as d:
+            d.component("API")
+        output = render(d.build())
+        assert "mainframe System Components" in output
+        lines = output.split("\n")
+        assert lines[0] == "@startuml"
+        assert lines[1] == "mainframe System Components"
+
+    def test_newpage(self):
+        with component_diagram() as d:
+            d.component("API")
+            d.newpage()
+            d.component("DB")
+        output = render(d.build())
+        assert "newpage" in output
+
+    def test_newpage_with_title(self):
+        with component_diagram() as d:
+            d.component("API")
+            d.newpage("Page 2")
+            d.component("DB")
+        output = render(d.build())
+        assert "newpage Page 2" in output
+
     def test_title(self):
         with component_diagram(title="System Architecture") as d:
             d.component("API")

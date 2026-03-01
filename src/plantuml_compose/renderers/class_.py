@@ -23,6 +23,7 @@ from ..primitives.class_ import (
 )
 from ..primitives.common import (
     ClassDiagramStyle,
+    Newpage,
     Note,
     Style,
     coerce_line_style,
@@ -44,6 +45,8 @@ from .common import (
     render_legend,
     render_line_style_bracket,
     render_linetype,
+    render_mainframe,
+    render_newpage,
     render_scale,
     render_stereotype,
     render_theme,
@@ -65,6 +68,9 @@ class _RenderContext:
 def render_class_diagram(diagram: ClassDiagram) -> str:
     """Render a complete class diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
+
+    if diagram.mainframe:
+        lines.append(render_mainframe(diagram.mainframe))
 
     # Theme comes first
     theme_line = render_theme(diagram.theme)
@@ -161,6 +167,8 @@ def _render_element(
         return [f"{elem.action} {elem.target}"]
     if isinstance(elem, Note):
         return _render_floating_note(elem, ctx)
+    if isinstance(elem, Newpage):
+        return [render_newpage(elem.title)]
     raise TypeError(f"Unknown element type: {type(elem).__name__}")
 
 

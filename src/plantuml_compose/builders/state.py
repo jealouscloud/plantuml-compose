@@ -1088,6 +1088,7 @@ class StateDiagramBuilder(EmbeddableDiagramMixin, _BaseStateBuilder):
         self,
         *,
         title: str | None = None,
+        mainframe: str | None = None,
         caption: str | None = None,
         header: str | Header | None = None,
         footer: str | Footer | None = None,
@@ -1102,6 +1103,7 @@ class StateDiagramBuilder(EmbeddableDiagramMixin, _BaseStateBuilder):
     ) -> None:
         super().__init__()
         self._title = title
+        self._mainframe = mainframe
         self._caption = caption
         # Coerce string to Header/Footer/Legend objects
         self._header = Header(header) if isinstance(header, str) else header
@@ -1301,11 +1303,21 @@ class StateDiagramBuilder(EmbeddableDiagramMixin, _BaseStateBuilder):
         finally:
             self._block_stack.pop()
 
+    def newpage(self, title: str | None = None) -> None:
+        """Insert a page break in the diagram output.
+
+        Args:
+            title: Optional title for the new page
+        """
+        from ..primitives.common import Newpage
+        self._elements.append(Newpage(title=title))
+
     def build(self) -> StateDiagram:
         """Build the complete state diagram."""
         return StateDiagram(
             elements=tuple(self._elements),
             title=self._title,
+            mainframe=self._mainframe,
             caption=self._caption,
             header=self._header,
             footer=self._footer,
@@ -1336,6 +1348,7 @@ class StateDiagramBuilder(EmbeddableDiagramMixin, _BaseStateBuilder):
 def state_diagram(
     *,
     title: str | None = None,
+    mainframe: str | None = None,
     caption: str | None = None,
     header: str | Header | None = None,
     footer: str | Footer | None = None,
@@ -1376,6 +1389,7 @@ def state_diagram(
 
     Args:
         title: Optional diagram title
+        mainframe: Optional frame label drawn around the entire diagram
         caption: Optional caption below the diagram
         header: Optional header text (string or Header object for positioning)
         footer: Optional footer text (string or Footer object for positioning)
@@ -1393,6 +1407,7 @@ def state_diagram(
     """
     builder = StateDiagramBuilder(
         title=title,
+        mainframe=mainframe,
         caption=caption,
         header=header,
         footer=footer,

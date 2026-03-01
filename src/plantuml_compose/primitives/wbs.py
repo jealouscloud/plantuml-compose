@@ -59,5 +59,6 @@ class WBSDiagram:
 
     roots: tuple[WBSNode, ...] = field(default_factory=tuple)
     arrows: tuple[WBSArrow, ...] = field(default_factory=tuple)
+    mainframe: str | None = None
     direction: Literal["top_to_bottom", "left_to_right", "right_to_left"] | None = None
     diagram_style: WBSDiagramStyle | None = None

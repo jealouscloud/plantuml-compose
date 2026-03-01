@@ -139,11 +139,13 @@ class MindMapDiagramBuilder(EmbeddableDiagramMixin):
         self,
         direction: Literal["top_to_bottom", "left_to_right", "right_to_left"] | None,
         diagram_style: MindMapDiagramStyleLike | None,
+        mainframe: str | None = None,
     ) -> None:
         self._direction = direction
         self._diagram_style = (
             coerce_mindmap_diagram_style(diagram_style) if diagram_style else None
         )
+        self._mainframe = mainframe
         self._roots: list[MindMapNode] = []
 
     def node(
@@ -187,6 +189,7 @@ class MindMapDiagramBuilder(EmbeddableDiagramMixin):
             roots=tuple(self._roots),
             direction=self._direction,
             diagram_style=self._diagram_style,
+            mainframe=self._mainframe,
         )
 
     def render(self) -> str:
@@ -199,6 +202,7 @@ def mindmap_diagram(
     *,
     direction: Literal["top_to_bottom", "left_to_right", "right_to_left"] | None = None,
     diagram_style: MindMapDiagramStyleLike | None = None,
+    mainframe: str | None = None,
 ) -> Iterator[MindMapDiagramBuilder]:
     """Create a MindMap tree diagram.
 
@@ -224,5 +228,5 @@ def mindmap_diagram(
             with d.node("Styled", color="#Orange") as root:
                 root.node("Child")
     """
-    builder = MindMapDiagramBuilder(direction, diagram_style)
+    builder = MindMapDiagramBuilder(direction, diagram_style, mainframe=mainframe)
     yield builder

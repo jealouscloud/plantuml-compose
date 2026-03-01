@@ -24,6 +24,7 @@ class JsonDiagram:
 
     data: str
     title: str | None = None
+    mainframe: str | None = None
     highlights: tuple[tuple[str, ...], ...] = field(default_factory=tuple)
     diagram_style: JsonDiagramStyle | None = None
 
@@ -42,5 +43,6 @@ class YamlDiagram:
 
     data: str
     title: str | None = None
+    mainframe: str | None = None
     highlights: tuple[tuple[str, ...], ...] = field(default_factory=tuple)
     diagram_style: YamlDiagramStyle | None = None

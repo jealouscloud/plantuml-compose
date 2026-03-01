@@ -60,6 +60,20 @@ class TestMindMapDiagram:
         assert diagram.direction == "top_to_bottom"
 
 
+class TestMindMapDiagramOptions:
+    """Tests for diagram-level options."""
+
+    def test_mainframe(self):
+        with mindmap_diagram(mainframe="Brainstorm") as d:
+            with d.node("Central"):
+                pass
+        output = d.render()
+        assert "mainframe Brainstorm" in output
+        lines = output.split("\n")
+        assert lines[0] == "@startmindmap"
+        assert lines[1] == "mainframe Brainstorm"
+
+
 class TestMindMapRenderer:
     """Tests for MindMap rendering."""
 

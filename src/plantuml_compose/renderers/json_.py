@@ -7,12 +7,15 @@ from __future__ import annotations
 
 from ..primitives.common import JsonDiagramStyle, YamlDiagramStyle
 from ..primitives.json_ import JsonDiagram, YamlDiagram
-from .common import render_diagram_style
+from .common import render_diagram_style, render_mainframe
 
 
 def render_json_diagram(diagram: JsonDiagram) -> str:
     """Render a complete JSON diagram to PlantUML text."""
     lines: list[str] = ["@startjson"]
+
+    if diagram.mainframe:
+        lines.append(render_mainframe(diagram.mainframe))
 
     # Style block
     if diagram.diagram_style:
@@ -37,6 +40,9 @@ def render_json_diagram(diagram: JsonDiagram) -> str:
 def render_yaml_diagram(diagram: YamlDiagram) -> str:
     """Render a complete YAML diagram to PlantUML text."""
     lines: list[str] = ["@startyaml"]
+
+    if diagram.mainframe:
+        lines.append(render_mainframe(diagram.mainframe))
 
     # Style block
     if diagram.diagram_style:

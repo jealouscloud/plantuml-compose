@@ -159,6 +159,19 @@ class TestTimingDiagramStyle:
         assert result is original
 
 
+class TestTimingDiagramOptions:
+    """Tests for diagram-level options."""
+
+    def test_mainframe(self):
+        with timing_diagram(mainframe="Signal Timing") as d:
+            pass
+        output = render(d.build())
+        assert "mainframe Signal Timing" in output
+        lines = output.split("\n")
+        assert lines[0] == "@startuml"
+        assert lines[1] == "mainframe Signal Timing"
+
+
 class TestTimingRenderer:
     """Tests for timing diagram rendering."""
 

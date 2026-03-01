@@ -1153,6 +1153,7 @@ class DeploymentDiagramBuilder(EmbeddableDiagramMixin, _BaseDeploymentBuilder):
         self,
         *,
         title: str | None = None,
+        mainframe: str | None = None,
         caption: str | None = None,
         header: str | Header | None = None,
         footer: str | Footer | None = None,
@@ -1165,6 +1166,7 @@ class DeploymentDiagramBuilder(EmbeddableDiagramMixin, _BaseDeploymentBuilder):
     ) -> None:
         super().__init__()
         self._title = title
+        self._mainframe = mainframe
         self._caption = caption
         self._header = Header(header) if isinstance(header, str) else header
         self._footer = Footer(footer) if isinstance(footer, str) else footer
@@ -1177,11 +1179,21 @@ class DeploymentDiagramBuilder(EmbeddableDiagramMixin, _BaseDeploymentBuilder):
         self._layout_engine: LayoutEngine | None = layout_engine
         self._linetype: LineType | None = linetype
 
+    def newpage(self, title: str | None = None) -> None:
+        """Insert a page break in the diagram output.
+
+        Args:
+            title: Optional title for the new page
+        """
+        from ..primitives.common import Newpage
+        self._elements.append(Newpage(title=title))
+
     def build(self) -> DeploymentDiagram:
         """Build the complete deployment diagram."""
         return DeploymentDiagram(
             elements=tuple(self._elements),
             title=self._title,
+            mainframe=self._mainframe,
             caption=self._caption,
             header=self._header,
             footer=self._footer,
@@ -1207,6 +1219,7 @@ class DeploymentDiagramBuilder(EmbeddableDiagramMixin, _BaseDeploymentBuilder):
 def deployment_diagram(
     *,
     title: str | None = None,
+    mainframe: str | None = None,
     caption: str | None = None,
     header: str | Header | None = None,
     footer: str | Footer | None = None,
@@ -1231,6 +1244,7 @@ def deployment_diagram(
 
     Args:
         title: Optional diagram title
+        mainframe: Optional frame label drawn around the entire diagram
         caption: Optional diagram caption
         header: Optional header text or Header object
         footer: Optional footer text or Footer object
@@ -1246,6 +1260,7 @@ def deployment_diagram(
     """
     builder = DeploymentDiagramBuilder(
         title=title,
+        mainframe=mainframe,
         caption=caption,
         header=header,
         footer=footer,

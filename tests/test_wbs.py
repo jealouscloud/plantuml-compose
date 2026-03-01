@@ -66,6 +66,20 @@ class TestWBSDiagram:
         assert diagram.arrows[0].from_alias == "a"
 
 
+class TestWBSDiagramOptions:
+    """Tests for diagram-level options."""
+
+    def test_mainframe(self):
+        with wbs_diagram(mainframe="Project Structure") as d:
+            with d.node("Project"):
+                pass
+        output = d.render()
+        assert "mainframe Project Structure" in output
+        lines = output.split("\n")
+        assert lines[0] == "@startwbs"
+        assert lines[1] == "mainframe Project Structure"
+
+
 class TestWBSRenderer:
     """Tests for WBS rendering."""
 

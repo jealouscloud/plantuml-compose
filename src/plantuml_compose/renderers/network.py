@@ -22,6 +22,7 @@ from .common import (
     render_footer,
     render_header,
     render_legend,
+    render_mainframe,
     render_scale,
     render_theme,
 )
@@ -30,6 +31,9 @@ from .common import (
 def render_network_diagram(diagram: NetworkDiagram) -> str:
     """Render a complete network diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
+
+    if diagram.mainframe:
+        lines.append(render_mainframe(diagram.mainframe))
 
     # Theme comes first
     theme_line = render_theme(diagram.theme)

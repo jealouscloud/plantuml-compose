@@ -37,6 +37,7 @@ from .common import (
     Legend,
     LineType,
     LineStyleLike,
+    Newpage,
     Note,
     RegionSeparator,
     sanitize_ref,
@@ -284,6 +285,7 @@ class StateDiagram:
 
     elements: tuple["StateDiagramElement", ...] = field(default_factory=tuple)
     title: str | None = None
+    mainframe: str | None = None
     caption: str | None = None
     header: Header | None = None
     footer: Footer | None = None
@@ -304,5 +306,6 @@ StateDiagramElement: TypeAlias = (
     | Transition
     | CompositeState
     | ConcurrentState
+    | Newpage
     | Note
 )

@@ -32,6 +32,7 @@ from .common import (
     render_footer,
     render_header,
     render_legend,
+    render_mainframe,
     render_theme,
 )
 
@@ -39,6 +40,9 @@ from .common import (
 def render_timing_diagram(diagram: TimingDiagram) -> str:
     """Render a complete timing diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
+
+    if diagram.mainframe:
+        lines.append(render_mainframe(diagram.mainframe))
 
     # Theme (must come first)
     if diagram.theme:

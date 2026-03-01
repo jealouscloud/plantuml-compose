@@ -20,12 +20,16 @@ from ..primitives.gantt import (
 from .common import (
     render_color,
     render_diagram_style,
+    render_mainframe,
 )
 
 
 def render_gantt_diagram(diagram: GanttDiagram) -> str:
     """Render a complete Gantt chart to PlantUML text."""
     lines: list[str] = ["@startgantt"]
+
+    if diagram.mainframe:
+        lines.append(render_mainframe(diagram.mainframe))
 
     # Title
     if diagram.title:

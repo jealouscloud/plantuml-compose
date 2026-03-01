@@ -1130,6 +1130,7 @@ class ComponentDiagramBuilder(EmbeddableDiagramMixin, _BaseComponentBuilder):
         self,
         *,
         title: str | None = None,
+        mainframe: str | None = None,
         style: ComponentStyle | None = None,
         diagram_style: ComponentDiagramStyleLike | None = None,
         hide_stereotype: bool = False,
@@ -1145,6 +1146,7 @@ class ComponentDiagramBuilder(EmbeddableDiagramMixin, _BaseComponentBuilder):
     ) -> None:
         super().__init__()
         self._title = title
+        self._mainframe = mainframe
         self._style: ComponentStyle | None = style
         # Coerce diagram_style dict to ComponentDiagramStyle object
         self._diagram_style = (
@@ -1165,11 +1167,21 @@ class ComponentDiagramBuilder(EmbeddableDiagramMixin, _BaseComponentBuilder):
         self._layout_engine: LayoutEngine | None = layout_engine
         self._linetype: LineType | None = linetype
 
+    def newpage(self, title: str | None = None) -> None:
+        """Insert a page break in the diagram output.
+
+        Args:
+            title: Optional title for the new page
+        """
+        from ..primitives.common import Newpage
+        self._elements.append(Newpage(title=title))
+
     def build(self) -> ComponentDiagram:
         """Build the complete component diagram."""
         return ComponentDiagram(
             elements=tuple(self._elements),
             title=self._title,
+            mainframe=self._mainframe,
             style=self._style,
             layout=self._layout,
             layout_engine=self._layout_engine,
@@ -1198,6 +1210,7 @@ class ComponentDiagramBuilder(EmbeddableDiagramMixin, _BaseComponentBuilder):
 def component_diagram(
     *,
     title: str | None = None,
+    mainframe: str | None = None,
     style: ComponentStyle | None = None,
     diagram_style: ComponentDiagramStyleLike | None = None,
     hide_stereotype: bool = False,
@@ -1238,6 +1251,7 @@ def component_diagram(
 
     Args:
         title: Optional diagram title
+        mainframe: Optional frame label drawn around the entire diagram
         style: Component style ("uml1", "uml2", "rectangle")
         diagram_style: CSS-like diagram styling (dict or ComponentDiagramStyle object)
         hide_stereotype: Hide all stereotypes
@@ -1256,6 +1270,7 @@ def component_diagram(
     """
     builder = ComponentDiagramBuilder(
         title=title,
+        mainframe=mainframe,
         style=style,
         diagram_style=diagram_style,
         hide_stereotype=hide_stereotype,

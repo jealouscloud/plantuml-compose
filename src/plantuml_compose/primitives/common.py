@@ -692,6 +692,20 @@ class Note:
     position: NotePosition = "right"
 
 
+@dataclass(frozen=True)
+class Newpage:
+    """Page break directive that splits a diagram into multiple pages.
+
+    PlantUML syntax:
+        newpage                        (simple page break)
+        newpage Title for new page     (page break with title for new page)
+
+    Inserted between diagram elements to split output into separate pages.
+    """
+
+    title: str | None = None
+
+
 # =============================================================================
 # Common Diagram Metadata (header, footer, caption, legend, scale)
 # =============================================================================

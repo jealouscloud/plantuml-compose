@@ -273,6 +273,31 @@ class TestNotes:
 class TestDiagramOptions:
     """Tests for diagram-level options."""
 
+    def test_mainframe(self):
+        with deployment_diagram(mainframe="Cloud Infrastructure") as d:
+            d.artifact("Server")
+        output = render(d.build())
+        assert "mainframe Cloud Infrastructure" in output
+        lines = output.split("\n")
+        assert lines[0] == "@startuml"
+        assert lines[1] == "mainframe Cloud Infrastructure"
+
+    def test_newpage(self):
+        with deployment_diagram() as d:
+            d.artifact("Server")
+            d.newpage()
+            d.artifact("Database")
+        output = render(d.build())
+        assert "newpage" in output
+
+    def test_newpage_with_title(self):
+        with deployment_diagram() as d:
+            d.artifact("Server")
+            d.newpage("Page 2")
+            d.artifact("Database")
+        output = render(d.build())
+        assert "newpage Page 2" in output
+
     def test_title(self):
         with deployment_diagram(title="Infrastructure") as d:
             d.component("API")

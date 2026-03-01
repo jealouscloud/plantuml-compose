@@ -5,6 +5,7 @@ Pure functions that transform deployment diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
+from ..primitives.common import Newpage
 from ..primitives.deployment import (
     DeploymentDiagram,
     DeploymentDiagramElement,
@@ -27,6 +28,8 @@ from .common import (
     render_legend,
     render_line_style_bracket,
     render_linetype,
+    render_mainframe,
+    render_newpage,
     render_scale,
     render_stereotype,
     render_theme,
@@ -36,6 +39,9 @@ from .common import (
 def render_deployment_diagram(diagram: DeploymentDiagram) -> str:
     """Render a complete deployment diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
+
+    if diagram.mainframe:
+        lines.append(render_mainframe(diagram.mainframe))
 
     # Theme comes first
     theme_line = render_theme(diagram.theme)
@@ -104,6 +110,8 @@ def _render_element(
         return _render_relationship(elem, indent)
     if isinstance(elem, DeploymentNote):
         return _render_note(elem, indent)
+    if isinstance(elem, Newpage):
+        return [render_newpage(elem.title)]
     raise TypeError(f"Unknown element type: {type(elem).__name__}")
 
 

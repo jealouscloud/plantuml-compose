@@ -9,7 +9,7 @@ from typing import Literal
 
 from ..primitives.common import MindMapDiagramStyle
 from ..primitives.mindmap import MindMapDiagram, MindMapNode
-from .common import render_color_hash, render_diagram_style
+from .common import render_color_hash, render_diagram_style, render_mainframe
 
 Side = Literal["left", "right"] | None
 
@@ -17,6 +17,9 @@ Side = Literal["left", "right"] | None
 def render_mindmap_diagram(diagram: MindMapDiagram) -> str:
     """Render a complete MindMap diagram to PlantUML text."""
     lines: list[str] = ["@startmindmap"]
+
+    if diagram.mainframe:
+        lines.append(render_mainframe(diagram.mainframe))
 
     # Style block
     if diagram.diagram_style:

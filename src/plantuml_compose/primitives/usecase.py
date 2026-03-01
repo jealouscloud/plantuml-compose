@@ -35,6 +35,7 @@ from .common import (
     Legend,
     LineType,
     LineStyle,
+    Newpage,
     sanitize_ref,
     Scale,
     Stereotype,
@@ -147,6 +148,7 @@ UseCaseDiagramElement = Union[
     Container,
     Relationship,
     UseCaseNote,
+    Newpage,
 ]
 
 
@@ -156,6 +158,7 @@ class UseCaseDiagram:
 
     elements: tuple[UseCaseDiagramElement, ...] = field(default_factory=tuple)
     title: str | None = None
+    mainframe: str | None = None
     caption: str | None = None
     header: Header | None = None
     footer: Footer | None = None

@@ -94,6 +94,15 @@ class TestJsonDiagramBuilder:
         diagram = d.build()
         assert diagram.title == "Empty Object"
 
+    def test_mainframe(self):
+        with json_diagram('{"key": "val"}', mainframe="JSON Data") as d:
+            pass
+        output = d.render()
+        assert "mainframe JSON Data" in output
+        lines = output.split("\n")
+        assert lines[0] == "@startjson"
+        assert lines[1] == "mainframe JSON Data"
+
     def test_highlight_single_key(self):
         with json_diagram('{"name": "John"}') as d:
             d.highlight("name")
@@ -164,6 +173,15 @@ class TestYamlDiagramBuilder:
             pass
         diagram = d.build()
         assert diagram.title == "Config"
+
+    def test_mainframe(self):
+        with yaml_diagram("key: value", mainframe="YAML Config") as d:
+            pass
+        output = d.render()
+        assert "mainframe YAML Config" in output
+        lines = output.split("\n")
+        assert lines[0] == "@startyaml"
+        assert lines[1] == "mainframe YAML Config"
 
     def test_highlight_single_key(self):
         with yaml_diagram("name: John") as d:

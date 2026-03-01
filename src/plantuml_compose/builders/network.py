@@ -139,6 +139,7 @@ class NetworkDiagramBuilder(EmbeddableDiagramMixin):
     def __init__(
         self,
         title: str | None,
+        mainframe: str | None,
         caption: str | None,
         header: Header | None,
         footer: Footer | None,
@@ -148,6 +149,7 @@ class NetworkDiagramBuilder(EmbeddableDiagramMixin):
         diagram_style: NetworkDiagramStyle | None,
     ):
         self._title = title
+        self._mainframe = mainframe
         self._caption = caption
         self._header = header
         self._footer = footer
@@ -291,6 +293,7 @@ class NetworkDiagramBuilder(EmbeddableDiagramMixin):
         return NetworkDiagram(
             elements=tuple(self._elements),
             title=self._title,
+            mainframe=self._mainframe,
             caption=self._caption,
             header=self._header,
             footer=self._footer,
@@ -314,6 +317,7 @@ class NetworkDiagramBuilder(EmbeddableDiagramMixin):
 def network_diagram(
     *,
     title: str | None = None,
+    mainframe: str | None = None,
     caption: str | None = None,
     header: Header | None = None,
     footer: Footer | None = None,
@@ -360,6 +364,7 @@ def network_diagram(
     )
     builder = NetworkDiagramBuilder(
         title=title,
+        mainframe=mainframe,
         caption=caption,
         header=header,
         footer=footer,

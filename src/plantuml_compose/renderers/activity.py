@@ -32,6 +32,7 @@ from ..primitives.activity import (
 from ..primitives.activity import GotoLabel as ActivityLabel
 from ..primitives.common import (
     ActivityDiagramStyle,
+    Newpage,
     Note,
 )
 from .common import (
@@ -46,6 +47,8 @@ from .common import (
     render_layout_engine,
     render_legend,
     render_linetype,
+    render_mainframe,
+    render_newpage,
     render_scale,
     render_theme,
 )
@@ -54,6 +57,9 @@ from .common import (
 def render_activity_diagram(diagram: ActivityDiagram) -> str:
     """Render a complete activity diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
+
+    if diagram.mainframe:
+        lines.append(render_mainframe(diagram.mainframe))
 
     # Theme comes first
     theme_line = render_theme(diagram.theme)
@@ -162,6 +168,8 @@ def _render_element(elem: ActivityElement, indent: int = 0) -> list[str]:
         return _render_note(elem, indent)
     if isinstance(elem, Note):
         return _render_floating_note(elem, indent)
+    if isinstance(elem, Newpage):
+        return [render_newpage(elem.title)]
     raise TypeError(f"Unknown element type: {type(elem).__name__}")
 
 

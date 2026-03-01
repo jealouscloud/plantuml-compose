@@ -143,11 +143,13 @@ class WBSDiagramBuilder(EmbeddableDiagramMixin):
         self,
         direction: Literal["top_to_bottom", "left_to_right", "right_to_left"] | None,
         diagram_style: WBSDiagramStyleLike | None,
+        mainframe: str | None = None,
     ) -> None:
         self._direction = direction
         self._diagram_style = (
             coerce_mindmap_diagram_style(diagram_style) if diagram_style else None
         )
+        self._mainframe = mainframe
         self._roots: list[WBSNode] = []
         self._arrows: list[WBSArrow] = []
 
@@ -196,6 +198,7 @@ class WBSDiagramBuilder(EmbeddableDiagramMixin):
             arrows=tuple(self._arrows),
             direction=self._direction,
             diagram_style=self._diagram_style,
+            mainframe=self._mainframe,
         )
 
     def render(self) -> str:
@@ -208,6 +211,7 @@ def wbs_diagram(
     *,
     direction: Literal["top_to_bottom", "left_to_right", "right_to_left"] | None = None,
     diagram_style: WBSDiagramStyleLike | None = None,
+    mainframe: str | None = None,
 ) -> Iterator[WBSDiagramBuilder]:
     """Create a Work Breakdown Structure diagram.
 
@@ -235,5 +239,5 @@ def wbs_diagram(
                 root.leaf("B", alias="b")
             d.arrow("a", "b")
     """
-    builder = WBSDiagramBuilder(direction, diagram_style)
+    builder = WBSDiagramBuilder(direction, diagram_style, mainframe=mainframe)
     yield builder

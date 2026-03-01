@@ -6,6 +6,7 @@ Pure functions that transform state diagram primitives to PlantUML text.
 from __future__ import annotations
 
 from ..primitives.common import (
+    Newpage,
     Note,
     StateDiagramStyle,
     Style,
@@ -35,6 +36,8 @@ from .common import (
     render_legend,
     render_line_style_bracket,
     render_linetype,
+    render_mainframe,
+    render_newpage,
     render_element_style,
     render_scale,
     render_stereotype,
@@ -106,6 +109,9 @@ def render_state_diagram(diagram: StateDiagram) -> str:
     """Render a complete state diagram to PlantUML text."""
     lines: list[str] = ["@startuml"]
 
+    if diagram.mainframe:
+        lines.append(render_mainframe(diagram.mainframe))
+
     # Theme comes first
     theme_line = render_theme(diagram.theme)
     if theme_line:
@@ -164,7 +170,9 @@ def render_state_diagram(diagram: StateDiagram) -> str:
 
     floating_note_id = 0
     for elem in diagram.elements:
-        if isinstance(elem, Note):
+        if isinstance(elem, Newpage):
+            lines.append(render_newpage(elem.title))
+        elif isinstance(elem, Note):
             lines.extend(_render_floating_note(elem, floating_note_id))
             if elem.position == "floating":
                 floating_note_id += 1

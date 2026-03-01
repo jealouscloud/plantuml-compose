@@ -316,6 +316,7 @@ class TimingDiagram:
 
     elements: tuple[TimingElement, ...] = field(default_factory=tuple)
     title: str | None = None
+    mainframe: str | None = None
     caption: str | None = None
     header: Header | None = None
     footer: Footer | None = None

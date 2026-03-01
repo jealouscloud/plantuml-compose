@@ -239,6 +239,31 @@ class TestNotes:
 class TestDiagramOptions:
     """Tests for diagram-level options."""
 
+    def test_mainframe(self):
+        with object_diagram(mainframe="Order Snapshot") as d:
+            d.object("order1")
+        output = render(d.build())
+        assert "mainframe Order Snapshot" in output
+        lines = output.split("\n")
+        assert lines[0] == "@startuml"
+        assert lines[1] == "mainframe Order Snapshot"
+
+    def test_newpage(self):
+        with object_diagram() as d:
+            d.object("order1")
+            d.newpage()
+            d.object("order2")
+        output = render(d.build())
+        assert "newpage" in output
+
+    def test_newpage_with_title(self):
+        with object_diagram() as d:
+            d.object("order1")
+            d.newpage("Page 2")
+            d.object("order2")
+        output = render(d.build())
+        assert "newpage Page 2" in output
+
     def test_title(self):
         with object_diagram(title="Order Example") as d:
             d.object("Order")

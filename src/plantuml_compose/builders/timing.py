@@ -123,6 +123,7 @@ class TimingDiagramBuilder(EmbeddableDiagramMixin):
     def __init__(
         self,
         title: str | None,
+        mainframe: str | None,
         caption: str | None,
         header: Header | None,
         footer: Footer | None,
@@ -135,6 +136,7 @@ class TimingDiagramBuilder(EmbeddableDiagramMixin):
         manual_time_axis: bool,
     ) -> None:
         self._title = title
+        self._mainframe = mainframe
         self._caption = caption
         self._header = header
         self._footer = footer
@@ -669,6 +671,7 @@ class TimingDiagramBuilder(EmbeddableDiagramMixin):
         return TimingDiagram(
             elements=tuple(self._elements),
             title=self._title,
+            mainframe=self._mainframe,
             caption=self._caption,
             header=self._header,
             footer=self._footer,
@@ -690,6 +693,7 @@ class TimingDiagramBuilder(EmbeddableDiagramMixin):
 def timing_diagram(
     *,
     title: str | None = None,
+    mainframe: str | None = None,
     caption: str | None = None,
     header: Header | None = None,
     footer: Footer | None = None,
@@ -765,6 +769,7 @@ def timing_diagram(
 
     builder = TimingDiagramBuilder(
         title=title,
+        mainframe=mainframe,
         caption=caption,
         header=header,
         footer=footer,

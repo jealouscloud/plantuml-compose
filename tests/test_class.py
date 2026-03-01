@@ -600,6 +600,31 @@ class TestNotes:
 class TestDiagramOptions:
     """Tests for diagram-level options."""
 
+    def test_mainframe(self):
+        with class_diagram(mainframe="Domain Model v3") as d:
+            d.class_("User")
+        output = render(d.build())
+        assert "mainframe Domain Model v3" in output
+        lines = output.split("\n")
+        assert lines[0] == "@startuml"
+        assert lines[1] == "mainframe Domain Model v3"
+
+    def test_newpage(self):
+        with class_diagram() as d:
+            d.class_("User")
+            d.newpage()
+            d.class_("Order")
+        output = render(d.build())
+        assert "newpage" in output
+
+    def test_newpage_with_title(self):
+        with class_diagram() as d:
+            d.class_("User")
+            d.newpage("Page 2")
+            d.class_("Order")
+        output = render(d.build())
+        assert "newpage Page 2" in output
+
     def test_title(self):
         with class_diagram(title="Domain Model") as d:
             d.class_("User")

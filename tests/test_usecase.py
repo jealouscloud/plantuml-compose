@@ -273,6 +273,31 @@ class TestNotes:
 class TestDiagramOptions:
     """Tests for diagram-level options."""
 
+    def test_mainframe(self):
+        with usecase_diagram(mainframe="Shopping Use Cases") as d:
+            d.actor("Customer")
+        output = render(d.build())
+        assert "mainframe Shopping Use Cases" in output
+        lines = output.split("\n")
+        assert lines[0] == "@startuml"
+        assert lines[1] == "mainframe Shopping Use Cases"
+
+    def test_newpage(self):
+        with usecase_diagram() as d:
+            d.actor("Customer")
+            d.newpage()
+            d.actor("Admin")
+        output = render(d.build())
+        assert "newpage" in output
+
+    def test_newpage_with_title(self):
+        with usecase_diagram() as d:
+            d.actor("Customer")
+            d.newpage("Page 2")
+            d.actor("Admin")
+        output = render(d.build())
+        assert "newpage Page 2" in output
+
     def test_title(self):
         with usecase_diagram(title="Shopping System") as d:
             d.usecase("Browse")

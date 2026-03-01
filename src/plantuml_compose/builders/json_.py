@@ -38,13 +38,15 @@ class JsonDiagramBuilder(EmbeddableDiagramMixin):
         self,
         data: JsonData,
         title: str | None,
-        diagram_style: JsonDiagramStyleLike | None,
+        mainframe: str | None = None,
+        diagram_style: JsonDiagramStyleLike | None = None,
     ) -> None:
         if isinstance(data, str):
             self._data = data
         else:
             self._data = json.dumps(data, indent=2)
         self._title = title
+        self._mainframe = mainframe
         self._diagram_style = (
             coerce_json_diagram_style(diagram_style) if diagram_style else None
         )
@@ -73,6 +75,7 @@ class JsonDiagramBuilder(EmbeddableDiagramMixin):
         return JsonDiagram(
             data=self._data,
             title=self._title,
+            mainframe=self._mainframe,
             highlights=tuple(self._highlights),
             diagram_style=self._diagram_style,
         )
@@ -91,13 +94,15 @@ class YamlDiagramBuilder(EmbeddableDiagramMixin):
         self,
         data: YamlData,
         title: str | None,
-        diagram_style: YamlDiagramStyleLike | None,
+        mainframe: str | None = None,
+        diagram_style: YamlDiagramStyleLike | None = None,
     ) -> None:
         if isinstance(data, str):
             self._data = data
         else:
             self._data = yaml.dump(data, default_flow_style=False, sort_keys=False)
         self._title = title
+        self._mainframe = mainframe
         self._diagram_style = (
             coerce_yaml_diagram_style(diagram_style) if diagram_style else None
         )
@@ -126,6 +131,7 @@ class YamlDiagramBuilder(EmbeddableDiagramMixin):
         return YamlDiagram(
             data=self._data,
             title=self._title,
+            mainframe=self._mainframe,
             highlights=tuple(self._highlights),
             diagram_style=self._diagram_style,
         )
@@ -140,6 +146,7 @@ def json_diagram(
     data: JsonData,
     *,
     title: str | None = None,
+    mainframe: str | None = None,
     diagram_style: JsonDiagramStyleLike | None = None,
 ) -> Iterator[JsonDiagramBuilder]:
     """Create a JSON data visualization diagram.
@@ -165,7 +172,7 @@ def json_diagram(
         ) as d:
             d.highlight("email")
     """
-    builder = JsonDiagramBuilder(data, title, diagram_style)
+    builder = JsonDiagramBuilder(data, title, mainframe=mainframe, diagram_style=diagram_style)
     yield builder
 
 
@@ -174,6 +181,7 @@ def yaml_diagram(
     data: YamlData,
     *,
     title: str | None = None,
+    mainframe: str | None = None,
     diagram_style: YamlDiagramStyleLike | None = None,
 ) -> Iterator[YamlDiagramBuilder]:
     """Create a YAML data visualization diagram.
@@ -195,5 +203,5 @@ def yaml_diagram(
         with yaml_diagram({"server": {"port": 8080}}) as d:
             d.highlight("server", "port")
     """
-    builder = YamlDiagramBuilder(data, title, diagram_style)
+    builder = YamlDiagramBuilder(data, title, mainframe=mainframe, diagram_style=diagram_style)
     yield builder

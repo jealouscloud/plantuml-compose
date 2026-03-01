@@ -69,6 +69,7 @@ class GanttDiagramBuilder(EmbeddableDiagramMixin):
         self,
         project_start: date | None,
         title: str | None,
+        mainframe: str | None,
         scale: Literal["daily", "weekly", "monthly", "quarterly", "yearly"] | None,
         scale_zoom: int | None,
         hide_footbox: bool,
@@ -84,6 +85,7 @@ class GanttDiagramBuilder(EmbeddableDiagramMixin):
     ) -> None:
         self._project_start = project_start
         self._title = title
+        self._mainframe = mainframe
         self._scale = scale
         self._scale_zoom = scale_zoom
         self._hide_footbox = hide_footbox
@@ -403,6 +405,7 @@ class GanttDiagramBuilder(EmbeddableDiagramMixin):
             elements=tuple(self._elements),
             project_start=self._project_start,
             title=self._title,
+            mainframe=self._mainframe,
             scale=self._scale,
             scale_zoom=self._scale_zoom,
             hide_footbox=self._hide_footbox,
@@ -435,6 +438,7 @@ def gantt_diagram(
     *,
     start: date | None = None,
     title: str | None = None,
+    mainframe: str | None = None,
     scale: Literal["daily", "weekly", "monthly", "quarterly", "yearly"] | None = None,
     scale_zoom: int | None = None,
     hide_footbox: bool = False,
@@ -494,6 +498,7 @@ def gantt_diagram(
     builder = GanttDiagramBuilder(
         project_start=start,
         title=title,
+        mainframe=mainframe,
         scale=scale,
         scale_zoom=scale_zoom,
         hide_footbox=hide_footbox,

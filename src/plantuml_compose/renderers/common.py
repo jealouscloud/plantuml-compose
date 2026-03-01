@@ -495,6 +495,30 @@ def render_scale(scale: Scale) -> str:
     return ""
 
 
+def render_newpage(title: str | None = None) -> str:
+    """Render newpage directive.
+
+    PlantUML syntax:
+        newpage                     (simple page break)
+        newpage Title for new page  (page break with title)
+    """
+    if title:
+        return f"newpage {escape_quotes(title)}"
+    return "newpage"
+
+
+def render_mainframe(text: str) -> str:
+    """Render mainframe directive.
+
+    PlantUML syntax:
+        mainframe This is a **mainframe**
+
+    Draws a labeled frame around the entire diagram.
+    Supports Creole markup in the text.
+    """
+    return f"mainframe {escape_quotes(text)}"
+
+
 def render_caption(caption: str) -> str:
     """Render caption directive.
 

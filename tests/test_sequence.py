@@ -622,6 +622,31 @@ class TestDiagramOptions:
         output = render(d.build())
         assert "title My Diagram" in output
 
+    def test_mainframe(self):
+        with sequence_diagram(mainframe="Authentication Flow") as d:
+            d.participant("User")
+        output = render(d.build())
+        assert "mainframe Authentication Flow" in output
+        lines = output.split("\n")
+        assert lines[0] == "@startuml"
+        assert lines[1] == "mainframe Authentication Flow"
+
+    def test_newpage(self):
+        with sequence_diagram() as d:
+            d.participant("Alice")
+            d.newpage()
+            d.participant("Bob")
+        output = render(d.build())
+        assert "newpage" in output
+
+    def test_newpage_with_title(self):
+        with sequence_diagram() as d:
+            d.participant("Alice")
+            d.newpage("Page 2")
+            d.participant("Bob")
+        output = render(d.build())
+        assert "newpage Page 2" in output
+
     def test_hide_unlinked(self):
         with sequence_diagram(hide_unlinked=True) as d:
             user, api = d.participants("User", "API")

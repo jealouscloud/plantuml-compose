@@ -356,6 +356,7 @@ class GanttDiagram:
     elements: tuple[GanttElement, ...] = field(default_factory=tuple)
     project_start: date | None = None
     title: str | None = None
+    mainframe: str | None = None
     scale: Literal["daily", "weekly", "monthly", "quarterly", "yearly"] | None = None
     scale_zoom: int | None = None
     hide_footbox: bool = False

@@ -651,6 +651,7 @@ class UseCaseDiagramBuilder(EmbeddableDiagramMixin, _BaseUseCaseBuilder):
         self,
         *,
         title: str | None = None,
+        mainframe: str | None = None,
         actor_style: ActorStyle | None = None,
         caption: str | None = None,
         header: str | Header | None = None,
@@ -664,6 +665,7 @@ class UseCaseDiagramBuilder(EmbeddableDiagramMixin, _BaseUseCaseBuilder):
     ) -> None:
         super().__init__()
         self._title = title
+        self._mainframe = mainframe
         self._actor_style: ActorStyle | None = actor_style
         self._caption = caption
         self._header = Header(header) if isinstance(header, str) else header
@@ -677,11 +679,21 @@ class UseCaseDiagramBuilder(EmbeddableDiagramMixin, _BaseUseCaseBuilder):
         self._layout_engine: LayoutEngine | None = layout_engine
         self._linetype: LineType | None = linetype
 
+    def newpage(self, title: str | None = None) -> None:
+        """Insert a page break in the diagram output.
+
+        Args:
+            title: Optional title for the new page
+        """
+        from ..primitives.common import Newpage
+        self._elements.append(Newpage(title=title))
+
     def build(self) -> UseCaseDiagram:
         """Build the complete use case diagram."""
         return UseCaseDiagram(
             elements=tuple(self._elements),
             title=self._title,
+            mainframe=self._mainframe,
             actor_style=self._actor_style,
             caption=self._caption,
             header=self._header,
@@ -708,6 +720,7 @@ class UseCaseDiagramBuilder(EmbeddableDiagramMixin, _BaseUseCaseBuilder):
 def usecase_diagram(
     *,
     title: str | None = None,
+    mainframe: str | None = None,
     actor_style: ActorStyle | None = None,
     caption: str | None = None,
     header: str | Header | None = None,
@@ -731,6 +744,7 @@ def usecase_diagram(
 
     Args:
         title: Optional diagram title
+        mainframe: Optional frame label drawn around the entire diagram
         actor_style: Actor style ("default", "awesome", "hollow")
         caption: Optional diagram caption
         header: Optional header text or Header object
@@ -747,6 +761,7 @@ def usecase_diagram(
     """
     builder = UseCaseDiagramBuilder(
         title=title,
+        mainframe=mainframe,
         actor_style=actor_style,
         caption=caption,
         header=header,

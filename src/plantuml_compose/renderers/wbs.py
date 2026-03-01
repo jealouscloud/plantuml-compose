@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import Literal
 
 from ..primitives.wbs import WBSArrow, WBSDiagram, WBSDiagramStyle, WBSNode
-from .common import render_color_hash, render_diagram_style
+from .common import render_color_hash, render_diagram_style, render_mainframe
 
 Side = Literal["left", "right"] | None
 
@@ -16,6 +16,9 @@ Side = Literal["left", "right"] | None
 def render_wbs_diagram(diagram: WBSDiagram) -> str:
     """Render a complete WBS diagram to PlantUML text."""
     lines: list[str] = ["@startwbs"]
+
+    if diagram.mainframe:
+        lines.append(render_mainframe(diagram.mainframe))
 
     # Style block
     if diagram.diagram_style:

@@ -176,6 +176,29 @@ class TestGanttRenderer:
         assert "end note" in result
 
 
+class TestGanttDiagramOptions:
+    """Tests for Gantt diagram-level options."""
+
+    def test_mainframe(self):
+        with gantt_diagram(start=date(2024, 1, 1), mainframe="Project Timeline") as d:
+            d.task("Design", days=5)
+        output = render(d.build())
+        assert "mainframe Project Timeline" in output
+        lines = output.split("\n")
+        assert lines[0] == "@startgantt"
+        assert lines[1] == "mainframe Project Timeline"
+
+    def test_mainframe_with_title(self):
+        with gantt_diagram(
+            start=date(2024, 1, 1),
+            title="Sprint 1",
+            mainframe="Project Plan",
+        ) as d:
+            d.task("Design", days=5)
+        output = render(d.build())
+        assert "mainframe Project Plan" in output
+        assert "title Sprint 1" in output
+
 class TestGanttBuilder:
     """Tests for Gantt builder API."""
 

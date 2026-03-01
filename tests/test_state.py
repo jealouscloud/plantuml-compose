@@ -822,6 +822,40 @@ class TestDiagramOptions:
         output = render(d.build())
         assert "title My State Machine" in output
 
+    def test_mainframe(self):
+        with state_diagram(mainframe="State Machine v2") as d:
+            d.state("S")
+        output = render(d.build())
+        assert "mainframe State Machine v2" in output
+        # mainframe should appear right after @startuml
+        lines = output.split("\n")
+        assert lines[0] == "@startuml"
+        assert lines[1] == "mainframe State Machine v2"
+
+    def test_mainframe_with_title(self):
+        """Mainframe and title can coexist."""
+        with state_diagram(title="My Title", mainframe="My Frame") as d:
+            d.state("S")
+        output = render(d.build())
+        assert "mainframe My Frame" in output
+        assert "title My Title" in output
+
+    def test_newpage(self):
+        with state_diagram() as d:
+            d.state("S1")
+            d.newpage()
+            d.state("S2")
+        output = render(d.build())
+        assert "newpage" in output
+
+    def test_newpage_with_title(self):
+        with state_diagram() as d:
+            d.state("S1")
+            d.newpage("Page 2")
+            d.state("S2")
+        output = render(d.build())
+        assert "newpage Page 2" in output
+
     def test_multiline_title(self):
         """Multi-line titles use block syntax."""
         with state_diagram(title="Line 1\nLine 2") as d:

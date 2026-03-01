@@ -34,6 +34,7 @@ from .common import (
     Legend,
     LineStyleLike,
     LineType,
+    Newpage,
     sanitize_ref,
     Scale,
     SequenceDiagramStyle,
@@ -362,6 +363,7 @@ class SequenceDiagram:
         default_factory=tuple
     )
     title: str | None = None
+    mainframe: str | None = None
     caption: str | None = None
     header: Header | None = None
     footer: Footer | None = None
@@ -393,4 +395,5 @@ SequenceDiagramElement: TypeAlias = (
     | Delay
     | Space
     | Autonumber
+    | Newpage
 )
