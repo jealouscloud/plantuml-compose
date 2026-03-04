@@ -190,7 +190,8 @@ def _render_task(task: GanttTask) -> list[str]:
         parts.append(f"lasts {task.duration_weeks} {unit}")
     elif task.duration_days is not None:
         unit = "day" if task.duration_days == 1 else "days"
-        parts.append(f"lasts {task.duration_days} {unit}")
+        working = "working " if task.working_days else ""
+        parts.append(f"lasts {task.duration_days} {working}{unit}")
     elif task.start_date and task.end_date:
         parts.append(f"starts {_format_date(task.start_date)}")
         parts.append(f"and ends {_format_date(task.end_date)}")
@@ -205,10 +206,11 @@ def _render_task(task: GanttTask) -> list[str]:
     task_ref = f"[{task.alias}]" if task.alias else f"[{task.name}]"
 
     # then sequencing (alternative to starts_after)
+    link_suffix = _render_link_style(task.link_color, task.link_style)
     if task.then:
-        lines.append(f"{task_ref} starts at [{task.then}]'s end")
+        lines.append(f"{task_ref} starts at [{task.then}]'s end{link_suffix}")
     elif task.starts_after:
-        lines.append(f"{task_ref} starts at [{task.starts_after}]'s end")
+        lines.append(f"{task_ref} starts at [{task.starts_after}]'s end{link_suffix}")
 
     if task.starts_with:
         lines.append(f"{task_ref} starts at [{task.starts_with}]'s start")
@@ -302,6 +304,22 @@ def _render_resource_off(resource_off: GanttResourceOff) -> list[str]:
     for off_date in resource_off.dates:
         lines.append(f"{{{resource_off.resource}}} is off on {_format_date(off_date)}")
     return lines
+
+
+def _render_link_style(color: str | None, style: str | None) -> str:
+    """Render link color/style suffix for dependency lines.
+
+    Returns a string like " with blue dotted link" or "" if no styling.
+    """
+    if not color and not style:
+        return ""
+    parts = [" with"]
+    if color:
+        parts.append(color)
+    if style:
+        parts.append(style)
+    parts.append("link")
+    return " ".join(parts)
 
 
 def _render_note(text: str, position: str) -> list[str]:

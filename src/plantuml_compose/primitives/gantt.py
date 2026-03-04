@@ -88,6 +88,9 @@ class GanttTask:
     pauses_on: tuple[date, ...] = field(default_factory=tuple)
     pauses_on_days: tuple[DayOfWeek, ...] = field(default_factory=tuple)
     is_deleted: bool = False
+    working_days: bool = False  # Use working days for duration/dependencies
+    link_color: str | None = None  # Color for dependency link arrow
+    link_style: Literal["bold", "dashed", "dotted"] | None = None  # Link line style
     note: str | None = None
     note_position: Literal["bottom", "left", "right", "top"] = "bottom"
 

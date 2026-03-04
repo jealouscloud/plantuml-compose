@@ -199,6 +199,54 @@ class TestGanttDiagramOptions:
         assert "mainframe Project Plan" in output
         assert "title Sprint 1" in output
 
+    def test_working_days(self):
+        with gantt_diagram(start=date(2024, 1, 1)) as d:
+            d.task("Design", days=5, working_days=True)
+        output = render(d.build())
+        assert "lasts 5 working days" in output
+
+    def test_working_days_singular(self):
+        with gantt_diagram(start=date(2024, 1, 1)) as d:
+            d.task("Quick", days=1, working_days=True)
+        output = render(d.build())
+        assert "lasts 1 working day" in output
+
+    def test_link_color(self):
+        with gantt_diagram(start=date(2024, 1, 1)) as d:
+            t1 = d.task("Task 1", days=5)
+            d.task("Task 2", days=3, after=t1, link_color="blue")
+        output = render(d.build())
+        assert "with blue link" in output
+
+    def test_link_style(self):
+        with gantt_diagram(start=date(2024, 1, 1)) as d:
+            t1 = d.task("Task 1", days=5)
+            d.task("Task 2", days=3, after=t1, link_style="dotted")
+        output = render(d.build())
+        assert "with dotted link" in output
+
+    def test_link_color_and_style(self):
+        with gantt_diagram(start=date(2024, 1, 1)) as d:
+            t1 = d.task("Task 1", days=5)
+            d.task("Task 2", days=3, after=t1, link_color="blue", link_style="dotted")
+        output = render(d.build())
+        assert "with blue dotted link" in output
+
+    def test_link_color_with_then(self):
+        with gantt_diagram(start=date(2024, 1, 1)) as d:
+            t1 = d.task("Task 1", days=5)
+            d.task("Task 2", days=3, then=t1, link_color="red")
+        output = render(d.build())
+        assert "with red link" in output
+
+    def test_link_color_without_dependency_raises(self):
+        import pytest
+        with gantt_diagram(start=date(2024, 1, 1)) as d:
+            d.task("Task 1", days=5)
+            with pytest.raises(ValueError, match="link_color and link_style are only valid"):
+                d.task("Task 2", days=3, link_color="blue")
+
+
 class TestGanttBuilder:
     """Tests for Gantt builder API."""
 

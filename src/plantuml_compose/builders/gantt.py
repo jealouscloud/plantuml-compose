@@ -142,6 +142,9 @@ class GanttDiagramBuilder(EmbeddableDiagramMixin):
         same_row_as: TaskRef | None = None,
         pauses_on: list[date | DayOfWeek] | None = None,
         deleted: bool = False,
+        working_days: bool = False,
+        link_color: str | None = None,
+        link_style: Literal["bold", "dashed", "dotted"] | None = None,
         note: str | None = None,
     ) -> TaskRef:
         """Add a task to the diagram.
@@ -162,6 +165,12 @@ class GanttDiagramBuilder(EmbeddableDiagramMixin):
             same_row_as: Task to display on the same row as
             pauses_on: Dates or days of week when this task pauses
             deleted: Mark task as deleted
+            working_days: Use working days (skip closed days) for duration
+                and dependency scheduling
+            link_color: Color for the dependency link arrow (only valid with
+                after or then)
+            link_style: Line style for the dependency link arrow ("bold",
+                "dashed", or "dotted"; only valid with after or then)
             note: Note text to attach to this task (displays below)
 
         Returns:
@@ -183,6 +192,11 @@ class GanttDiagramBuilder(EmbeddableDiagramMixin):
 
         if after is not None and then is not None:
             raise ValueError("Specify either after or then, not both")
+
+        if (link_color or link_style) and (after is None and then is None):
+            raise ValueError(
+                "link_color and link_style are only valid when 'after' or 'then' is set"
+            )
 
         alias = self._generate_alias()
 
@@ -245,6 +259,9 @@ class GanttDiagramBuilder(EmbeddableDiagramMixin):
             pauses_on=tuple(pause_dates),
             pauses_on_days=tuple(pause_days),
             is_deleted=deleted,
+            working_days=working_days,
+            link_color=link_color,
+            link_style=link_style,
             note=note,
         )
         self._elements.append(task)
