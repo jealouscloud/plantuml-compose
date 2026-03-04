@@ -625,6 +625,59 @@ class TestDiagramOptions:
         output = render(d.build())
         assert "newpage Page 2" in output
 
+    def test_ie_zero_or_one(self):
+        with class_diagram() as d:
+            a = d.entity("Person")
+            b = d.entity("Passport")
+            d.zero_or_one(a, b, label="has")
+        output = render(d.build())
+        assert "|o--" in output
+        assert ": has" in output
+
+    def test_ie_exactly_one(self):
+        with class_diagram() as d:
+            a = d.entity("Order")
+            b = d.entity("Customer")
+            d.exactly_one(a, b, label="placed by")
+        output = render(d.build())
+        assert "||--" in output
+        assert ": placed by" in output
+
+    def test_ie_zero_or_many(self):
+        with class_diagram() as d:
+            a = d.entity("Customer")
+            b = d.entity("Order")
+            d.zero_or_many(a, b, label="places")
+        output = render(d.build())
+        assert "}o--" in output
+        assert ": places" in output
+
+    def test_ie_one_or_many(self):
+        with class_diagram() as d:
+            a = d.entity("Department")
+            b = d.entity("Employee")
+            d.one_or_many(a, b, label="employs")
+        output = render(d.build())
+        assert "}|--" in output
+        assert ": employs" in output
+
+    def test_ie_with_direction(self):
+        with class_diagram() as d:
+            a = d.entity("Customer")
+            b = d.entity("Order")
+            d.zero_or_many(a, b, direction="down")
+        output = render(d.build())
+        assert "}o-d-" in output
+
+    def test_ie_via_relationship_method(self):
+        """IE types work through the generic relationship() method too."""
+        with class_diagram() as d:
+            a = d.entity("A")
+            b = d.entity("B")
+            d.relationship(a, b, "one_or_many")
+        output = render(d.build())
+        assert "}|--" in output
+
     def test_title(self):
         with class_diagram(title="Domain Model") as d:
             d.class_("User")

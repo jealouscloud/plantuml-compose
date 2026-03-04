@@ -105,6 +105,11 @@ RelationType = Literal[
     "line",  # -- Plain connection (no arrowhead)
     "dotted",  # .. Dotted connection (no arrowhead)
     "lollipop",  # ()- Interface provision (lollipop at source)
+    # IE (Information Engineering) crow's foot notation for ER diagrams
+    "zero_or_one",  # |o--  Zero or one (optional single)
+    "exactly_one",  # ||--  Exactly one (mandatory single)
+    "zero_or_many",  # }o-- Zero or many (optional multiple)
+    "one_or_many",  # }|-- One or many (mandatory multiple)
 ]
 
 # Package visual styles - container appearance

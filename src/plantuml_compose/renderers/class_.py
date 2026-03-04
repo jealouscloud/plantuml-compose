@@ -405,6 +405,11 @@ def _build_relationship_arrow(rel: Relationship) -> str:
         "dependency": "..>",
         "line": "--",
         "dotted": "..",
+        # IE (crow's foot) notation
+        "zero_or_one": "|o--",
+        "exactly_one": "||--",
+        "zero_or_many": "}o--",
+        "one_or_many": "}|--",
     }
     base_arrow = arrow_map[rel.type]
 

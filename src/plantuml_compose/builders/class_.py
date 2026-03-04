@@ -711,6 +711,151 @@ class _BaseClassBuilder:
             provider, consumer, "lollipop", label=label, direction=direction
         )
 
+    # IE (Information Engineering) crow's foot notation for ER diagrams
+
+    def zero_or_one(
+        self,
+        source: ClassNode | str,
+        target: ClassNode | str,
+        *,
+        source_label: str | None = None,
+        target_label: str | None = None,
+        label: str | Label | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
+    ) -> Relationship:
+        """Create a zero-or-one IE relationship (crow's foot notation).
+
+        Rendered as: source |o-- target
+
+        The circle (o) means "zero" and the single bar (|) means "one",
+        so together they mean "zero or one" (optional single).
+
+        Example:
+            person = d.entity("Person")
+            passport = d.entity("Passport")
+            d.zero_or_one(person, passport, label="has")
+        """
+        return self._relationship(
+            source,
+            target,
+            "zero_or_one",
+            source_label=source_label,
+            target_label=target_label,
+            label=label,
+            style=style,
+            direction=direction,
+            note=note,
+        )
+
+    def exactly_one(
+        self,
+        source: ClassNode | str,
+        target: ClassNode | str,
+        *,
+        source_label: str | None = None,
+        target_label: str | None = None,
+        label: str | Label | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
+    ) -> Relationship:
+        """Create an exactly-one IE relationship (crow's foot notation).
+
+        Rendered as: source ||-- target
+
+        The double bar (||) means "exactly one" (mandatory single).
+
+        Example:
+            order = d.entity("Order")
+            customer = d.entity("Customer")
+            d.exactly_one(order, customer, label="placed by")
+        """
+        return self._relationship(
+            source,
+            target,
+            "exactly_one",
+            source_label=source_label,
+            target_label=target_label,
+            label=label,
+            style=style,
+            direction=direction,
+            note=note,
+        )
+
+    def zero_or_many(
+        self,
+        source: ClassNode | str,
+        target: ClassNode | str,
+        *,
+        source_label: str | None = None,
+        target_label: str | None = None,
+        label: str | Label | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
+    ) -> Relationship:
+        """Create a zero-or-many IE relationship (crow's foot notation).
+
+        Rendered as: source }o-- target
+
+        The crow's foot (}) means "many" and the circle (o) means "zero",
+        so together they mean "zero or many" (optional multiple).
+
+        Example:
+            customer = d.entity("Customer")
+            order = d.entity("Order")
+            d.zero_or_many(customer, order, label="places")
+        """
+        return self._relationship(
+            source,
+            target,
+            "zero_or_many",
+            source_label=source_label,
+            target_label=target_label,
+            label=label,
+            style=style,
+            direction=direction,
+            note=note,
+        )
+
+    def one_or_many(
+        self,
+        source: ClassNode | str,
+        target: ClassNode | str,
+        *,
+        source_label: str | None = None,
+        target_label: str | None = None,
+        label: str | Label | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+        note: str | Label | None = None,
+    ) -> Relationship:
+        """Create a one-or-many IE relationship (crow's foot notation).
+
+        Rendered as: source }|-- target
+
+        The crow's foot (}) means "many" and the bar (|) means "one",
+        so together they mean "one or many" (mandatory multiple).
+
+        Example:
+            department = d.entity("Department")
+            employee = d.entity("Employee")
+            d.one_or_many(department, employee, label="employs")
+        """
+        return self._relationship(
+            source,
+            target,
+            "one_or_many",
+            source_label=source_label,
+            target_label=target_label,
+            label=label,
+            style=style,
+            direction=direction,
+            note=note,
+        )
+
     def associates(
         self,
         source: ClassNode | str,
