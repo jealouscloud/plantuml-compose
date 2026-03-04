@@ -57,6 +57,7 @@ from .builders import (
     mindmap_diagram,
     network_diagram,
     object_diagram,
+    salt_diagram,
     sequence_diagram,
     state_diagram,
     timing_diagram,
@@ -157,6 +158,9 @@ from .primitives import (
     TimingStateOrder,
     TimingTicks,
     Transition,
+    # Salt
+    SaltDiagram,
+    SaltWidget,
     YamlDiagram,
     YamlDiagramStyle,
     YamlDiagramStyleLike,
@@ -173,6 +177,7 @@ __all__ = [
     "json_diagram",
     "mindmap_diagram",
     "object_diagram",
+    "salt_diagram",
     "sequence_diagram",
     "state_diagram",
     "timing_diagram",
@@ -281,6 +286,10 @@ __all__ = [
     "TimingStateChange",
     "TimingStateOrder",
     "TimingTicks",
+    # Salt
+    "salt_diagram",
+    "SaltDiagram",
+    "SaltWidget",
 ]
 
 

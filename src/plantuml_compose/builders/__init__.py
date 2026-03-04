@@ -10,6 +10,7 @@ from .network import network_diagram, NodeRef
 from .wbs import wbs_diagram
 from .gantt import gantt_diagram, TaskRef, MilestoneRef
 from .object_ import object_diagram
+from .salt import salt_diagram
 from .sequence import sequence_diagram
 from .state import state_diagram
 from .timing import timing_diagram, ParticipantRef, AnchorRef
@@ -25,6 +26,7 @@ __all__ = [
     "mindmap_diagram",
     "network_diagram",
     "object_diagram",
+    "salt_diagram",
     "sequence_diagram",
     "state_diagram",
     "timing_diagram",

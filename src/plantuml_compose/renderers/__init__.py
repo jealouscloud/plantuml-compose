@@ -10,6 +10,7 @@ from ..primitives.network import NetworkDiagram
 from ..primitives.wbs import WBSDiagram
 from ..primitives.gantt import GanttDiagram
 from ..primitives.object_ import ObjectDiagram
+from ..primitives.salt import SaltDiagram
 from ..primitives.sequence import SequenceDiagram
 from ..primitives.state import StateDiagram
 from ..primitives.timing import TimingDiagram
@@ -25,6 +26,7 @@ from .network import render_network_diagram
 from .wbs import render_wbs_diagram
 from .gantt import render_gantt_diagram
 from .object_ import render_object_diagram
+from .salt import render_salt_diagram
 from .sequence import render_sequence_diagram
 from .state import render_state_diagram
 from .timing import render_timing_diagram
@@ -46,7 +48,8 @@ def render(
     | NetworkDiagram
     | WBSDiagram
     | GanttDiagram
-    | TimingDiagram,
+    | TimingDiagram
+    | SaltDiagram,
 ) -> str:
     """Render a diagram to PlantUML text.
 
@@ -92,6 +95,8 @@ def render(
         return render_gantt_diagram(diagram)
     if isinstance(diagram, TimingDiagram):
         return render_timing_diagram(diagram)
+    if isinstance(diagram, SaltDiagram):
+        return render_salt_diagram(diagram)
     raise TypeError(f"Unknown diagram type: {type(diagram)}")
 
 
@@ -107,6 +112,7 @@ __all__ = [
     "render_mindmap_diagram",
     "render_network_diagram",
     "render_object_diagram",
+    "render_salt_diagram",
     "render_sequence_diagram",
     "render_state_diagram",
     "render_timing_diagram",
