@@ -199,17 +199,20 @@ class TestGanttDiagramOptions:
         assert "mainframe Project Plan" in output
         assert "title Sprint 1" in output
 
-    def test_working_days(self):
+    def test_working_days_dependency(self):
         with gantt_diagram(start=date(2024, 1, 1)) as d:
-            d.task("Design", days=5, working_days=True)
+            t1 = d.task("Design", days=5)
+            d.task("Impl", days=10, after=t1, working_days=True)
         output = render(d.build())
-        assert "lasts 5 working days" in output
+        assert "starts 0 working days after" in output
+        assert "lasts 10 days" in output
 
-    def test_working_days_singular(self):
+    def test_working_days_with_then(self):
         with gantt_diagram(start=date(2024, 1, 1)) as d:
-            d.task("Quick", days=1, working_days=True)
+            t1 = d.task("Design", days=5)
+            d.task("Impl", days=3, then=t1, working_days=True)
         output = render(d.build())
-        assert "lasts 1 working day" in output
+        assert "starts 0 working days after" in output
 
     def test_link_color(self):
         with gantt_diagram(start=date(2024, 1, 1)) as d:
@@ -243,7 +246,7 @@ class TestGanttDiagramOptions:
         import pytest
         with gantt_diagram(start=date(2024, 1, 1)) as d:
             d.task("Task 1", days=5)
-            with pytest.raises(ValueError, match="link_color and link_style are only valid"):
+            with pytest.raises(ValueError, match="link_color, link_style, and working_days are only valid"):
                 d.task("Task 2", days=3, link_color="blue")
 
 

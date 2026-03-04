@@ -193,9 +193,10 @@ class GanttDiagramBuilder(EmbeddableDiagramMixin):
         if after is not None and then is not None:
             raise ValueError("Specify either after or then, not both")
 
-        if (link_color or link_style) and (after is None and then is None):
+        if (link_color or link_style or working_days) and (after is None and then is None):
             raise ValueError(
-                "link_color and link_style are only valid when 'after' or 'then' is set"
+                "link_color, link_style, and working_days are only valid when "
+                "'after' or 'then' is set"
             )
 
         alias = self._generate_alias()

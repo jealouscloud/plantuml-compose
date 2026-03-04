@@ -190,8 +190,7 @@ def _render_task(task: GanttTask) -> list[str]:
         parts.append(f"lasts {task.duration_weeks} {unit}")
     elif task.duration_days is not None:
         unit = "day" if task.duration_days == 1 else "days"
-        working = "working " if task.working_days else ""
-        parts.append(f"lasts {task.duration_days} {working}{unit}")
+        parts.append(f"lasts {task.duration_days} {unit}")
     elif task.start_date and task.end_date:
         parts.append(f"starts {_format_date(task.start_date)}")
         parts.append(f"and ends {_format_date(task.end_date)}")
@@ -208,9 +207,17 @@ def _render_task(task: GanttTask) -> list[str]:
     # then sequencing (alternative to starts_after)
     link_suffix = _render_link_style(task.link_color, task.link_style)
     if task.then:
-        lines.append(f"{task_ref} starts at [{task.then}]'s end{link_suffix}")
+        dep_ref = f"[{task.then}]"
+        if task.working_days:
+            lines.append(f"{task_ref} starts 0 working days after {dep_ref}'s end{link_suffix}")
+        else:
+            lines.append(f"{task_ref} starts at {dep_ref}'s end{link_suffix}")
     elif task.starts_after:
-        lines.append(f"{task_ref} starts at [{task.starts_after}]'s end{link_suffix}")
+        dep_ref = f"[{task.starts_after}]"
+        if task.working_days:
+            lines.append(f"{task_ref} starts 0 working days after {dep_ref}'s end{link_suffix}")
+        else:
+            lines.append(f"{task_ref} starts at {dep_ref}'s end{link_suffix}")
 
     if task.starts_with:
         lines.append(f"{task_ref} starts at [{task.starts_with}]'s start")
