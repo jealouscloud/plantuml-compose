@@ -647,6 +647,44 @@ class TestDiagramOptions:
         output = render(d.build())
         assert "newpage Page 2" in output
 
+    def test_teoz_anchor_on_message(self):
+        with sequence_diagram(teoz=True) as d:
+            alice = d.participant("Alice")
+            bob = d.participant("Bob")
+            d.message(alice, bob, "request", anchor="start")
+        output = render(d.build())
+        assert "!pragma teoz true" in output
+        assert "{start} Alice -> Bob : request" in output
+
+    def test_teoz_duration_constraint(self):
+        with sequence_diagram(teoz=True) as d:
+            alice = d.participant("Alice")
+            bob = d.participant("Bob")
+            d.message(alice, bob, "request", anchor="start")
+            d.message(bob, alice, "response", anchor="end")
+            d.duration("start", "end", "{50 ms}")
+        output = render(d.build())
+        assert "{start} <-> {end} : {50 ms}" in output
+
+    def test_teoz_anchor_requires_teoz(self):
+        import pytest
+        with sequence_diagram() as d:
+            alice = d.participant("Alice")
+            bob = d.participant("Bob")
+            d.message(alice, bob, "request", anchor="start")
+            with pytest.raises(ValueError, match="anchor requires teoz=True"):
+                d.build()
+
+    def test_teoz_duration_requires_teoz(self):
+        import pytest
+        with sequence_diagram() as d:
+            alice = d.participant("Alice")
+            bob = d.participant("Bob")
+            d.message(alice, bob, "request")
+            d.duration("start", "end", "{50 ms}")
+            with pytest.raises(ValueError, match="duration.*requires teoz=True"):
+                d.build()
+
     def test_hide_unlinked(self):
         with sequence_diagram(hide_unlinked=True) as d:
             user, api = d.participants("User", "API")

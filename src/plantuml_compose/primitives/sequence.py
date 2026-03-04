@@ -164,6 +164,7 @@ class Message:
     # Teoz features (require teoz=True on diagram)
     slant: int | None = None  # Pixels to shift arrow head down (shows timing delay)
     parallel: bool = False  # If True, message runs parallel with previous (& prefix)
+    anchor: str | None = None  # Named time anchor (teoz only): {anchor} prefix
 
 
 @dataclass(frozen=True)
@@ -345,6 +346,24 @@ class Autonumber:
 
 
 @dataclass(frozen=True)
+class DurationConstraint:
+    """A duration measurement between two teoz time anchors.
+
+    Rendered as: {start} <-> {end} : {label}
+
+    Requires teoz=True on the diagram.
+
+        start: Name of the start anchor
+        end:   Name of the end anchor
+        label: Duration label (e.g., "{50 ms}", "processing time")
+    """
+
+    start: str
+    end: str
+    label: str
+
+
+@dataclass(frozen=True)
 class SequenceDiagram:
     """A complete sequence diagram ready for rendering.
 
@@ -395,5 +414,6 @@ SequenceDiagramElement: TypeAlias = (
     | Delay
     | Space
     | Autonumber
+    | DurationConstraint
     | Newpage
 )

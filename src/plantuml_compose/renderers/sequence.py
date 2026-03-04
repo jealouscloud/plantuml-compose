@@ -16,6 +16,7 @@ from ..primitives.sequence import (
     Box,
     Delay,
     Divider,
+    DurationConstraint,
     GroupBlock,
     Message,
     Participant,
@@ -208,6 +209,8 @@ def _render_element(elem: SequenceDiagramElement) -> list[str]:
         return ["|||"]
     if isinstance(elem, Autonumber):
         return [_render_autonumber(elem)]
+    if isinstance(elem, DurationConstraint):
+        return [f"{{{elem.start}}} <-> {{{elem.end}}} : {elem.label}"]
     if isinstance(elem, Newpage):
         return [render_newpage(elem.title)]
     raise TypeError(f"Unknown element type: {type(elem).__name__}")
@@ -244,7 +247,10 @@ def _render_message(msg: Message) -> str:
     # Parallel prefix (teoz feature)
     prefix = "& " if msg.parallel else ""
 
-    return f"{prefix}{msg.source} {arrow} {msg.target}{activation}{label}"
+    # Anchor prefix (teoz feature)
+    anchor_prefix = f"{{{msg.anchor}}} " if msg.anchor else ""
+
+    return f"{prefix}{anchor_prefix}{msg.source} {arrow} {msg.target}{activation}{label}"
 
 
 def _build_message_arrow(msg: Message) -> str:

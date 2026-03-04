@@ -109,6 +109,7 @@ from ..primitives.sequence import (
     Box,
     Delay,
     Divider,
+    DurationConstraint,
     ElseBlock,
     GroupBlock,
     GroupType,
@@ -148,6 +149,7 @@ class _BaseSequenceBuilder:
         style: LineStyleLike | None = None,
         slant: int | None = None,
         parallel: bool = False,
+        anchor: str | None = None,
     ) -> Message:
         """Create and register a message between participants.
 
@@ -162,6 +164,8 @@ class _BaseSequenceBuilder:
             style: Arrow style (color, bold)
             slant: Pixels to shift arrow head down (requires teoz=True on diagram)
             parallel: If True, runs parallel with previous message (requires teoz=True)
+            anchor: Named time anchor for duration measurement (requires teoz=True).
+                Use with duration() to measure time between anchored messages.
 
         Returns:
             The created Message
@@ -188,6 +192,7 @@ class _BaseSequenceBuilder:
             style=style_obj,
             slant=slant,
             parallel=parallel,
+            anchor=anchor,
         )
         self._elements.append(msg)
         return msg
@@ -738,6 +743,7 @@ class SequenceDiagramBuilder(EmbeddableDiagramMixin, _BaseSequenceBuilder):
         style: LineStyleLike | None = None,
         slant: int | None = None,
         parallel: bool = False,
+        anchor: str | None = None,
     ) -> Message:
         """Create and register a message between participants.
 
@@ -755,6 +761,7 @@ class SequenceDiagramBuilder(EmbeddableDiagramMixin, _BaseSequenceBuilder):
             style=style,
             slant=slant,
             parallel=parallel,
+            anchor=anchor,
         )
 
     def return_(self, label: str | Label | None = None) -> Return:
@@ -1304,12 +1311,50 @@ class SequenceDiagramBuilder(EmbeddableDiagramMixin, _BaseSequenceBuilder):
                             "parallel requires teoz=True on the diagram. "
                             "Use sequence_diagram(teoz=True) to enable teoz mode."
                         )
+                    if elem.anchor and not self._teoz:
+                        raise ValueError(
+                            "anchor requires teoz=True on the diagram. "
+                            "Use sequence_diagram(teoz=True) to enable teoz mode."
+                        )
+                elif isinstance(elem, DurationConstraint):
+                    if not self._teoz:
+                        raise ValueError(
+                            "duration() requires teoz=True on the diagram. "
+                            "Use sequence_diagram(teoz=True) to enable teoz mode."
+                        )
                 elif isinstance(elem, GroupBlock):
                     check_elements(list(elem.elements))
                     for else_block in elem.else_blocks:
                         check_elements(list(else_block.elements))
 
         check_elements(self._elements)
+
+    def duration(self, start: str, end: str, label: str) -> DurationConstraint:
+        """Add a duration constraint between two time anchors.
+
+        Requires teoz=True on the diagram. The anchors must be defined
+        on messages using the anchor parameter.
+
+        Rendered as: {start} <-> {end} : {label}
+
+        Args:
+            start: Name of the start anchor (must match a message anchor)
+            end: Name of the end anchor (must match a message anchor)
+            label: Duration label (e.g., "{50 ms}", "processing time")
+
+        Returns:
+            The created DurationConstraint
+
+        Example:
+            with sequence_diagram(teoz=True) as d:
+                alice, bob = d.participants("Alice", "Bob")
+                d.message(alice, bob, "request", anchor="start")
+                d.message(bob, alice, "response", anchor="end")
+                d.duration("start", "end", "{50 ms}")
+        """
+        constraint = DurationConstraint(start=start, end=end, label=label)
+        self._elements.append(constraint)
+        return constraint
 
     def newpage(self, title: str | None = None) -> None:
         """Insert a page break in the diagram output.
