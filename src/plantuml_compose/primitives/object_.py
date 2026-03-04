@@ -35,7 +35,6 @@ from .common import (
     Legend,
     LineType,
     LineStyle,
-    Newpage,
     ObjectDiagramStyle,
     sanitize_ref,
     Scale,
@@ -153,7 +152,6 @@ ObjectDiagramElement = Union[
     Map,
     Relationship,
     ObjectNote,
-    Newpage,
 ]
 
 

@@ -34,7 +34,6 @@ from .common import (
     Legend,
     LineStyle,
     LineType,
-    Newpage,
     Note,
     Scale,
     Style,
@@ -447,5 +446,4 @@ ActivityElement: TypeAlias = (
     | Group
     | ActivityNote
     | Note
-    | Newpage
 )

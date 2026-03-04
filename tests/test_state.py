@@ -840,22 +840,6 @@ class TestDiagramOptions:
         assert "mainframe My Frame" in output
         assert "title My Title" in output
 
-    def test_newpage(self):
-        with state_diagram() as d:
-            d.state("S1")
-            d.newpage()
-            d.state("S2")
-        output = render(d.build())
-        assert "newpage" in output
-
-    def test_newpage_with_title(self):
-        with state_diagram() as d:
-            d.state("S1")
-            d.newpage("Page 2")
-            d.state("S2")
-        output = render(d.build())
-        assert "newpage Page 2" in output
-
     def test_multiline_title(self):
         """Multi-line titles use block syntax."""
         with state_diagram(title="Line 1\nLine 2") as d:

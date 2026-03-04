@@ -5,7 +5,6 @@ Pure functions that transform use case diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
-from ..primitives.common import Newpage
 from ..primitives.usecase import (
     Actor,
     Container,
@@ -31,7 +30,6 @@ from .common import (
     render_line_style_bracket,
     render_linetype,
     render_mainframe,
-    render_newpage,
     render_scale,
     render_stereotype,
     render_theme,
@@ -118,8 +116,6 @@ def _render_element(elem: UseCaseDiagramElement, indent: int = 0) -> list[str]:
         return _render_relationship(elem, indent)
     if isinstance(elem, UseCaseNote):
         return _render_note(elem, indent)
-    if isinstance(elem, Newpage):
-        return [render_newpage(elem.title)]
     raise TypeError(f"Unknown element type: {type(elem).__name__}")
 
 

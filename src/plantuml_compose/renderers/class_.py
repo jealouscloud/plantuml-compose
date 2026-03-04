@@ -23,7 +23,6 @@ from ..primitives.class_ import (
 )
 from ..primitives.common import (
     ClassDiagramStyle,
-    Newpage,
     Note,
     Style,
     coerce_line_style,
@@ -46,7 +45,6 @@ from .common import (
     render_line_style_bracket,
     render_linetype,
     render_mainframe,
-    render_newpage,
     render_scale,
     render_stereotype,
     render_theme,
@@ -167,8 +165,6 @@ def _render_element(
         return [f"{elem.action} {elem.target}"]
     if isinstance(elem, Note):
         return _render_floating_note(elem, ctx)
-    if isinstance(elem, Newpage):
-        return [render_newpage(elem.title)]
     raise TypeError(f"Unknown element type: {type(elem).__name__}")
 
 

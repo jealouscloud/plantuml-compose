@@ -35,7 +35,6 @@ from .common import (
     Legend,
     LineType,
     LineStyle,
-    Newpage,
     sanitize_ref,
     Scale,
     Stereotype,
@@ -148,7 +147,6 @@ UseCaseDiagramElement = Union[
     Container,
     Relationship,
     UseCaseNote,
-    Newpage,
 ]
 
 

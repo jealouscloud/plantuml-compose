@@ -1229,15 +1229,6 @@ class ActivityDiagramBuilder(EmbeddableDiagramMixin, _BaseActivityBuilder):
         finally:
             self._block_stack.pop()
 
-    def newpage(self, title: str | None = None) -> None:
-        """Insert a page break in the diagram output.
-
-        Args:
-            title: Optional title for the new page
-        """
-        from ..primitives.common import Newpage
-        self._elements.append(Newpage(title=title))
-
     def build(self) -> ActivityDiagram:
         """Build the complete activity diagram."""
         return ActivityDiagram(

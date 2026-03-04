@@ -93,6 +93,7 @@ from ..primitives.common import (
     Legend,
     LineStyleLike,
     LineType,
+    Newpage,
     Scale,
     SequenceDiagramStyleLike,
     StyleLike,
@@ -1362,7 +1363,6 @@ class SequenceDiagramBuilder(EmbeddableDiagramMixin, _BaseSequenceBuilder):
         Args:
             title: Optional title for the new page
         """
-        from ..primitives.common import Newpage
         self._elements.append(Newpage(title=title))
 
     def build(self) -> SequenceDiagram:

@@ -34,7 +34,6 @@ from .common import (
     Legend,
     LineType,
     LineStyle,
-    Newpage,
     sanitize_ref,
     Scale,
     Stereotype,
@@ -142,7 +141,6 @@ DeploymentDiagramElement = Union[
     DeploymentElement,
     Relationship,
     DeploymentNote,
-    Newpage,
 ]
 
 

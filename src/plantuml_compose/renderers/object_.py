@@ -6,7 +6,6 @@ Pure functions that transform object diagram primitives to PlantUML text.
 from __future__ import annotations
 
 from ..primitives.common import (
-    Newpage,
     sanitize_ref,
     ObjectDiagramStyle,
 )
@@ -26,7 +25,6 @@ from .common import (
     render_color_hash,
     render_diagram_style,
     render_mainframe,
-    render_newpage,
     render_embeddable_content,
     render_footer,
     render_header,
@@ -120,8 +118,6 @@ def _render_element(elem: ObjectDiagramElement, indent: int = 0) -> list[str]:
         return _render_relationship(elem, indent)
     if isinstance(elem, ObjectNote):
         return _render_note(elem, indent)
-    if isinstance(elem, Newpage):
-        return [render_newpage(elem.title)]
     raise TypeError(f"Unknown element type: {type(elem).__name__}")
 
 

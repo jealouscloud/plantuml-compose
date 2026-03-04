@@ -36,7 +36,6 @@ from .common import (
     Legend,
     LineType,
     LineStyleLike,
-    Newpage,
     Note,
     sanitize_ref,
     Scale,
@@ -397,5 +396,5 @@ class ClassDiagram:
 
 # Type alias for elements that can appear in a class diagram
 ClassDiagramElement: TypeAlias = (
-    ClassNode | Relationship | AssociationClass | Package | Together | ClassNote | HideShow | Note | Newpage
+    ClassNode | Relationship | AssociationClass | Package | Together | ClassNote | HideShow | Note
 )

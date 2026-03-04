@@ -37,7 +37,6 @@ from .common import (
     Legend,
     LineType,
     LineStyleLike,
-    Newpage,
     Note,
     RegionSeparator,
     sanitize_ref,
@@ -306,6 +305,5 @@ StateDiagramElement: TypeAlias = (
     | Transition
     | CompositeState
     | ConcurrentState
-    | Newpage
     | Note
 )

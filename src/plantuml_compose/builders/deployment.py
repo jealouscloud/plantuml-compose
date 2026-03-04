@@ -1179,15 +1179,6 @@ class DeploymentDiagramBuilder(EmbeddableDiagramMixin, _BaseDeploymentBuilder):
         self._layout_engine: LayoutEngine | None = layout_engine
         self._linetype: LineType | None = linetype
 
-    def newpage(self, title: str | None = None) -> None:
-        """Insert a page break in the diagram output.
-
-        Args:
-            title: Optional title for the new page
-        """
-        from ..primitives.common import Newpage
-        self._elements.append(Newpage(title=title))
-
     def build(self) -> DeploymentDiagram:
         """Build the complete deployment diagram."""
         return DeploymentDiagram(

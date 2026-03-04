@@ -1492,15 +1492,6 @@ class ClassDiagramBuilder(EmbeddableDiagramMixin, _BaseClassBuilder):
             coerce_class_diagram_style(diagram_style) if diagram_style else None
         )
 
-    def newpage(self, title: str | None = None) -> None:
-        """Insert a page break in the diagram output.
-
-        Args:
-            title: Optional title for the new page
-        """
-        from ..primitives.common import Newpage
-        self._elements.append(Newpage(title=title))
-
     def build(self) -> ClassDiagram:
         """Build the complete class diagram."""
         return ClassDiagram(

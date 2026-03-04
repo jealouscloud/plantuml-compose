@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from ..primitives.common import (
     ComponentDiagramStyle,
-    Newpage,
     sanitize_ref,
 )
 from ..primitives.component import (
@@ -38,7 +37,6 @@ from .common import (
     render_line_style_bracket,
     render_linetype,
     render_mainframe,
-    render_newpage,
     render_scale,
     render_stereotype,
     render_theme,
@@ -158,8 +156,6 @@ def _render_element(elem: ComponentElement, indent: int = 0) -> list[str]:
         return _render_relationship(elem, indent)
     if isinstance(elem, ComponentNote):
         return _render_note(elem, indent)
-    if isinstance(elem, Newpage):
-        return [f"{prefix}{render_newpage(elem.title)}"]
     raise TypeError(f"Unknown element type: {type(elem).__name__}")
 
 

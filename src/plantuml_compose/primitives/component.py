@@ -35,7 +35,6 @@ from .common import (
     Legend,
     LineType,
     LineStyle,
-    Newpage,
     sanitize_ref,
     Scale,
     Stereotype,
@@ -258,7 +257,6 @@ ComponentElement = Union[
     Container,
     Relationship,
     ComponentNote,
-    Newpage,
 ]
 
 
