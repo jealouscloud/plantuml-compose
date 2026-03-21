@@ -90,8 +90,15 @@ def render_deployment_diagram(diagram: DeploymentDiagram) -> str:
     if linetype_line:
         lines.append(linetype_line)
 
+    # Render targeted notes last so their targets are defined first
+    deferred_notes: list[DeploymentNote] = []
     for elem in diagram.elements:
-        lines.extend(_render_element(elem))
+        if isinstance(elem, DeploymentNote) and elem.target:
+            deferred_notes.append(elem)
+        else:
+            lines.extend(_render_element(elem))
+    for note in deferred_notes:
+        lines.extend(_render_note(note))
 
     lines.append("@enduml")
     return "\n".join(lines)

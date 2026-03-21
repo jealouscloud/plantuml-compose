@@ -95,8 +95,15 @@ def render_usecase_diagram(diagram: UseCaseDiagram) -> str:
     if diagram.actor_style and diagram.actor_style != "default":
         lines.append(f"skinparam actorStyle {diagram.actor_style}")
 
+    # Render targeted notes last so their targets are defined first
+    deferred_notes: list[UseCaseNote] = []
     for elem in diagram.elements:
-        lines.extend(_render_element(elem))
+        if isinstance(elem, UseCaseNote) and elem.target:
+            deferred_notes.append(elem)
+        else:
+            lines.extend(_render_element(elem))
+    for note in deferred_notes:
+        lines.extend(_render_note(note))
 
     lines.append("@enduml")
     return "\n".join(lines)

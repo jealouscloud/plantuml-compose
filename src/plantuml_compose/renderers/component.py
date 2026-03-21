@@ -109,8 +109,15 @@ def render_component_diagram(diagram: ComponentDiagram) -> str:
     if diagram.hide_stereotype:
         lines.append("hide stereotype")
 
+    # Render targeted notes last so their targets are defined first
+    deferred_notes: list[ComponentNote] = []
     for elem in diagram.elements:
-        lines.extend(_render_element(elem))
+        if isinstance(elem, ComponentNote) and elem.target:
+            deferred_notes.append(elem)
+        else:
+            lines.extend(_render_element(elem))
+    for note in deferred_notes:
+        lines.extend(_render_note(note))
 
     lines.append("@enduml")
     return "\n".join(lines)

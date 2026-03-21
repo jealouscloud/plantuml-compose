@@ -136,10 +136,16 @@ def render_class_diagram(diagram: ClassDiagram) -> str:
     if diagram.hide_circle:
         lines.append("hide circle")
 
-    # Main elements
+    # Main elements — defer targeted notes so their targets are defined first
     ctx = _RenderContext()
+    deferred_notes: list[ClassNote] = []
     for elem in diagram.elements:
-        lines.extend(_render_element(elem, ctx))
+        if isinstance(elem, ClassNote) and elem.target:
+            deferred_notes.append(elem)
+        else:
+            lines.extend(_render_element(elem, ctx))
+    for note in deferred_notes:
+        lines.extend(_render_class_note(note))
 
     lines.append("@enduml")
     return "\n".join(lines)

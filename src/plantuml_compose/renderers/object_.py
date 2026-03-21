@@ -100,8 +100,15 @@ def render_object_diagram(diagram: ObjectDiagram) -> str:
     if diagram.diagram_style:
         lines.extend(_render_object_diagram_style(diagram.diagram_style))
 
+    # Render targeted notes last so their targets are defined first
+    deferred_notes: list[ObjectNote] = []
     for elem in diagram.elements:
-        lines.extend(_render_element(elem))
+        if isinstance(elem, ObjectNote) and elem.target:
+            deferred_notes.append(elem)
+        else:
+            lines.extend(_render_element(elem))
+    for note in deferred_notes:
+        lines.extend(_render_note(note))
 
     lines.append("@enduml")
     return "\n".join(lines)

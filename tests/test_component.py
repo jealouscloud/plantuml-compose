@@ -373,6 +373,19 @@ class TestNotes:
         assert "#yellow" in output
 
 
+    def test_targeted_note_renders_after_container(self):
+        """Notes targeting containers must render after the container definition."""
+        with component_diagram() as d:
+            with d.node("Server", alias="srv") as srv:
+                srv.component("App")
+                d.note("Important", target=srv, position="right")
+        output = render(d.build())
+        lines = output.strip().split("\n")
+        node_line = next(i for i, l in enumerate(lines) if "Server" in l and "node" in l)
+        note_line = next(i for i, l in enumerate(lines) if "note right of" in l)
+        assert node_line < note_line
+
+
 class TestDiagramOptions:
     """Tests for diagram-level options."""
 
