@@ -101,6 +101,9 @@ def render_sequence_diagram(diagram: SequenceDiagram) -> str:
     if diagram.teoz:
         lines.append("!pragma teoz true")
 
+    if diagram.actor_style and diagram.actor_style != "default":
+        lines.append(f"skinparam actorStyle {diagram.actor_style}")
+
     if diagram.hide_unlinked:
         lines.append("hide unlinked")
 

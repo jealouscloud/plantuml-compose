@@ -981,6 +981,18 @@ class TestTeozFeatures:
         output = render(d.build())
         assert "teoz" not in output
 
+    def test_actor_style_awesome(self):
+        with sequence_diagram(actor_style="awesome") as d:
+            d.actor("User")
+        output = render(d.build())
+        assert "skinparam actorStyle awesome" in output
+
+    def test_actor_style_default_not_rendered(self):
+        with sequence_diagram(actor_style="default") as d:
+            d.actor("User")
+        output = render(d.build())
+        assert "actorStyle" not in output
+
     def test_slant_renders_correctly(self):
         """Test slant parameter renders arrow with shift."""
         with sequence_diagram(teoz=True) as d:

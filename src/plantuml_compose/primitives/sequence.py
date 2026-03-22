@@ -41,6 +41,7 @@ from .common import (
     Style,
     ThemeLike,
 )
+from .usecase import ActorStyle
 
 
 # Participant shape types - visual representation in the diagram
@@ -399,6 +400,7 @@ class SequenceDiagram:
     autonumber: Autonumber | None = None
     hide_unlinked: bool = False  # hide unlinked participants
     teoz: bool = False  # Enable teoz rendering for parallel messages and anchors
+    actor_style: ActorStyle | None = None
     diagram_style: SequenceDiagramStyle | None = None  # CSS-like diagram styling
 
 

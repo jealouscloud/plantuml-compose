@@ -106,6 +106,7 @@ from .base import EmbeddableDiagramMixin
 # Type alias for autonumber actions - defines valid values once
 from ..primitives.sequence import (
     Activation,
+    ActorStyle,
     Autonumber,
     Box,
     Delay,
@@ -681,6 +682,7 @@ class SequenceDiagramBuilder(EmbeddableDiagramMixin, _BaseSequenceBuilder):
         teoz: bool = False,
         autonumber: bool = False,
         hide_unlinked: bool = False,
+        actor_style: ActorStyle | None = None,
     ) -> None:
         super().__init__()
         self._title = title
@@ -701,6 +703,7 @@ class SequenceDiagramBuilder(EmbeddableDiagramMixin, _BaseSequenceBuilder):
             else None
         )
         self._teoz = teoz
+        self._actor_style = actor_style
         self._autonumber = Autonumber() if autonumber else None
         self._hide_unlinked = hide_unlinked
         self._participants: list[Participant] = []
@@ -1399,6 +1402,7 @@ class SequenceDiagramBuilder(EmbeddableDiagramMixin, _BaseSequenceBuilder):
             autonumber=self._autonumber,
             hide_unlinked=self._hide_unlinked,
             teoz=self._teoz,
+            actor_style=self._actor_style,
         )
 
     def render(self) -> str:
@@ -1502,6 +1506,7 @@ def sequence_diagram(
     teoz: bool = False,
     autonumber: bool = False,
     hide_unlinked: bool = False,
+    actor_style: ActorStyle | None = None,
 ) -> Iterator[SequenceDiagramBuilder]:
     """Create a sequence diagram with context manager syntax.
 
@@ -1535,6 +1540,7 @@ def sequence_diagram(
         teoz: Enable teoz mode for parallel messages and slanted arrows
         autonumber: Enable automatic message numbering
         hide_unlinked: Hide participants with no messages
+        actor_style: Actor rendering style ("default", "awesome", "hollow")
 
     Yields:
         A SequenceDiagramBuilder for adding diagram elements
@@ -1554,5 +1560,6 @@ def sequence_diagram(
         teoz=teoz,
         autonumber=autonumber,
         hide_unlinked=hide_unlinked,
+        actor_style=actor_style,
     )
     yield builder
