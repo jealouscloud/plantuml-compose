@@ -76,8 +76,8 @@ def sanitize_ref(name: str) -> str:
     if name.isidentifier():
         return name
 
-    # Replace spaces with underscores
-    sanitized = name.replace(" ", "_")
+    # Replace whitespace with underscores
+    sanitized = name.replace(" ", "_").replace("\n", "_").replace("\r", "_").replace("\t", "_")
 
     # Remove characters that break PlantUML identifiers
     # This includes quotes, brackets, operators, and punctuation that

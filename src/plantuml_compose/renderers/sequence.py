@@ -134,8 +134,8 @@ def _render_participant(p: Participant) -> str:
     parts: list[str] = [p.type]
 
     # Name with optional alias
-    if p.alias or not p.name.isidentifier():
-        escaped = escape_quotes(p.name)
+    if p.alias or not p.name.isidentifier() or "\n" in p.name:
+        escaped = escape_quotes(p.name).replace("\r", "").replace("\n", "\\n")
         parts.append(f'"{escaped}" as {p._ref}')
     else:
         parts.append(p.name)

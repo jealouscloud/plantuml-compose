@@ -127,6 +127,18 @@ class TestParticipant:
         assert "]" in output
 
 
+    def test_participant_name_with_newlines(self):
+        """Newlines in participant names are escaped to PlantUML \\n syntax."""
+        with sequence_diagram() as d:
+            p = d.participant("FastAPI\n(PXE Service)")
+            d.message(p, p, label="test")
+        output = render(d.build())
+        lines = output.strip().split("\n")
+        participant_line = [l for l in lines if l.startswith("participant")][0]
+        assert "\\n" in participant_line
+        assert "FastAPI_PXE_Service" in output
+
+
 class TestMessage:
     """Tests for message creation and rendering."""
 
