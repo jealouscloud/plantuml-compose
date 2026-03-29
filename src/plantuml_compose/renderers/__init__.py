@@ -1,5 +1,12 @@
 """Diagram renderers - pure functions that transform primitives to PlantUML text."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..composers.base import BaseComposer
+
 from ..primitives.activity import ActivityDiagram
 from ..primitives.class_ import ClassDiagram
 from ..primitives.component import ComponentDiagram
@@ -49,7 +56,8 @@ def render(
     | WBSDiagram
     | GanttDiagram
     | TimingDiagram
-    | SaltDiagram,
+    | SaltDiagram
+    | BaseComposer,
 ) -> str:
     """Render a diagram to PlantUML text.
 
@@ -65,6 +73,10 @@ def render(
     Raises:
         TypeError: If the diagram type is not supported
     """
+    # Support composers: if the argument has a build() method, call it first
+    if hasattr(diagram, "build") and callable(diagram.build):
+        diagram = diagram.build()
+
     if isinstance(diagram, StateDiagram):
         return render_state_diagram(diagram)
     if isinstance(diagram, SequenceDiagram):
