@@ -193,6 +193,13 @@ def _render_participant(p: TimingParticipant) -> list[str]:
     return lines
 
 
+def _quote_state(state: str) -> str:
+    """Quote a state value if it contains spaces or special characters."""
+    if " " in state or '"' in state:
+        return f'"{state}"'
+    return state
+
+
 def _render_state_order(order: TimingStateOrder) -> list[str]:
     """Render state ordering directive.
 
@@ -229,7 +236,7 @@ def _render_anchor(anchor: TimeAnchor) -> str:
 
 def _render_initial_state(state: TimingInitialState) -> str:
     """Render initial state before timeline."""
-    return f"{state.participant} is {state.state}"
+    return f"{state.participant} is {_quote_state(state.state)}"
 
 
 def _render_state_change(state: StateChange) -> str:
@@ -247,7 +254,7 @@ def _render_state_change(state: StateChange) -> str:
         @0
         R is Idle: starts here
     """
-    state_str = f"{state.participant} is {state.state}"
+    state_str = f"{state.participant} is {_quote_state(state.state)}"
     if state.color:
         state_str += f" {render_color_hash(state.color)}"
     if state.comment:
