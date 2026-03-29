@@ -550,12 +550,16 @@ class EmbeddedDiagram:
             d.note(alice, arch.embed(), position="right")
 
     Attributes:
-        content: Inner PlantUML content (without @startuml/@enduml wrapper)
+        content: Inner PlantUML content (without @start/@end markers)
         transparent: If True, applies transparent background CSS styling
+        embed_type: For specialized diagrams (json, yaml, mindmap, wbs,
+            gantt, salt), the type name for {{type ... }} syntax.
+            None for standard UML diagrams.
     """
 
     content: str
     transparent: bool = True
+    embed_type: str | None = None
 
     def render(self, inline: bool = False) -> str:
         """Render the embedded diagram for placement in PlantUML.
@@ -570,8 +574,9 @@ class EmbeddedDiagram:
         """
         inner_lines: list[str] = []
 
-        if self.transparent:
-            # Style block needs newlines around the content to parse correctly
+        # Transparent styling only for standard diagrams —
+        # specialized types don't support <style> inside {{type }}
+        if self.transparent and not self.embed_type:
             inner_lines.append("<style>")
             inner_lines.append("root { BackgroundColor transparent }")
             inner_lines.append("</style>")
@@ -579,19 +584,19 @@ class EmbeddedDiagram:
         # Add the content, preserving its structure
         inner_lines.append(self.content)
 
+        # Build the wrapper: {{type for specialized, {{ for standard
+        open_brace = f"{{{{{self.embed_type}" if self.embed_type else "{{"
+
         if inline:
             # For single-line contexts: join with %breakline()
-            # First flatten any existing newlines in content
             flattened_inner = " %breakline() ".join(
                 line for part in inner_lines
                 for line in part.split("\n")
                 if line.strip()
             )
-            # Double braces {{ }} are required - single braces don't work
-            return f"{{{{{flattened_inner}}}}}"
+            return f"{open_brace} {flattened_inner}}}}}"
         else:
-            # For multi-line contexts: use actual newlines
-            return "{{\n" + "\n".join(inner_lines) + "\n}}"
+            return f"{open_brace}\n" + "\n".join(inner_lines) + "\n}}"
 
 
 # Type alias for content that can include embedded diagrams

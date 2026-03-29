@@ -60,6 +60,7 @@ class GanttDiagramBuilder(EmbeddableDiagramMixin):
 
     # Keep diagram markers for specialized diagram types
     _keep_diagram_markers = True
+    _embed_type = "gantt"
 
     # Explicit type annotations to preserve Literal types
     _scale: Literal["daily", "weekly", "monthly", "quarterly", "yearly"] | None

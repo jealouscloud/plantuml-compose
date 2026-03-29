@@ -229,9 +229,10 @@ class TestBuilderEmbedMethod:
 
         embedded = d.embed()
         assert isinstance(embedded, EmbeddedDiagram)
-        # Specialized diagrams keep their markers for PlantUML to identify the type
-        assert "@startgantt" in embedded.content
-        assert "@endgantt" in embedded.content
+        # Specialized diagrams use embed_type for {{type ... }} syntax
+        assert embedded.embed_type == "gantt"
+        assert "@startgantt" not in embedded.content
+        assert "Task 1" in embedded.content
 
     def test_mindmap_diagram_embed(self):
         """Test embed() on mindmap diagram builder."""
@@ -241,9 +242,9 @@ class TestBuilderEmbedMethod:
 
         embedded = d.embed()
         assert isinstance(embedded, EmbeddedDiagram)
-        # Specialized diagrams keep their markers for PlantUML to identify the type
-        assert "@startmindmap" in embedded.content
-        assert "@endmindmap" in embedded.content
+        assert embedded.embed_type == "mindmap"
+        assert "@startmindmap" not in embedded.content
+        assert "Root" in embedded.content
 
     def test_wbs_diagram_embed(self):
         """Test embed() on WBS diagram builder."""
@@ -253,9 +254,9 @@ class TestBuilderEmbedMethod:
 
         embedded = d.embed()
         assert isinstance(embedded, EmbeddedDiagram)
-        # Specialized diagrams keep their markers for PlantUML to identify the type
-        assert "@startwbs" in embedded.content
-        assert "@endwbs" in embedded.content
+        assert embedded.embed_type == "wbs"
+        assert "@startwbs" not in embedded.content
+        assert "Project" in embedded.content
 
     def test_json_diagram_embed(self):
         """Test embed() on JSON diagram builder."""
@@ -264,9 +265,9 @@ class TestBuilderEmbedMethod:
 
         embedded = d.embed()
         assert isinstance(embedded, EmbeddedDiagram)
-        # Specialized diagrams keep their markers for PlantUML to identify the type
-        assert "@startjson" in embedded.content
-        assert "@endjson" in embedded.content
+        assert embedded.embed_type == "json"
+        assert "@startjson" not in embedded.content
+        assert '"name"' in embedded.content
 
     def test_yaml_diagram_embed(self):
         """Test embed() on YAML diagram builder."""
@@ -275,9 +276,9 @@ class TestBuilderEmbedMethod:
 
         embedded = d.embed()
         assert isinstance(embedded, EmbeddedDiagram)
-        # Specialized diagrams keep their markers for PlantUML to identify the type
-        assert "@startyaml" in embedded.content
-        assert "@endyaml" in embedded.content
+        assert embedded.embed_type == "yaml"
+        assert "@startyaml" not in embedded.content
+        assert "name" in embedded.content
 
     def test_embed_with_transparent_false(self):
         """Test embed() with transparent=False."""

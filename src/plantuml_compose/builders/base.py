@@ -18,8 +18,10 @@ class EmbeddableDiagramMixin:
         - build(): Return the diagram primitive
         - render(): Return the PlantUML text
 
-    For specialized diagram types (Gantt, MindMap, WBS, JSON, YAML) that need
-    to keep their @start.../@end... markers, set _keep_diagram_markers = True.
+    For specialized diagram types (Gantt, MindMap, WBS, JSON, YAML, Salt),
+    set _embed_type to the PlantUML sub-diagram type name (e.g., "json").
+    This uses PlantUML's {{json ... }} syntax instead of @startjson inside
+    {{ }}, which avoids the marker collision bug.
 
     Example:
         class MyDiagramBuilder(EmbeddableDiagramMixin):
@@ -29,15 +31,20 @@ class EmbeddableDiagramMixin:
             def render(self) -> str:
                 ...
 
-        # For specialized diagrams that keep markers:
-        class GanttDiagramBuilder(EmbeddableDiagramMixin):
+        # For specialized diagrams:
+        class JsonDiagramBuilder(EmbeddableDiagramMixin):
+            _embed_type = "json"
             _keep_diagram_markers = True
             ...
     """
 
     # Set to True for specialized diagrams that need their markers preserved
-    # (Gantt, MindMap, WBS, JSON, YAML)
+    # in standalone rendering (Gantt, MindMap, WBS, JSON, YAML, Salt)
     _keep_diagram_markers: bool = False
+
+    # Set to the PlantUML embed type for specialized diagrams.
+    # Used in {{type ... }} syntax for embedding. None for standard UML.
+    _embed_type: str | None = None
 
     @abstractmethod
     def build(self) -> Any:
@@ -75,29 +82,26 @@ class EmbeddableDiagramMixin:
         return EmbeddedDiagram(
             content=self._render_inner(),
             transparent=transparent,
+            embed_type=self._embed_type,
         )
 
     def _render_inner(self) -> str:
         """Render diagram content for embedding.
 
-        For standard diagrams: strips @startuml/@enduml wrapper.
-        For specialized diagrams (Gantt, MindMap, etc.): keeps markers
-        because PlantUML needs them to identify the diagram type.
+        Strips @start/@end markers from all diagram types. For specialized
+        diagrams, the embed_type on EmbeddedDiagram tells the renderer to
+        use {{type ... }} syntax instead.
 
         Returns:
             PlantUML content suitable for embedding in {{ }} blocks.
         """
         full = self.render()
 
-        if self._keep_diagram_markers:
-            # Specialized diagrams need their markers preserved
-            return full
-
-        # Standard diagrams: strip the @startuml/@enduml wrapper
+        # Strip @start.../@end... markers from all diagram types
         lines = full.split("\n")
         inner_lines = [
             line for line in lines
-            if not line.strip().startswith("@startuml")
-            and not line.strip().startswith("@enduml")
+            if not line.strip().startswith("@start")
+            and not line.strip().startswith("@end")
         ]
         return "\n".join(inner_lines)

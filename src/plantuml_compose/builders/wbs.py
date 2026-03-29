@@ -138,6 +138,7 @@ class WBSDiagramBuilder(EmbeddableDiagramMixin):
     """Builder for WBS tree diagrams."""
 
     _keep_diagram_markers = True
+    _embed_type = "wbs"
 
     def __init__(
         self,

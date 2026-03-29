@@ -134,6 +134,7 @@ class MindMapDiagramBuilder(EmbeddableDiagramMixin):
     """Builder for MindMap tree diagrams."""
 
     _keep_diagram_markers = True
+    _embed_type = "mindmap"
 
     def __init__(
         self,

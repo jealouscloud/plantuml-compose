@@ -42,6 +42,7 @@ class SaltDiagramBuilder(EmbeddableDiagramMixin):
     """
 
     _keep_diagram_markers = True
+    _embed_type = "salt"
 
     def __init__(
         self,

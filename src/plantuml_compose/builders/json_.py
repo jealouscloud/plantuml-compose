@@ -33,6 +33,7 @@ class JsonDiagramBuilder(EmbeddableDiagramMixin):
     """Builder for JSON data visualization diagrams."""
 
     _keep_diagram_markers = True
+    _embed_type = "json"
 
     def __init__(
         self,
@@ -89,6 +90,7 @@ class YamlDiagramBuilder(EmbeddableDiagramMixin):
     """Builder for YAML data visualization diagrams."""
 
     _keep_diagram_markers = True
+    _embed_type = "yaml"
 
     def __init__(
         self,
