@@ -134,12 +134,12 @@ def _render_actor(actor: Actor) -> str:
     keyword = "actor/" if actor.business else "actor"
     parts.append(keyword)
 
-    # Name
-    name = (
-        f'"{escape_quotes(actor.name)}"'
-        if needs_quotes(actor.name)
-        else actor.name
-    )
+    # Name — escape newlines to PlantUML's \n line break syntax
+    escaped_name = actor.name.replace("\r", "").replace("\n", "\\n")
+    if needs_quotes(actor.name) or "\n" in actor.name:
+        name = f'"{escape_quotes(escaped_name)}"'
+    else:
+        name = escaped_name
     parts.append(name)
 
     if actor.alias:
@@ -166,12 +166,12 @@ def _render_usecase(usecase: UseCase) -> str:
     keyword = "usecase/" if usecase.business else "usecase"
     parts.append(keyword)
 
-    # Name (use cases are typically in parentheses in PlantUML syntax)
-    name = (
-        f'"{escape_quotes(usecase.name)}"'
-        if needs_quotes(usecase.name)
-        else usecase.name
-    )
+    # Name — escape newlines to PlantUML's \n line break syntax
+    escaped_name = usecase.name.replace("\r", "").replace("\n", "\\n")
+    if needs_quotes(usecase.name) or "\n" in usecase.name:
+        name = f'"{escape_quotes(escaped_name)}"'
+    else:
+        name = escaped_name
     parts.append(f"({name})")
 
     if usecase.alias:
