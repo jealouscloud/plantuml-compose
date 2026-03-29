@@ -86,6 +86,7 @@ from ..primitives.common import (
     ColorLike,
     coerce_line_style,
     coerce_sequence_diagram_style,
+    EmbeddableContent,
     Footer,
     Header,
     Label,
@@ -277,7 +278,7 @@ class _BaseSequenceBuilder:
 
     def note(
         self,
-        content: str | Label,
+        content: EmbeddableContent,
         position: Literal["left", "right"] = "right",
         *,
         of: Participant | str | None = None,
@@ -822,7 +823,7 @@ class SequenceDiagramBuilder(EmbeddableDiagramMixin, _BaseSequenceBuilder):
 
     def note(
         self,
-        content: str | Label,
+        content: EmbeddableContent,
         position: Literal["left", "right"] = "right",
         *,
         of: Participant | str | None = None,
