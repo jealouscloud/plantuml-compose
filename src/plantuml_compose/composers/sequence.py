@@ -26,7 +26,11 @@ from typing import Any, Literal
 
 from ..primitives.common import (
     EmbeddableContent,
+    Footer,
+    Header,
     Label,
+    Legend,
+    Scale,
     ThemeLike,
 )
 from ..primitives.sequence import (
@@ -233,11 +237,19 @@ class SequenceComposer(BaseComposer):
         self,
         *,
         title: str | None = None,
+        mainframe: str | None = None,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
+        scale: float | Scale | None = None,
         theme: ThemeLike = None,
         actor_style: ActorStyle | None = None,
     ) -> None:
-        super().__init__()
-        self._title = title
+        super().__init__(
+            title=title, mainframe=mainframe, caption=caption,
+            header=header, footer=footer, legend=legend, scale=scale,
+        )
         self._theme = theme
         self._actor_style = actor_style
         self._participants_ns = SequenceParticipantNamespace()
@@ -316,6 +328,12 @@ class SequenceComposer(BaseComposer):
             elements=tuple(elements),
             participants=tuple(participants),
             title=self._title,
+            mainframe=self._mainframe,
+            caption=self._caption,
+            header=self._header,
+            footer=self._footer,
+            legend=self._legend,
+            scale=self._scale,
             theme=self._theme,
             actor_style=self._actor_style,
         )
@@ -324,6 +342,12 @@ class SequenceComposer(BaseComposer):
 def sequence_diagram(
     *,
     title: str | None = None,
+    mainframe: str | None = None,
+    caption: str | None = None,
+    header: str | Header | None = None,
+    footer: str | Footer | None = None,
+    legend: str | Legend | None = None,
+    scale: float | Scale | None = None,
     theme: ThemeLike = None,
     actor_style: ActorStyle | None = None,
 ) -> SequenceComposer:
@@ -343,7 +367,7 @@ def sequence_diagram(
         print(render(d))
     """
     return SequenceComposer(
-        title=title,
-        theme=theme,
-        actor_style=actor_style,
+        title=title, mainframe=mainframe, caption=caption,
+        header=header, footer=footer, legend=legend, scale=scale,
+        theme=theme, actor_style=actor_style,
     )

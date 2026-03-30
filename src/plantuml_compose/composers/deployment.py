@@ -27,12 +27,16 @@ from typing import Literal
 
 from ..primitives.common import (
     Direction,
+    Footer,
+    Header,
     Label,
     LayoutDirection,
     LayoutEngine,
+    Legend,
     LineStyle,
     LineStyleLike,
     LineType,
+    Scale,
     Stereotype,
     Style,
     StyleLike,
@@ -251,11 +255,19 @@ class DeploymentComposer(BaseComposer):
         self,
         *,
         title: str | None = None,
+        mainframe: str | None = None,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
+        scale: float | Scale | None = None,
         theme: ThemeLike = None,
         layout: LayoutDirection | None = None,
     ) -> None:
-        super().__init__()
-        self._title = title
+        super().__init__(
+            title=title, mainframe=mainframe, caption=caption,
+            header=header, footer=footer, legend=legend, scale=scale,
+        )
         self._theme = theme
         self._layout = layout
         self._elements_ns = DeploymentElementNamespace()
@@ -293,11 +305,18 @@ class DeploymentComposer(BaseComposer):
                 content=note_data["content"],
                 position=note_data["position"],
                 target=_resolve_ref(target) if target else None,
+                color=note_data.get("color"),
             ))
 
         return DeploymentDiagram(
             elements=tuple(all_elements),
             title=self._title,
+            mainframe=self._mainframe,
+            caption=self._caption,
+            header=self._header,
+            footer=self._footer,
+            legend=self._legend,
+            scale=self._scale,
             theme=self._theme,
             layout=self._layout,
         )
@@ -306,6 +325,12 @@ class DeploymentComposer(BaseComposer):
 def deployment_diagram(
     *,
     title: str | None = None,
+    mainframe: str | None = None,
+    caption: str | None = None,
+    header: str | Header | None = None,
+    footer: str | Footer | None = None,
+    legend: str | Legend | None = None,
+    scale: float | Scale | None = None,
     theme: ThemeLike = None,
     layout: LayoutDirection | None = None,
 ) -> DeploymentComposer:
@@ -319,4 +344,8 @@ def deployment_diagram(
         d.add(rack)
         print(render(d))
     """
-    return DeploymentComposer(title=title, theme=theme, layout=layout)
+    return DeploymentComposer(
+        title=title, mainframe=mainframe, caption=caption,
+        header=header, footer=footer, legend=legend, scale=scale,
+        theme=theme, layout=layout,
+    )

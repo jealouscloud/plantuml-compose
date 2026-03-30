@@ -94,14 +94,13 @@ class MindMapComposer(BaseComposer):
         diagram_style: MindMapDiagramStyleLike | None = None,
         mainframe: str | None = None,
     ) -> None:
-        super().__init__()
+        super().__init__(mainframe=mainframe)
         self._direction = direction
         self._diagram_style = (
             coerce_mindmap_diagram_style(diagram_style)
             if diagram_style
             else None
         )
-        self._mainframe = mainframe
         self._nodes_ns = MindMapNodeNamespace()
 
     @property

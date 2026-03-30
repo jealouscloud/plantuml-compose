@@ -161,11 +161,11 @@ class GanttComposer(BaseComposer):
         self,
         *,
         title: str | None = None,
+        mainframe: str | None = None,
         start: date | None = None,
         theme: ThemeLike = None,
     ) -> None:
-        super().__init__()
-        self._title = title
+        super().__init__(title=title, mainframe=mainframe)
         self._start = start
         self._theme = theme
         self._tasks_ns = GanttTaskNamespace()
@@ -310,6 +310,7 @@ class GanttComposer(BaseComposer):
             elements=tuple(rebuilt),
             project_start=self._start,
             title=self._title,
+            mainframe=self._mainframe,
             closed_days=tuple(self._closed_days),
             closed_date_ranges=tuple(self._closed_date_ranges),
         )
@@ -327,6 +328,7 @@ class GanttComposer(BaseComposer):
 def gantt_diagram(
     *,
     title: str | None = None,
+    mainframe: str | None = None,
     start: date | None = None,
     theme: ThemeLike = None,
 ) -> GanttComposer:
@@ -343,4 +345,7 @@ def gantt_diagram(
         d.connect(dep.after(prep, audit))
         print(render(d))
     """
-    return GanttComposer(title=title, start=start, theme=theme)
+    return GanttComposer(
+        title=title, mainframe=mainframe,
+        start=start, theme=theme,
+    )

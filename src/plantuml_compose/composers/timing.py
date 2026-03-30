@@ -27,6 +27,9 @@ from typing import Any, Literal
 
 from ..primitives.common import (
     ColorLike,
+    Footer,
+    Header,
+    Legend,
     ThemeLike,
 )
 from ..primitives.timing import (
@@ -229,10 +232,17 @@ class TimingComposer(BaseComposer):
         self,
         *,
         title: str | None = None,
+        mainframe: str | None = None,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
         theme: ThemeLike = None,
     ) -> None:
-        super().__init__()
-        self._title = title
+        super().__init__(
+            title=title, mainframe=mainframe, caption=caption,
+            header=header, footer=footer, legend=legend,
+        )
         self._theme = theme
         self._participants_ns = TimingParticipantNamespace()
         self._events_ns = TimingEventNamespace()
@@ -405,6 +415,11 @@ class TimingComposer(BaseComposer):
         return TimingDiagram(
             elements=tuple(elements),
             title=self._title,
+            mainframe=self._mainframe,
+            caption=self._caption,
+            header=self._header,
+            footer=self._footer,
+            legend=self._legend,
             theme=self._theme,
         )
 
@@ -421,6 +436,11 @@ class TimingComposer(BaseComposer):
 def timing_diagram(
     *,
     title: str | None = None,
+    mainframe: str | None = None,
+    caption: str | None = None,
+    header: str | Header | None = None,
+    footer: str | Footer | None = None,
+    legend: str | Legend | None = None,
     theme: ThemeLike = None,
 ) -> TimingComposer:
     """Create a timing diagram composer.
@@ -434,4 +454,8 @@ def timing_diagram(
         d.at(10, e.state(source, "running"))
         print(render(d))
     """
-    return TimingComposer(title=title, theme=theme)
+    return TimingComposer(
+        title=title, mainframe=mainframe, caption=caption,
+        header=header, footer=footer, legend=legend,
+        theme=theme,
+    )

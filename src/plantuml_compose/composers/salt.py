@@ -112,9 +112,7 @@ class SaltComposer(BaseComposer):
         title: str | None = None,
         mainframe: str | None = None,
     ) -> None:
-        super().__init__()
-        self._title = title
-        self._mainframe = mainframe
+        super().__init__(title=title, mainframe=mainframe)
         self._widgets_ns = SaltWidgetNamespace()
 
     @property

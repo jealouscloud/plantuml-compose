@@ -27,10 +27,13 @@ from dataclasses import dataclass
 
 from ..primitives.common import (
     Direction,
+    Footer,
+    Header,
     Label,
     LabelLike,
     LayoutDirection,
     LayoutEngine,
+    Legend,
     LineStyleLike,
     LineType,
     Note,
@@ -198,12 +201,20 @@ class StateComposer(BaseComposer):
         self,
         *,
         title: str | None = None,
+        mainframe: str | None = None,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
+        scale: float | Scale | None = None,
         theme: ThemeLike = None,
         layout: LayoutDirection | None = None,
         hide_empty_description: bool = False,
     ) -> None:
-        super().__init__()
-        self._title = title
+        super().__init__(
+            title=title, mainframe=mainframe, caption=caption,
+            header=header, footer=footer, legend=legend, scale=scale,
+        )
         self._theme = theme
         self._layout = layout
         self._hide_empty_description = hide_empty_description
@@ -252,6 +263,12 @@ class StateComposer(BaseComposer):
         return StateDiagram(
             elements=tuple(all_elements),
             title=self._title,
+            mainframe=self._mainframe,
+            caption=self._caption,
+            header=self._header,
+            footer=self._footer,
+            legend=self._legend,
+            scale=self._scale,
             theme=self._theme,
             layout=self._layout,
             hide_empty_description=self._hide_empty_description,
@@ -261,6 +278,12 @@ class StateComposer(BaseComposer):
 def state_diagram(
     *,
     title: str | None = None,
+    mainframe: str | None = None,
+    caption: str | None = None,
+    header: str | Header | None = None,
+    footer: str | Footer | None = None,
+    legend: str | Legend | None = None,
+    scale: float | Scale | None = None,
     theme: ThemeLike = None,
     layout: LayoutDirection | None = None,
     hide_empty_description: bool = False,
@@ -279,8 +302,8 @@ def state_diagram(
         print(render(d))
     """
     return StateComposer(
-        title=title,
-        theme=theme,
-        layout=layout,
+        title=title, mainframe=mainframe, caption=caption,
+        header=header, footer=footer, legend=legend, scale=scale,
+        theme=theme, layout=layout,
         hide_empty_description=hide_empty_description,
     )

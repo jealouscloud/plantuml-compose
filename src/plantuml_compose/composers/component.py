@@ -359,14 +359,22 @@ class ComponentComposer(BaseComposer):
         self,
         *,
         title: str | None = None,
+        mainframe: str | None = None,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
+        scale: float | Scale | None = None,
         theme: ThemeLike = None,
         layout: LayoutDirection | None = None,
         style: ComponentStyle | None = None,
         diagram_style: ComponentDiagramStyleLike | None = None,
         hide_stereotype: bool = False,
     ) -> None:
-        super().__init__()
-        self._title = title
+        super().__init__(
+            title=title, mainframe=mainframe, caption=caption,
+            header=header, footer=footer, legend=legend, scale=scale,
+        )
         self._theme = theme
         self._layout = layout
         self._style = style
@@ -416,11 +424,18 @@ class ComponentComposer(BaseComposer):
                 content=note_data["content"],
                 position=note_data["position"],
                 target=_resolve_ref(target) if target else None,
+                color=note_data.get("color"),
             ))
 
         return ComponentDiagram(
             elements=tuple(all_elements),
             title=self._title,
+            mainframe=self._mainframe,
+            caption=self._caption,
+            header=self._header,
+            footer=self._footer,
+            legend=self._legend,
+            scale=self._scale,
             theme=self._theme,
             layout=self._layout,
             style=self._style,
@@ -432,6 +447,12 @@ class ComponentComposer(BaseComposer):
 def component_diagram(
     *,
     title: str | None = None,
+    mainframe: str | None = None,
+    caption: str | None = None,
+    header: str | Header | None = None,
+    footer: str | Footer | None = None,
+    legend: str | Legend | None = None,
+    scale: float | Scale | None = None,
     theme: ThemeLike = None,
     layout: LayoutDirection | None = None,
     style: ComponentStyle | None = None,
@@ -452,6 +473,12 @@ def component_diagram(
     """
     return ComponentComposer(
         title=title,
+        mainframe=mainframe,
+        caption=caption,
+        header=header,
+        footer=footer,
+        legend=legend,
+        scale=scale,
         theme=theme,
         layout=layout,
         style=style,

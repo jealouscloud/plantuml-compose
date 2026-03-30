@@ -30,13 +30,17 @@ from ..primitives.common import (
     ClassDiagramStyleLike,
     ColorLike,
     Direction,
+    Footer,
+    Header,
     Label,
     LabelLike,
     LayoutDirection,
     LayoutEngine,
+    Legend,
     LineStyleLike,
     LineType,
     Note,
+    Scale,
     Stereotype,
     StyleLike,
     ThemeLike,
@@ -393,14 +397,22 @@ class ClassComposer(BaseComposer):
         self,
         *,
         title: str | None = None,
+        mainframe: str | None = None,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
+        scale: float | Scale | None = None,
         theme: ThemeLike = None,
         layout: LayoutDirection | None = None,
         diagram_style: ClassDiagramStyleLike | None = None,
         hide_empty_members: bool = False,
         hide_circle: bool = False,
     ) -> None:
-        super().__init__()
-        self._title = title
+        super().__init__(
+            title=title, mainframe=mainframe, caption=caption,
+            header=header, footer=footer, legend=legend, scale=scale,
+        )
         self._theme = theme
         self._layout = layout
         self._diagram_style = (
@@ -453,6 +465,12 @@ class ClassComposer(BaseComposer):
         return ClassDiagram(
             elements=tuple(all_elements),
             title=self._title,
+            mainframe=self._mainframe,
+            caption=self._caption,
+            header=self._header,
+            footer=self._footer,
+            legend=self._legend,
+            scale=self._scale,
             theme=self._theme,
             layout=self._layout,
             diagram_style=self._diagram_style,
@@ -464,6 +482,12 @@ class ClassComposer(BaseComposer):
 def class_diagram(
     *,
     title: str | None = None,
+    mainframe: str | None = None,
+    caption: str | None = None,
+    header: str | Header | None = None,
+    footer: str | Footer | None = None,
+    legend: str | Legend | None = None,
+    scale: float | Scale | None = None,
     theme: ThemeLike = None,
     layout: LayoutDirection | None = None,
     diagram_style: ClassDiagramStyleLike | None = None,
@@ -483,7 +507,9 @@ def class_diagram(
         print(render(d))
     """
     return ClassComposer(
-        title=title, theme=theme, layout=layout,
+        title=title, mainframe=mainframe, caption=caption,
+        header=header, footer=footer, legend=legend, scale=scale,
+        theme=theme, layout=layout,
         diagram_style=diagram_style,
         hide_empty_members=hide_empty_members,
         hide_circle=hide_circle,

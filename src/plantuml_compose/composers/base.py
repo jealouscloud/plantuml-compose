@@ -9,7 +9,14 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any
 
-from ..primitives.common import sanitize_ref
+from ..primitives.common import (
+    ColorLike,
+    Footer,
+    Header,
+    Legend,
+    Scale,
+    sanitize_ref,
+)
 
 
 class EntityRef:
@@ -82,10 +89,29 @@ class BaseComposer:
     """Base class for diagram composers.
 
     Provides d.add(), d.connect(), d.note(), d.separator() and
-    the build/render pattern.
+    the build/render pattern. Common diagram metadata (title, mainframe,
+    caption, header, footer, legend, scale) is stored here and passed
+    through to primitives by each subclass's build().
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        title: str | None = None,
+        mainframe: str | None = None,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
+        scale: float | Scale | None = None,
+    ) -> None:
+        self._title = title
+        self._mainframe = mainframe
+        self._caption = caption
+        self._header = header
+        self._footer = footer
+        self._legend = legend
+        self._scale = scale
         self._elements: list[Any] = []
         self._connections: list[Any] = []
         self._notes: list[Any] = []
@@ -118,12 +144,14 @@ class BaseComposer:
         *,
         target: EntityRef | str | None = None,
         position: str = "right",
+        color: ColorLike | None = None,
     ) -> None:
         """Attach a note to the diagram or a target entity."""
         self._notes.append({
             "content": content,
             "target": target,
             "position": position,
+            "color": color,
         })
 
     def separator(self, text: str = "") -> None:

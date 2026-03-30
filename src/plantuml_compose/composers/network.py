@@ -27,6 +27,10 @@ from typing import Any, Literal
 
 from ..primitives.common import (
     ColorLike,
+    Footer,
+    Header,
+    Legend,
+    Scale,
     ThemeLike,
 )
 from ..primitives.network import (
@@ -167,10 +171,18 @@ class NetworkComposer(BaseComposer):
         self,
         *,
         title: str | None = None,
+        mainframe: str | None = None,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
+        scale: float | Scale | None = None,
         theme: ThemeLike = None,
     ) -> None:
-        super().__init__()
-        self._title = title
+        super().__init__(
+            title=title, mainframe=mainframe, caption=caption,
+            header=header, footer=footer, legend=legend, scale=scale,
+        )
         self._theme = theme
         self._networks_ns = NetworkNamespace()
 
@@ -228,6 +240,12 @@ class NetworkComposer(BaseComposer):
         return NetworkDiagram(
             elements=tuple(elements),
             title=self._title,
+            mainframe=self._mainframe,
+            caption=self._caption,
+            header=self._header,
+            footer=self._footer,
+            legend=self._legend,
+            scale=self._scale,
             theme=self._theme,
         )
 
@@ -235,6 +253,12 @@ class NetworkComposer(BaseComposer):
 def network_diagram(
     *,
     title: str | None = None,
+    mainframe: str | None = None,
+    caption: str | None = None,
+    header: str | Header | None = None,
+    footer: str | Footer | None = None,
+    legend: str | Legend | None = None,
+    scale: float | Scale | None = None,
     theme: ThemeLike = None,
 ) -> NetworkComposer:
     """Create a network diagram composer.
@@ -250,4 +274,8 @@ def network_diagram(
         ))
         print(render(d))
     """
-    return NetworkComposer(title=title, theme=theme)
+    return NetworkComposer(
+        title=title, mainframe=mainframe, caption=caption,
+        header=header, footer=footer, legend=legend, scale=scale,
+        theme=theme,
+    )
