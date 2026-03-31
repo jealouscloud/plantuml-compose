@@ -5,6 +5,7 @@ Provides context-manager based builders for WBS tree diagrams.
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Literal
@@ -240,5 +241,11 @@ def wbs_diagram(
                 root.leaf("B", alias="b")
             d.arrow("a", "b")
     """
+    if direction is not None:
+        warnings.warn(
+            "WBS diagrams do not support the direction parameter; it will be ignored",
+            UserWarning,
+            stacklevel=2,
+        )
     builder = WBSDiagramBuilder(direction, diagram_style, mainframe=mainframe)
     yield builder

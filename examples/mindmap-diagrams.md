@@ -656,3 +656,18 @@ print(d.render())
 | `font_color` | Text color |
 | `line_color` | Border/line color |
 | `line_thickness` | Border/line width |
+
+### Hyperlinks
+
+Add clickable links to nodes using the top-level `link()` utility:
+
+```python
+from plantuml_compose import mindmap_diagram, link
+
+with mindmap_diagram() as d:
+    with d.node("Project") as root:
+        root.leaf("Docs " + link("https://docs.example.com"))
+        root.leaf("Repo " + link("https://github.com/example"))
+
+print(d.render())
+```

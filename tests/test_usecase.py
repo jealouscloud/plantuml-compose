@@ -269,6 +269,26 @@ class TestNotes:
         output = render(d.build())
         assert "#yellow" in output
 
+    def test_note_targeting_rectangle_container(self):
+        with usecase_diagram() as d:
+            with d.rectangle("System") as r:
+                r.usecase("Feature")
+            d.note("System boundary note", target=r)
+
+        output = render(d.build())
+        assert "note right of System" in output
+        assert "System boundary note" in output
+
+    def test_note_targeting_package_container(self):
+        with usecase_diagram() as d:
+            with d.package("Module") as p:
+                p.usecase("Feature")
+            d.note("Module note", target=p, position="left")
+
+        output = render(d.build())
+        assert "note left of Module" in output
+        assert "Module note" in output
+
 
 class TestDiagramOptions:
     """Tests for diagram-level options."""

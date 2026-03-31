@@ -50,7 +50,7 @@ with component_diagram() as d:
     # Simple component
     api = d.component("API Gateway")
 
-    # With stereotype
+    # With stereotype (text label only — for cylinder shape, use d.database())
     db = d.component("PostgreSQL", stereotype="database")
 
     # With styling
@@ -414,4 +414,9 @@ print(d.render())
 | `d.arrow(a, b)` | Arrow connection |
 | `d.link(a, b)` | Line connection (no arrow) |
 | `d.package(name)` | Package container |
+| `d.node(name)` | Node container (3D box) |
+| `d.database(name)` | Database container (cylinder shape) |
+| `d.cloud(name)` | Cloud container |
 | `d.note(text, target)` | Add note |
+
+> **Tip:** `stereotype="database"` adds a text label (`«database»`), not a cylinder shape. For the cylinder visual, use `d.database("name")` instead.

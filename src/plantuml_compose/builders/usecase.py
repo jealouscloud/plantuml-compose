@@ -82,6 +82,7 @@ from ..primitives.common import (
     ThemeLike,
     coerce_direction,
     coerce_line_style,
+    sanitize_ref,
     validate_style_background_only,
 )
 from .base import EmbeddableDiagramMixin
@@ -623,6 +624,11 @@ class _ContainerBuilder(_BaseUseCaseBuilder):
             else stereotype
         )
         self._style = validate_style_background_only(style, "Container")
+
+    @property
+    def _ref(self) -> str:
+        """Reference name for use in notes and relationships."""
+        return sanitize_ref(self._name)
 
     def _build(self) -> Container:
         """Build the container."""

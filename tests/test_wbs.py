@@ -1,6 +1,7 @@
 """Tests for Work Breakdown Structure (WBS) diagram type."""
 
 import subprocess
+import warnings
 
 import pytest
 
@@ -310,6 +311,21 @@ class TestWBSBuilder:
         result = d.render()
         assert "@startwbs" in result
         assert "* Test" in result
+
+    def test_direction_warns(self):
+        """Passing direction= to wbs_diagram raises a UserWarning."""
+        with pytest.warns(UserWarning, match="WBS diagrams do not support the direction parameter"):
+            with wbs_diagram(direction="left_to_right") as d:
+                with d.node("Root"):
+                    pass
+
+    def test_no_direction_no_warning(self):
+        """Omitting direction= does not raise a warning."""
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            with wbs_diagram() as d:
+                with d.node("Root"):
+                    pass
 
 
 class TestWBSDispatch:
