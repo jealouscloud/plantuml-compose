@@ -1,6 +1,7 @@
 """Sequence diagram composer.
 
-Temporal pattern with d.phase() grouping.
+Temporal pattern with d.phase() grouping and interaction frames
+(d.if_(), d.loop(), d.optional(), d.parallel(), etc.).
 
 Example:
     d = sequence_diagram(title="PXE Boot", actor_style="awesome")
@@ -8,12 +9,18 @@ Example:
     e = d.events
 
     admin = p.actor("Admin")
-    fastapi = p.participant("FastAPI (PXE Service)")
-    d.add(admin, fastapi)
+    api = p.participant("API")
+    d.add(admin, api)
 
-    d.phase("1. Provision Request", [
-        e.message(admin, fastapi, "POST /add"),
-        e.reply(fastapi, admin, "OK"),
+    d.phase("Request", [
+        e.message(admin, api, "POST /add"),
+        e.reply(api, admin, "OK"),
+    ])
+
+    d.if_("valid", [
+        e.message(api, admin, "200"),
+    ], "invalid", [
+        e.message(api, admin, "401"),
     ])
 
     puml = render(d)
@@ -34,7 +41,9 @@ from ..primitives.common import (
     ThemeLike,
 )
 from ..primitives.sequence import (
+    ElseBlock,
     GroupBlock,
+    GroupType,
     Message,
     MessageArrowHead,
     MessageLineStyle,
@@ -50,7 +59,6 @@ from .base import BaseComposer, EntityRef
 
 
 def _resolve_ref(item: EntityRef | str) -> str:
-    """Resolve an EntityRef or raw string to a participant reference."""
     if isinstance(item, EntityRef):
         return item._ref
     return item
@@ -80,8 +88,56 @@ class _EventNoteData:
     shape: NoteShape
 
 
-# Union of things that go inside a phase list
-_PhaseEvent = _MessageData | _EventNoteData
+@dataclass(frozen=True)
+class _BlockData:
+    """Pure data for an interaction frame (alt/opt/loop/par/break/critical).
+
+    Frozen — .else_() would return a new copy, but we use alternating
+    positional args instead so this is just the final built data.
+    """
+    type: GroupType
+    label: str | None
+    events: tuple[Any, ...]  # _PhaseEvent items (recursive — blocks can contain blocks)
+    else_branches: tuple[tuple[str | None, tuple[Any, ...]], ...] = ()
+
+
+# Union of things that go inside event lists
+_PhaseEvent = _MessageData | _EventNoteData | _BlockData
+
+
+def _make_block(
+    block_type: GroupType,
+    label: str | None,
+    events: list[_PhaseEvent],
+    *extra_branches: Any,
+) -> _BlockData:
+    """Build a _BlockData from alternating label/events args.
+
+    Usage:
+        _make_block("alt", "cond1", [events1], "cond2", [events2], "cond3", [events3])
+
+    The first label+events is the primary. Remaining pairs are else branches.
+    """
+    else_branches: list[tuple[str | None, tuple[_PhaseEvent, ...]]] = []
+
+    # Parse alternating label/events pairs from extra_branches
+    i = 0
+    while i < len(extra_branches):
+        branch_label = extra_branches[i]
+        if i + 1 < len(extra_branches):
+            branch_events = extra_branches[i + 1]
+            else_branches.append((branch_label, tuple(branch_events)))
+            i += 2
+        else:
+            # Odd arg — label with no events, skip
+            break
+
+    return _BlockData(
+        type=block_type,
+        label=label,
+        events=tuple(events),
+        else_branches=tuple(else_branches),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -92,17 +148,9 @@ _PhaseEvent = _MessageData | _EventNoteData
 class SequenceParticipantNamespace:
     """Factory namespace for sequence diagram participants."""
 
-    def _make(
-        self,
-        name: str,
-        type_: ParticipantType,
-        *,
-        ref: str | None = None,
-    ) -> EntityRef:
-        return EntityRef(
-            name, ref=ref,
-            data={"_type": type_},
-        )
+    def _make(self, name: str, type_: ParticipantType, *,
+              ref: str | None = None) -> EntityRef:
+        return EntityRef(name, ref=ref, data={"_type": type_})
 
     def participant(self, name: str, *, ref: str | None = None) -> EntityRef:
         return self._make(name, "participant", ref=ref)
@@ -130,7 +178,7 @@ class SequenceParticipantNamespace:
 
 
 class SequenceEventNamespace:
-    """Factory namespace for sequence diagram events (messages, notes)."""
+    """Factory namespace for sequence events and interaction frame blocks."""
 
     def message(
         self,
@@ -142,11 +190,8 @@ class SequenceEventNamespace:
         arrow_head: MessageArrowHead = "normal",
     ) -> _MessageData:
         return _MessageData(
-            source=source,
-            target=target,
-            label=label,
-            line_style=line_style,
-            arrow_head=arrow_head,
+            source=source, target=target, label=label,
+            line_style=line_style, arrow_head=arrow_head,
         )
 
     def reply(
@@ -157,11 +202,8 @@ class SequenceEventNamespace:
     ) -> _MessageData:
         """Sugar for a dotted return message."""
         return _MessageData(
-            source=source,
-            target=target,
-            label=label,
-            line_style="dotted",
-            arrow_head="normal",
+            source=source, target=target, label=label,
+            line_style="dotted", arrow_head="normal",
         )
 
     def note(
@@ -176,20 +218,49 @@ class SequenceEventNamespace:
             "over" if over is not None else position
         )
         return _EventNoteData(
-            content=content,
-            over=over,
-            position=actual_position,
-            shape=shape,
+            content=content, over=over,
+            position=actual_position, shape=shape,
         )
+
+    # --- Interaction frame blocks (for nesting inside event lists) ---
+
+    def if_(self, label: str | None, events: list[_PhaseEvent],
+            *extra_branches: Any) -> _BlockData:
+        """Conditional branches (renders as alt/else)."""
+        return _make_block("alt", label, events, *extra_branches)
+
+    def optional(self, label: str | None,
+                 events: list[_PhaseEvent]) -> _BlockData:
+        """Optional block — may or may not execute (renders as opt)."""
+        return _make_block("opt", label, events)
+
+    def loop(self, label: str | None,
+             events: list[_PhaseEvent]) -> _BlockData:
+        """Repeated execution (renders as loop)."""
+        return _make_block("loop", label, events)
+
+    def parallel(self, events: list[_PhaseEvent],
+                 *extra_branches: Any) -> _BlockData:
+        """Concurrent paths (renders as par). No label on primary."""
+        return _make_block("par", None, events, *extra_branches)
+
+    def break_(self, label: str | None,
+               events: list[_PhaseEvent]) -> _BlockData:
+        """Break out of enclosing block (renders as break)."""
+        return _make_block("break", label, events)
+
+    def critical(self, label: str | None,
+                 events: list[_PhaseEvent]) -> _BlockData:
+        """Atomic section (renders as critical)."""
+        return _make_block("critical", label, events)
 
 
 # ---------------------------------------------------------------------------
-# Composer
+# Build helpers
 # ---------------------------------------------------------------------------
 
 
 def _build_participant(entity_ref: EntityRef) -> Participant:
-    """Convert an EntityRef to a Participant primitive."""
     return Participant(
         name=entity_ref._name,
         type=entity_ref._data.get("_type", "participant"),
@@ -197,7 +268,6 @@ def _build_participant(entity_ref: EntityRef) -> Participant:
 
 
 def _build_message(data: _MessageData) -> Message:
-    """Convert a _MessageData to a Message primitive."""
     return Message(
         source=_resolve_ref(data.source),
         target=_resolve_ref(data.target),
@@ -208,7 +278,6 @@ def _build_message(data: _MessageData) -> Message:
 
 
 def _build_event_note(data: _EventNoteData) -> SequenceNote:
-    """Convert a _EventNoteData to a SequenceNote primitive."""
     participants: tuple[str, ...] = ()
     if data.over is not None:
         participants = (_resolve_ref(data.over),)
@@ -221,13 +290,38 @@ def _build_event_note(data: _EventNoteData) -> SequenceNote:
     )
 
 
-def _build_phase_element(event: _PhaseEvent) -> SequenceDiagramElement:
-    """Convert a phase event to a primitive."""
+def _build_event(event: _PhaseEvent) -> SequenceDiagramElement:
+    """Convert a phase/block event to a primitive, recursively."""
     if isinstance(event, _MessageData):
         return _build_message(event)
     if isinstance(event, _EventNoteData):
         return _build_event_note(event)
-    raise TypeError(f"Unknown phase event type: {type(event)}")
+    if isinstance(event, _BlockData):
+        return _build_block(event)
+    raise TypeError(f"Unknown event type: {type(event)}")
+
+
+def _build_block(data: _BlockData) -> GroupBlock:
+    """Convert a _BlockData to a GroupBlock primitive, recursively."""
+    elements = tuple(_build_event(ev) for ev in data.events)
+    else_blocks = tuple(
+        ElseBlock(
+            label=Label(label) if label else None,
+            elements=tuple(_build_event(ev) for ev in branch_events),
+        )
+        for label, branch_events in data.else_branches
+    )
+    return GroupBlock(
+        type=data.type,
+        label=Label(data.label) if data.label else None,
+        elements=elements,
+        else_blocks=else_blocks,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Composer
+# ---------------------------------------------------------------------------
 
 
 class SequenceComposer(BaseComposer):
@@ -254,7 +348,7 @@ class SequenceComposer(BaseComposer):
         self._actor_style = actor_style
         self._participants_ns = SequenceParticipantNamespace()
         self._events_ns = SequenceEventNamespace()
-        self._phases: list[Any] = []  # interleaved phases and diagram-level notes
+        self._timeline: list[Any] = []
 
     @property
     def participants(self) -> SequenceParticipantNamespace:
@@ -264,49 +358,58 @@ class SequenceComposer(BaseComposer):
     def events(self) -> SequenceEventNamespace:
         return self._events_ns
 
-    def phase(
-        self,
-        label: str,
-        events: list[_PhaseEvent],
-    ) -> None:
-        """Register a temporal group (combined fragment)."""
-        self._phases.append(("__phase__", label, events))
+    # --- Temporal registration ---
 
-    def note(
-        self,
-        content: str,
-        *,
-        target: EntityRef | str | None = None,
-        position: str = "right",
-    ) -> None:
-        """Diagram-level note (outside phases)."""
-        self._notes.append({
-            "content": content,
-            "target": target,
-            "position": position,
-        })
+    def phase(self, label: str, events: list[_PhaseEvent]) -> None:
+        """Register a labeled group (renders as group)."""
+        self._timeline.append(_BlockData(
+            type="group", label=label, events=tuple(events),
+        ))
+
+    def if_(self, label: str | None, events: list[_PhaseEvent],
+            *extra_branches: Any) -> None:
+        """Register conditional branches (renders as alt/else)."""
+        self._timeline.append(_make_block("alt", label, events, *extra_branches))
+
+    def optional(self, label: str | None,
+                 events: list[_PhaseEvent]) -> None:
+        """Register optional block (renders as opt)."""
+        self._timeline.append(_make_block("opt", label, events))
+
+    def loop(self, label: str | None,
+             events: list[_PhaseEvent]) -> None:
+        """Register loop block (renders as loop)."""
+        self._timeline.append(_make_block("loop", label, events))
+
+    def parallel(self, events: list[_PhaseEvent],
+                 *extra_branches: Any) -> None:
+        """Register parallel block (renders as par)."""
+        self._timeline.append(_make_block("par", None, events, *extra_branches))
+
+    def break_(self, label: str | None,
+               events: list[_PhaseEvent]) -> None:
+        """Register break block."""
+        self._timeline.append(_make_block("break", label, events))
+
+    def critical(self, label: str | None,
+                 events: list[_PhaseEvent]) -> None:
+        """Register critical block."""
+        self._timeline.append(_make_block("critical", label, events))
+
+    # --- Build ---
 
     def build(self) -> SequenceDiagram:
-        # Build participants from d.add() entities
         participants: list[Participant] = []
         for item in self._elements:
             if isinstance(item, EntityRef):
                 participants.append(_build_participant(item))
 
-        # Build diagram elements: phases become GroupBlocks, notes become SequenceNotes
         elements: list[SequenceDiagramElement] = []
 
-        for phase_item in self._phases:
-            if phase_item[0] == "__phase__":
-                _, label, events = phase_item
-                phase_elements = tuple(
-                    _build_phase_element(ev) for ev in events
-                )
-                elements.append(GroupBlock(
-                    type="group",
-                    label=Label(label),
-                    elements=phase_elements,
-                ))
+        # Timeline items → GroupBlocks
+        for item in self._timeline:
+            if isinstance(item, _BlockData):
+                elements.append(_build_block(item))
 
         # Diagram-level notes
         for note_data in self._notes:
@@ -354,16 +457,18 @@ def sequence_diagram(
     """Create a sequence diagram composer.
 
     Example:
-        d = sequence_diagram(title="PXE Boot")
+        d = sequence_diagram(title="Auth Flow")
         p = d.participants
         e = d.events
-        admin = p.actor("Admin")
-        api = p.participant("API")
-        d.add(admin, api)
-        d.phase("Request", [
-            e.message(admin, api, "POST /add"),
-            e.reply(api, admin, "OK"),
+
+        client, api = d.add(p.actor("Client"), p.participant("API"))
+
+        d.if_("valid credentials", [
+            e.message(api, client, "200 OK"),
+        ], "invalid", [
+            e.message(api, client, "401"),
         ])
+
         print(render(d))
     """
     return SequenceComposer(
