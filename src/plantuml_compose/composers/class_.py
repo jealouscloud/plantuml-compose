@@ -355,6 +355,62 @@ class ClassElementNamespace:
     ) -> _SeparatorData:
         return _SeparatorData(style=style, label=label)
 
+    def fields(
+        self,
+        *tuples: tuple[str] | tuple[str, str],
+    ) -> tuple[_FieldData, ...]:
+        """Bulk field creation from (name,) or (name, type) tuples.
+
+        Returns a tuple for direct use in members=().
+
+        Instead of:
+            el.field("tag", "str"),
+            el.field("attrs", "dict[str, Attr]"),
+            el.field("children", "list[Node]"),
+
+        Write:
+            el.fields(
+                ("tag", "str"),
+                ("attrs", "dict[str, Attr]"),
+                ("children", "list[Node]"),
+            )
+        """
+        results: list[_FieldData] = []
+        for tup in tuples:
+            if len(tup) == 2:
+                results.append(self.field(tup[0], tup[1]))
+            else:
+                results.append(self.field(tup[0]))
+        return tuple(results)
+
+    def methods(
+        self,
+        *tuples: tuple[str] | tuple[str, str],
+    ) -> tuple[_MethodData, ...]:
+        """Bulk method creation from (name,) or (name, return_type) tuples.
+
+        Returns a tuple for direct use in members=().
+
+        Instead of:
+            el.method("render()", "str"),
+            el.method("resolve()", "Generator[str]"),
+            el.method("__html__()", "str"),
+
+        Write:
+            el.methods(
+                ("render()", "str"),
+                ("resolve()", "Generator[str]"),
+                ("__html__()", "str"),
+            )
+        """
+        results: list[_MethodData] = []
+        for tup in tuples:
+            if len(tup) == 2:
+                results.append(self.method(tup[0], tup[1]))
+            else:
+                results.append(self.method(tup[0]))
+        return tuple(results)
+
     # --- Internal ---
 
     def _make_class(
