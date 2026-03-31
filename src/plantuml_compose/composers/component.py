@@ -58,6 +58,7 @@ from ..primitives.component import (
     Container,
     ContainerType,
     Interface,
+    Port,
     Relationship,
     RelationType,
 )
@@ -223,6 +224,173 @@ class ComponentElementNamespace:
             ref=ref, stereotype=stereotype, style=style,
         )
 
+    def port(self, name: str) -> EntityRef:
+        """Create a bidirectional port.
+
+        Ports appear as small squares on component boundaries. Add as children
+        of a component.
+
+        Args:
+            name: Port name
+
+        Returns:
+            EntityRef for the port
+        """
+        return EntityRef(
+            name,
+            data={"_type": "port", "_direction": "port"},
+        )
+
+    def portin(self, name: str) -> EntityRef:
+        """Create an input port (with inward arrow).
+
+        Args:
+            name: Port name
+
+        Returns:
+            EntityRef for the port
+        """
+        return EntityRef(
+            name,
+            data={"_type": "port", "_direction": "portin"},
+        )
+
+    def portout(self, name: str) -> EntityRef:
+        """Create an output port (with outward arrow).
+
+        Args:
+            name: Port name
+
+        Returns:
+            EntityRef for the port
+        """
+        return EntityRef(
+            name,
+            data={"_type": "port", "_direction": "portout"},
+        )
+
+    def components(
+        self,
+        *names: str,
+        stereotype: str | Stereotype | None = None,
+        style: StyleLike | None = None,
+    ) -> tuple[EntityRef, ...]:
+        """Create multiple components at once.
+
+        Args:
+            *names: Component names
+            stereotype: Optional stereotype applied to all
+            style: Optional style applied to all
+
+        Returns:
+            Tuple of EntityRefs in order
+
+        Example:
+            api, db, cache = el.components("API", "Database", "Cache")
+        """
+        return tuple(
+            self.component(name, stereotype=stereotype, style=style)
+            for name in names
+        )
+
+    def interfaces(
+        self,
+        *names: str,
+        stereotype: str | Stereotype | None = None,
+        style: StyleLike | None = None,
+    ) -> tuple[EntityRef, ...]:
+        """Create multiple interfaces at once.
+
+        Args:
+            *names: Interface names
+            stereotype: Optional stereotype applied to all
+            style: Optional style applied to all
+
+        Returns:
+            Tuple of EntityRefs in order
+
+        Example:
+            rest, graphql, grpc = el.interfaces("REST", "GraphQL", "gRPC")
+        """
+        return tuple(
+            self.interface(name, stereotype=stereotype, style=style)
+            for name in names
+        )
+
+    def service(
+        self,
+        name: str,
+        *,
+        ref: str | None = None,
+        provides: tuple[str, ...] | list[str] | None = None,
+        requires: tuple[str, ...] | list[str] | None = None,
+        stereotype: str | Stereotype | None = None,
+        color: ColorLike | None = None,
+    ) -> EntityRef:
+        """Create a service component with auto-connected interfaces.
+
+        Convenience method that creates a component, its interfaces, and
+        provides/requires relationships in one call. The caller must still
+        d.add() the returned EntityRef and d.connect() the relationships
+        stored in its data.
+
+        Args:
+            name: Service component name
+            ref: Optional short reference name
+            provides: Interface names this service provides (lollipop)
+            requires: Interface names this service requires (socket)
+            stereotype: Stereotype label
+            color: Background color for the component
+
+        Returns:
+            EntityRef for the component. Access auto-generated interfaces
+            and relationships via _data["_provided_interfaces"],
+            _data["_required_interfaces"], and _data["_service_relationships"].
+
+        Example:
+            api = el.service("API Gateway",
+                provides=("REST",),
+                requires=("Auth",))
+            d.add(api, *api._data["_provided_interfaces"],
+                  *api._data["_required_interfaces"])
+            d.connect(*api._data["_service_relationships"])
+        """
+        style_val: StyleLike | None = {"background": color} if color else None
+        comp = self.component(
+            name, ref=ref, stereotype=stereotype, style=style_val,
+        )
+
+        provided_ifaces: list[EntityRef] = []
+        required_ifaces: list[EntityRef] = []
+        relationships: list[_RelationshipData] = []
+
+        if provides:
+            for iface_name in provides:
+                iface = self.interface(iface_name)
+                provided_ifaces.append(iface)
+                relationships.append(_RelationshipData(
+                    source=comp, target=iface, type="provides",
+                    label=None, source_label=None, target_label=None,
+                    style=None, direction=None,
+                ))
+
+        if requires:
+            for iface_name in requires:
+                iface = self.interface(iface_name)
+                required_ifaces.append(iface)
+                relationships.append(_RelationshipData(
+                    source=comp, target=iface, type="requires",
+                    label=None, source_label=None, target_label=None,
+                    style=None, direction=None,
+                ))
+
+        # Stash generated entities on the component's data for the caller
+        comp._data["_provided_interfaces"] = provided_ifaces
+        comp._data["_required_interfaces"] = required_ifaces
+        comp._data["_service_relationships"] = relationships
+
+        return comp
+
     def _container(
         self,
         name: str,
@@ -343,6 +511,81 @@ class ComponentConnectionNamespace:
     ) -> list[_RelationshipData]:
         return [self.link(s, t) for s, t in tuples]
 
+    def chain(
+        self,
+        *items: EntityRef | str,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> list[_RelationshipData]:
+        """Create a chain of arrows with interleaved labels.
+
+        Components are EntityRefs, labels are plain strings without a _ref.
+        Strings that match an EntityRef are treated as labels in this context;
+        use EntityRef objects for components.
+
+        Args:
+            *items: Alternating components and labels. Labels between
+                    components become arrow labels.
+            style: Line style applied to all arrows
+            direction: Layout direction hint for all arrows
+
+        Returns:
+            List of _RelationshipData for d.connect()
+
+        Examples:
+            c.chain(ui, "HTTP", api, "SQL", db)
+            # Creates: ui --HTTP--> api --SQL--> db
+
+            c.chain(a, b, c)  # unlabeled: a --> b --> c
+
+            c.chain(a, "call", b, c, "store", d)
+            # a --call--> b --> c --store--> d
+        """
+        if len(items) < 2:
+            raise ValueError("chain() requires at least 2 components")
+
+        relationships: list[_RelationshipData] = []
+        i = 0
+        current: EntityRef | None = None
+
+        while i < len(items):
+            item = items[i]
+
+            # An EntityRef is always a component; a plain str is a label
+            is_component = isinstance(item, EntityRef)
+
+            if is_component:
+                if current is not None:
+                    # Unlabeled arrow from previous to this
+                    relationships.append(self.arrow(
+                        current, item, style=style, direction=direction,
+                    ))
+                current = item
+                i += 1
+            elif isinstance(item, str):
+                if current is None:
+                    raise ValueError(
+                        "chain() must start with a component, not a label"
+                    )
+                if i + 1 >= len(items):
+                    raise ValueError("chain() cannot end with a label")
+                next_item = items[i + 1]
+                relationships.append(self.arrow(
+                    current, next_item, item,
+                    style=style, direction=direction,
+                ))
+                current = next_item
+                i += 2
+            else:
+                raise ValueError(
+                    f"chain() received unexpected item type: {type(item)}"
+                )
+
+        if len(relationships) == 0:
+            raise ValueError("chain() requires at least 2 components")
+
+        return relationships
+
 
 def _resolve_ref(item: EntityRef | str) -> str:
     if isinstance(item, EntityRef):
@@ -354,6 +597,12 @@ def _build_element(ref: EntityRef) -> ComponentElement:
     """Convert an EntityRef to a component primitive."""
     data = ref._data
     element_type = data.get("_type", "component")
+
+    if element_type == "port":
+        return Port(
+            name=ref._name,
+            direction=data.get("_direction", "port"),
+        )
 
     if element_type == "interface":
         return Interface(
