@@ -257,6 +257,82 @@ class UseCaseRelationshipNamespace:
             label=label, style=style, direction=direction,
         )
 
+    # --- Bulk methods ---
+
+    def arrows(
+        self,
+        *tuples: tuple[EntityRef | str, EntityRef | str]
+        | tuple[EntityRef | str, EntityRef | str, str],
+    ) -> list[_RelationshipData]:
+        """Bulk arrows from (source, target) or (source, target, label) tuples.
+
+        Equivalent to calling arrow() once per tuple, but as a
+        single declaration block.
+
+        Returns a list that d.connect() flattens automatically.
+        """
+        results: list[_RelationshipData] = []
+        for tup in tuples:
+            if len(tup) == 3:
+                s, t, lbl = tup
+                results.append(self.arrow(s, t, lbl))
+            else:
+                s, t = tup
+                results.append(self.arrow(s, t))
+        return results
+
+    def arrows_from(
+        self,
+        source: EntityRef | str,
+        *targets: EntityRef | str | tuple[EntityRef | str, str],
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> list[_RelationshipData]:
+        """Fan-out: one actor/usecase, many targets.
+
+        Equivalent to calling arrow() once per target, but without
+        repeating the source. Targets can be bare (unlabeled) or
+        (target, label) tuples. Mix freely.
+
+        Returns a list that d.connect() flattens automatically.
+        """
+        results: list[_RelationshipData] = []
+        for t in targets:
+            if isinstance(t, tuple):
+                target, label = t
+            else:
+                target, label = t, None
+            results.append(self.arrow(source, target, label,
+                                      style=style, direction=direction))
+        return results
+
+    def generalizes_from(
+        self,
+        children: list[EntityRef | str],
+        parent: EntityRef | str,
+        *,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> list[_RelationshipData]:
+        """Multiple children generalize (are-a) one parent.
+
+        Equivalent to calling generalizes() once per child, but without
+        repeating the parent.
+
+        Returns a list that d.connect() flattens automatically.
+
+        Instead of:
+            r.generalizes(oncall, engineer, direction="up"),
+            r.generalizes(platform_eng, engineer, direction="up"),
+            r.generalizes(network_eng, engineer, direction="up"),
+
+        Write:
+            r.generalizes_from([oncall, platform_eng, network_eng],
+                               engineer, direction="up")
+        """
+        return [self.generalizes(child, parent, style=style, direction=direction)
+                for child in children]
+
 
 def _resolve_ref(item: EntityRef | str) -> str:
     if isinstance(item, EntityRef):

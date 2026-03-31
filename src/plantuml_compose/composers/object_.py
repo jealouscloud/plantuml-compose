@@ -260,6 +260,83 @@ class ObjectRelationshipNamespace:
             note=note,
         )
 
+    # --- Bulk methods ---
+
+    def arrows(
+        self,
+        *tuples: tuple[EntityRef | str, EntityRef | str]
+        | tuple[EntityRef | str, EntityRef | str, str],
+    ) -> list[_RelationshipData]:
+        """Bulk arrows from (source, target) or (source, target, label) tuples.
+
+        Equivalent to calling arrow() once per tuple, but as a
+        single declaration block.
+
+        Returns a list that d.connect() flattens automatically.
+        """
+        results: list[_RelationshipData] = []
+        for tup in tuples:
+            if len(tup) == 3:
+                s, t, lbl = tup
+                results.append(self.arrow(s, t, lbl))
+            else:
+                s, t = tup
+                results.append(self.arrow(s, t))
+        return results
+
+    def arrows_from(
+        self,
+        source: EntityRef | str,
+        *targets: EntityRef | str | tuple[EntityRef | str, str],
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> list[_RelationshipData]:
+        """Fan-out: one source, many targets.
+
+        Equivalent to calling arrow() once per target, but without
+        repeating the source. Targets can be bare (unlabeled) or
+        (target, label) tuples. Mix freely.
+
+        Returns a list that d.connect() flattens automatically.
+        """
+        results: list[_RelationshipData] = []
+        for t in targets:
+            if isinstance(t, tuple):
+                target, label = t
+            else:
+                target, label = t, None
+            results.append(self.arrow(source, target, label,
+                                      style=style, direction=direction))
+        return results
+
+    def compositions_from(
+        self,
+        parent: EntityRef | str,
+        children: list[EntityRef | str],
+        *,
+        label: str | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> list[_RelationshipData]:
+        """One parent composes many children.
+
+        Equivalent to calling composition() once per child, but without
+        repeating the parent.
+
+        Returns a list that d.connect() flattens automatically.
+
+        Instead of:
+            r.composition(node1, ct101),
+            r.composition(node1, ct102),
+            r.composition(node1, ct103),
+
+        Write:
+            r.compositions_from(node1, [ct101, ct102, ct103])
+        """
+        return [self.composition(parent, child, label,
+                                 style=style, direction=direction)
+                for child in children]
+
 
 def _resolve_ref(item: EntityRef | str) -> str:
     if isinstance(item, EntityRef):

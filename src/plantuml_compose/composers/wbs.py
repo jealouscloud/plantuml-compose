@@ -95,6 +95,20 @@ class WBSConnectionNamespace:
     ) -> list[_WBSArrowData]:
         return [_WBSArrowData(source=s, target=t) for s, t in tuples]
 
+    def arrows_from(
+        self,
+        source: EntityRef,
+        *targets: EntityRef,
+    ) -> list[_WBSArrowData]:
+        """Fan-out: one source node, many target nodes.
+
+        Equivalent to calling arrow() once per target, but without
+        repeating the source.
+
+        Returns a list that d.connect() flattens automatically.
+        """
+        return [_WBSArrowData(source=source, target=t) for t in targets]
+
 
 def _needs_alias(ref: EntityRef) -> bool:
     """Check if a node needs an explicit alias.

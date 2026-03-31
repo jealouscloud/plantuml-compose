@@ -505,6 +505,59 @@ class ComponentConnectionNamespace:
             for lbl in [rest[0] if rest else None]
         ]
 
+    def arrows_from(
+        self,
+        source: EntityRef | str,
+        *targets: EntityRef | str | tuple[EntityRef | str, str],
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> list[_RelationshipData]:
+        """Fan-out: one source, many targets.
+
+        Equivalent to calling arrow() once per target, but without
+        repeating the source. Targets can be bare (unlabeled) or
+        (target, label) tuples. Mix freely.
+
+        Returns a list that d.connect() flattens automatically.
+
+        Instead of:
+            c.arrow(api, db, "queries"),
+            c.arrow(api, cache, "reads"),
+            c.arrow(api, queue, "publishes"),
+
+        Write:
+            c.arrows_from(api,
+                (db, "queries"),
+                (cache, "reads"),
+                (queue, "publishes"),
+            )
+        """
+        results: list[_RelationshipData] = []
+        for t in targets:
+            if isinstance(t, tuple):
+                target, label = t
+            else:
+                target, label = t, None
+            results.append(self.arrow(source, target, label,
+                                      style=style, direction=direction))
+        return results
+
+    def lines_from(
+        self,
+        source: EntityRef | str,
+        *targets: EntityRef | str,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> list[_RelationshipData]:
+        """Fan-out lines (no arrowhead): one source, many targets.
+
+        Same as arrows_from() but creates undirected links.
+
+        Returns a list that d.connect() flattens automatically.
+        """
+        return [self.link(source, t, style=style, direction=direction)
+                for t in targets]
+
     def lines(
         self,
         *tuples: tuple[EntityRef | str, EntityRef | str],

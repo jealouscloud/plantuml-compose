@@ -572,6 +572,110 @@ class ClassRelationshipNamespace:
         }
 
 
+    # --- Bulk methods ---
+
+    def arrows(
+        self,
+        *tuples: tuple[EntityRef | str, EntityRef | str]
+        | tuple[EntityRef | str, EntityRef | str, str],
+    ) -> list[_RelationshipData]:
+        """Bulk arrows from (source, target) or (source, target, label) tuples.
+
+        Equivalent to calling arrow() once per tuple, but as a
+        single declaration block.
+
+        Returns a list that d.connect() flattens automatically.
+        """
+        results: list[_RelationshipData] = []
+        for tup in tuples:
+            if len(tup) == 3:
+                s, t, lbl = tup
+                results.append(self.arrow(s, t, label=lbl))
+            else:
+                s, t = tup
+                results.append(self.arrow(s, t))
+        return results
+
+    def arrows_from(
+        self,
+        source: EntityRef | str,
+        *targets: EntityRef | str | tuple[EntityRef | str, str],
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> list[_RelationshipData]:
+        """Fan-out: one source, many targets.
+
+        Equivalent to calling arrow() once per target, but without
+        repeating the source. Targets can be bare (unlabeled) or
+        (target, label) tuples. Mix freely.
+
+        Returns a list that d.connect() flattens automatically.
+        """
+        results: list[_RelationshipData] = []
+        for t in targets:
+            if isinstance(t, tuple):
+                target, label = t
+            else:
+                target, label = t, None
+            results.append(self.arrow(source, target, label=label,
+                                      style=style, direction=direction))
+        return results
+
+    def extends_from(
+        self,
+        children: list[EntityRef | str],
+        parent: EntityRef | str,
+        *,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> list[_RelationshipData]:
+        """Multiple children extend one parent.
+
+        Equivalent to calling extends() once per child, but without
+        repeating the parent.
+
+        Returns a list that d.connect() flattens automatically.
+
+        Instead of:
+            r.extends(div, base),
+            r.extends(span, base),
+            r.extends(p, base),
+
+        Write:
+            r.extends_from([div, span, p], base)
+        """
+        return [self.extends(child, parent, style=style, direction=direction)
+                for child in children]
+
+    def compositions_from(
+        self,
+        whole: EntityRef | str,
+        parts: list[EntityRef | str],
+        *,
+        label: str | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> list[_RelationshipData]:
+        """One whole composes many parts.
+
+        Equivalent to calling composition() once per part, but without
+        repeating the whole.
+
+        Returns a list that d.connect() flattens automatically.
+
+        Instead of:
+            r.composition(order, line_item),
+            r.composition(order, payment),
+            r.composition(order, shipping),
+
+        Write:
+            r.compositions_from(order, [line_item, payment, shipping])
+        """
+        return [self.composition(whole, part, label=label,
+                                 style=style, direction=direction)
+                for part in parts]
+
+
 def _resolve_ref(item: EntityRef | str) -> str:
     if isinstance(item, EntityRef):
         return item._ref

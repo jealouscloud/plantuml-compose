@@ -209,6 +209,77 @@ class StateTransitionNamespace:
             style=style, direction=direction,
         )
 
+    def transitions(
+        self,
+        *tuples: tuple[EntityRef | str, EntityRef | str]
+        | tuple[EntityRef | str, EntityRef | str, str],
+    ) -> list[_TransitionData]:
+        """Bulk transitions from (source, target) or (source, target, label) tuples.
+
+        Equivalent to calling transition() once per tuple, but as a
+        single declaration block.
+
+        Returns a list that d.connect() flattens automatically.
+
+        Instead of:
+            t.transition(el.initial(), idle, label="start"),
+            t.transition(idle, processing, label="begin"),
+            t.transition(processing, done, label="finish"),
+
+        Write:
+            t.transitions(
+                (el.initial(), idle, "start"),
+                (idle, processing, "begin"),
+                (processing, done, "finish"),
+            )
+        """
+        results: list[_TransitionData] = []
+        for tup in tuples:
+            if len(tup) == 3:
+                s, t, lbl = tup
+                results.append(self.transition(s, t, label=lbl))
+            else:
+                s, t = tup
+                results.append(self.transition(s, t))
+        return results
+
+    def transitions_from(
+        self,
+        source: EntityRef | str,
+        *targets: EntityRef | str | tuple[EntityRef | str, str],
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> list[_TransitionData]:
+        """Fan-out: one source state, many target states.
+
+        Equivalent to calling transition() once per target, but without
+        repeating the source. Targets can be bare (unlabeled) or
+        (target, label) tuples. Mix freely.
+
+        Returns a list that d.connect() flattens automatically.
+
+        Instead of:
+            t.transition(active, expired, label="TTL exceeded"),
+            t.transition(active, revoked, label="Key compromise"),
+            t.transition(active, renewal_due, label="Renewal window"),
+
+        Write:
+            t.transitions_from(active,
+                (expired, "TTL exceeded"),
+                (revoked, "Key compromise"),
+                (renewal_due, "Renewal window"),
+            )
+        """
+        results: list[_TransitionData] = []
+        for t in targets:
+            if isinstance(t, tuple):
+                target, label = t
+            else:
+                target, label = t, None
+            results.append(self.transition(source, target, label=label,
+                                           style=style, direction=direction))
+        return results
+
 
 def _resolve_ref(item: EntityRef | str) -> str:
     """Resolve an EntityRef or string to a transition reference.
