@@ -11,6 +11,7 @@ from typing import Any
 
 from ..primitives.common import (
     ColorLike,
+    EmbeddedDiagram,
     Footer,
     Header,
     Legend,
@@ -167,3 +168,33 @@ class BaseComposer:
         """Build and render to PlantUML text."""
         from ..renderers import render as render_fn
         return render_fn(self.build())
+
+    def embed(self, *, transparent: bool = True) -> EmbeddedDiagram:
+        """Return this diagram as an embeddable sub-diagram.
+
+        Use in notes, messages, or legends of other diagrams.
+        """
+        full = self.render()
+
+        # Determine embed type from the rendered output
+        embed_type: str | None = None
+        for marker in ("@startjson", "@startyaml", "@startmindmap", "@startwbs",
+                        "@startgantt", "@startsalt"):
+            if marker in full:
+                embed_type = marker.replace("@start", "")
+                break
+
+        # Strip @start/@end markers
+        lines = full.split("\n")
+        inner_lines = [
+            line for line in lines
+            if not line.strip().startswith("@start")
+            and not line.strip().startswith("@end")
+        ]
+        content = "\n".join(inner_lines)
+
+        return EmbeddedDiagram(
+            content=content,
+            transparent=transparent,
+            embed_type=embed_type,
+        )
