@@ -32,7 +32,13 @@ from ..primitives.common import (
     Legend,
     ThemeLike,
 )
+from ..primitives.common import (
+    TimingDiagramStyle,
+    TimingDiagramStyleLike,
+    coerce_timing_diagram_style,
+)
 from ..primitives.timing import (
+    HiddenState,
     IntricatedState,
     StateChange,
     TimeAnchor,
@@ -46,6 +52,7 @@ from ..primitives.timing import (
     TimingParticipantType,
     TimingScale,
     TimingStateOrder,
+    TimingTicks,
     TimeValue,
 )
 from .base import BaseComposer, EntityRef
@@ -88,8 +95,15 @@ class _IntricatedEventData:
     color: ColorLike | None = None
 
 
+@dataclass(frozen=True)
+class _HiddenEventData:
+    """Pure data from e.hidden()."""
+    participant: EntityRef | str
+    style: Literal["-", "hidden"] = "-"
+
+
 # Union of things that go inside a d.at() call
-_AtEvent = _StateEventData | _MessageEventData | _IntricatedEventData
+_AtEvent = _StateEventData | _MessageEventData | _IntricatedEventData | _HiddenEventData
 
 
 # ---------------------------------------------------------------------------
@@ -107,6 +121,8 @@ class TimingParticipantNamespace:
         states: tuple[str, ...] = (),
         initial: str | None = None,
         ref: str | None = None,
+        stereotype: str | None = None,
+        compact: bool = False,
     ) -> EntityRef:
         return EntityRef(
             name, ref=ref,
@@ -114,6 +130,8 @@ class TimingParticipantNamespace:
                 "_type": "robust",
                 "states": states,
                 "initial": initial,
+                "stereotype": stereotype,
+                "compact": compact,
             },
         )
 
@@ -124,6 +142,8 @@ class TimingParticipantNamespace:
         states: tuple[str, ...] = (),
         initial: str | None = None,
         ref: str | None = None,
+        stereotype: str | None = None,
+        compact: bool = False,
     ) -> EntityRef:
         return EntityRef(
             name, ref=ref,
@@ -131,6 +151,29 @@ class TimingParticipantNamespace:
                 "_type": "concise",
                 "states": states,
                 "initial": initial,
+                "stereotype": stereotype,
+                "compact": compact,
+            },
+        )
+
+    def rectangle(
+        self,
+        name: str,
+        *,
+        states: tuple[str, ...] = (),
+        initial: str | None = None,
+        ref: str | None = None,
+        stereotype: str | None = None,
+        compact: bool = False,
+    ) -> EntityRef:
+        return EntityRef(
+            name, ref=ref,
+            data={
+                "_type": "rectangle",
+                "states": states,
+                "initial": initial,
+                "stereotype": stereotype,
+                "compact": compact,
             },
         )
 
@@ -139,10 +182,16 @@ class TimingParticipantNamespace:
         name: str,
         *,
         ref: str | None = None,
+        stereotype: str | None = None,
+        compact: bool = False,
     ) -> EntityRef:
         return EntityRef(
             name, ref=ref,
-            data={"_type": "binary"},
+            data={
+                "_type": "binary",
+                "stereotype": stereotype,
+                "compact": compact,
+            },
         )
 
     def clock(
@@ -153,6 +202,8 @@ class TimingParticipantNamespace:
         pulse: int | None = None,
         offset: int | None = None,
         ref: str | None = None,
+        stereotype: str | None = None,
+        compact: bool = False,
     ) -> EntityRef:
         return EntityRef(
             name, ref=ref,
@@ -161,6 +212,8 @@ class TimingParticipantNamespace:
                 "period": period,
                 "pulse": pulse,
                 "offset": offset,
+                "stereotype": stereotype,
+                "compact": compact,
             },
         )
 
@@ -169,10 +222,22 @@ class TimingParticipantNamespace:
         name: str,
         *,
         ref: str | None = None,
+        stereotype: str | None = None,
+        compact: bool = False,
+        min_value: int | float | None = None,
+        max_value: int | float | None = None,
+        height: int | None = None,
     ) -> EntityRef:
         return EntityRef(
             name, ref=ref,
-            data={"_type": "analog"},
+            data={
+                "_type": "analog",
+                "stereotype": stereotype,
+                "compact": compact,
+                "min_value": min_value,
+                "max_value": max_value,
+                "height_pixels": height,
+            },
         )
 
 
@@ -219,6 +284,17 @@ class TimingEventNamespace:
             color=color,
         )
 
+    def hidden(
+        self,
+        participant: EntityRef | str,
+        *,
+        style: Literal["-", "hidden"] = "-",
+    ) -> _HiddenEventData:
+        return _HiddenEventData(
+            participant=participant,
+            style=style,
+        )
+
 
 # ---------------------------------------------------------------------------
 # Composer
@@ -238,12 +314,24 @@ class TimingComposer(BaseComposer):
         footer: str | Footer | None = None,
         legend: str | Legend | None = None,
         theme: ThemeLike = None,
+        date_format: str | None = None,
+        diagram_style: TimingDiagramStyleLike | None = None,
+        compact_mode: bool = False,
+        hide_time_axis: bool = False,
+        manual_time_axis: bool = False,
     ) -> None:
         super().__init__(
             title=title, mainframe=mainframe, caption=caption,
             header=header, footer=footer, legend=legend,
         )
         self._theme = theme
+        self._date_format = date_format
+        self._diagram_style: TimingDiagramStyle | None = (
+            coerce_timing_diagram_style(diagram_style) if diagram_style else None
+        )
+        self._compact_mode = compact_mode
+        self._hide_time_axis = hide_time_axis
+        self._manual_time_axis = manual_time_axis
         self._participants_ns = TimingParticipantNamespace()
         self._events_ns = TimingEventNamespace()
         self._at_groups: list[Any] = []
@@ -314,6 +402,24 @@ class TimingComposer(BaseComposer):
         """Set time-to-pixel scale."""
         self._scale_data = {"time_units": time_units, "pixels": pixels}
 
+    def ticks(
+        self,
+        participant: EntityRef | str,
+        *,
+        multiple: int | float,
+    ) -> None:
+        """Set tick marks for an analog participant.
+
+        Args:
+            participant: Participant reference or name
+            multiple: Tick interval value
+        """
+        self._at_groups.append({
+            "_type": "ticks",
+            "participant": participant,
+            "multiple": multiple,
+        })
+
     def build(self) -> TimingDiagram:
         elements: list[TimingElement] = []
 
@@ -328,9 +434,14 @@ class TimingComposer(BaseComposer):
                     type=ptype,
                     name=item._name,
                     alias=alias,
+                    stereotype=data.get("stereotype"),
+                    compact=data.get("compact", False),
                     period=data.get("period"),
                     pulse=data.get("pulse"),
                     offset=data.get("offset"),
+                    min_value=data.get("min_value"),
+                    max_value=data.get("max_value"),
+                    height_pixels=data.get("height_pixels"),
                 )
                 elements.append(participant)
 
@@ -361,8 +472,16 @@ class TimingComposer(BaseComposer):
                 pixels=self._scale_data["pixels"],
             ))
 
-        # Process d.at() groups
+        # Process d.at() groups and ticks
         for group in self._at_groups:
+            # Handle ticks entries
+            if group.get("_type") == "ticks":
+                elements.append(TimingTicks(
+                    participant=self._resolve_participant(group["participant"]),
+                    multiple=group["multiple"],
+                ))
+                continue
+
             time = group["time"]
             name = group["name"]
 
@@ -393,6 +512,12 @@ class TimingComposer(BaseComposer):
                         states=(event.state1, event.state2),
                         color=event.color,
                     ))
+                elif isinstance(event, _HiddenEventData):
+                    elements.append(HiddenState(
+                        participant=self._resolve_participant(event.participant),
+                        time=time,
+                        style=event.style,
+                    ))
 
         # Highlights
         for h in self._highlights:
@@ -421,6 +546,11 @@ class TimingComposer(BaseComposer):
             footer=self._footer,
             legend=self._legend,
             theme=self._theme,
+            date_format=self._date_format,
+            diagram_style=self._diagram_style,
+            compact_mode=self._compact_mode,
+            hide_time_axis=self._hide_time_axis,
+            manual_time_axis=self._manual_time_axis,
         )
 
     def _resolve_participant(self, item: EntityRef | str) -> str:
@@ -442,6 +572,11 @@ def timing_diagram(
     footer: str | Footer | None = None,
     legend: str | Legend | None = None,
     theme: ThemeLike = None,
+    date_format: str | None = None,
+    diagram_style: TimingDiagramStyleLike | None = None,
+    compact_mode: bool = False,
+    hide_time_axis: bool = False,
+    manual_time_axis: bool = False,
 ) -> TimingComposer:
     """Create a timing diagram composer.
 
@@ -457,5 +592,9 @@ def timing_diagram(
     return TimingComposer(
         title=title, mainframe=mainframe, caption=caption,
         header=header, footer=footer, legend=legend,
-        theme=theme,
+        theme=theme, date_format=date_format,
+        diagram_style=diagram_style,
+        compact_mode=compact_mode,
+        hide_time_axis=hide_time_axis,
+        manual_time_axis=manual_time_axis,
     )

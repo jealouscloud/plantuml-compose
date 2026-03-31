@@ -6,6 +6,7 @@ import pytest
 
 from plantuml_compose.composers.timing import timing_diagram
 from plantuml_compose.primitives.timing import (
+    HiddenState,
     IntricatedState,
     StateChange,
     TimeAnchor,
@@ -17,6 +18,7 @@ from plantuml_compose.primitives.timing import (
     TimingParticipant,
     TimingScale,
     TimingStateOrder,
+    TimingTicks,
 )
 from plantuml_compose.renderers import render
 
@@ -252,3 +254,99 @@ class TestTimingPlantUMLValidation:
             capture_output=True, text=True, timeout=30,
         )
         assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+
+class TestTimingNewFeatures:
+
+    def test_rectangle_participant(self):
+        d = timing_diagram()
+        p = d.participants
+        e = d.events
+        r = p.rectangle("Display", states=("off", "on"), initial="off")
+        d.add(r)
+        d.at(10, e.state(r, "on"))
+        result = d.build()
+        participants = [el for el in result.elements if isinstance(el, TimingParticipant)]
+        assert len(participants) == 1
+        assert participants[0].type == "rectangle"
+
+    def test_ticks(self):
+        d = timing_diagram()
+        p = d.participants
+        sig = p.analog("Voltage")
+        d.add(sig)
+        d.ticks(sig, multiple=0.5)
+        result = d.build()
+        ticks = [el for el in result.elements if isinstance(el, TimingTicks)]
+        assert len(ticks) == 1
+        assert ticks[0].multiple == 0.5
+
+    def test_hidden_event(self):
+        d = timing_diagram()
+        p = d.participants
+        e = d.events
+        sig = p.robust("Signal", states=("A", "B"), initial="A")
+        d.add(sig)
+        d.at(10, e.state(sig, "B"))
+        d.at(20, e.hidden(sig, style="hidden"))
+        result = d.build()
+        hidden = [el for el in result.elements if isinstance(el, HiddenState)]
+        assert len(hidden) == 1
+        assert hidden[0].style == "hidden"
+        assert hidden[0].time == 20
+
+    def test_participant_stereotype_and_compact(self):
+        d = timing_diagram()
+        p = d.participants
+        sig = p.robust("Signal", states=("A", "B"),
+                       stereotype="<<hw>>", compact=True)
+        d.add(sig)
+        result = d.build()
+        participants = [el for el in result.elements if isinstance(el, TimingParticipant)]
+        assert participants[0].stereotype == "<<hw>>"
+        assert participants[0].compact is True
+
+    def test_analog_params(self):
+        d = timing_diagram()
+        p = d.participants
+        sig = p.analog("Voltage", min_value=0, max_value=5, height=100)
+        d.add(sig)
+        result = d.build()
+        participants = [el for el in result.elements if isinstance(el, TimingParticipant)]
+        assert participants[0].min_value == 0
+        assert participants[0].max_value == 5
+        assert participants[0].height_pixels == 100
+
+    def test_diagram_options(self):
+        d = timing_diagram(
+            date_format="YY-MM-dd",
+            compact_mode=True,
+            hide_time_axis=True,
+            manual_time_axis=True,
+        )
+        result = d.build()
+        assert result.date_format == "YY-MM-dd"
+        assert result.compact_mode is True
+        assert result.hide_time_axis is True
+        assert result.manual_time_axis is True
+
+    def test_all_participant_types_have_stereotype_compact(self):
+        """Verify stereotype and compact pass through for all participant types."""
+        d = timing_diagram()
+        p = d.participants
+        refs = [
+            p.robust("R", states=("a",), stereotype="<<r>>", compact=True),
+            p.concise("C", states=("a",), stereotype="<<c>>", compact=True),
+            p.rectangle("X", states=("a",), stereotype="<<x>>", compact=True),
+            p.binary("B", stereotype="<<b>>", compact=True),
+            p.clock("K", period=10, stereotype="<<k>>", compact=True),
+            p.analog("A", stereotype="<<a>>", compact=True),
+        ]
+        for ref in refs:
+            d.add(ref)
+        result = d.build()
+        participants = [el for el in result.elements if isinstance(el, TimingParticipant)]
+        assert len(participants) == 6
+        for part in participants:
+            assert part.stereotype is not None
+            assert part.compact is True

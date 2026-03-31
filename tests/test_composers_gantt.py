@@ -10,6 +10,7 @@ from plantuml_compose.primitives.gantt import (
     GanttDependency,
     GanttDiagram,
     GanttMilestone,
+    GanttResourceOff,
     GanttSeparator,
     GanttTask,
 )
@@ -216,3 +217,93 @@ class TestGanttPlantUMLValidation:
             capture_output=True, text=True, timeout=30,
         )
         assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+
+class TestGanttNewFeatures:
+
+    def test_language(self):
+        d = gantt_diagram(language="de")
+        result = d.build()
+        assert result.language == "de"
+
+    def test_week_numbering(self):
+        d = gantt_diagram(week_numbering=True)
+        result = d.build()
+        assert result.week_numbering is True
+
+    def test_show_calendar_date(self):
+        d = gantt_diagram(show_calendar_date=True)
+        result = d.build()
+        assert result.show_calendar_date is True
+
+    def test_week_starts_on(self):
+        d = gantt_diagram(week_starts_on="monday")
+        result = d.build()
+        assert result.week_starts_on == "monday"
+
+    def test_min_days_in_first_week(self):
+        d = gantt_diagram(min_days_in_first_week=4)
+        result = d.build()
+        assert result.min_days_in_first_week == 4
+
+    def test_scale(self):
+        d = gantt_diagram(scale="weekly")
+        result = d.build()
+        assert result.scale == "weekly"
+
+    def test_scale_zoom(self):
+        d = gantt_diagram(scale="weekly", scale_zoom=2)
+        result = d.build()
+        assert result.scale == "weekly"
+        assert result.scale_zoom == 2
+
+    def test_resource_off(self):
+        d = gantt_diagram(start=date(2026, 1, 1))
+        tk = d.tasks
+        task = tk.task("Dev", days=5, resources=("Alice",))
+        d.add(task)
+        d.resource_off("Alice", date(2026, 1, 3), date(2026, 1, 4))
+        result = d.build()
+        resource_offs = [e for e in result.elements if isinstance(e, GanttResourceOff)]
+        assert len(resource_offs) == 1
+        assert resource_offs[0].resource == "Alice"
+        assert resource_offs[0].dates == (date(2026, 1, 3), date(2026, 1, 4))
+
+    def test_close_dates(self):
+        d = gantt_diagram(start=date(2026, 1, 1))
+        d.close_dates(date(2026, 1, 1), date(2026, 1, 2))
+        result = d.build()
+        assert date(2026, 1, 1) in result.closed_dates
+        assert date(2026, 1, 2) in result.closed_dates
+
+    def test_print_range(self):
+        d = gantt_diagram(
+            start=date(2026, 1, 1),
+            print_range=(date(2026, 1, 1), date(2026, 3, 1)),
+        )
+        result = d.build()
+        assert result.print_range == (date(2026, 1, 1), date(2026, 3, 1))
+
+    def test_all_constructor_params(self):
+        """Ensure all new constructor params pass through to GanttDiagram."""
+        d = gantt_diagram(
+            title="Full",
+            start=date(2026, 1, 1),
+            language="ja",
+            week_numbering=3,
+            show_calendar_date=True,
+            week_starts_on="tuesday",
+            min_days_in_first_week=2,
+            scale="monthly",
+            scale_zoom=3,
+            print_range=(date(2026, 1, 1), date(2026, 6, 1)),
+        )
+        result = d.build()
+        assert result.language == "ja"
+        assert result.week_numbering == 3
+        assert result.show_calendar_date is True
+        assert result.week_starts_on == "tuesday"
+        assert result.min_days_in_first_week == 2
+        assert result.scale == "monthly"
+        assert result.scale_zoom == 3
+        assert result.print_range == (date(2026, 1, 1), date(2026, 6, 1))

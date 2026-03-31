@@ -32,15 +32,21 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 from ..primitives.common import (
+    ColorLike,
     EmbeddableContent,
     Footer,
     Header,
     Label,
     Legend,
+    Newpage,
     Scale,
+    Style,
     ThemeLike,
 )
 from ..primitives.sequence import (
+    Activation,
+    Autonumber,
+    Box,
     Delay,
     Divider,
     ElseBlock,
@@ -52,6 +58,8 @@ from ..primitives.sequence import (
     NoteShape,
     Participant,
     ParticipantType,
+    Reference,
+    Return,
     SequenceDiagram,
     SequenceDiagramElement,
     SequenceNote,
@@ -91,6 +99,20 @@ class _EventNoteData:
 
 
 @dataclass(frozen=True)
+class _ActivationData:
+    """Pure data from e.activate() / e.deactivate() / e.create() / e.destroy()."""
+    participant: EntityRef | str
+    action: str  # "activate", "deactivate", "create", "destroy"
+    color: ColorLike | None = None
+
+
+@dataclass(frozen=True)
+class _ReturnData:
+    """Pure data from e.return_()."""
+    label: str | None = None
+
+
+@dataclass(frozen=True)
 class _BlockData:
     """Pure data for an interaction frame (alt/opt/loop/par/break/critical).
 
@@ -104,7 +126,7 @@ class _BlockData:
 
 
 # Union of things that go inside event lists
-_PhaseEvent = _MessageData | _EventNoteData | _BlockData
+_PhaseEvent = _MessageData | _EventNoteData | _BlockData | _ActivationData | _ReturnData
 
 
 def _make_block(
@@ -150,33 +172,50 @@ def _make_block(
 class SequenceParticipantNamespace:
     """Factory namespace for sequence diagram participants."""
 
-    def _make(self, name: str, type_: ParticipantType, *,
-              ref: str | None = None) -> EntityRef:
-        return EntityRef(name, ref=ref, data={"_type": type_})
+    def _make(
+        self,
+        name: str,
+        type_: ParticipantType,
+        *,
+        ref: str | None = None,
+        style: Style | None = None,
+    ) -> EntityRef:
+        data: dict[str, Any] = {"_type": type_}
+        if style is not None:
+            data["_style"] = style
+        return EntityRef(name, ref=ref, data=data)
 
-    def participant(self, name: str, *, ref: str | None = None) -> EntityRef:
-        return self._make(name, "participant", ref=ref)
+    def participant(self, name: str, *, ref: str | None = None,
+                    style: Style | None = None) -> EntityRef:
+        return self._make(name, "participant", ref=ref, style=style)
 
-    def actor(self, name: str, *, ref: str | None = None) -> EntityRef:
-        return self._make(name, "actor", ref=ref)
+    def actor(self, name: str, *, ref: str | None = None,
+              style: Style | None = None) -> EntityRef:
+        return self._make(name, "actor", ref=ref, style=style)
 
-    def boundary(self, name: str, *, ref: str | None = None) -> EntityRef:
-        return self._make(name, "boundary", ref=ref)
+    def boundary(self, name: str, *, ref: str | None = None,
+                 style: Style | None = None) -> EntityRef:
+        return self._make(name, "boundary", ref=ref, style=style)
 
-    def control(self, name: str, *, ref: str | None = None) -> EntityRef:
-        return self._make(name, "control", ref=ref)
+    def control(self, name: str, *, ref: str | None = None,
+                style: Style | None = None) -> EntityRef:
+        return self._make(name, "control", ref=ref, style=style)
 
-    def entity(self, name: str, *, ref: str | None = None) -> EntityRef:
-        return self._make(name, "entity", ref=ref)
+    def entity(self, name: str, *, ref: str | None = None,
+               style: Style | None = None) -> EntityRef:
+        return self._make(name, "entity", ref=ref, style=style)
 
-    def database(self, name: str, *, ref: str | None = None) -> EntityRef:
-        return self._make(name, "database", ref=ref)
+    def database(self, name: str, *, ref: str | None = None,
+                 style: Style | None = None) -> EntityRef:
+        return self._make(name, "database", ref=ref, style=style)
 
-    def collections(self, name: str, *, ref: str | None = None) -> EntityRef:
-        return self._make(name, "collections", ref=ref)
+    def collections(self, name: str, *, ref: str | None = None,
+                    style: Style | None = None) -> EntityRef:
+        return self._make(name, "collections", ref=ref, style=style)
 
-    def queue(self, name: str, *, ref: str | None = None) -> EntityRef:
-        return self._make(name, "queue", ref=ref)
+    def queue(self, name: str, *, ref: str | None = None,
+              style: Style | None = None) -> EntityRef:
+        return self._make(name, "queue", ref=ref, style=style)
 
 
 class SequenceEventNamespace:
@@ -224,6 +263,35 @@ class SequenceEventNamespace:
             position=actual_position, shape=shape,
         )
 
+    # --- Lifecycle / activation events (for use inside phase lists) ---
+
+    def activate(
+        self,
+        participant: EntityRef | str,
+        *,
+        color: ColorLike | None = None,
+    ) -> _ActivationData:
+        """Activate a participant (show activation bar)."""
+        return _ActivationData(
+            participant=participant, action="activate", color=color,
+        )
+
+    def deactivate(self, participant: EntityRef | str) -> _ActivationData:
+        """Deactivate a participant (end activation bar)."""
+        return _ActivationData(participant=participant, action="deactivate")
+
+    def create(self, participant: EntityRef | str) -> _ActivationData:
+        """Mark a participant as created at this point."""
+        return _ActivationData(participant=participant, action="create")
+
+    def destroy(self, participant: EntityRef | str) -> _ActivationData:
+        """Destroy a participant (X on lifeline)."""
+        return _ActivationData(participant=participant, action="destroy")
+
+    def return_(self, label: str | None = None) -> _ReturnData:
+        """Explicit return from activation."""
+        return _ReturnData(label=label)
+
     # --- Interaction frame blocks (for nesting inside event lists) ---
 
     def if_(self, label: str | None, events: list[_PhaseEvent],
@@ -266,6 +334,7 @@ def _build_participant(entity_ref: EntityRef) -> Participant:
     return Participant(
         name=entity_ref._name,
         type=entity_ref._data.get("_type", "participant"),
+        style=entity_ref._data.get("_style"),
     )
 
 
@@ -292,6 +361,18 @@ def _build_event_note(data: _EventNoteData) -> SequenceNote:
     )
 
 
+def _build_activation(data: _ActivationData) -> Activation:
+    return Activation(
+        participant=_resolve_ref(data.participant),
+        action=data.action,
+        color=data.color,
+    )
+
+
+def _build_return(data: _ReturnData) -> Return:
+    return Return(label=Label(data.label) if data.label else None)
+
+
 def _build_event(event: _PhaseEvent) -> SequenceDiagramElement:
     """Convert a phase/block event to a primitive, recursively."""
     if isinstance(event, _MessageData):
@@ -300,6 +381,10 @@ def _build_event(event: _PhaseEvent) -> SequenceDiagramElement:
         return _build_event_note(event)
     if isinstance(event, _BlockData):
         return _build_block(event)
+    if isinstance(event, _ActivationData):
+        return _build_activation(event)
+    if isinstance(event, _ReturnData):
+        return _build_return(event)
     raise TypeError(f"Unknown event type: {type(event)}")
 
 
@@ -341,6 +426,7 @@ class SequenceComposer(BaseComposer):
         scale: float | Scale | None = None,
         theme: ThemeLike = None,
         actor_style: ActorStyle | None = None,
+        autonumber: bool | Autonumber | None = None,
     ) -> None:
         super().__init__(
             title=title, mainframe=mainframe, caption=caption,
@@ -348,9 +434,16 @@ class SequenceComposer(BaseComposer):
         )
         self._theme = theme
         self._actor_style = actor_style
+        if autonumber is True:
+            self._autonumber: Autonumber | None = Autonumber()
+        elif isinstance(autonumber, Autonumber):
+            self._autonumber = autonumber
+        else:
+            self._autonumber = None
         self._participants_ns = SequenceParticipantNamespace()
         self._events_ns = SequenceEventNamespace()
         self._timeline: list[Any] = []
+        self._boxes: list[Box] = []
 
     @property
     def participants(self) -> SequenceParticipantNamespace:
@@ -406,21 +499,126 @@ class SequenceComposer(BaseComposer):
         """Add a visual delay indicator (...)."""
         self._timeline.append(Delay(message=message))
 
+    # --- Activation / lifecycle (timeline-level) ---
+
+    def activate(
+        self,
+        participant: EntityRef | str,
+        *,
+        color: ColorLike | None = None,
+    ) -> None:
+        """Activate a participant (show activation bar)."""
+        self._timeline.append(_ActivationData(
+            participant=participant, action="activate", color=color,
+        ))
+
+    def deactivate(self, participant: EntityRef | str) -> None:
+        """Deactivate a participant (end activation bar)."""
+        self._timeline.append(_ActivationData(
+            participant=participant, action="deactivate",
+        ))
+
+    def create(self, participant: EntityRef | str) -> None:
+        """Mark a participant as created at this point."""
+        self._timeline.append(_ActivationData(
+            participant=participant, action="create",
+        ))
+
+    def destroy(self, participant: EntityRef | str) -> None:
+        """Destroy a participant (X on lifeline)."""
+        self._timeline.append(_ActivationData(
+            participant=participant, action="destroy",
+        ))
+
+    # --- Participant grouping ---
+
+    def box(
+        self,
+        title: str | None = None,
+        *participant_refs: EntityRef,
+        color: ColorLike | None = None,
+    ) -> None:
+        """Group participants in a visual box.
+
+        Args:
+            title: Optional box title
+            *participant_refs: Participant EntityRefs to include in the box
+            color: Background color for the box
+        """
+        participants = tuple(
+            _build_participant(ref) for ref in participant_refs
+        )
+        self._boxes.append(Box(
+            name=title,
+            color=color,
+            participants=participants,
+        ))
+
+    # --- Reference ---
+
+    def ref(
+        self,
+        *participant_refs: EntityRef | str,
+        label: str,
+    ) -> None:
+        """Add a reference to another diagram.
+
+        Args:
+            *participant_refs: Participants the reference spans
+            label: Reference description
+        """
+        self._timeline.append(Reference(
+            participants=tuple(_resolve_ref(p) for p in participant_refs),
+            label=Label(label),
+        ))
+
+    # --- Autonumber (runtime) ---
+
+    def autonumber(
+        self,
+        *,
+        start: int | str | None = None,
+        increment: int | None = None,
+        format: str | None = None,
+    ) -> None:
+        """Add an autonumber directive to the timeline."""
+        self._timeline.append(Autonumber(
+            action="start",
+            start=start,
+            increment=increment,
+            format=format,
+        ))
+
+    # --- Newpage ---
+
+    def newpage(self, title: str | None = None) -> None:
+        """Insert a page break."""
+        self._timeline.append(Newpage(title=title))
+
     # --- Build ---
 
     def build(self) -> SequenceDiagram:
+        # Collect participants not inside boxes
+        box_participant_names: set[str] = set()
+        for box in self._boxes:
+            for bp in box.participants:
+                box_participant_names.add(bp.name)
+
         participants: list[Participant] = []
         for item in self._elements:
             if isinstance(item, EntityRef):
-                participants.append(_build_participant(item))
+                if item._name not in box_participant_names:
+                    participants.append(_build_participant(item))
 
         elements: list[SequenceDiagramElement] = []
 
-        # Timeline items → GroupBlocks, Dividers, Delays
+        # Timeline items
         for item in self._timeline:
             if isinstance(item, _BlockData):
                 elements.append(_build_block(item))
-            elif isinstance(item, (Divider, Delay)):
+            elif isinstance(item, _ActivationData):
+                elements.append(_build_activation(item))
+            elif isinstance(item, (Divider, Delay, Reference, Autonumber, Newpage)):
                 elements.append(item)
 
         # Diagram-level notes
@@ -442,6 +640,7 @@ class SequenceComposer(BaseComposer):
         return SequenceDiagram(
             elements=tuple(elements),
             participants=tuple(participants),
+            boxes=tuple(self._boxes),
             title=self._title,
             mainframe=self._mainframe,
             caption=self._caption,
@@ -451,6 +650,7 @@ class SequenceComposer(BaseComposer):
             scale=self._scale,
             theme=self._theme,
             actor_style=self._actor_style,
+            autonumber=self._autonumber,
         )
 
 
@@ -465,6 +665,7 @@ def sequence_diagram(
     scale: float | Scale | None = None,
     theme: ThemeLike = None,
     actor_style: ActorStyle | None = None,
+    autonumber: bool | Autonumber | None = None,
 ) -> SequenceComposer:
     """Create a sequence diagram composer.
 
@@ -486,5 +687,5 @@ def sequence_diagram(
     return SequenceComposer(
         title=title, mainframe=mainframe, caption=caption,
         header=header, footer=footer, legend=legend, scale=scale,
-        theme=theme, actor_style=actor_style,
+        theme=theme, actor_style=actor_style, autonumber=autonumber,
     )

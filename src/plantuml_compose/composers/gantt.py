@@ -208,6 +208,14 @@ class GanttComposer(BaseComposer):
         theme: ThemeLike = None,
         diagram_style: GanttDiagramStyleLike | None = None,
         hide_footbox: bool = False,
+        language: str | None = None,
+        week_numbering: int | bool | None = None,
+        show_calendar_date: bool = False,
+        week_starts_on: DayOfWeek | None = None,
+        min_days_in_first_week: int | None = None,
+        scale: Literal["daily", "weekly", "monthly", "quarterly", "yearly"] | None = None,
+        scale_zoom: int | None = None,
+        print_range: tuple[date, date] | None = None,
     ) -> None:
         super().__init__(title=title, mainframe=mainframe)
         self._start = start
@@ -216,9 +224,18 @@ class GanttComposer(BaseComposer):
             coerce_gantt_diagram_style(diagram_style) if diagram_style else None
         )
         self._hide_footbox = hide_footbox
+        self._language = language
+        self._week_numbering = week_numbering
+        self._show_calendar_date = show_calendar_date
+        self._week_starts_on = week_starts_on
+        self._min_days_in_first_week = min_days_in_first_week
+        self._scale = scale
+        self._scale_zoom = scale_zoom
+        self._print_range = print_range
         self._tasks_ns = GanttTaskNamespace()
         self._dependencies_ns = GanttDependencyNamespace()
         self._closed_days: list[DayOfWeek] = []
+        self._closed_dates: list[date] = []
         self._closed_date_ranges: list[GanttClosedDateRange] = []
         self._open_dates: list[date] = []
         self._colored_dates: list[GanttColoredDate] = []
@@ -263,6 +280,14 @@ class GanttComposer(BaseComposer):
         """Add a vertical separator after a task."""
         self._elements.append(("__vsep__", after))
 
+    def close_dates(self, *dates: date) -> None:
+        """Mark specific dates as closed (holidays, etc.)."""
+        self._closed_dates.extend(dates)
+
+    def resource_off(self, resource: str, *dates: date) -> None:
+        """Mark dates when a resource is unavailable."""
+        self._elements.append(GanttResourceOff(resource=resource, dates=tuple(dates)))
+
     def today(self, today_date: date | None = None, color: ColorLike | None = None) -> None:
         """Mark today's date on the chart."""
         self._today = today_date
@@ -295,6 +320,8 @@ class GanttComposer(BaseComposer):
                 elements.append(GanttVerticalSeparator(
                     after=_resolve_ref(item[1]),
                 ))
+            elif isinstance(item, GanttResourceOff):
+                elements.append(item)
             elif isinstance(item, EntityRef):
                 data = item._data
                 alias = data.get("_alias", item._ref)
@@ -429,6 +456,7 @@ class GanttComposer(BaseComposer):
             title=self._title,
             mainframe=self._mainframe,
             closed_days=tuple(self._closed_days),
+            closed_dates=tuple(self._closed_dates),
             closed_date_ranges=tuple(self._closed_date_ranges),
             open_dates=tuple(self._open_dates),
             colored_dates=tuple(self._colored_dates),
@@ -437,6 +465,14 @@ class GanttComposer(BaseComposer):
             today_color=self._today_color,
             hide_footbox=self._hide_footbox,
             diagram_style=self._diagram_style,
+            language=self._language,
+            week_numbering=self._week_numbering,
+            show_calendar_date=self._show_calendar_date,
+            week_starts_on=self._week_starts_on,
+            min_days_in_first_week=self._min_days_in_first_week,
+            scale=self._scale,
+            scale_zoom=self._scale_zoom,
+            print_range=self._print_range,
         )
 
     def _resolve_alias(self, item: EntityRef | str) -> str:
@@ -457,6 +493,14 @@ def gantt_diagram(
     theme: ThemeLike = None,
     diagram_style: GanttDiagramStyleLike | None = None,
     hide_footbox: bool = False,
+    language: str | None = None,
+    week_numbering: int | bool | None = None,
+    show_calendar_date: bool = False,
+    week_starts_on: DayOfWeek | None = None,
+    min_days_in_first_week: int | None = None,
+    scale: Literal["daily", "weekly", "monthly", "quarterly", "yearly"] | None = None,
+    scale_zoom: int | None = None,
+    print_range: tuple[date, date] | None = None,
 ) -> GanttComposer:
     """Create a gantt diagram composer.
 
@@ -476,4 +520,12 @@ def gantt_diagram(
         start=start, theme=theme,
         diagram_style=diagram_style,
         hide_footbox=hide_footbox,
+        language=language,
+        week_numbering=week_numbering,
+        show_calendar_date=show_calendar_date,
+        week_starts_on=week_starts_on,
+        min_days_in_first_week=min_days_in_first_week,
+        scale=scale,
+        scale_zoom=scale_zoom,
+        print_range=print_range,
     )

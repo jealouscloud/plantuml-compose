@@ -5,11 +5,16 @@ import subprocess
 import pytest
 
 from plantuml_compose.composers.sequence import sequence_diagram
-from plantuml_compose.primitives.common import Label
+from plantuml_compose.primitives.common import Label, Newpage
 from plantuml_compose.primitives.sequence import (
+    Activation,
+    Autonumber,
+    Box,
     GroupBlock,
     Message,
     Participant,
+    Reference,
+    Return,
     SequenceDiagram,
     SequenceNote,
 )
@@ -464,3 +469,189 @@ class TestSequencePlantUMLValidation:
             capture_output=True, text=True, timeout=30,
         )
         assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+
+class TestSequenceActivationLifecycle:
+
+    def test_activate_deactivate_on_timeline(self):
+        d = sequence_diagram()
+        p = d.participants
+        e = d.events
+        a, b = d.add(p.participant("A"), p.participant("B"))
+        d.phase("Flow", [
+            e.message(a, b, "request"),
+        ])
+        d.activate(b, color="#LightBlue")
+        d.phase("Processing", [
+            e.message(b, a, "response"),
+        ])
+        d.deactivate(b)
+        result = d.build()
+        activations = [el for el in result.elements if isinstance(el, Activation)]
+        assert len(activations) == 2
+        assert activations[0].action == "activate"
+        assert activations[0].color == "#LightBlue"
+        assert activations[1].action == "deactivate"
+
+    def test_activate_deactivate_in_events(self):
+        d = sequence_diagram()
+        p = d.participants
+        e = d.events
+        a, b = d.add(p.participant("A"), p.participant("B"))
+        d.phase("Flow", [
+            e.message(a, b, "request"),
+            e.activate(b),
+            e.message(b, a, "response"),
+            e.deactivate(b),
+        ])
+        result = d.build()
+        group = [el for el in result.elements if isinstance(el, GroupBlock)][0]
+        activations = [el for el in group.elements if isinstance(el, Activation)]
+        assert len(activations) == 2
+        assert activations[0].action == "activate"
+        assert activations[1].action == "deactivate"
+
+    def test_create_destroy(self):
+        d = sequence_diagram()
+        p = d.participants
+        e = d.events
+        factory = p.participant("Factory")
+        worker = p.participant("Worker")
+        d.add(factory, worker)
+        d.create(worker)
+        d.phase("Work", [
+            e.message(factory, worker, "new()"),
+        ])
+        d.destroy(worker)
+        result = d.build()
+        activations = [el for el in result.elements if isinstance(el, Activation)]
+        assert len(activations) == 2
+        assert activations[0].action == "create"
+        assert activations[1].action == "destroy"
+
+    def test_create_destroy_in_events(self):
+        d = sequence_diagram()
+        p = d.participants
+        e = d.events
+        factory, worker = d.add(p.participant("Factory"), p.participant("Worker"))
+        d.phase("Lifecycle", [
+            e.create(worker),
+            e.message(factory, worker, "new()"),
+            e.destroy(worker),
+        ])
+        result = d.build()
+        group = [el for el in result.elements if isinstance(el, GroupBlock)][0]
+        activations = [el for el in group.elements if isinstance(el, Activation)]
+        assert len(activations) == 2
+        assert activations[0].action == "create"
+        assert activations[1].action == "destroy"
+
+    def test_return_in_events(self):
+        d = sequence_diagram()
+        p = d.participants
+        e = d.events
+        a, b = d.add(p.participant("Client"), p.participant("Server"))
+        d.phase("Flow", [
+            e.message(a, b, "getData()"),
+            e.return_("data"),
+        ])
+        result = d.build()
+        group = [el for el in result.elements if isinstance(el, GroupBlock)][0]
+        returns = [el for el in group.elements if isinstance(el, Return)]
+        assert len(returns) == 1
+        assert returns[0].label.text == "data"
+
+
+class TestSequenceBox:
+
+    def test_box_groups_participants(self):
+        d = sequence_diagram()
+        p = d.participants
+        api = p.participant("API")
+        db = p.database("DB")
+        client = p.actor("Client")
+        d.add(client)
+        d.box("Backend", api, db, color="#LightBlue")
+        result = d.build()
+        assert len(result.boxes) == 1
+        box = result.boxes[0]
+        assert box.name == "Backend"
+        assert box.color == "#LightBlue"
+        assert len(box.participants) == 2
+        assert box.participants[0].name == "API"
+        assert box.participants[1].name == "DB"
+        # Client should be in standalone participants, not in boxes
+        assert len(result.participants) == 1
+        assert result.participants[0].name == "Client"
+
+
+class TestSequenceRef:
+
+    def test_ref(self):
+        d = sequence_diagram()
+        p = d.participants
+        a, b = d.add(p.participant("A"), p.participant("B"))
+        d.ref(a, b, label="See Authentication Flow")
+        result = d.build()
+        refs = [el for el in result.elements if isinstance(el, Reference)]
+        assert len(refs) == 1
+        assert refs[0].label.text == "See Authentication Flow"
+        assert len(refs[0].participants) == 2
+
+
+class TestSequenceAutonumber:
+
+    def test_autonumber_constructor(self):
+        d = sequence_diagram(autonumber=True)
+        result = d.build()
+        assert result.autonumber is not None
+        assert result.autonumber.action == "start"
+
+    def test_autonumber_method(self):
+        d = sequence_diagram()
+        p = d.participants
+        e = d.events
+        a, b = d.add(p.participant("A"), p.participant("B"))
+        d.autonumber(start=10, increment=5)
+        d.phase("Flow", [
+            e.message(a, b, "one"),
+            e.message(a, b, "two"),
+        ])
+        result = d.build()
+        autonums = [el for el in result.elements if isinstance(el, Autonumber)]
+        assert len(autonums) == 1
+        assert autonums[0].start == 10
+        assert autonums[0].increment == 5
+
+
+class TestSequenceNewpage:
+
+    def test_newpage(self):
+        d = sequence_diagram()
+        p = d.participants
+        e = d.events
+        a, b = d.add(p.participant("A"), p.participant("B"))
+        d.phase("Page 1", [
+            e.message(a, b, "hello"),
+        ])
+        d.newpage("Second page")
+        d.phase("Page 2", [
+            e.message(b, a, "world"),
+        ])
+        result = d.build()
+        newpages = [el for el in result.elements if isinstance(el, Newpage)]
+        assert len(newpages) == 1
+        assert newpages[0].title == "Second page"
+
+
+class TestSequenceParticipantStyle:
+
+    def test_participant_with_style(self):
+        from plantuml_compose.primitives.common import Style
+        d = sequence_diagram()
+        p = d.participants
+        styled = p.participant("API", style=Style(background="#LightBlue"))
+        d.add(styled)
+        result = d.build()
+        assert result.participants[0].style is not None
+        assert result.participants[0].style.background == "#LightBlue"
