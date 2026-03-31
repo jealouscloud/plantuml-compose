@@ -6,13 +6,16 @@ import pytest
 
 from plantuml_compose.composers.class_ import class_diagram
 from plantuml_compose.primitives.class_ import (
+    AssociationClass,
     ClassDiagram,
     ClassNode,
     ClassNote,
+    HideShow,
     Member,
     Package,
     Relationship,
     Separator,
+    Together,
 )
 from plantuml_compose.renderers import render
 
@@ -257,6 +260,119 @@ class TestClassComposer:
         new_output = render(d)
 
         assert old_output == new_output
+
+    def test_together(self):
+        d = class_diagram()
+        el = d.elements
+        a = el.class_("A")
+        b = el.class_("B")
+        d.together(a, b)
+        result = d.build()
+        together_elems = [e for e in result.elements if isinstance(e, Together)]
+        assert len(together_elems) == 1
+        assert len(together_elems[0].elements) == 2
+
+    def test_association_class(self):
+        d = class_diagram()
+        el = d.elements
+        r = d.relationships
+        student = el.class_("Student")
+        course = el.class_("Course")
+        enrollment = el.class_("Enrollment")
+        d.add(student, course, enrollment)
+        d.connect(
+            r.association(student, course),
+            r.association_class(student, course, enrollment),
+        )
+        result = d.build()
+        assocs = [e for e in result.elements if isinstance(e, AssociationClass)]
+        assert len(assocs) == 1
+        assert assocs[0].source == "Student"
+        assert assocs[0].target == "Course"
+        assert assocs[0].association_class == "Enrollment"
+
+    def test_hide(self):
+        d = class_diagram()
+        el = d.elements
+        d.add(el.class_("X"))
+        d.hide("empty members")
+        result = d.build()
+        hs = [e for e in result.elements if isinstance(e, HideShow)]
+        assert len(hs) == 1
+        assert hs[0].action == "hide"
+        assert hs[0].target == "empty members"
+
+    def test_show(self):
+        d = class_diagram()
+        el = d.elements
+        d.add(el.class_("X"))
+        d.show("methods")
+        result = d.build()
+        hs = [e for e in result.elements if isinstance(e, HideShow)]
+        assert len(hs) == 1
+        assert hs[0].action == "show"
+        assert hs[0].target == "methods"
+
+    def test_namespace_separator(self):
+        d = class_diagram(namespace_separator="none")
+        el = d.elements
+        d.add(el.class_("com.example.User"))
+        result = d.build()
+        assert result.namespace_separator == "none"
+
+    def test_generic_relationship(self):
+        d = class_diagram()
+        el = d.elements
+        r = d.relationships
+        a = el.class_("A")
+        b = el.class_("B")
+        d.add(a, b)
+        d.connect(r.relationship(a, b, type="dependency", label="uses"))
+        result = d.build()
+        rels = [e for e in result.elements if isinstance(e, Relationship)]
+        assert len(rels) == 1
+        assert rels[0].type == "dependency"
+        assert rels[0].label.text == "uses"
+
+    def test_contains_relationship(self):
+        d = class_diagram()
+        el = d.elements
+        r = d.relationships
+        house = el.class_("House")
+        room = el.class_("Room")
+        d.add(house, room)
+        d.connect(r.contains(house, room, whole_label="1", part_label="1..*"))
+        result = d.build()
+        rels = [e for e in result.elements if isinstance(e, Relationship)]
+        assert len(rels) == 1
+        assert rels[0].type == "composition"
+        assert rels[0].source_label == "1"
+        assert rels[0].target_label == "1..*"
+
+    def test_relationship_note(self):
+        d = class_diagram()
+        el = d.elements
+        r = d.relationships
+        a = el.class_("A")
+        b = el.class_("B")
+        d.add(a, b)
+        d.connect(r.extends(b, a, note="important"))
+        result = d.build()
+        rels = [e for e in result.elements if isinstance(e, Relationship)]
+        assert rels[0].note is not None
+        assert rels[0].note.text == "important"
+
+    def test_relationship_qualifier(self):
+        d = class_diagram()
+        el = d.elements
+        r = d.relationships
+        bank = el.class_("Bank")
+        acct = el.class_("Account")
+        d.add(bank, acct)
+        d.connect(r.association(bank, acct, qualifier="accountNum"))
+        result = d.build()
+        rels = [e for e in result.elements if isinstance(e, Relationship)]
+        assert rels[0].qualifier == "accountNum"
 
 
 class TestClassPlantUMLValidation:

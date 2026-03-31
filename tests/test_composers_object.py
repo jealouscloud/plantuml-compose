@@ -8,6 +8,7 @@ from plantuml_compose.composers.object_ import object_diagram
 from plantuml_compose.primitives.object_ import (
     Field,
     Map,
+    MapEntry,
     Object,
     ObjectDiagram,
     ObjectNote,
@@ -196,6 +197,70 @@ class TestObjectComposer:
         obj = result.elements[0]
         assert obj.style is not None
         assert obj.style.background.value == "#FFCDD2"
+
+    def test_map_with_links(self):
+        d = object_diagram()
+        el = d.elements
+        user = el.object("User", ref="u1")
+        refs = el.map("refs", links={"owner": user})
+        d.add(user, refs)
+        result = d.build()
+        maps = [e for e in result.elements if isinstance(e, Map)]
+        assert len(maps) == 1
+        assert len(maps[0].entries) == 1
+        assert maps[0].entries[0].key == "owner"
+        assert maps[0].entries[0].link == "u1"
+
+    def test_map_with_entries_and_links(self):
+        d = object_diagram()
+        el = d.elements
+        target = el.object("Target", ref="t1")
+        m = el.map("config", entries={"env": "prod"}, links={"ref": target})
+        d.add(target, m)
+        result = d.build()
+        maps = [e for e in result.elements if isinstance(e, Map)]
+        assert len(maps[0].entries) == 2
+
+    def test_hub_and_spokes(self):
+        d = object_diagram()
+        el = d.elements
+        server = el.object("Server", ref="srv")
+        c1 = el.object("Client1", ref="c1")
+        c2 = el.object("Client2", ref="c2")
+        d.add(server, c1, c2)
+        d.hub(server, [c1, c2])
+        result = d.build()
+        rels = [e for e in result.elements if isinstance(e, Relationship)]
+        assert len(rels) == 2
+        assert all(r.type == "arrow" for r in rels)
+        assert all(r.source == "srv" for r in rels)
+        targets = {r.target for r in rels}
+        assert targets == {"c1", "c2"}
+
+    def test_relationship_note(self):
+        d = object_diagram()
+        el = d.elements
+        r = d.relationships
+        a = el.object("A")
+        b = el.object("B")
+        d.add(a, b)
+        d.connect(r.arrow(a, b, note="important link"))
+        result = d.build()
+        rels = [e for e in result.elements if isinstance(e, Relationship)]
+        assert rels[0].note is not None
+        assert rels[0].note.text == "important link"
+
+    def test_composition_note(self):
+        d = object_diagram()
+        el = d.elements
+        r = d.relationships
+        a = el.object("A")
+        b = el.object("B")
+        d.add(a, b)
+        d.connect(r.composition(a, b, note="owns"))
+        result = d.build()
+        rels = [e for e in result.elements if isinstance(e, Relationship)]
+        assert rels[0].note.text == "owns"
 
 
 class TestObjectPlantUMLValidation:

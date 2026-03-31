@@ -87,6 +87,7 @@ class _RelationshipData:
     label: str | None
     style: LineStyleLike | None
     direction: Direction | None
+    note: str | None = None
 
 
 class ObjectElementNamespace:
@@ -121,14 +122,24 @@ class ObjectElementNamespace:
         *,
         ref: str | None = None,
         entries: dict[str, str] | None = None,
+        links: dict[str, EntityRef | str] | None = None,
         style: StyleLike | None = None,
     ) -> EntityRef:
-        """Create a map (associative array) element."""
+        """Create a map (associative array) element.
+
+        Args:
+            name: Map name
+            ref: Optional short reference name
+            entries: Key-value pairs displayed as text (key => value)
+            links: Key-object pairs with arrows from key to target object
+            style: Visual style (background only)
+        """
         return EntityRef(
             name, ref=ref,
             data={
                 "_type": "map",
                 "entries": entries,
+                "links": links,
                 "style": style,
             },
         )
@@ -145,10 +156,12 @@ class ObjectRelationshipNamespace:
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        note: str | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="arrow",
             label=label, style=style, direction=direction,
+            note=note,
         )
 
     def composition(
@@ -159,10 +172,12 @@ class ObjectRelationshipNamespace:
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        note: str | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="composition",
             label=label, style=style, direction=direction,
+            note=note,
         )
 
     def aggregation(
@@ -173,10 +188,12 @@ class ObjectRelationshipNamespace:
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        note: str | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="aggregation",
             label=label, style=style, direction=direction,
+            note=note,
         )
 
     def association(
@@ -187,10 +204,12 @@ class ObjectRelationshipNamespace:
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        note: str | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="association",
             label=label, style=style, direction=direction,
+            note=note,
         )
 
     def link(
@@ -201,10 +220,12 @@ class ObjectRelationshipNamespace:
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        note: str | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="line",
             label=label, style=style, direction=direction,
+            note=note,
         )
 
     def extension(
@@ -215,10 +236,12 @@ class ObjectRelationshipNamespace:
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        note: str | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="extension",
             label=label, style=style, direction=direction,
+            note=note,
         )
 
     def implementation(
@@ -229,10 +252,12 @@ class ObjectRelationshipNamespace:
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        note: str | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="implementation",
             label=label, style=style, direction=direction,
+            note=note,
         )
 
 
@@ -248,17 +273,22 @@ def _build_element(ref: EntityRef) -> ObjectDiagramElement:
     element_type = data.get("_type", "object")
 
     if element_type == "map":
-        entries = data.get("entries") or {}
-        entry_objs = tuple(
-            MapEntry(key=k, value=v) for k, v in entries.items()
-        )
+        entry_objs: list[MapEntry] = []
+        # Regular entries
+        for k, v in (data.get("entries") or {}).items():
+            entry_objs.append(MapEntry(key=k, value=v))
+        # Linked entries
+        for k, link_ref in (data.get("links") or {}).items():
+            entry_objs.append(
+                MapEntry(key=k, value="", link=_resolve_ref(link_ref))
+            )
         style = _coerce_style(data.get("style"))
         alias = ref._ref if ref._ref != sanitize_ref(ref._name) else None
         return Map(
             name=ref._name,
             alias=alias,
             style=style,
-            entries=entry_objs,
+            entries=tuple(entry_objs),
         )
 
     # Default: object
@@ -309,6 +339,32 @@ class ObjectComposer(BaseComposer):
     def relationships(self) -> ObjectRelationshipNamespace:
         return self._relationships_ns
 
+    def hub(
+        self,
+        hub: EntityRef | str,
+        spokes: list[EntityRef | str],
+        *,
+        label: str | None = None,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> None:
+        """Connect a hub object to multiple spoke objects.
+
+        Creates arrows from hub to each spoke. Useful for hub-and-spoke patterns.
+
+        Args:
+            hub: Central object
+            spokes: List of objects to connect to
+            label: Optional label for all arrows
+            style: Line style (color, pattern, thickness)
+            direction: Layout direction hint
+        """
+        r = self._relationships_ns
+        for spoke in spokes:
+            self._connections.append(
+                r.arrow(hub, spoke, label, style=style, direction=direction)
+            )
+
     def build(self) -> ObjectDiagram:
         all_elements: list[ObjectDiagramElement] = []
 
@@ -327,6 +383,7 @@ class ObjectComposer(BaseComposer):
                     label=Label(conn.label) if conn.label else None,
                     style=coerce_line_style(conn.style) if conn.style else None,
                     direction=conn.direction,
+                    note=Label(conn.note) if conn.note else None,
                 ))
 
         # Build notes
