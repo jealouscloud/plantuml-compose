@@ -8,6 +8,10 @@ from plantuml_compose.composers.state import state_diagram
 from plantuml_compose.primitives.common import Label, Note
 from plantuml_compose.primitives.state import (
     CompositeState,
+    ConcurrentState,
+    PseudoState,
+    PseudoStateKind,
+    Region,
     StateDiagram,
     StateNode,
     Transition,
@@ -223,6 +227,104 @@ class TestStateComposer:
         new_output = render(d)
 
         assert old_output == new_output
+
+
+class TestStatePseudoStatesAndConcurrency:
+
+    def test_choice(self):
+        d = state_diagram()
+        el = d.elements
+        t = d.transitions
+        check = el.choice("check")
+        a = el.state("A")
+        b = el.state("B")
+        d.add(check, a, b)
+        d.connect(
+            t.transition("[*]", check),
+            t.transition(check, a, guard="x > 0"),
+            t.transition(check, b, guard="x <= 0"),
+        )
+        result = d.build()
+        pseudos = [e for e in result.elements if isinstance(e, PseudoState)]
+        assert len(pseudos) == 1
+        assert pseudos[0].kind == PseudoStateKind.CHOICE
+        assert pseudos[0].name == "check"
+
+    def test_fork_join(self):
+        d = state_diagram()
+        el = d.elements
+        t = d.transitions
+        f = el.fork("split")
+        j = el.join("merge")
+        a = el.state("A")
+        b = el.state("B")
+        d.add(f, j, a, b)
+        d.connect(
+            t.transition("[*]", f),
+            t.transition(f, a),
+            t.transition(f, b),
+            t.transition(a, j),
+            t.transition(b, j),
+            t.transition(j, "[*]"),
+        )
+        result = d.build()
+        pseudos = [e for e in result.elements if isinstance(e, PseudoState)]
+        kinds = {p.kind for p in pseudos}
+        assert PseudoStateKind.FORK in kinds
+        assert PseudoStateKind.JOIN in kinds
+
+    def test_transition_trigger_effect(self):
+        d = state_diagram()
+        el = d.elements
+        t = d.transitions
+        a = el.state("Idle")
+        b = el.state("Active")
+        d.add(a, b)
+        d.connect(t.transition(a, b, trigger="click", guard="enabled", effect="log()"))
+        result = d.build()
+        trans = [e for e in result.elements if isinstance(e, Transition)]
+        assert trans[0].trigger == "click"
+        assert trans[0].guard == "enabled"
+        assert trans[0].effect == "log()"
+
+    def test_concurrent_state(self):
+        d = state_diagram()
+        el = d.elements
+        audio_on = el.state("On")
+        audio_off = el.state("Off")
+        video_active = el.state("Active")
+        video_idle = el.state("Idle")
+
+        active = el.concurrent("Active",
+            el.region(audio_on, audio_off),
+            el.region(video_active, video_idle),
+        )
+        d.add(active)
+        result = d.build()
+        concurrent = [e for e in result.elements if isinstance(e, ConcurrentState)]
+        assert len(concurrent) == 1
+        assert concurrent[0].name == "Active"
+        assert len(concurrent[0].regions) == 2
+        assert len(concurrent[0].regions[0].elements) == 2
+        assert len(concurrent[0].regions[1].elements) == 2
+
+    def test_history(self):
+        d = state_diagram()
+        el = d.elements
+        h = el.history()
+        d.add(h)
+        result = d.build()
+        pseudos = [e for e in result.elements if isinstance(e, PseudoState)]
+        assert pseudos[0].kind == PseudoStateKind.HISTORY
+
+    def test_deep_history(self):
+        d = state_diagram()
+        el = d.elements
+        dh = el.deep_history()
+        d.add(dh)
+        result = d.build()
+        pseudos = [e for e in result.elements if isinstance(e, PseudoState)]
+        assert pseudos[0].kind == PseudoStateKind.DEEP_HISTORY
 
 
 class TestStatePlantUMLValidation:

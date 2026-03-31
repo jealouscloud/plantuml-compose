@@ -50,8 +50,10 @@ from ..primitives.common import (
 )
 from ..primitives.state import (
     CompositeState,
+    ConcurrentState,
     PseudoState,
     PseudoStateKind,
+    Region,
     StateDiagram,
     StateDiagramElement,
     StateNode,
@@ -76,9 +78,19 @@ class _TransitionData:
     source: EntityRef | str
     target: EntityRef | str
     label: str | None
+    trigger: str | None
     guard: str | None
+    effect: str | None
     style: LineStyleLike | None
     direction: Direction | None
+
+
+class _RegionData:
+    """Data for a concurrent region — a list of EntityRefs."""
+    __slots__ = ("elements",)
+
+    def __init__(self, elements: tuple[EntityRef, ...]) -> None:
+        self.elements = elements
 
 
 class StateElementNamespace:
@@ -99,23 +111,73 @@ class StateElementNamespace:
         If children are provided, the state becomes a composite state
         containing nested sub-states.
         """
-        # Convert string description to Label for storage
-        desc = description
-
-        # Convert string note to Note for storage
-        note_obj = note
-
         return EntityRef(
             name, ref=ref,
             data={
                 "_type": "composite" if children else "state",
-                "description": desc,
+                "description": description,
                 "style": style,
-                "note": note_obj,
+                "note": note,
                 "note_position": note_position,
             },
             children=children,
         )
+
+    def choice(self, name: str, *, ref: str | None = None,
+               style: StyleLike | None = None) -> EntityRef:
+        """Decision point (rendered as diamond)."""
+        return EntityRef(name, ref=ref, data={
+            "_type": "pseudo", "_kind": PseudoStateKind.CHOICE, "style": style,
+        })
+
+    def fork(self, name: str, *, ref: str | None = None,
+             style: StyleLike | None = None) -> EntityRef:
+        """Fork bar — splits into parallel paths."""
+        return EntityRef(name, ref=ref, data={
+            "_type": "pseudo", "_kind": PseudoStateKind.FORK, "style": style,
+        })
+
+    def join(self, name: str, *, ref: str | None = None,
+             style: StyleLike | None = None) -> EntityRef:
+        """Join bar — merges parallel paths."""
+        return EntityRef(name, ref=ref, data={
+            "_type": "pseudo", "_kind": PseudoStateKind.JOIN, "style": style,
+        })
+
+    def history(self, *, ref: str | None = None) -> EntityRef:
+        """Shallow history pseudo-state [H]."""
+        return EntityRef("[H]", ref=ref, data={
+            "_type": "pseudo", "_kind": PseudoStateKind.HISTORY, "style": None,
+        })
+
+    def deep_history(self, *, ref: str | None = None) -> EntityRef:
+        """Deep history pseudo-state [H*]."""
+        return EntityRef("[H*]", ref=ref, data={
+            "_type": "pseudo", "_kind": PseudoStateKind.DEEP_HISTORY, "style": None,
+        })
+
+    def concurrent(
+        self,
+        name: str,
+        *regions: _RegionData,
+        ref: str | None = None,
+        style: StyleLike | None = None,
+    ) -> EntityRef:
+        """Concurrent state with parallel regions.
+
+        Each region is created with el.region(*states):
+            el.concurrent("Active",
+                el.region(el.state("Audio"), el.state("Video")),
+                el.region(el.state("Network")),
+            )
+        """
+        return EntityRef(name, ref=ref, data={
+            "_type": "concurrent", "style": style, "regions": regions,
+        })
+
+    def region(self, *elements: EntityRef) -> _RegionData:
+        """Define a region within a concurrent state."""
+        return _RegionData(elements=elements)
 
 
 class StateTransitionNamespace:
@@ -127,13 +189,15 @@ class StateTransitionNamespace:
         target: EntityRef | str,
         *,
         label: str | None = None,
+        trigger: str | None = None,
         guard: str | None = None,
+        effect: str | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
     ) -> _TransitionData:
         return _TransitionData(
             source=source, target=target,
-            label=label, guard=guard,
+            label=label, trigger=trigger, guard=guard, effect=effect,
             style=style, direction=direction,
         )
 
@@ -156,26 +220,36 @@ def _build_element(ref: EntityRef) -> StateDiagramElement:
     data = ref._data
     element_type = data.get("_type", "state")
 
-    desc = data.get("description")
-    desc_label = Label(desc) if isinstance(desc, str) else desc
-
     style_obj = _coerce_style(data.get("style"))
-
-    note_raw = data.get("note")
-    note_position = data.get("note_position", "right")
-    note_obj = (
-        Note(Label(note_raw), note_position)
-        if isinstance(note_raw, str)
-        else note_raw
-    )
-
     alias = ref._ref if ref._ref != sanitize_ref(ref._name) else None
 
+    if element_type == "pseudo":
+        return PseudoState(
+            kind=data["_kind"],
+            name=ref._name if ref._name not in ("[H]", "[H*]") else None,
+            style=style_obj,
+        )
+
+    if element_type == "concurrent":
+        regions_data = data.get("regions", ())
+        built_regions = tuple(
+            Region(elements=tuple(_build_element(el) for el in rd.elements))
+            for rd in regions_data
+        )
+        note_obj = _build_note(data)
+        return ConcurrentState(
+            name=ref._name,
+            alias=alias,
+            regions=built_regions,
+            style=style_obj,
+            note=note_obj,
+        )
+
     if element_type == "composite":
-        # Build children recursively
         child_elements: list[StateDiagramElement] = []
         for child in ref._children.values():
             child_elements.append(_build_element(child))
+        note_obj = _build_note(data)
         return CompositeState(
             name=ref._name,
             alias=alias,
@@ -185,6 +259,9 @@ def _build_element(ref: EntityRef) -> StateDiagramElement:
         )
 
     # Default: simple state
+    desc = data.get("description")
+    desc_label = Label(desc) if isinstance(desc, str) else desc
+    note_obj = _build_note(data)
     return StateNode(
         name=ref._name,
         alias=alias,
@@ -192,6 +269,15 @@ def _build_element(ref: EntityRef) -> StateDiagramElement:
         style=style_obj,
         note=note_obj,
     )
+
+
+def _build_note(data: dict) -> Note | None:
+    """Extract note from entity data."""
+    note_raw = data.get("note")
+    note_position = data.get("note_position", "right")
+    if isinstance(note_raw, str):
+        return Note(Label(note_raw), note_position)
+    return note_raw
 
 
 class StateComposer(BaseComposer):
@@ -244,7 +330,9 @@ class StateComposer(BaseComposer):
                     source=_resolve_ref(conn.source),
                     target=_resolve_ref(conn.target),
                     label=Label(conn.label) if conn.label else None,
+                    trigger=conn.trigger,
                     guard=conn.guard,
+                    effect=conn.effect,
                     style=coerce_line_style(conn.style) if conn.style else None,
                     direction=conn.direction,
                 ))
