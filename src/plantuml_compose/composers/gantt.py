@@ -31,14 +31,20 @@ from ..primitives.common import (
 from ..primitives.gantt import (
     DayOfWeek,
     GanttClosedDateRange,
+    GanttColoredDate,
+    GanttColoredDateRange,
     GanttDependency,
     GanttDiagram,
     GanttDiagramStyle,
     GanttDiagramStyleLike,
     GanttElement,
     GanttMilestone,
+    GanttOpenDate,
+    GanttResource,
+    GanttResourceOff,
     GanttSeparator,
     GanttTask,
+    GanttVerticalSeparator,
     coerce_gantt_diagram_style,
 )
 from .base import BaseComposer, EntityRef
@@ -83,7 +89,21 @@ class GanttTaskNamespace:
         name: str,
         *,
         days: int | None = None,
+        weeks: int | None = None,
+        start: date | None = None,
+        end: date | None = None,
+        completion: int | None = None,
         color: str | None = None,
+        resources: tuple[str, ...] = (),
+        link: str | None = None,
+        pauses_on: tuple[date, ...] = (),
+        pauses_on_days: tuple[DayOfWeek, ...] = (),
+        is_deleted: bool = False,
+        working_days: bool = False,
+        link_color: str | None = None,
+        link_style: Literal["bold", "dashed", "dotted"] | None = None,
+        note: str | None = None,
+        note_position: Literal["bottom", "left", "right", "top"] = "bottom",
     ) -> EntityRef:
         alias = self._generate_alias()
         return EntityRef(
@@ -91,7 +111,21 @@ class GanttTaskNamespace:
             data={
                 "_type": "task",
                 "days": days,
+                "weeks": weeks,
+                "start": start,
+                "end": end,
+                "completion": completion,
                 "color": color,
+                "resources": resources,
+                "link": link,
+                "pauses_on": pauses_on,
+                "pauses_on_days": pauses_on_days,
+                "is_deleted": is_deleted,
+                "working_days": working_days,
+                "link_color": link_color,
+                "link_style": link_style,
+                "note": note,
+                "note_position": note_position,
                 "_alias": alias,
             },
         )
@@ -100,14 +134,22 @@ class GanttTaskNamespace:
         self,
         name: str,
         *,
+        on: date | None = None,
         color: str | None = None,
+        link: str | None = None,
+        note: str | None = None,
+        note_position: Literal["bottom", "left", "right", "top"] = "bottom",
     ) -> EntityRef:
         alias = self._generate_alias()
         return EntityRef(
             name, ref=alias,
             data={
                 "_type": "milestone",
+                "on": on,
                 "color": color,
+                "link": link,
+                "note": note,
+                "note_position": note_position,
                 "_alias": alias,
             },
         )
@@ -164,14 +206,25 @@ class GanttComposer(BaseComposer):
         mainframe: str | None = None,
         start: date | None = None,
         theme: ThemeLike = None,
+        diagram_style: GanttDiagramStyleLike | None = None,
+        hide_footbox: bool = False,
     ) -> None:
         super().__init__(title=title, mainframe=mainframe)
         self._start = start
         self._theme = theme
+        self._diagram_style = (
+            coerce_gantt_diagram_style(diagram_style) if diagram_style else None
+        )
+        self._hide_footbox = hide_footbox
         self._tasks_ns = GanttTaskNamespace()
         self._dependencies_ns = GanttDependencyNamespace()
         self._closed_days: list[DayOfWeek] = []
         self._closed_date_ranges: list[GanttClosedDateRange] = []
+        self._open_dates: list[date] = []
+        self._colored_dates: list[GanttColoredDate] = []
+        self._colored_date_ranges: list[GanttColoredDateRange] = []
+        self._today: date | None = None
+        self._today_color: ColorLike | None = None
 
     @property
     def tasks(self) -> GanttTaskNamespace:
@@ -192,6 +245,28 @@ class GanttComposer(BaseComposer):
     def close_date_range(self, start: date, end: date) -> None:
         """Mark a date range as closed."""
         self._closed_date_ranges.append(GanttClosedDateRange(start=start, end=end))
+
+    def open_date(self, d: date) -> None:
+        """Reopen a specific date (overrides close_days/close_date_range)."""
+        self._open_dates.append(d)
+
+    def color_date(self, d: date, color: ColorLike) -> None:
+        """Color a specific date on the chart."""
+        self._colored_dates.append(GanttColoredDate(date=d, color=color))
+
+    def color_date_range(self, start: date, end: date, color: ColorLike) -> None:
+        """Color a date range on the chart."""
+        self._colored_date_ranges.append(
+            GanttColoredDateRange(start=start, end=end, color=color))
+
+    def vertical_separator(self, after: EntityRef | str) -> None:
+        """Add a vertical separator after a task."""
+        self._elements.append(("__vsep__", after))
+
+    def today(self, today_date: date | None = None, color: ColorLike | None = None) -> None:
+        """Mark today's date on the chart."""
+        self._today = today_date
+        self._today_color = color
 
     def connect(self, *connections: Any) -> None:
         """Register dependencies.
@@ -216,6 +291,10 @@ class GanttComposer(BaseComposer):
                 elements.append(GanttSeparator(
                     label=item[1] if item[1] else None,
                 ))
+            elif isinstance(item, tuple) and item[0] == "__vsep__":
+                elements.append(GanttVerticalSeparator(
+                    after=_resolve_ref(item[1]),
+                ))
             elif isinstance(item, EntityRef):
                 data = item._data
                 alias = data.get("_alias", item._ref)
@@ -225,16 +304,36 @@ class GanttComposer(BaseComposer):
                     elements.append(GanttMilestone(
                         name=item._name,
                         alias=alias,
+                        date=data.get("on"),
                         color=data.get("color"),
+                        link=data.get("link"),
+                        note=data.get("note"),
+                        note_position=data.get("note_position", "bottom"),
                     ))
                 else:
-                    # Task
-                    days = data.get("days")
+                    # Task — pass all params through
+                    resources = tuple(
+                        GanttResource(name=r) for r in data.get("resources", ())
+                    )
                     elements.append(GanttTask(
                         name=item._name,
                         alias=alias,
-                        duration_days=days,
+                        duration_days=data.get("days"),
+                        duration_weeks=data.get("weeks"),
+                        start_date=data.get("start"),
+                        end_date=data.get("end"),
+                        completion=data.get("completion"),
                         color=data.get("color"),
+                        resources=resources,
+                        link=data.get("link"),
+                        pauses_on=data.get("pauses_on", ()),
+                        pauses_on_days=data.get("pauses_on_days", ()),
+                        is_deleted=data.get("is_deleted", False),
+                        working_days=data.get("working_days", False),
+                        link_color=data.get("link_color"),
+                        link_style=data.get("link_style"),
+                        note=data.get("note"),
+                        note_position=data.get("note_position", "bottom"),
                     ))
 
         # Process dependencies — resolve to aliases and attach
@@ -273,7 +372,21 @@ class GanttComposer(BaseComposer):
                     name=elem.name,
                     alias=elem.alias,
                     duration_days=elem.duration_days,
+                    duration_weeks=elem.duration_weeks,
+                    start_date=elem.start_date,
+                    end_date=elem.end_date,
+                    completion=elem.completion,
                     color=elem.color,
+                    resources=elem.resources,
+                    link=elem.link,
+                    pauses_on=elem.pauses_on,
+                    pauses_on_days=elem.pauses_on_days,
+                    is_deleted=elem.is_deleted,
+                    working_days=elem.working_days,
+                    link_color=elem.link_color,
+                    link_style=elem.link_style,
+                    note=elem.note,
+                    note_position=elem.note_position,
                     starts_after=starts_after,
                     starts_with=starts_with_val,
                 ))
@@ -293,7 +406,11 @@ class GanttComposer(BaseComposer):
                 rebuilt.append(GanttMilestone(
                     name=elem.name,
                     alias=elem.alias,
+                    date=elem.date,
                     color=elem.color,
+                    link=elem.link,
+                    note=elem.note,
+                    note_position=elem.note_position,
                     happens_at=happens_at,
                 ))
 
@@ -313,6 +430,13 @@ class GanttComposer(BaseComposer):
             mainframe=self._mainframe,
             closed_days=tuple(self._closed_days),
             closed_date_ranges=tuple(self._closed_date_ranges),
+            open_dates=tuple(self._open_dates),
+            colored_dates=tuple(self._colored_dates),
+            colored_date_ranges=tuple(self._colored_date_ranges),
+            today=self._today,
+            today_color=self._today_color,
+            hide_footbox=self._hide_footbox,
+            diagram_style=self._diagram_style,
         )
 
     def _resolve_alias(self, item: EntityRef | str) -> str:
@@ -331,6 +455,8 @@ def gantt_diagram(
     mainframe: str | None = None,
     start: date | None = None,
     theme: ThemeLike = None,
+    diagram_style: GanttDiagramStyleLike | None = None,
+    hide_footbox: bool = False,
 ) -> GanttComposer:
     """Create a gantt diagram composer.
 
@@ -348,4 +474,6 @@ def gantt_diagram(
     return GanttComposer(
         title=title, mainframe=mainframe,
         start=start, theme=theme,
+        diagram_style=diagram_style,
+        hide_footbox=hide_footbox,
     )
