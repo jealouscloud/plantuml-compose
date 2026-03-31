@@ -92,7 +92,7 @@ class TestStateComposer:
         trans = [e for e in result.elements if isinstance(e, Transition)]
         assert trans[0].guard == "authorized"
 
-    def test_initial_final_pseudostates(self):
+    def test_initial_final_pseudostates_string(self):
         """'[*]' string maps to initial/final pseudo-state references."""
         d = state_diagram()
         el = d.elements
@@ -108,6 +108,22 @@ class TestStateComposer:
         assert len(trans) == 2
         assert trans[0].source == "[*]"
         assert trans[0].target == "Idle"
+
+    def test_initial_final_helpers(self):
+        """el.initial() and el.final() return '[*]' for use in transitions."""
+        d = state_diagram()
+        el = d.elements
+        t = d.transitions
+        idle = el.state("Idle")
+        d.add(idle)
+        d.connect(
+            t.transition(el.initial(), idle, label="start"),
+            t.transition(idle, el.final(), label="done"),
+        )
+        result = d.build()
+        trans = [e for e in result.elements if isinstance(e, Transition)]
+        assert trans[0].source == "[*]"
+        assert trans[1].target == "[*]"
         assert trans[1].source == "Idle"
         assert trans[1].target == "[*]"
 

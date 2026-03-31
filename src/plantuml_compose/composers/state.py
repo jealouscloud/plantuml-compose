@@ -123,6 +123,14 @@ class StateElementNamespace:
             children=children,
         )
 
+    def initial(self) -> str:
+        """Initial pseudo-state [*]. Use in transitions as source."""
+        return "[*]"
+
+    def final(self) -> str:
+        """Final pseudo-state [*]. Use in transitions as target."""
+        return "[*]"
+
     def choice(self, name: str, *, ref: str | None = None,
                style: StyleLike | None = None) -> EntityRef:
         """Decision point (rendered as diamond)."""
