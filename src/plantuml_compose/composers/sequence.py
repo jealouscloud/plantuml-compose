@@ -41,6 +41,8 @@ from ..primitives.common import (
     ThemeLike,
 )
 from ..primitives.sequence import (
+    Delay,
+    Divider,
     ElseBlock,
     GroupBlock,
     GroupType,
@@ -396,6 +398,14 @@ class SequenceComposer(BaseComposer):
         """Register critical block."""
         self._timeline.append(_make_block("critical", label, events))
 
+    def divider(self, label: str) -> None:
+        """Add a horizontal divider line with a centered title."""
+        self._timeline.append(Divider(title=label))
+
+    def delay(self, message: str | None = None) -> None:
+        """Add a visual delay indicator (...)."""
+        self._timeline.append(Delay(message=message))
+
     # --- Build ---
 
     def build(self) -> SequenceDiagram:
@@ -406,10 +416,12 @@ class SequenceComposer(BaseComposer):
 
         elements: list[SequenceDiagramElement] = []
 
-        # Timeline items → GroupBlocks
+        # Timeline items → GroupBlocks, Dividers, Delays
         for item in self._timeline:
             if isinstance(item, _BlockData):
                 elements.append(_build_block(item))
+            elif isinstance(item, (Divider, Delay)):
+                elements.append(item)
 
         # Diagram-level notes
         for note_data in self._notes:

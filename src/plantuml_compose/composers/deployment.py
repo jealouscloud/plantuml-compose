@@ -198,6 +198,78 @@ class DeploymentElementNamespace:
         return self._make(name, "interface", *children, ref=ref,
                           stereotype=stereotype, style=style)
 
+    def agent(self, name: str, *children: EntityRef, ref: str | None = None,
+              stereotype: str | Stereotype | None = None,
+              style: StyleLike | None = None) -> EntityRef:
+        return self._make(name, "agent", *children, ref=ref,
+                          stereotype=stereotype, style=style)
+
+    def boundary(self, name: str, *children: EntityRef, ref: str | None = None,
+                 stereotype: str | Stereotype | None = None,
+                 style: StyleLike | None = None) -> EntityRef:
+        return self._make(name, "boundary", *children, ref=ref,
+                          stereotype=stereotype, style=style)
+
+    def card(self, name: str, *children: EntityRef, ref: str | None = None,
+             stereotype: str | Stereotype | None = None,
+             style: StyleLike | None = None) -> EntityRef:
+        return self._make(name, "card", *children, ref=ref,
+                          stereotype=stereotype, style=style)
+
+    def circle(self, name: str, *children: EntityRef, ref: str | None = None,
+               stereotype: str | Stereotype | None = None,
+               style: StyleLike | None = None) -> EntityRef:
+        return self._make(name, "circle", *children, ref=ref,
+                          stereotype=stereotype, style=style)
+
+    def collections(self, name: str, *children: EntityRef, ref: str | None = None,
+                    stereotype: str | Stereotype | None = None,
+                    style: StyleLike | None = None) -> EntityRef:
+        return self._make(name, "collections", *children, ref=ref,
+                          stereotype=stereotype, style=style)
+
+    def control(self, name: str, *children: EntityRef, ref: str | None = None,
+                stereotype: str | Stereotype | None = None,
+                style: StyleLike | None = None) -> EntityRef:
+        return self._make(name, "control", *children, ref=ref,
+                          stereotype=stereotype, style=style)
+
+    def entity(self, name: str, *children: EntityRef, ref: str | None = None,
+               stereotype: str | Stereotype | None = None,
+               style: StyleLike | None = None) -> EntityRef:
+        return self._make(name, "entity", *children, ref=ref,
+                          stereotype=stereotype, style=style)
+
+    def hexagon(self, name: str, *children: EntityRef, ref: str | None = None,
+                stereotype: str | Stereotype | None = None,
+                style: StyleLike | None = None) -> EntityRef:
+        return self._make(name, "hexagon", *children, ref=ref,
+                          stereotype=stereotype, style=style)
+
+    def label_(self, name: str, *children: EntityRef, ref: str | None = None,
+               stereotype: str | Stereotype | None = None,
+               style: StyleLike | None = None) -> EntityRef:
+        return self._make(name, "label", *children, ref=ref,
+                          stereotype=stereotype, style=style)
+
+    def person(self, name: str, *children: EntityRef, ref: str | None = None,
+               stereotype: str | Stereotype | None = None,
+               style: StyleLike | None = None) -> EntityRef:
+        return self._make(name, "person", *children, ref=ref,
+                          stereotype=stereotype, style=style)
+
+    def process(self, name: str, *children: EntityRef, ref: str | None = None,
+                stereotype: str | Stereotype | None = None,
+                style: StyleLike | None = None) -> EntityRef:
+        return self._make(name, "process", *children, ref=ref,
+                          stereotype=stereotype, style=style)
+
+    def usecase(self, name: str, *children: EntityRef, ref: str | None = None,
+                stereotype: str | Stereotype | None = None,
+                style: StyleLike | None = None) -> EntityRef:
+        return self._make(name, "usecase", *children, ref=ref,
+                          stereotype=stereotype, style=style)
+
 
 class DeploymentConnectionNamespace:
     """Factory namespace for deployment connections."""

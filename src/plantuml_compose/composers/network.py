@@ -40,6 +40,7 @@ from ..primitives.network import (
     NetworkGroup,
     NetworkNode,
     NodeShape,
+    PeerLink,
     StandaloneNode,
 )
 from .base import BaseComposer, EntityRef
@@ -185,10 +186,18 @@ class NetworkComposer(BaseComposer):
         )
         self._theme = theme
         self._networks_ns = NetworkNamespace()
+        self._links: list[PeerLink] = []
 
     @property
     def networks(self) -> NetworkNamespace:
         return self._networks_ns
+
+    def link(self, source: EntityRef | str, target: EntityRef | str) -> None:
+        """Add a peer link between two nodes."""
+        self._links.append(PeerLink(
+            source=_resolve_ref(source),
+            target=_resolve_ref(target),
+        ))
 
     def build(self) -> NetworkDiagram:
         elements: list[NetworkElement] = []
@@ -236,6 +245,10 @@ class NetworkComposer(BaseComposer):
                         description=data.get("description"),
                         nodes=data.get("node_names", ()),
                     ))
+
+        # Peer links
+        for peer_link in self._links:
+            elements.append(peer_link)
 
         return NetworkDiagram(
             elements=tuple(elements),

@@ -178,6 +178,111 @@ class ClassElementNamespace:
             style=style, generics=generics, members=members,
         )
 
+    def annotation(
+        self,
+        name: str,
+        *,
+        ref: str | None = None,
+        stereotype: str | Stereotype | None = None,
+        style: StyleLike | None = None,
+        generics: str | None = None,
+        members: tuple[_MemberData, ...] = (),
+    ) -> EntityRef:
+        return self._make_class(
+            name, "annotation", ref=ref, stereotype=stereotype,
+            style=style, generics=generics, members=members,
+        )
+
+    def entity(
+        self,
+        name: str,
+        *,
+        ref: str | None = None,
+        stereotype: str | Stereotype | None = None,
+        style: StyleLike | None = None,
+        generics: str | None = None,
+        members: tuple[_MemberData, ...] = (),
+    ) -> EntityRef:
+        return self._make_class(
+            name, "entity", ref=ref, stereotype=stereotype,
+            style=style, generics=generics, members=members,
+        )
+
+    def exception(
+        self,
+        name: str,
+        *,
+        ref: str | None = None,
+        stereotype: str | Stereotype | None = None,
+        style: StyleLike | None = None,
+        generics: str | None = None,
+        members: tuple[_MemberData, ...] = (),
+    ) -> EntityRef:
+        return self._make_class(
+            name, "exception", ref=ref, stereotype=stereotype,
+            style=style, generics=generics, members=members,
+        )
+
+    def metaclass(
+        self,
+        name: str,
+        *,
+        ref: str | None = None,
+        stereotype: str | Stereotype | None = None,
+        style: StyleLike | None = None,
+        generics: str | None = None,
+        members: tuple[_MemberData, ...] = (),
+    ) -> EntityRef:
+        return self._make_class(
+            name, "metaclass", ref=ref, stereotype=stereotype,
+            style=style, generics=generics, members=members,
+        )
+
+    def struct(
+        self,
+        name: str,
+        *,
+        ref: str | None = None,
+        stereotype: str | Stereotype | None = None,
+        style: StyleLike | None = None,
+        generics: str | None = None,
+        members: tuple[_MemberData, ...] = (),
+    ) -> EntityRef:
+        return self._make_class(
+            name, "struct", ref=ref, stereotype=stereotype,
+            style=style, generics=generics, members=members,
+        )
+
+    def circle(
+        self,
+        name: str,
+        *,
+        ref: str | None = None,
+        stereotype: str | Stereotype | None = None,
+        style: StyleLike | None = None,
+        generics: str | None = None,
+        members: tuple[_MemberData, ...] = (),
+    ) -> EntityRef:
+        return self._make_class(
+            name, "circle", ref=ref, stereotype=stereotype,
+            style=style, generics=generics, members=members,
+        )
+
+    def diamond(
+        self,
+        name: str,
+        *,
+        ref: str | None = None,
+        stereotype: str | Stereotype | None = None,
+        style: StyleLike | None = None,
+        generics: str | None = None,
+        members: tuple[_MemberData, ...] = (),
+    ) -> EntityRef:
+        return self._make_class(
+            name, "diamond", ref=ref, stereotype=stereotype,
+            style=style, generics=generics, members=members,
+        )
+
     def enum(
         self,
         name: str,
@@ -330,6 +435,56 @@ class ClassRelationshipNamespace:
               direction: Direction | None = None) -> _RelationshipData:
         return _RelationshipData(source=source, target=target, type="association",
                                  label=label, style=style, direction=direction)
+
+    def lollipop(self, provider: EntityRef | str, consumer: EntityRef | str, *,
+                 label: str | None = None, style: LineStyleLike | None = None,
+                 direction: Direction | None = None) -> _RelationshipData:
+        return _RelationshipData(source=provider, target=consumer, type="lollipop",
+                                 label=label, style=style, direction=direction)
+
+    def zero_or_one(self, source: EntityRef | str, target: EntityRef | str, *,
+                    label: str | None = None,
+                    source_label: str | None = None,
+                    target_label: str | None = None,
+                    style: LineStyleLike | None = None,
+                    direction: Direction | None = None) -> _RelationshipData:
+        return _RelationshipData(source=source, target=target, type="zero_or_one",
+                                 label=label, source_label=source_label,
+                                 target_label=target_label,
+                                 style=style, direction=direction)
+
+    def exactly_one(self, source: EntityRef | str, target: EntityRef | str, *,
+                    label: str | None = None,
+                    source_label: str | None = None,
+                    target_label: str | None = None,
+                    style: LineStyleLike | None = None,
+                    direction: Direction | None = None) -> _RelationshipData:
+        return _RelationshipData(source=source, target=target, type="exactly_one",
+                                 label=label, source_label=source_label,
+                                 target_label=target_label,
+                                 style=style, direction=direction)
+
+    def zero_or_many(self, source: EntityRef | str, target: EntityRef | str, *,
+                     label: str | None = None,
+                     source_label: str | None = None,
+                     target_label: str | None = None,
+                     style: LineStyleLike | None = None,
+                     direction: Direction | None = None) -> _RelationshipData:
+        return _RelationshipData(source=source, target=target, type="zero_or_many",
+                                 label=label, source_label=source_label,
+                                 target_label=target_label,
+                                 style=style, direction=direction)
+
+    def one_or_many(self, source: EntityRef | str, target: EntityRef | str, *,
+                    label: str | None = None,
+                    source_label: str | None = None,
+                    target_label: str | None = None,
+                    style: LineStyleLike | None = None,
+                    direction: Direction | None = None) -> _RelationshipData:
+        return _RelationshipData(source=source, target=target, type="one_or_many",
+                                 label=label, source_label=source_label,
+                                 target_label=target_label,
+                                 style=style, direction=direction)
 
 
 def _resolve_ref(item: EntityRef | str) -> str:

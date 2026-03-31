@@ -207,6 +207,34 @@ class ObjectRelationshipNamespace:
             label=label, style=style, direction=direction,
         )
 
+    def extension(
+        self,
+        source: EntityRef | str,
+        target: EntityRef | str,
+        label: str | None = None,
+        *,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> _RelationshipData:
+        return _RelationshipData(
+            source=source, target=target, type="extension",
+            label=label, style=style, direction=direction,
+        )
+
+    def implementation(
+        self,
+        source: EntityRef | str,
+        target: EntityRef | str,
+        label: str | None = None,
+        *,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> _RelationshipData:
+        return _RelationshipData(
+            source=source, target=target, type="implementation",
+            label=label, style=style, direction=direction,
+        )
+
 
 def _resolve_ref(item: EntityRef | str) -> str:
     if isinstance(item, EntityRef):

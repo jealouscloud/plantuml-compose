@@ -253,12 +253,14 @@ class ComponentConnectionNamespace:
         target: EntityRef | str,
         label: str | None = None,
         *,
+        source_label: str | None = None,
+        target_label: str | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="arrow",
-            label=label, source_label=None, target_label=None,
+            label=label, source_label=source_label, target_label=target_label,
             style=style, direction=direction,
         )
 
@@ -268,12 +270,14 @@ class ComponentConnectionNamespace:
         target: EntityRef | str,
         label: str | None = None,
         *,
+        source_label: str | None = None,
+        target_label: str | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="dependency",
-            label=label, source_label=None, target_label=None,
+            label=label, source_label=source_label, target_label=target_label,
             style=style, direction=direction,
         )
 
@@ -283,11 +287,43 @@ class ComponentConnectionNamespace:
         target: EntityRef | str,
         label: str | None = None,
         *,
+        source_label: str | None = None,
+        target_label: str | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="association",
+            label=label, source_label=source_label, target_label=target_label,
+            style=style, direction=direction,
+        )
+
+    def provides(
+        self,
+        source: EntityRef | str,
+        target: EntityRef | str,
+        label: str | None = None,
+        *,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> _RelationshipData:
+        return _RelationshipData(
+            source=source, target=target, type="provides",
+            label=label, source_label=None, target_label=None,
+            style=style, direction=direction,
+        )
+
+    def requires(
+        self,
+        source: EntityRef | str,
+        target: EntityRef | str,
+        label: str | None = None,
+        *,
+        style: LineStyleLike | None = None,
+        direction: Direction | None = None,
+    ) -> _RelationshipData:
+        return _RelationshipData(
+            source=source, target=target, type="requires",
             label=label, source_label=None, target_label=None,
             style=style, direction=direction,
         )
