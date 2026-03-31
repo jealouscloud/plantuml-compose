@@ -136,59 +136,6 @@ class TestObjectComposer:
         assert "Node" in result
         assert "@enduml" in result
 
-    def test_render_matches_builder(self):
-        """Simple objects + arrow matches old builder."""
-        from plantuml_compose.builders.object_ import (
-            object_diagram as builder_object,
-        )
-
-        # Old builder
-        with builder_object(title="Test") as old:
-            a = old.object_with_fields(
-                "Node", alias="n1",
-                fields={"ram": "64GB"},
-            )
-            b = old.object("Container", alias="ct1")
-            old.arrow(a, b, label="hosts")
-        old_output = render(old.build())
-
-        # New composer
-        d = object_diagram(title="Test")
-        el = d.elements
-        r = d.relationships
-        a = el.object("Node", ref="n1", fields={"ram": "64GB"})
-        b = el.object("Container", ref="ct1")
-        d.add(a, b)
-        d.connect(r.arrow(a, b, "hosts"))
-        new_output = render(d)
-
-        assert old_output == new_output
-
-    def test_render_matches_builder_composition(self):
-        """Composition relationship matches old builder."""
-        from plantuml_compose.builders.object_ import (
-            object_diagram as builder_object,
-        )
-
-        # Old builder
-        with builder_object() as old:
-            node = old.object("Node", alias="n1")
-            ct = old.object("Container", alias="ct1")
-            old.composition(node, ct)
-        old_output = render(old.build())
-
-        # New composer
-        d = object_diagram()
-        el = d.elements
-        r = d.relationships
-        node = el.object("Node", ref="n1")
-        ct = el.object("Container", ref="ct1")
-        d.add(node, ct)
-        d.connect(r.composition(node, ct))
-        new_output = render(d)
-
-        assert old_output == new_output
-
     def test_style_applied(self):
         d = object_diagram()
         el = d.elements

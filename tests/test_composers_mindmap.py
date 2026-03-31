@@ -113,61 +113,6 @@ class TestMindMapComposer:
         assert "Child" in result
         assert "@endmindmap" in result
 
-    def test_render_matches_builder(self):
-        """Build same diagram with old builder and new composer, compare output."""
-        from plantuml_compose.builders.mindmap import (
-            mindmap_diagram as builder_mindmap,
-        )
-
-        # Old builder
-        with builder_mindmap() as old:
-            with old.node("Root") as root:
-                root.leaf("A")
-                root.leaf("B")
-        old_output = render(old.build())
-
-        # New composer
-        d = mindmap_diagram()
-        n = d.nodes
-        d.add(n.node("Root",
-            n.leaf("A"),
-            n.leaf("B"),
-        ))
-        new_output = render(d)
-
-        assert old_output == new_output
-
-    def test_render_nested_matches_builder(self):
-        """Nested tree renders identically between builder and composer."""
-        from plantuml_compose.builders.mindmap import (
-            mindmap_diagram as builder_mindmap,
-        )
-
-        # Old builder
-        with builder_mindmap() as old:
-            with old.node("Root") as root:
-                with root.node("Branch", color="#E3F2FD") as branch:
-                    branch.leaf("Leaf 1")
-                    branch.leaf("Leaf 2")
-                root.leaf("Sibling", side="left", boxless=True)
-        old_output = render(old.build())
-
-        # New composer
-        d = mindmap_diagram()
-        n = d.nodes
-        d.add(n.node("Root",
-            n.node("Branch",
-                n.leaf("Leaf 1"),
-                n.leaf("Leaf 2"),
-                color="#E3F2FD",
-            ),
-            n.leaf("Sibling", side="left", boxless=True),
-        ))
-        new_output = render(d)
-
-        assert old_output == new_output
-
-
 class TestMindMapPlantUMLValidation:
 
     @pytest.fixture

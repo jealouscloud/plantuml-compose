@@ -175,35 +175,6 @@ class TestSaltComposer:
         assert "[OK]" in result or "OK" in result
         assert "@endsalt" in result
 
-    def test_render_matches_builder(self):
-        """Compare output with old builder for equivalent diagram."""
-        from plantuml_compose.builders.salt import salt_diagram as builder_salt
-        from plantuml_compose.primitives.salt import (
-            Text as PText,
-            TextField as PTextField,
-        )
-
-        # Old builder
-        with builder_salt(title="Form") as old:
-            with old.grid("#") as g:
-                g.row(PText(text="Name"), PTextField(value="John", width=15))
-            old.button("Submit")
-        old_output = render(old.build())
-
-        # New composer
-        d = salt_diagram(title="Form")
-        w = d.widgets
-        d.add(
-            w.grid("#",
-                w.row(w.text("Name"), w.text_field("John", width=15)),
-            ),
-            w.button("Submit"),
-        )
-        new_output = render(d)
-
-        assert old_output == new_output
-
-
 class TestSaltPlantUMLValidation:
 
     @pytest.fixture

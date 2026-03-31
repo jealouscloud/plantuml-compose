@@ -132,36 +132,6 @@ class TestNetworkComposer:
         assert "Internet" in result
         assert "@enduml" in result
 
-    def test_render_matches_builder(self):
-        """Simple network matches old builder output."""
-        from plantuml_compose.builders.network import (
-            network_diagram as builder_network,
-        )
-
-        # Old builder
-        with builder_network(title="Test") as old:
-            old.node("Internet", shape="cloud")
-            with old.network("DMZ", address="10.0.1.0/24") as dmz:
-                dmz.node("Internet")
-                dmz.node("web01", address="10.0.1.10")
-        old_output = render(old.build())
-
-        # New composer
-        d = network_diagram(title="Test")
-        n = d.networks
-        d.add(n.node("Internet", shape="cloud"))
-        d.add(
-            n.network("DMZ",
-                n.node("Internet"),
-                n.node("web01", address="10.0.1.10"),
-                address="10.0.1.0/24",
-            ),
-        )
-        new_output = render(d)
-
-        assert old_output == new_output
-
-
 class TestNetworkPlantUMLValidation:
 
     @pytest.fixture

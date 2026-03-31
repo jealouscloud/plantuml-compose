@@ -212,55 +212,6 @@ class TestClassComposer:
         assert "@startuml" in result
         assert "class A" in result or "A" in result
 
-    def test_render_matches_builder_simple(self):
-        """Simple class + extends matches old builder."""
-        from plantuml_compose.builders.class_ import (
-            class_diagram as builder_class,
-        )
-
-        # Old builder
-        with builder_class(title="Test") as old:
-            a = old.class_("Base")
-            b = old.class_("Child")
-            old.extends(b, a)
-        old_output = render(old.build())
-
-        # New composer
-        d = class_diagram(title="Test")
-        el = d.elements
-        r = d.relationships
-        a = el.class_("Base")
-        b = el.class_("Child")
-        d.add(a, b)
-        d.connect(r.extends(b, a))
-        new_output = render(d)
-
-        assert old_output == new_output
-
-    def test_render_matches_builder_with_members(self):
-        """Class with members matches old builder."""
-        from plantuml_compose.builders.class_ import (
-            class_diagram as builder_class,
-        )
-
-        # Old builder
-        with builder_class() as old:
-            with old.class_with_members("User") as user:
-                user.field("name", "str")
-                user.method("greet()", "str")
-        old_output = render(old.build())
-
-        # New composer
-        d = class_diagram()
-        el = d.elements
-        d.add(el.class_("User", members=(
-            el.field("name", "str"),
-            el.method("greet()", "str"),
-        )))
-        new_output = render(d)
-
-        assert old_output == new_output
-
     def test_together(self):
         d = class_diagram()
         el = d.elements

@@ -117,39 +117,6 @@ class TestSequenceComposer:
         assert notes[0].content.text == "Diagram-level note"
         assert notes[0].position == "over"
 
-    def test_render_matches_builder(self):
-        """Simple messages match old builder output."""
-        from plantuml_compose.builders.sequence import (
-            sequence_diagram as builder_sequence,
-        )
-
-        # Old builder
-        with builder_sequence(title="Test") as old:
-            a = old.participant("Alice")
-            b = old.participant("Bob")
-            old.message(a, b, "Hello")
-            old.message(b, a, "Hi", line_style="dotted")
-        old_output = render(old.build())
-
-        # New composer — to match, we need flat messages (not phases).
-        # Phases produce GroupBlocks which don't match the old flat layout.
-        # Instead, test that rendering produces valid PlantUML.
-        d = sequence_diagram(title="Test")
-        p = d.participants
-        a = p.participant("Alice")
-        b = p.participant("Bob")
-        d.add(a, b)
-        d.phase("Test", [
-            d.events.message(a, b, "Hello"),
-            d.events.reply(b, a, "Hi"),
-        ])
-        new_output = render(d)
-        # Both should be valid PlantUML
-        assert "@startuml" in old_output
-        assert "@startuml" in new_output
-        assert "Alice" in new_output
-        assert "Bob" in new_output
-
     def test_render_produces_plantuml(self):
         d = sequence_diagram(title="Boot")
         p = d.participants

@@ -167,29 +167,6 @@ class TestWBSComposer:
         assert "Task_A" in result or "Task A" in result
         assert "-->" in result or "->" in result
 
-    def test_render_matches_builder(self):
-        """Compare simple tree output with old builder."""
-        from plantuml_compose.builders.wbs import wbs_diagram as builder_wbs
-
-        # Old builder
-        with builder_wbs() as old:
-            with old.node("Root") as root:
-                root.leaf("A")
-                root.leaf("B")
-        old_output = render(old.build())
-
-        # New composer
-        d = wbs_diagram()
-        n = d.nodes
-        d.add(n.node("Root",
-            n.leaf("A"),
-            n.leaf("B"),
-        ))
-        new_output = render(d)
-
-        assert old_output == new_output
-
-
 class TestWBSPlantUMLValidation:
 
     @pytest.fixture

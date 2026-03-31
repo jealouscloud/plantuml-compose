@@ -187,53 +187,6 @@ class TestComponentComposer:
         assert "API" in result
         assert "@enduml" in result
 
-    def test_render_matches_builder_simple(self):
-        """Simple components + arrow matches old builder."""
-        from plantuml_compose.builders.component import (
-            component_diagram as builder_component,
-        )
-
-        # Old builder
-        with builder_component(title="Test") as old:
-            api = old.component("API")
-            db = old.component("DB")
-            old.arrow(api, db, label="queries")
-        old_output = render(old.build())
-
-        # New composer
-        d = component_diagram(title="Test")
-        el = d.elements
-        c = d.connections
-        api = el.component("API")
-        db = el.component("DB")
-        d.add(api, db)
-        d.connect(c.arrow(api, db, "queries"))
-        new_output = render(d)
-
-        assert old_output == new_output
-
-    def test_render_matches_builder_package(self):
-        """Package with children matches old builder."""
-        from plantuml_compose.builders.component import (
-            component_diagram as builder_component,
-        )
-
-        # Old builder
-        with builder_component() as old:
-            with old.package("Pkg") as pkg:
-                pkg.component("Inner")
-        old_output = render(old.build())
-
-        # New composer
-        d = component_diagram()
-        el = d.elements
-        d.add(el.package("Pkg",
-            el.component("Inner"),
-        ))
-        new_output = render(d)
-
-        assert old_output == new_output
-
     def test_nested_child_access_in_connections(self):
         """Child access works for wiring connections."""
         d = component_diagram()

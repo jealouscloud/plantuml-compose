@@ -2,43 +2,48 @@
 
 This library provides a Pythonic API for creating PlantUML diagrams with
 full type safety. Instead of writing PlantUML text syntax directly, you
-use Python builders that validate your diagram structure and generate
+use Python composers that validate your diagram structure and generate
 correct PlantUML output.
 
 Supported diagram types:
     state_diagram:      State machines and lifecycles
     sequence_diagram:   Message flows between participants
     class_diagram:      Class structures and relationships
-    activity_diagram:   Flowcharts and process flows
     component_diagram:  System architecture and dependencies
     deployment_diagram: Infrastructure and deployment topology
     usecase_diagram:    Requirements and user interactions
     object_diagram:     Instance snapshots with concrete values
-    json_diagram:       JSON data visualization
-    yaml_diagram:       YAML data visualization
     mindmap_diagram:    Hierarchical mind maps
     wbs_diagram:        Work breakdown structures
+    gantt_diagram:      Gantt charts and project schedules
+    timing_diagram:     Timing diagrams
+    network_diagram:    Network architecture diagrams
+    salt_diagram:       Salt wireframe UI diagrams
 
 Quick Start:
-    from plantuml_compose import state_diagram
+    from plantuml_compose import state_diagram, render
 
-    # Create a diagram using the builder context manager
-    with state_diagram(title="Traffic Light") as d:
-        red = d.state("Red")
-        yellow = d.state("Yellow")
-        green = d.state("Green")
+    d = state_diagram(title="Traffic Light")
+    el = d.elements
+    t = d.transitions
 
-        d.initial(red)
-        d.transition(red, green, label="timer")
-        d.transition(green, yellow, label="timer")
-        d.transition(yellow, red, label="timer")
+    red = el.state("Red")
+    yellow = el.state("Yellow")
+    green = el.state("Green")
+    d.add(red, yellow, green)
 
-    # Render to PlantUML text and save to file
+    d.connect(
+        t.transition("[*]", red),
+        t.transition(red, green, label="timer"),
+        t.transition(green, yellow, label="timer"),
+        t.transition(yellow, red, label="timer"),
+    )
+
     with open("diagram.puml", "w") as f:
-        f.write(d.render())
+        f.write(render(d))
 
 The library is organized in three layers:
-    Builders:    User-facing API with context managers (state_diagram, etc.)
+    Composers:   User-facing API with factory functions (state_diagram, etc.)
     Primitives:  Immutable data classes representing diagram elements
     Renderers:   Pure functions that convert primitives to PlantUML text
 
@@ -47,13 +52,11 @@ APIs accept either the typed objects or convenient string shortcuts
 (e.g., "red" instead of Color.named("red")).
 """
 
-from .builders import (
-    activity_diagram,
+from .composers import (
     class_diagram,
     component_diagram,
     deployment_diagram,
     gantt_diagram,
-    json_diagram,
     mindmap_diagram,
     network_diagram,
     object_diagram,
@@ -63,16 +66,8 @@ from .builders import (
     timing_diagram,
     usecase_diagram,
     wbs_diagram,
-    yaml_diagram,
-    # Gantt references
-    MilestoneRef,
-    TaskRef,
-    # Network references
-    NodeRef,
-    # Timing references
-    AnchorRef,
-    ParticipantRef,
 )
+from .composers.base import EntityRef
 from .primitives import (
     Color,
     ColorLike,
@@ -168,14 +163,13 @@ from .primitives import (
 from .renderers import link, render
 
 __all__ = [
-    # Builders
-    "activity_diagram",
+    # Composers
     "class_diagram",
     "component_diagram",
     "deployment_diagram",
     "gantt_diagram",
-    "json_diagram",
     "mindmap_diagram",
+    "network_diagram",
     "object_diagram",
     "salt_diagram",
     "sequence_diagram",
@@ -183,7 +177,8 @@ __all__ = [
     "timing_diagram",
     "usecase_diagram",
     "wbs_diagram",
-    "yaml_diagram",
+    # Composer base
+    "EntityRef",
     # Renderers
     "link",
     "render",
@@ -259,17 +254,10 @@ __all__ = [
     "GanttSeparator",
     "GanttTask",
     "GanttVerticalSeparator",
-    # Gantt references
-    "MilestoneRef",
-    "TaskRef",
     # Network diagram
-    "network_diagram",
     "NetworkDiagramStyle",
     "NetworkDiagramStyleLike",
-    "NodeRef",
-    # Timing diagram references and primitives
-    "AnchorRef",
-    "ParticipantRef",
+    # Timing diagram primitives
     "HiddenState",
     "IntricatedState",
     "TimeAnchor",
@@ -287,7 +275,6 @@ __all__ = [
     "TimingStateOrder",
     "TimingTicks",
     # Salt
-    "salt_diagram",
     "SaltDiagram",
     "SaltWidget",
 ]

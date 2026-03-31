@@ -182,69 +182,6 @@ class TestStateComposer:
         assert "Idle" in result
         assert "@enduml" in result
 
-    def test_render_matches_builder(self):
-        """Simple lifecycle matches old builder."""
-        from plantuml_compose.builders.state import (
-            state_diagram as builder_state,
-        )
-
-        # Old builder
-        with builder_state(title="Lifecycle", theme="plain") as old:
-            firmware = old.state("Firmware", description="firmware module")
-            os_install = old.state("OS", description="Installing")
-            ready = old.state("Ready", description="Available")
-            old.arrow("[*]", firmware, label="Server racked")
-            old.arrow(firmware, os_install, label="Firmware complete")
-            old.arrow(os_install, ready, label="OS complete")
-        old_output = render(old.build())
-
-        # New composer
-        d = state_diagram(title="Lifecycle", theme="plain")
-        el = d.elements
-        t = d.transitions
-        firmware = el.state("Firmware", description="firmware module")
-        os_install = el.state("OS", description="Installing")
-        ready = el.state("Ready", description="Available")
-        d.add(firmware, os_install, ready)
-        d.connect(
-            t.transition("[*]", firmware, label="Server racked"),
-            t.transition(firmware, os_install, label="Firmware complete"),
-            t.transition(os_install, ready, label="OS complete"),
-        )
-        new_output = render(d)
-
-        assert old_output == new_output
-
-    def test_render_matches_builder_with_style(self):
-        """States with style match old builder."""
-        from plantuml_compose.builders.state import (
-            state_diagram as builder_state,
-        )
-
-        # Old builder
-        with builder_state() as old:
-            idle = old.state("Idle", style={"background": "#E8F5E9"})
-            active = old.state("Active", style={"background": "#E3F2FD"})
-            old.arrow("[*]", idle)
-            old.arrow(idle, active, label="go")
-        old_output = render(old.build())
-
-        # New composer
-        d = state_diagram()
-        el = d.elements
-        t = d.transitions
-        idle = el.state("Idle", style={"background": "#E8F5E9"})
-        active = el.state("Active", style={"background": "#E3F2FD"})
-        d.add(idle, active)
-        d.connect(
-            t.transition("[*]", idle),
-            t.transition(idle, active, label="go"),
-        )
-        new_output = render(d)
-
-        assert old_output == new_output
-
-
 class TestStatePseudoStatesAndConcurrency:
 
     def test_choice(self):
