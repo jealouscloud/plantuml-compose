@@ -88,16 +88,54 @@ def render_timing_diagram(diagram: TimingDiagram) -> str:
     if diagram.legend:
         lines.extend(render_legend(diagram.legend))
 
-    # Elements
-    for elem in diagram.elements:
-        lines.extend(_render_element(elem))
+    # Elements — group consecutive time-bearing elements by time value
+    # so that @time is emitted once per group, not per element
+    elements = list(diagram.elements)
+    i = 0
+    while i < len(elements):
+        elem = elements[i]
+        elem_time = _get_element_time(elem)
+        if elem_time is not None:
+            # Collect consecutive elements sharing the same time
+            group = [elem]
+            j = i + 1
+            while j < len(elements):
+                next_time = _get_element_time(elements[j])
+                if next_time == elem_time:
+                    group.append(elements[j])
+                    j += 1
+                else:
+                    break
+            # Emit @time once, then all element bodies without time prefix
+            lines.append(_format_time_ref(elem_time))
+            for g_elem in group:
+                lines.extend(_render_element_body(g_elem))
+            i = j
+        else:
+            lines.extend(_render_element(elem))
+            i += 1
 
     lines.append("@enduml")
     return "\n".join(lines)
 
 
+def _get_element_time(elem: TimingElement) -> TimeValue | None:
+    """Extract the time value from a time-bearing element, or None."""
+    if isinstance(elem, (StateChange, IntricatedState, HiddenState)):
+        return elem.time
+    if isinstance(elem, TimingMessage) and elem.source_time is not None:
+        return elem.source_time
+    if isinstance(elem, TimingNote):
+        return elem.time
+    return None
+
+
 def _render_element(elem: TimingElement) -> list[str]:
-    """Dispatch to specific renderer based on element type."""
+    """Dispatch to specific renderer based on element type.
+
+    Used for non-time-grouped elements. Time-bearing elements rendered
+    via _render_element_body() after a shared @time prefix.
+    """
     if isinstance(elem, TimingParticipant):
         return _render_participant(elem)
     if isinstance(elem, TimingStateOrder):
@@ -125,6 +163,25 @@ def _render_element(elem: TimingElement) -> list[str]:
     if isinstance(elem, TimingNote):
         return _render_note(elem)
     raise TypeError(f"Unknown timing element type: {type(elem)}")
+
+
+def _render_element_body(elem: TimingElement) -> list[str]:
+    """Render a time-bearing element WITHOUT the @time prefix.
+
+    Called after the @time has already been emitted by the grouping logic.
+    """
+    if isinstance(elem, StateChange):
+        return [_render_state_change_body(elem)]
+    if isinstance(elem, IntricatedState):
+        return [_render_intricated_state_body(elem)]
+    if isinstance(elem, HiddenState):
+        return [_render_hidden_state_body(elem)]
+    if isinstance(elem, TimingMessage):
+        return [_render_message_body(elem)]
+    if isinstance(elem, TimingNote):
+        return _render_note_body(elem)
+    # Fallback: render normally (shouldn't happen for grouped elements)
+    return _render_element(elem)
 
 
 def _format_time(time: TimeValue) -> str:
@@ -239,49 +296,49 @@ def _render_initial_state(state: TimingInitialState) -> str:
     return f"{state.participant} is {_quote_state(state.state)}"
 
 
-def _render_state_change(state: StateChange) -> str:
-    """Render state change.
-
-    PlantUML timing diagram syntax:
-        @0
-        R is Idle
-
-    With color:
-        @0
-        R is Idle #Blue
-
-    With comment:
-        @0
-        R is Idle: starts here
-    """
+def _render_state_change_body(state: StateChange) -> str:
+    """Render state change body WITHOUT @time prefix."""
     state_str = f"{state.participant} is {_quote_state(state.state)}"
     if state.color:
         state_str += f" {render_color_hash(state.color)}"
     if state.comment:
         state_str += f": {state.comment}"
-    return f"{_format_time_ref(state.time)}\n{state_str}"
+    return state_str
 
 
-def _render_intricated_state(state: IntricatedState) -> str:
-    """Render intricated (undefined) state."""
+def _render_state_change(state: StateChange) -> str:
+    """Render state change with @time prefix."""
+    return f"{_format_time_ref(state.time)}\n{_render_state_change_body(state)}"
+
+
+def _render_intricated_state_body(state: IntricatedState) -> str:
+    """Render intricated state body WITHOUT @time prefix."""
     state_str = f"{{{state.states[0]},{state.states[1]}}}"
     if state.color:
         state_str += f" {render_color_hash(state.color)}"
-    return f"{_format_time_ref(state.time)}\n{state.participant} is {state_str}"
+    return f"{state.participant} is {state_str}"
+
+
+def _render_intricated_state(state: IntricatedState) -> str:
+    """Render intricated (undefined) state with @time prefix."""
+    return f"{_format_time_ref(state.time)}\n{_render_intricated_state_body(state)}"
+
+
+def _render_hidden_state_body(state: HiddenState) -> str:
+    """Render hidden state body WITHOUT @time prefix."""
+    return f"{state.participant} is {{{state.style}}}"
 
 
 def _render_hidden_state(state: HiddenState) -> str:
-    """Render hidden state placeholder."""
-    state_str = f"{{{state.style}}}"
-    return f"{_format_time_ref(state.time)}\n{state.participant} is {state_str}"
+    """Render hidden state placeholder with @time prefix."""
+    return f"{_format_time_ref(state.time)}\n{_render_hidden_state_body(state)}"
 
 
-def _render_message(msg: TimingMessage) -> str:
-    """Render message between participants."""
+def _render_message_body(msg: TimingMessage) -> str:
+    """Render message body WITHOUT @time prefix."""
     parts = [msg.source, "->"]
 
     if msg.target_time_offset is not None:
-        # Target with time offset: target@+50 or target@-10
         sign = "+" if msg.target_time_offset >= 0 else ""
         parts.append(f"{msg.target}@{sign}{msg.target_time_offset}")
     else:
@@ -290,7 +347,12 @@ def _render_message(msg: TimingMessage) -> str:
     if msg.label:
         parts.append(f": {msg.label}")
 
-    result = " ".join(parts)
+    return " ".join(parts)
+
+
+def _render_message(msg: TimingMessage) -> str:
+    """Render message between participants with optional @time prefix."""
+    result = _render_message_body(msg)
     if msg.source_time is not None:
         result = f"{_format_time_ref(msg.source_time)}\n{result}"
     return result
@@ -320,16 +382,19 @@ def _render_scale(scale: TimingScale) -> str:
     return f"scale {scale.time_units} as {scale.pixels} pixels"
 
 
-def _render_note(note: TimingNote) -> list[str]:
-    """Render note attached to a participant at a specific time."""
-    # Set the time context first, then render the note
+def _render_note_body(note: TimingNote) -> list[str]:
+    """Render note body WITHOUT @time prefix."""
     content = render_embeddable_content(note.text)
-    lines = [
-        _format_time_ref(note.time),
-        f"note {note.position} of {note.participant}",
-    ]
+    lines = [f"note {note.position} of {note.participant}"]
     lines.extend(content.split("\n"))
     lines.append("end note")
+    return lines
+
+
+def _render_note(note: TimingNote) -> list[str]:
+    """Render note attached to a participant at a specific time."""
+    lines = [_format_time_ref(note.time)]
+    lines.extend(_render_note_body(note))
     return lines
 
 

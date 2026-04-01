@@ -76,6 +76,7 @@ class _StateEventData:
     participant: EntityRef | str
     state: str
     color: ColorLike | None = None
+    comment: str | None = None
 
 
 @dataclass(frozen=True)
@@ -84,6 +85,7 @@ class _MessageEventData:
     source: EntityRef | str
     target: EntityRef | str
     label: str | None = None
+    target_time_offset: int | None = None
 
 
 @dataclass(frozen=True)
@@ -250,11 +252,13 @@ class TimingEventNamespace:
         state: str,
         *,
         color: ColorLike | None = None,
+        comment: str | None = None,
     ) -> _StateEventData:
         return _StateEventData(
             participant=participant,
             state=state,
             color=color,
+            comment=comment,
         )
 
     def message(
@@ -262,11 +266,14 @@ class TimingEventNamespace:
         source: EntityRef | str,
         target: EntityRef | str,
         label: str | None = None,
+        *,
+        target_time_offset: int | None = None,
     ) -> _MessageEventData:
         return _MessageEventData(
             source=source,
             target=target,
             label=label,
+            target_time_offset=target_time_offset,
         )
 
     def intricated(
@@ -497,6 +504,7 @@ class TimingComposer(BaseComposer):
                         time=time,
                         state=event.state,
                         color=event.color,
+                        comment=event.comment,
                     ))
                 elif isinstance(event, _MessageEventData):
                     elements.append(TimingMessage(
@@ -504,6 +512,7 @@ class TimingComposer(BaseComposer):
                         target=self._resolve_participant(event.target),
                         label=event.label,
                         source_time=time,
+                        target_time_offset=event.target_time_offset,
                     ))
                 elif isinstance(event, _IntricatedEventData):
                     elements.append(IntricatedState(

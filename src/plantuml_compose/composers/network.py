@@ -30,8 +30,10 @@ from ..primitives.common import (
     Footer,
     Header,
     Legend,
+    NetworkDiagramStyleLike,
     Scale,
     ThemeLike,
+    coerce_network_diagram_style,
 )
 from ..primitives.network import (
     Network,
@@ -179,12 +181,18 @@ class NetworkComposer(BaseComposer):
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
         theme: ThemeLike = None,
+        diagram_style: NetworkDiagramStyleLike | None = None,
     ) -> None:
         super().__init__(
             title=title, mainframe=mainframe, caption=caption,
             header=header, footer=footer, legend=legend, scale=scale,
         )
         self._theme = theme
+        self._diagram_style = (
+            coerce_network_diagram_style(diagram_style)
+            if diagram_style
+            else None
+        )
         self._networks_ns = NetworkNamespace()
         self._links: list[PeerLink] = []
 
@@ -260,6 +268,7 @@ class NetworkComposer(BaseComposer):
             legend=self._legend,
             scale=self._scale,
             theme=self._theme,
+            diagram_style=self._diagram_style,
         )
 
 
@@ -273,6 +282,7 @@ def network_diagram(
     legend: str | Legend | None = None,
     scale: float | Scale | None = None,
     theme: ThemeLike = None,
+    diagram_style: NetworkDiagramStyleLike | None = None,
 ) -> NetworkComposer:
     """Create a network diagram composer.
 
@@ -290,5 +300,5 @@ def network_diagram(
     return NetworkComposer(
         title=title, mainframe=mainframe, caption=caption,
         header=header, footer=footer, legend=legend, scale=scale,
-        theme=theme,
+        theme=theme, diagram_style=diagram_style,
     )

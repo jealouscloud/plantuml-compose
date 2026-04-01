@@ -206,12 +206,10 @@ class UseCaseRelationshipNamespace:
     ) -> _RelationshipData:
         """Generalization: child is-a parent.
 
-        Maps to PlantUML extension type with source=child, target=parent.
-        This matches the old builder's generalizes() which sets
-        source=child, target=parent, type="extension".
+        Renders as parent <|-- child (child extends parent).
         """
         return _RelationshipData(
-            source=child, target=parent, type="extension",
+            source=parent, target=child, type="extension",
             label=None, style=style, direction=direction,
         )
 

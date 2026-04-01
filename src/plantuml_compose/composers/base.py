@@ -106,6 +106,12 @@ class BaseComposer:
         legend: str | Legend | None = None,
         scale: float | Scale | None = None,
     ) -> None:
+        if isinstance(header, str):
+            header = Header(content=header)
+        if isinstance(footer, str):
+            footer = Footer(content=footer)
+        if isinstance(legend, str):
+            legend = Legend(content=legend)
         self._title = title
         self._mainframe = mainframe
         self._caption = caption

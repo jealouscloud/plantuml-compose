@@ -331,8 +331,11 @@ class SequenceEventNamespace:
 
 
 def _build_participant(entity_ref: EntityRef) -> Participant:
+    from ..primitives.common import sanitize_ref
+    alias = entity_ref._ref if entity_ref._ref != sanitize_ref(entity_ref._name) else None
     return Participant(
         name=entity_ref._name,
+        alias=alias,
         type=entity_ref._data.get("_type", "participant"),
         style=entity_ref._data.get("_style"),
     )
@@ -628,7 +631,13 @@ class SequenceComposer(BaseComposer):
             pos = note_data["position"]
             if target is not None:
                 participants_tuple = (_resolve_ref(target),)
-                pos = "over"
+                # "left" and "right" are valid positioned-note positions;
+                # anything else (including the BaseComposer default "right")
+                # maps to "over" for sequence diagrams with a target.
+                # Users must pass position="left" or position="right" explicitly
+                # to get note left/right of participant.
+                if pos not in ("left", "right", "over"):
+                    pos = "over"
             content = note_data["content"]
             content_label = Label(content) if isinstance(content, str) else content
             elements.append(SequenceNote(

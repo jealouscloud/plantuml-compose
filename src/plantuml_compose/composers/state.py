@@ -83,6 +83,7 @@ class _TransitionData:
     effect: str | None
     style: LineStyleLike | None
     direction: Direction | None
+    note: str | None = None
 
 
 class _RegionData:
@@ -164,12 +165,27 @@ class StateElementNamespace:
             "_type": "pseudo", "_kind": PseudoStateKind.DEEP_HISTORY, "style": None,
         })
 
+    def entry_point(self, name: str, *, ref: str | None = None,
+                    style: StyleLike | None = None) -> EntityRef:
+        """Named entry point for a composite state."""
+        return EntityRef(name, ref=ref, data={
+            "_type": "pseudo", "_kind": PseudoStateKind.ENTRY_POINT, "style": style,
+        })
+
+    def exit_point(self, name: str, *, ref: str | None = None,
+                   style: StyleLike | None = None) -> EntityRef:
+        """Named exit point for a composite state."""
+        return EntityRef(name, ref=ref, data={
+            "_type": "pseudo", "_kind": PseudoStateKind.EXIT_POINT, "style": style,
+        })
+
     def concurrent(
         self,
         name: str,
         *regions: _RegionData,
         ref: str | None = None,
         style: StyleLike | None = None,
+        separator: str = "horizontal",
     ) -> EntityRef:
         """Concurrent state with parallel regions.
 
@@ -178,9 +194,14 @@ class StateElementNamespace:
                 el.region(el.state("Audio"), el.state("Video")),
                 el.region(el.state("Network")),
             )
+
+        Args:
+            separator: "horizontal" (regions stacked, -- separator) or
+                       "vertical" (regions side-by-side, || separator)
         """
         return EntityRef(name, ref=ref, data={
             "_type": "concurrent", "style": style, "regions": regions,
+            "separator": separator,
         })
 
     def region(self, *elements: EntityRef) -> _RegionData:
@@ -202,11 +223,12 @@ class StateTransitionNamespace:
         effect: str | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        note: str | None = None,
     ) -> _TransitionData:
         return _TransitionData(
             source=source, target=target,
             label=label, trigger=trigger, guard=guard, effect=effect,
-            style=style, direction=direction,
+            style=style, direction=direction, note=note,
         )
 
     def transitions(
@@ -284,13 +306,16 @@ class StateTransitionNamespace:
 def _resolve_ref(item: EntityRef | str) -> str:
     """Resolve an EntityRef or string to a transition reference.
 
-    Handles "[*]" as initial/final pseudo-state marker.
+    Handles "[*]" as initial/final pseudo-state marker,
+    and "[H]"/"[H*]" as history pseudo-state markers.
     """
     if isinstance(item, str):
-        # "[*]" is passed through directly for the renderer
         if item in _PSEUDO_STRINGS:
             return item
         return item
+    # History pseudo-states: resolve by name, not sanitized ref
+    if item._name in ("[H]", "[H*]"):
+        return item._name
     return item._ref
 
 
@@ -322,6 +347,7 @@ def _build_element(ref: EntityRef) -> StateDiagramElement:
             regions=built_regions,
             style=style_obj,
             note=note_obj,
+            separator=data.get("separator", "horizontal"),
         )
 
     if element_type == "composite":
@@ -414,6 +440,7 @@ class StateComposer(BaseComposer):
                     effect=conn.effect,
                     style=coerce_line_style(conn.style) if conn.style else None,
                     direction=conn.direction,
+                    note=Label(conn.note) if conn.note else None,
                 ))
 
         # Build notes (floating notes via d.note())

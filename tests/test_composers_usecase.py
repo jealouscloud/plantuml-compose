@@ -49,7 +49,7 @@ class TestUseCaseComposer:
         assert pkg.elements[0].name == "View Alerts"
 
     def test_generalizes(self):
-        """Generalizes maps child as source, parent as target, type extension."""
+        """Generalizes: parent <|-- child (child extends parent)."""
         d = usecase_diagram()
         el = d.elements
         r = d.relationships
@@ -61,8 +61,9 @@ class TestUseCaseComposer:
         rels = [e for e in result.elements if isinstance(e, Relationship)]
         assert len(rels) == 1
         assert rels[0].type == "extension"
-        assert rels[0].source == "oncall"
-        assert rels[0].target == "Engineer"
+        # source=parent, target=child so arrow renders as parent <|-- child
+        assert rels[0].source == "Engineer"
+        assert rels[0].target == "oncall"
         assert rels[0].direction == "up"
 
     def test_include(self):

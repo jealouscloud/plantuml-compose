@@ -115,7 +115,8 @@ class TestSequenceComposer:
         notes = [el for el in result.elements if isinstance(el, SequenceNote)]
         assert len(notes) == 1
         assert notes[0].content.text == "Diagram-level note"
-        assert notes[0].position == "over"
+        # Default position from BaseComposer is "right", preserved for targeted notes
+        assert notes[0].position == "right"
 
     def test_render_produces_plantuml(self):
         d = sequence_diagram(title="Boot")
