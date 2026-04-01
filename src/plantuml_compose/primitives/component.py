@@ -96,6 +96,7 @@ class Component:
     type: ComponentType = "component"
     stereotype: Stereotype | None = None
     style: Style | None = None
+    description: str | None = None
     # For nested elements (ports, inner components)
     elements: tuple["ComponentElement", ...] = field(default_factory=tuple)
 
@@ -184,6 +185,7 @@ class Container:
     stereotype: Stereotype | None = None
     style: Style | None = None
     alias: str | None = None
+    description: str | None = None
 
     @property
     def _ref(self) -> str:

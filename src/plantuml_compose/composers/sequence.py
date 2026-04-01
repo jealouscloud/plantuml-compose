@@ -102,6 +102,8 @@ class _EventNoteData:
     over: EntityRef | str | list[EntityRef | str] | None
     position: Literal["left", "right", "over"]
     shape: NoteShape
+    across: bool = False
+    aligned: bool = False
 
 
 @dataclass(frozen=True)
@@ -268,6 +270,8 @@ class SequenceEventNamespace:
         over: EntityRef | str | list[EntityRef | str] | None = None,
         position: Literal["left", "right"] = "right",
         shape: NoteShape = "note",
+        across: bool = False,
+        aligned: bool = False,
     ) -> _EventNoteData:
         actual_position: Literal["left", "right", "over"] = (
             "over" if over is not None else position
@@ -275,6 +279,7 @@ class SequenceEventNamespace:
         return _EventNoteData(
             content=content, over=over,
             position=actual_position, shape=shape,
+            across=across, aligned=aligned,
         )
 
     # --- Lifecycle / activation events (for use inside phase lists) ---
@@ -382,6 +387,8 @@ def _build_event_note(data: _EventNoteData) -> SequenceNote:
         position=data.position,
         participants=participants,
         shape=data.shape,
+        across=data.across,
+        aligned=data.aligned,
     )
 
 
@@ -560,6 +567,37 @@ class SequenceComposer(BaseComposer):
             participant=participant, action="destroy",
         ))
 
+    # --- Notes ---
+
+    def note(
+        self,
+        content: str,
+        *,
+        target: EntityRef | str | None = None,
+        position: str = "right",
+        color: ColorLike | None = None,
+        across: bool = False,
+        aligned: bool = False,
+    ) -> None:
+        """Attach a note to the diagram or a target entity.
+
+        Args:
+            content: Note text
+            target: Participant to attach the note to
+            position: "left", "right", or "over"
+            color: Note background color
+            across: If True, note spans all participants
+            aligned: If True, aligns with the previous note
+        """
+        self._notes.append({
+            "content": content,
+            "target": target,
+            "position": position,
+            "color": color,
+            "across": across,
+            "aligned": aligned,
+        })
+
     # --- Participant grouping ---
 
     def box(
@@ -679,6 +717,8 @@ class SequenceComposer(BaseComposer):
                 content=content_label,
                 position=pos,
                 participants=participants_tuple,
+                across=note_data.get("across", False),
+                aligned=note_data.get("aligned", False),
             ))
 
         return SequenceDiagram(

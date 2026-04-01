@@ -68,6 +68,9 @@ ElementType = Literal[
     "node",
     "package",
     "person",
+    "port",
+    "portin",
+    "portout",
     "action",
     "process",
     "queue",
@@ -96,6 +99,7 @@ class DeploymentElement:
     alias: str | None = None
     stereotype: Stereotype | None = None
     style: Style | None = None
+    description: str | None = None
     # For nested elements
     elements: tuple["DeploymentDiagramElement", ...] = field(
         default_factory=tuple

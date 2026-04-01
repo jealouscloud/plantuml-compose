@@ -188,7 +188,15 @@ def _render_component(comp: Component, indent: int = 0) -> list[str]:
     # When names need quotes, we must add an implicit alias so notes/relationships
     # can reference the component using the sanitized name (e.g., "Auth Service" -> Auth_Service)
     quoted = needs_quotes(comp.name)
-    name = f'"{escape_quotes(comp.name)}"' if quoted else comp.name
+
+    # PlantUML bracket description syntax [..] doesn't work with quoted names.
+    # For quoted names with descriptions, embed \n in the name string instead.
+    use_bracket_desc = comp.description and not comp.elements and not quoted
+    if quoted and comp.description and not comp.elements:
+        desc_suffix = "\\n" + comp.description.replace("\n", "\\n")
+        name = f'"{escape_quotes(comp.name)}{desc_suffix}"'
+    else:
+        name = f'"{escape_quotes(comp.name)}"' if quoted else comp.name
     parts.append(name)
 
     if comp.alias:
@@ -210,6 +218,11 @@ def _render_component(comp: Component, indent: int = 0) -> list[str]:
         for inner in comp.elements:
             lines.extend(_render_element(inner, indent + 1))
         lines.append(f"{prefix}}}")
+    elif use_bracket_desc:
+        lines.append(f"{prefix}{' '.join(parts)} [")
+        for desc_line in comp.description.split("\n"):
+            lines.append(f"{prefix}  {desc_line}")
+        lines.append(f"{prefix}]")
     else:
         lines.append(f"{prefix}{' '.join(parts)}")
 
@@ -253,7 +266,17 @@ def _render_container(container: Container, indent: int = 0) -> list[str]:
     parts: list[str] = [container.type]
 
     quoted = needs_quotes(container.name)
-    name = f'"{escape_quotes(container.name)}"' if quoted else container.name
+
+    # PlantUML bracket description syntax [..] doesn't work with quoted names.
+    # For quoted names with descriptions, embed \n in the name string instead.
+    use_bracket_desc = (
+        container.description and not container.elements and not quoted
+    )
+    if quoted and container.description and not container.elements:
+        desc_suffix = "\\n" + container.description.replace("\n", "\\n")
+        name = f'"{escape_quotes(container.name)}{desc_suffix}"'
+    else:
+        name = f'"{escape_quotes(container.name)}"' if quoted else container.name
     parts.append(name)
 
     # Alias for relationships
@@ -271,13 +294,26 @@ def _render_container(container: Container, indent: int = 0) -> list[str]:
         if style_str:
             parts.append(style_str)
 
-    parts.append("{")
-    lines.append(f"{prefix}{' '.join(parts)}")
+    if container.elements:
+        parts.append("{")
+        lines.append(f"{prefix}{' '.join(parts)}")
 
-    for elem in container.elements:
-        lines.extend(_render_element(elem, indent + 1))
+        for elem in container.elements:
+            lines.extend(_render_element(elem, indent + 1))
 
-    lines.append(f"{prefix}}}")
+        lines.append(f"{prefix}}}")
+    elif use_bracket_desc:
+        lines.append(f"{prefix}{' '.join(parts)} [")
+        for desc_line in container.description.split("\n"):
+            lines.append(f"{prefix}  {desc_line}")
+        lines.append(f"{prefix}]")
+    elif container.description:
+        # Description embedded in name via \n (quoted name fallback)
+        lines.append(f"{prefix}{' '.join(parts)}")
+    else:
+        parts.append("{")
+        lines.append(f"{prefix}{' '.join(parts)}")
+        lines.append(f"{prefix}}}")
     return lines
 
 

@@ -97,6 +97,7 @@ class DeploymentElementNamespace:
         ref: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
+        description: str | None = None,
     ) -> EntityRef:
         return EntityRef(
             name, ref=ref,
@@ -104,177 +105,218 @@ class DeploymentElementNamespace:
                 "_type": element_type,
                 "stereotype": stereotype,
                 "style": style,
+                "description": description,
             },
             children=children,
         )
 
     def node(self, name: str, *children: EntityRef, ref: str | None = None,
              stereotype: str | Stereotype | None = None,
-             style: StyleLike | None = None) -> EntityRef:
+             style: StyleLike | None = None,
+             description: str | None = None) -> EntityRef:
         return self._make(name, "node", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def artifact(self, name: str, *children: EntityRef, ref: str | None = None,
                  stereotype: str | Stereotype | None = None,
-                 style: StyleLike | None = None) -> EntityRef:
+                 style: StyleLike | None = None,
+                 description: str | None = None) -> EntityRef:
         return self._make(name, "artifact", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def component(self, name: str, *children: EntityRef, ref: str | None = None,
                   stereotype: str | Stereotype | None = None,
-                  style: StyleLike | None = None) -> EntityRef:
+                  style: StyleLike | None = None,
+                  description: str | None = None) -> EntityRef:
         return self._make(name, "component", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def database(self, name: str, *children: EntityRef, ref: str | None = None,
                  stereotype: str | Stereotype | None = None,
-                 style: StyleLike | None = None) -> EntityRef:
+                 style: StyleLike | None = None,
+                 description: str | None = None) -> EntityRef:
         return self._make(name, "database", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def storage(self, name: str, *children: EntityRef, ref: str | None = None,
                 stereotype: str | Stereotype | None = None,
-                style: StyleLike | None = None) -> EntityRef:
+                style: StyleLike | None = None,
+                description: str | None = None) -> EntityRef:
         return self._make(name, "storage", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def cloud(self, name: str, *children: EntityRef, ref: str | None = None,
               stereotype: str | Stereotype | None = None,
-              style: StyleLike | None = None) -> EntityRef:
+              style: StyleLike | None = None,
+              description: str | None = None) -> EntityRef:
         return self._make(name, "cloud", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def frame(self, name: str, *children: EntityRef, ref: str | None = None,
               stereotype: str | Stereotype | None = None,
-              style: StyleLike | None = None) -> EntityRef:
+              style: StyleLike | None = None,
+              description: str | None = None) -> EntityRef:
         return self._make(name, "frame", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def folder(self, name: str, *children: EntityRef, ref: str | None = None,
                stereotype: str | Stereotype | None = None,
-               style: StyleLike | None = None) -> EntityRef:
+               style: StyleLike | None = None,
+               description: str | None = None) -> EntityRef:
         return self._make(name, "folder", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def package(self, name: str, *children: EntityRef, ref: str | None = None,
                 stereotype: str | Stereotype | None = None,
-                style: StyleLike | None = None) -> EntityRef:
+                style: StyleLike | None = None,
+                description: str | None = None) -> EntityRef:
         return self._make(name, "package", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def rectangle(self, name: str, *children: EntityRef, ref: str | None = None,
                   stereotype: str | Stereotype | None = None,
-                  style: StyleLike | None = None) -> EntityRef:
+                  style: StyleLike | None = None,
+                  description: str | None = None) -> EntityRef:
         return self._make(name, "rectangle", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def queue(self, name: str, *children: EntityRef, ref: str | None = None,
               stereotype: str | Stereotype | None = None,
-              style: StyleLike | None = None) -> EntityRef:
+              style: StyleLike | None = None,
+              description: str | None = None) -> EntityRef:
         return self._make(name, "queue", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def stack(self, name: str, *children: EntityRef, ref: str | None = None,
               stereotype: str | Stereotype | None = None,
-              style: StyleLike | None = None) -> EntityRef:
+              style: StyleLike | None = None,
+              description: str | None = None) -> EntityRef:
         return self._make(name, "stack", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def file(self, name: str, *children: EntityRef, ref: str | None = None,
              stereotype: str | Stereotype | None = None,
-             style: StyleLike | None = None) -> EntityRef:
+             style: StyleLike | None = None,
+             description: str | None = None) -> EntityRef:
         return self._make(name, "file", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def action(self, name: str, *children: EntityRef, ref: str | None = None,
                stereotype: str | Stereotype | None = None,
-               style: StyleLike | None = None) -> EntityRef:
+               style: StyleLike | None = None,
+               description: str | None = None) -> EntityRef:
         return self._make(name, "action", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def actor(self, name: str, *children: EntityRef, ref: str | None = None,
               stereotype: str | Stereotype | None = None,
-              style: StyleLike | None = None) -> EntityRef:
+              style: StyleLike | None = None,
+              description: str | None = None) -> EntityRef:
         return self._make(name, "actor", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def interface(self, name: str, *children: EntityRef, ref: str | None = None,
                   stereotype: str | Stereotype | None = None,
-                  style: StyleLike | None = None) -> EntityRef:
+                  style: StyleLike | None = None,
+                  description: str | None = None) -> EntityRef:
         return self._make(name, "interface", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def agent(self, name: str, *children: EntityRef, ref: str | None = None,
               stereotype: str | Stereotype | None = None,
-              style: StyleLike | None = None) -> EntityRef:
+              style: StyleLike | None = None,
+              description: str | None = None) -> EntityRef:
         return self._make(name, "agent", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def boundary(self, name: str, *children: EntityRef, ref: str | None = None,
                  stereotype: str | Stereotype | None = None,
-                 style: StyleLike | None = None) -> EntityRef:
+                 style: StyleLike | None = None,
+                 description: str | None = None) -> EntityRef:
         return self._make(name, "boundary", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def card(self, name: str, *children: EntityRef, ref: str | None = None,
              stereotype: str | Stereotype | None = None,
-             style: StyleLike | None = None) -> EntityRef:
+             style: StyleLike | None = None,
+             description: str | None = None) -> EntityRef:
         return self._make(name, "card", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def circle(self, name: str, *children: EntityRef, ref: str | None = None,
                stereotype: str | Stereotype | None = None,
-               style: StyleLike | None = None) -> EntityRef:
+               style: StyleLike | None = None,
+               description: str | None = None) -> EntityRef:
         return self._make(name, "circle", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def collections(self, name: str, *children: EntityRef, ref: str | None = None,
                     stereotype: str | Stereotype | None = None,
-                    style: StyleLike | None = None) -> EntityRef:
+                    style: StyleLike | None = None,
+                    description: str | None = None) -> EntityRef:
         return self._make(name, "collections", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def control(self, name: str, *children: EntityRef, ref: str | None = None,
                 stereotype: str | Stereotype | None = None,
-                style: StyleLike | None = None) -> EntityRef:
+                style: StyleLike | None = None,
+                description: str | None = None) -> EntityRef:
         return self._make(name, "control", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def entity(self, name: str, *children: EntityRef, ref: str | None = None,
                stereotype: str | Stereotype | None = None,
-               style: StyleLike | None = None) -> EntityRef:
+               style: StyleLike | None = None,
+               description: str | None = None) -> EntityRef:
         return self._make(name, "entity", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def hexagon(self, name: str, *children: EntityRef, ref: str | None = None,
                 stereotype: str | Stereotype | None = None,
-                style: StyleLike | None = None) -> EntityRef:
+                style: StyleLike | None = None,
+                description: str | None = None) -> EntityRef:
         return self._make(name, "hexagon", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def label_(self, name: str, *children: EntityRef, ref: str | None = None,
                stereotype: str | Stereotype | None = None,
-               style: StyleLike | None = None) -> EntityRef:
+               style: StyleLike | None = None,
+               description: str | None = None) -> EntityRef:
         return self._make(name, "label", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def person(self, name: str, *children: EntityRef, ref: str | None = None,
                stereotype: str | Stereotype | None = None,
-               style: StyleLike | None = None) -> EntityRef:
+               style: StyleLike | None = None,
+               description: str | None = None) -> EntityRef:
         return self._make(name, "person", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def process(self, name: str, *children: EntityRef, ref: str | None = None,
                 stereotype: str | Stereotype | None = None,
-                style: StyleLike | None = None) -> EntityRef:
+                style: StyleLike | None = None,
+                description: str | None = None) -> EntityRef:
         return self._make(name, "process", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
 
     def usecase(self, name: str, *children: EntityRef, ref: str | None = None,
                 stereotype: str | Stereotype | None = None,
-                style: StyleLike | None = None) -> EntityRef:
+                style: StyleLike | None = None,
+                description: str | None = None) -> EntityRef:
         return self._make(name, "usecase", *children, ref=ref,
-                          stereotype=stereotype, style=style)
+                          stereotype=stereotype, style=style, description=description)
+
+    def port(self, name: str) -> EntityRef:
+        """Create a bidirectional port."""
+        return self._make(name, "port")
+
+    def portin(self, name: str) -> EntityRef:
+        """Create an input port."""
+        return self._make(name, "portin")
+
+    def portout(self, name: str) -> EntityRef:
+        """Create an output port."""
+        return self._make(name, "portout")
 
 
 class DeploymentConnectionNamespace:
@@ -371,6 +413,7 @@ def _build_element(ref: EntityRef) -> DeploymentElement:
         alias=alias,
         stereotype=_coerce_stereotype(data.get("stereotype")),
         style=_coerce_style(data.get("style")),
+        description=data.get("description"),
         elements=children,
     )
 

@@ -125,14 +125,33 @@ def _render_deployment_element(
     prefix = "  " * indent
     lines: list[str] = []
 
+    # Port types render as simple single-line elements
+    if elem.type in ("port", "portin", "portout"):
+        name = (
+            f'"{escape_quotes(elem.name)}"'
+            if needs_quotes(elem.name)
+            else elem.name
+        )
+        lines.append(f"{prefix}{elem.type} {name}")
+        return lines
+
     parts: list[str] = [elem.type]
 
     # Name with possible alias
-    name = (
-        f'"{escape_quotes(elem.name)}"'
-        if needs_quotes(elem.name)
-        else elem.name
-    )
+    quoted = needs_quotes(elem.name)
+
+    # PlantUML bracket description syntax [..] doesn't work with quoted names.
+    # For quoted names with descriptions, embed \n in the name string instead.
+    use_bracket_desc = elem.description and not elem.elements and not quoted
+    if quoted and elem.description and not elem.elements:
+        desc_suffix = "\\n" + elem.description.replace("\n", "\\n")
+        name = f'"{escape_quotes(elem.name)}{desc_suffix}"'
+    else:
+        name = (
+            f'"{escape_quotes(elem.name)}"'
+            if quoted
+            else elem.name
+        )
     parts.append(name)
 
     if elem.alias:
@@ -150,6 +169,11 @@ def _render_deployment_element(
         for inner in elem.elements:
             lines.extend(_render_element(inner, indent + 1))
         lines.append(f"{prefix}}}")
+    elif use_bracket_desc:
+        lines.append(f"{prefix}{' '.join(parts)} [")
+        for desc_line in elem.description.split("\n"):
+            lines.append(f"{prefix}  {desc_line}")
+        lines.append(f"{prefix}]")
     else:
         lines.append(f"{prefix}{' '.join(parts)}")
 

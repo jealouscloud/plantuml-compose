@@ -104,6 +104,7 @@ class ComponentElementNamespace:
         ref: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
+        description: str | None = None,
     ) -> EntityRef:
         return EntityRef(
             name, ref=ref,
@@ -112,6 +113,7 @@ class ComponentElementNamespace:
                 "stereotype": stereotype,
                 "style": style,
                 "children": children,
+                "description": description,
             },
             children=children,
         )
@@ -140,10 +142,12 @@ class ComponentElementNamespace:
         ref: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
+        description: str | None = None,
     ) -> EntityRef:
         return self._container(
             name, "package", *children,
             ref=ref, stereotype=stereotype, style=style,
+            description=description,
         )
 
     def database(
@@ -153,10 +157,12 @@ class ComponentElementNamespace:
         ref: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
+        description: str | None = None,
     ) -> EntityRef:
         return self._container(
             name, "database", *children,
             ref=ref, stereotype=stereotype, style=style,
+            description=description,
         )
 
     def cloud(
@@ -166,10 +172,12 @@ class ComponentElementNamespace:
         ref: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
+        description: str | None = None,
     ) -> EntityRef:
         return self._container(
             name, "cloud", *children,
             ref=ref, stereotype=stereotype, style=style,
+            description=description,
         )
 
     def node(
@@ -179,10 +187,12 @@ class ComponentElementNamespace:
         ref: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
+        description: str | None = None,
     ) -> EntityRef:
         return self._container(
             name, "node", *children,
             ref=ref, stereotype=stereotype, style=style,
+            description=description,
         )
 
     def folder(
@@ -192,10 +202,12 @@ class ComponentElementNamespace:
         ref: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
+        description: str | None = None,
     ) -> EntityRef:
         return self._container(
             name, "folder", *children,
             ref=ref, stereotype=stereotype, style=style,
+            description=description,
         )
 
     def frame(
@@ -205,10 +217,12 @@ class ComponentElementNamespace:
         ref: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
+        description: str | None = None,
     ) -> EntityRef:
         return self._container(
             name, "frame", *children,
             ref=ref, stereotype=stereotype, style=style,
+            description=description,
         )
 
     def rectangle(
@@ -218,10 +232,12 @@ class ComponentElementNamespace:
         ref: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
+        description: str | None = None,
     ) -> EntityRef:
         return self._container(
             name, "rectangle", *children,
             ref=ref, stereotype=stereotype, style=style,
+            description=description,
         )
 
     def port(self, name: str) -> EntityRef:
@@ -399,6 +415,7 @@ class ComponentElementNamespace:
         ref: str | None = None,
         stereotype: str | Stereotype | None = None,
         style: StyleLike | None = None,
+        description: str | None = None,
     ) -> EntityRef:
         return EntityRef(
             name, ref=ref,
@@ -407,6 +424,7 @@ class ComponentElementNamespace:
                 "_container_type": container_type,
                 "stereotype": stereotype,
                 "style": style,
+                "description": description,
             },
             children=children,
         )
@@ -675,6 +693,7 @@ def _build_element(ref: EntityRef) -> ComponentElement:
             stereotype=_coerce_stereotype(data.get("stereotype")),
             style=_coerce_style(data.get("style")),
             alias=alias,
+            description=data.get("description"),
         )
 
     # Default: component
@@ -686,6 +705,7 @@ def _build_element(ref: EntityRef) -> ComponentElement:
         type="component",
         stereotype=_coerce_stereotype(data.get("stereotype")),
         style=_coerce_style(data.get("style")),
+        description=data.get("description"),
         elements=children,
     )
 
