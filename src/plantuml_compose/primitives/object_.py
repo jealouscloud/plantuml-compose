@@ -133,6 +133,7 @@ class Relationship:
     label: Label | None = None
     style: LineStyle | None = None
     direction: Direction | None = None
+    length: int | None = None  # Arrow dash count (None = default 2)
     note: Label | None = None
 
 

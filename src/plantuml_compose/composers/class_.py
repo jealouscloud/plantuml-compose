@@ -116,6 +116,7 @@ class _RelationshipData:
     direction: Direction | None = None
     note: str | None = None
     qualifier: str | None = None
+    length: int | None = None
 
 
 class ClassElementNamespace:
@@ -444,7 +445,8 @@ class ClassRelationshipNamespace:
                      style: LineStyleLike | None = None,
                      direction: Direction | None = None,
                      note: str | None = None,
-                     qualifier: str | None = None) -> _RelationshipData:
+                     qualifier: str | None = None,
+                     length: int | None = None) -> _RelationshipData:
         """Create a relationship with explicit type.
 
         For when the convenience methods don't fit your needs.
@@ -453,35 +455,39 @@ class ClassRelationshipNamespace:
                                  label=label, source_label=source_label,
                                  target_label=target_label,
                                  style=style, direction=direction,
-                                 note=note, qualifier=qualifier)
+                                 note=note, qualifier=qualifier,
+                                 length=length)
 
     def extends(self, child: EntityRef | str, parent: EntityRef | str, *,
                 label: str | None = None, style: LineStyleLike | None = None,
                 direction: Direction | None = None,
-                note: str | None = None) -> _RelationshipData:
+                note: str | None = None,
+                length: int | None = None) -> _RelationshipData:
         # source=parent, target=child: renders as "parent <|-- child"
         return _RelationshipData(source=parent, target=child, type="extension",
                                  label=label, style=style, direction=direction,
-                                 note=note)
+                                 note=note, length=length)
 
     def implements(self, child: EntityRef | str, parent: EntityRef | str, *,
                    label: str | None = None, style: LineStyleLike | None = None,
                    direction: Direction | None = None,
-                   note: str | None = None) -> _RelationshipData:
+                   note: str | None = None,
+                   length: int | None = None) -> _RelationshipData:
         # source=interface, target=implementer: renders as "interface <|.. implementer"
         return _RelationshipData(source=parent, target=child, type="implementation",
                                  label=label, style=style, direction=direction,
-                                 note=note)
+                                 note=note, length=length)
 
     def has(self, whole: EntityRef | str, part: EntityRef | str, *,
             label: str | None = None, part_label: str | None = None,
             style: LineStyleLike | None = None,
             direction: Direction | None = None,
-            note: str | None = None) -> _RelationshipData:
+            note: str | None = None,
+            length: int | None = None) -> _RelationshipData:
         return _RelationshipData(source=whole, target=part, type="composition",
                                  label=label, target_label=part_label,
                                  style=style, direction=direction,
-                                 note=note)
+                                 note=note, length=length)
 
     def contains(self, whole: EntityRef | str, part: EntityRef | str, *,
                  whole_label: str | None = None,
@@ -489,7 +495,8 @@ class ClassRelationshipNamespace:
                  label: str | None = None,
                  style: LineStyleLike | None = None,
                  direction: Direction | None = None,
-                 note: str | None = None) -> _RelationshipData:
+                 note: str | None = None,
+                 length: int | None = None) -> _RelationshipData:
         """Create a composition relationship (filled diamond).
 
         Composition means the part cannot exist independently of the whole.
@@ -499,15 +506,16 @@ class ClassRelationshipNamespace:
                                  label=label, source_label=whole_label,
                                  target_label=part_label,
                                  style=style, direction=direction,
-                                 note=note)
+                                 note=note, length=length)
 
     def uses(self, source: EntityRef | str, target: EntityRef | str, *,
              label: str | None = None, style: LineStyleLike | None = None,
              direction: Direction | None = None,
-             note: str | None = None) -> _RelationshipData:
+             note: str | None = None,
+             length: int | None = None) -> _RelationshipData:
         return _RelationshipData(source=source, target=target, type="dependency",
                                  label=label, style=style, direction=direction,
-                                 note=note)
+                                 note=note, length=length)
 
     def association(self, source: EntityRef | str, target: EntityRef | str, *,
                     label: str | None = None,
@@ -516,48 +524,54 @@ class ClassRelationshipNamespace:
                     style: LineStyleLike | None = None,
                     direction: Direction | None = None,
                     note: str | None = None,
-                    qualifier: str | None = None) -> _RelationshipData:
+                    qualifier: str | None = None,
+                    length: int | None = None) -> _RelationshipData:
         return _RelationshipData(source=source, target=target, type="association",
                                  label=label, source_label=source_label,
                                  target_label=target_label,
                                  style=style, direction=direction,
-                                 note=note, qualifier=qualifier)
+                                 note=note, qualifier=qualifier,
+                                 length=length)
 
     def aggregation(self, whole: EntityRef | str, part: EntityRef | str, *,
                     label: str | None = None, part_label: str | None = None,
                     style: LineStyleLike | None = None,
                     direction: Direction | None = None,
-                    note: str | None = None) -> _RelationshipData:
+                    note: str | None = None,
+                    length: int | None = None) -> _RelationshipData:
         return _RelationshipData(source=whole, target=part, type="aggregation",
                                  label=label, target_label=part_label,
                                  style=style, direction=direction,
-                                 note=note)
+                                 note=note, length=length)
 
     def composition(self, whole: EntityRef | str, part: EntityRef | str, *,
                     label: str | None = None, part_label: str | None = None,
                     style: LineStyleLike | None = None,
                     direction: Direction | None = None,
-                    note: str | None = None) -> _RelationshipData:
+                    note: str | None = None,
+                    length: int | None = None) -> _RelationshipData:
         return _RelationshipData(source=whole, target=part, type="composition",
                                  label=label, target_label=part_label,
                                  style=style, direction=direction,
-                                 note=note)
+                                 note=note, length=length)
 
     def arrow(self, source: EntityRef | str, target: EntityRef | str, *,
               label: str | None = None, style: LineStyleLike | None = None,
               direction: Direction | None = None,
-              note: str | None = None) -> _RelationshipData:
+              note: str | None = None,
+              length: int | None = None) -> _RelationshipData:
         return _RelationshipData(source=source, target=target, type="association",
                                  label=label, style=style, direction=direction,
-                                 note=note)
+                                 note=note, length=length)
 
     def lollipop(self, provider: EntityRef | str, consumer: EntityRef | str, *,
                  label: str | None = None, style: LineStyleLike | None = None,
                  direction: Direction | None = None,
-                 note: str | None = None) -> _RelationshipData:
+                 note: str | None = None,
+                 length: int | None = None) -> _RelationshipData:
         return _RelationshipData(source=provider, target=consumer, type="lollipop",
                                  label=label, style=style, direction=direction,
-                                 note=note)
+                                 note=note, length=length)
 
     def zero_or_one(self, source: EntityRef | str, target: EntityRef | str, *,
                     label: str | None = None,
@@ -565,12 +579,13 @@ class ClassRelationshipNamespace:
                     target_label: str | None = None,
                     style: LineStyleLike | None = None,
                     direction: Direction | None = None,
-                    note: str | None = None) -> _RelationshipData:
+                    note: str | None = None,
+                    length: int | None = None) -> _RelationshipData:
         return _RelationshipData(source=source, target=target, type="zero_or_one",
                                  label=label, source_label=source_label,
                                  target_label=target_label,
                                  style=style, direction=direction,
-                                 note=note)
+                                 note=note, length=length)
 
     def exactly_one(self, source: EntityRef | str, target: EntityRef | str, *,
                     label: str | None = None,
@@ -578,12 +593,13 @@ class ClassRelationshipNamespace:
                     target_label: str | None = None,
                     style: LineStyleLike | None = None,
                     direction: Direction | None = None,
-                    note: str | None = None) -> _RelationshipData:
+                    note: str | None = None,
+                    length: int | None = None) -> _RelationshipData:
         return _RelationshipData(source=source, target=target, type="exactly_one",
                                  label=label, source_label=source_label,
                                  target_label=target_label,
                                  style=style, direction=direction,
-                                 note=note)
+                                 note=note, length=length)
 
     def zero_or_many(self, source: EntityRef | str, target: EntityRef | str, *,
                      label: str | None = None,
@@ -591,12 +607,13 @@ class ClassRelationshipNamespace:
                      target_label: str | None = None,
                      style: LineStyleLike | None = None,
                      direction: Direction | None = None,
-                     note: str | None = None) -> _RelationshipData:
+                     note: str | None = None,
+                     length: int | None = None) -> _RelationshipData:
         return _RelationshipData(source=source, target=target, type="zero_or_many",
                                  label=label, source_label=source_label,
                                  target_label=target_label,
                                  style=style, direction=direction,
-                                 note=note)
+                                 note=note, length=length)
 
     def one_or_many(self, source: EntityRef | str, target: EntityRef | str, *,
                     label: str | None = None,
@@ -604,12 +621,13 @@ class ClassRelationshipNamespace:
                     target_label: str | None = None,
                     style: LineStyleLike | None = None,
                     direction: Direction | None = None,
-                    note: str | None = None) -> _RelationshipData:
+                    note: str | None = None,
+                    length: int | None = None) -> _RelationshipData:
         return _RelationshipData(source=source, target=target, type="one_or_many",
                                  label=label, source_label=source_label,
                                  target_label=target_label,
                                  style=style, direction=direction,
-                                 note=note)
+                                 note=note, length=length)
 
     def association_class(self, source: EntityRef | str,
                           target: EntityRef | str,
@@ -658,6 +676,7 @@ class ClassRelationshipNamespace:
         *targets: EntityRef | str | tuple[EntityRef | str, str],
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> list[_RelationshipData]:
         """Fan-out: one source, many targets.
 
@@ -674,7 +693,8 @@ class ClassRelationshipNamespace:
             else:
                 target, label = t, None
             results.append(self.arrow(source, target, label=label,
-                                      style=style, direction=direction))
+                                      style=style, direction=direction,
+                                      length=length))
         return results
 
     def extends_from(
@@ -684,6 +704,7 @@ class ClassRelationshipNamespace:
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> list[_RelationshipData]:
         """Multiple children extend one parent.
 
@@ -700,7 +721,8 @@ class ClassRelationshipNamespace:
         Write:
             r.extends_from([div, span, p], base)
         """
-        return [self.extends(child, parent, style=style, direction=direction)
+        return [self.extends(child, parent, style=style, direction=direction,
+                             length=length)
                 for child in children]
 
     def compositions_from(
@@ -711,6 +733,7 @@ class ClassRelationshipNamespace:
         label: str | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> list[_RelationshipData]:
         """One whole composes many parts.
 
@@ -728,7 +751,8 @@ class ClassRelationshipNamespace:
             r.compositions_from(order, [line_item, payment, shipping])
         """
         return [self.composition(whole, part, label=label,
-                                 style=style, direction=direction)
+                                 style=style, direction=direction,
+                                 length=length)
                 for part in parts]
 
 
@@ -932,6 +956,7 @@ class ClassComposer(BaseComposer):
                     direction=conn.direction,
                     note=note,
                     qualifier=conn.qualifier,
+                    length=conn.length,
                 ))
             elif isinstance(conn, dict) and conn.get("_type") == "association_class":
                 all_elements.append(AssociationClass(

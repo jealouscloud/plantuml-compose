@@ -242,6 +242,7 @@ class Relationship:
     target_label: str | None = None  # Label at target end
     style: LineStyleLike | None = None
     direction: Direction | None = None
+    length: int | None = None  # Arrow dash count (None = default 2)
     note: LabelLike | None = None
     # Arrow direction indicator in label
     label_direction: Literal["<", ">", None] = None

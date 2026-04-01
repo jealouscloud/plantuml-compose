@@ -92,6 +92,7 @@ class _RelationshipData:
     target_label: str | None
     style: LineStyleLike | None
     direction: Direction | None
+    length: int | None = None
 
 
 class ComponentElementNamespace:
@@ -443,11 +444,12 @@ class ComponentConnectionNamespace:
         target_label: str | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="arrow",
             label=label, source_label=source_label, target_label=target_label,
-            style=style, direction=direction,
+            style=style, direction=direction, length=length,
         )
 
     def dependency(
@@ -460,11 +462,12 @@ class ComponentConnectionNamespace:
         target_label: str | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="dependency",
             label=label, source_label=source_label, target_label=target_label,
-            style=style, direction=direction,
+            style=style, direction=direction, length=length,
         )
 
     def link(
@@ -477,11 +480,12 @@ class ComponentConnectionNamespace:
         target_label: str | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="association",
             label=label, source_label=source_label, target_label=target_label,
-            style=style, direction=direction,
+            style=style, direction=direction, length=length,
         )
 
     def provides(
@@ -492,11 +496,12 @@ class ComponentConnectionNamespace:
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="provides",
             label=label, source_label=None, target_label=None,
-            style=style, direction=direction,
+            style=style, direction=direction, length=length,
         )
 
     def requires(
@@ -507,11 +512,12 @@ class ComponentConnectionNamespace:
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="requires",
             label=label, source_label=None, target_label=None,
-            style=style, direction=direction,
+            style=style, direction=direction, length=length,
         )
 
     def arrows(
@@ -529,6 +535,7 @@ class ComponentConnectionNamespace:
         *targets: EntityRef | str | tuple[EntityRef | str, str],
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> list[_RelationshipData]:
         """Fan-out: one source, many targets.
 
@@ -557,7 +564,8 @@ class ComponentConnectionNamespace:
             else:
                 target, label = t, None
             results.append(self.arrow(source, target, label,
-                                      style=style, direction=direction))
+                                      style=style, direction=direction,
+                                      length=length))
         return results
 
     def lines_from(
@@ -566,6 +574,7 @@ class ComponentConnectionNamespace:
         *targets: EntityRef | str,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> list[_RelationshipData]:
         """Fan-out lines (no arrowhead): one source, many targets.
 
@@ -573,7 +582,8 @@ class ComponentConnectionNamespace:
 
         Returns a list that d.connect() flattens automatically.
         """
-        return [self.link(source, t, style=style, direction=direction)
+        return [self.link(source, t, style=style, direction=direction,
+                          length=length)
                 for t in targets]
 
     def lines(
@@ -587,6 +597,7 @@ class ComponentConnectionNamespace:
         *items: EntityRef | str,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> list[_RelationshipData]:
         """Create a chain of arrows with interleaved labels.
 
@@ -630,6 +641,7 @@ class ComponentConnectionNamespace:
                     # Unlabeled arrow from previous to this
                     relationships.append(self.arrow(
                         current, item, style=style, direction=direction,
+                        length=length,
                     ))
                 current = item
                 i += 1
@@ -644,6 +656,7 @@ class ComponentConnectionNamespace:
                 relationships.append(self.arrow(
                     current, next_item, item,
                     style=style, direction=direction,
+                    length=length,
                 ))
                 current = next_item
                 i += 2
@@ -775,6 +788,7 @@ class ComponentComposer(BaseComposer):
                     target_label=conn.target_label,
                     style=coerce_line_style(conn.style) if conn.style else None,
                     direction=conn.direction,
+                    length=conn.length,
                 ))
 
         # Build notes

@@ -89,6 +89,7 @@ class _RelationshipData:
     label: str | None
     style: LineStyleLike | None
     direction: Direction | None
+    length: int | None = None
 
 
 class UseCaseElementNamespace:
@@ -190,10 +191,12 @@ class UseCaseRelationshipNamespace:
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="arrow",
             label=label, style=style, direction=direction,
+            length=length,
         )
 
     def generalizes(
@@ -203,6 +206,7 @@ class UseCaseRelationshipNamespace:
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         """Generalization: child is-a parent.
 
@@ -211,6 +215,7 @@ class UseCaseRelationshipNamespace:
         return _RelationshipData(
             source=parent, target=child, type="extension",
             label=None, style=style, direction=direction,
+            length=length,
         )
 
     def include(
@@ -220,11 +225,13 @@ class UseCaseRelationshipNamespace:
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         """Include: base always invokes required."""
         return _RelationshipData(
             source=base, target=required, type="include",
             label=None, style=style, direction=direction,
+            length=length,
         )
 
     def extends(
@@ -234,11 +241,13 @@ class UseCaseRelationshipNamespace:
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         """Extends: extension optionally extends base."""
         return _RelationshipData(
             source=extension, target=base, type="extends",
             label=None, style=style, direction=direction,
+            length=length,
         )
 
     def link(
@@ -249,10 +258,12 @@ class UseCaseRelationshipNamespace:
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="association",
             label=label, style=style, direction=direction,
+            length=length,
         )
 
     # --- Bulk methods ---
@@ -285,6 +296,7 @@ class UseCaseRelationshipNamespace:
         *targets: EntityRef | str | tuple[EntityRef | str, str],
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> list[_RelationshipData]:
         """Fan-out: one actor/usecase, many targets.
 
@@ -301,7 +313,8 @@ class UseCaseRelationshipNamespace:
             else:
                 target, label = t, None
             results.append(self.arrow(source, target, label,
-                                      style=style, direction=direction))
+                                      style=style, direction=direction,
+                                      length=length))
         return results
 
     def generalizes_from(
@@ -311,6 +324,7 @@ class UseCaseRelationshipNamespace:
         *,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> list[_RelationshipData]:
         """Multiple children generalize (are-a) one parent.
 
@@ -328,7 +342,8 @@ class UseCaseRelationshipNamespace:
             r.generalizes_from([oncall, platform_eng, network_eng],
                                engineer, direction="up")
         """
-        return [self.generalizes(child, parent, style=style, direction=direction)
+        return [self.generalizes(child, parent, style=style, direction=direction,
+                                 length=length)
                 for child in children]
 
 
@@ -428,6 +443,7 @@ class UseCaseComposer(BaseComposer):
                     label=Label(conn.label) if conn.label else None,
                     style=coerce_line_style(conn.style) if conn.style else None,
                     direction=conn.direction,
+                    length=conn.length,
                 ))
 
         # Build notes

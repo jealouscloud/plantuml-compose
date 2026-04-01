@@ -84,6 +84,7 @@ class _TransitionData:
     style: LineStyleLike | None
     direction: Direction | None
     note: str | None = None
+    length: int | None = None
 
 
 class _RegionData:
@@ -224,11 +225,13 @@ class StateTransitionNamespace:
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
         note: str | None = None,
+        length: int | None = None,
     ) -> _TransitionData:
         return _TransitionData(
             source=source, target=target,
             label=label, trigger=trigger, guard=guard, effect=effect,
             style=style, direction=direction, note=note,
+            length=length,
         )
 
     def transitions(
@@ -271,6 +274,7 @@ class StateTransitionNamespace:
         *targets: EntityRef | str | tuple[EntityRef | str, str],
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> list[_TransitionData]:
         """Fan-out: one source state, many target states.
 
@@ -299,7 +303,8 @@ class StateTransitionNamespace:
             else:
                 target, label = t, None
             results.append(self.transition(source, target, label=label,
-                                           style=style, direction=direction))
+                                           style=style, direction=direction,
+                                           length=length))
         return results
 
 
@@ -441,6 +446,7 @@ class StateComposer(BaseComposer):
                     style=coerce_line_style(conn.style) if conn.style else None,
                     direction=conn.direction,
                     note=Label(conn.note) if conn.note else None,
+                    length=conn.length,
                 ))
 
         # Build notes (floating notes via d.note())

@@ -292,6 +292,56 @@ def render_embeddable_content(
     return render_label(content, inline=inline)
 
 
+def adjust_arrow_length(arrow: str, length: int | None) -> str:
+    """Adjust the dash/dot count in an arrow string.
+
+    PlantUML uses the number of dashes or dots as a layout hint for spacing:
+    - `->` (1 dash) = short/close
+    - `-->` (2 dashes) = normal (default)
+    - `--->` (3 dashes) = longer spacing
+
+    Same for dotted: `.>`, `..>`, `...>`, etc.
+
+    This function finds the first run of consecutive `-` or `.` characters
+    in the arrow and replaces it with `length` repetitions. If length is
+    None, the arrow is returned unchanged.
+
+    Args:
+        arrow: Base arrow string (e.g., "-->", "<|--..", "..>")
+        length: Desired dash/dot count, or None for no change
+
+    Returns:
+        Arrow with adjusted dash/dot count
+    """
+    if length is None:
+        return arrow
+
+    result = ""
+    i = 0
+    replaced = False
+    while i < len(arrow):
+        if not replaced and arrow[i] == "-":
+            # Count consecutive dashes
+            j = i
+            while j < len(arrow) and arrow[j] == "-":
+                j += 1
+            result += "-" * length
+            i = j
+            replaced = True
+        elif not replaced and arrow[i] == ".":
+            # Count consecutive dots
+            j = i
+            while j < len(arrow) and arrow[j] == ".":
+                j += 1
+            result += "." * length
+            i = j
+            replaced = True
+        else:
+            result += arrow[i]
+            i += 1
+    return result
+
+
 def render_line_style_bracket(style: LineStyleLike) -> str:
     """Render line style as bracket modifier: [#red,dashed,thickness=2]"""
     style = coerce_line_style(style)

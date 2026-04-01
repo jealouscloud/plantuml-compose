@@ -81,6 +81,7 @@ class _RelationshipData:
     label: str | None
     style: LineStyleLike | None
     direction: Direction | None
+    length: int | None = None
 
 
 class DeploymentElementNamespace:
@@ -324,21 +325,27 @@ class DeploymentConnectionNamespace:
 
     def arrow(self, source: EntityRef | str, target: EntityRef | str,
               label: str | None = None, *, style: LineStyleLike | None = None,
-              direction: Direction | None = None) -> _RelationshipData:
+              direction: Direction | None = None,
+              length: int | None = None) -> _RelationshipData:
         return _RelationshipData(source=source, target=target, type="arrow",
-                                 label=label, style=style, direction=direction)
+                                 label=label, style=style, direction=direction,
+                                 length=length)
 
     def line(self, source: EntityRef | str, target: EntityRef | str,
              label: str | None = None, *, style: LineStyleLike | None = None,
-             direction: Direction | None = None) -> _RelationshipData:
+             direction: Direction | None = None,
+             length: int | None = None) -> _RelationshipData:
         return _RelationshipData(source=source, target=target, type="line",
-                                 label=label, style=style, direction=direction)
+                                 label=label, style=style, direction=direction,
+                                 length=length)
 
     def dependency(self, source: EntityRef | str, target: EntityRef | str,
                    label: str | None = None, *, style: LineStyleLike | None = None,
-                   direction: Direction | None = None) -> _RelationshipData:
+                   direction: Direction | None = None,
+                   length: int | None = None) -> _RelationshipData:
         return _RelationshipData(source=source, target=target, type="dependency",
-                                 label=label, style=style, direction=direction)
+                                 label=label, style=style, direction=direction,
+                                 length=length)
 
     def arrows(self, *tuples: tuple) -> list[_RelationshipData]:
         return [self.arrow(s, t, *rest) for s, t, *rest in tuples]
@@ -349,6 +356,7 @@ class DeploymentConnectionNamespace:
         *targets: EntityRef | str | tuple[EntityRef | str, str],
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> list[_RelationshipData]:
         """Fan-out: one source, many targets.
 
@@ -373,7 +381,8 @@ class DeploymentConnectionNamespace:
             else:
                 target, label = t, None
             results.append(self.arrow(source, target, label,
-                                      style=style, direction=direction))
+                                      style=style, direction=direction,
+                                      length=length))
         return results
 
     def lines_from(
@@ -382,6 +391,7 @@ class DeploymentConnectionNamespace:
         *targets: EntityRef | str,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> list[_RelationshipData]:
         """Fan-out lines (no arrowhead): one source, many targets.
 
@@ -389,7 +399,8 @@ class DeploymentConnectionNamespace:
 
         Returns a list that d.connect() flattens automatically.
         """
-        return [self.line(source, t, style=style, direction=direction)
+        return [self.line(source, t, style=style, direction=direction,
+                          length=length)
                 for t in targets]
 
     def lines(self, *tuples: tuple[EntityRef | str, EntityRef | str]) -> list[_RelationshipData]:
@@ -467,6 +478,7 @@ class DeploymentComposer(BaseComposer):
                     label=Label(conn.label) if conn.label else None,
                     style=coerce_line_style(conn.style) if conn.style else None,
                     direction=conn.direction,
+                    length=conn.length,
                 ))
 
         for note_data in self._notes:

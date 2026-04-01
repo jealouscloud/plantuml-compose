@@ -184,6 +184,7 @@ class Transition:
     effect: str | None = None  # Action after /
     style: LineStyleLike | None = None
     direction: Direction | None = None
+    length: int | None = None  # Arrow dash count (None = default 2)
     note: LabelLike | None = (
         None  # Note attached to the transition (note on link)
     )

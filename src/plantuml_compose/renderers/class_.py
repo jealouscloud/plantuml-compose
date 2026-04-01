@@ -29,6 +29,7 @@ from ..primitives.common import (
     coerce_style,
 )
 from .common import (
+    adjust_arrow_length,
     escape_quotes,
     quote_ref,
     render_caption,
@@ -375,7 +376,11 @@ def _render_association_class(assoc: AssociationClass) -> list[str]:
 
 
 def _build_relationship_arrow(rel: Relationship) -> str:
-    """Build the arrow string for a relationship."""
+    """Build the arrow string for a relationship.
+
+    The length field controls the dash/dot count in the arrow stem.
+    Default (None) uses 2 dashes/dots matching PlantUML's standard arrows.
+    """
     # Direction modifier
     dir_mod = ""
     if rel.direction:
@@ -385,6 +390,9 @@ def _build_relationship_arrow(rel: Relationship) -> str:
     style_mod = ""
     if rel.style:
         style_mod = render_line_style_bracket(rel.style)
+
+    # Effective dash/dot count (default 2 matches `--` / `..`)
+    dashes = rel.length if rel.length is not None else 2
 
     # Handle lollipop interface specially (single dash, different syntax)
     # PlantUML syntax: bar ()- Foo
@@ -415,38 +423,28 @@ def _build_relationship_arrow(rel: Relationship) -> str:
     }
     base_arrow = arrow_map[rel.type]
 
-    # Build arrow with direction and style modifiers
+    # Build arrow with direction, style, and length modifiers
     # PlantUML syntax: A -[style,dir]-> B
     if "--" in base_arrow:
         idx = base_arrow.index("--")
         head = base_arrow[:idx]  # e.g., "<|", "*", "o", "", "-"
         tail = base_arrow[idx + 2 :]  # e.g., "", ">", ""
-        # Build middle part with style and direction
-        if style_mod and dir_mod:
-            # Both: -[style,dir]-
-            middle = f"-{style_mod}{dir_mod}-"
-        elif style_mod:
-            # Style only: -[style]-
-            middle = f"-{style_mod}-"
-        elif dir_mod:
-            # Direction only: -dir-
-            middle = f"-{dir_mod}-"
+        # Build middle part with style, direction, and length
+        if style_mod or dir_mod:
+            # Modifier pattern: one dash before mods, rest after
+            middle = f"-{style_mod}{dir_mod}{'-' * (dashes - 1)}"
         else:
-            middle = "--"
+            middle = "-" * dashes
         return f"{head}{middle}{tail}"
     elif ".." in base_arrow:
         idx = base_arrow.index("..")
         head = base_arrow[:idx]  # e.g., "<|", ""
         tail = base_arrow[idx + 2 :]  # e.g., "", ">"
-        # Build middle part with style and direction
-        if style_mod and dir_mod:
-            middle = f".{style_mod}{dir_mod}."
-        elif style_mod:
-            middle = f".{style_mod}."
-        elif dir_mod:
-            middle = f".{dir_mod}."
+        # Build middle part with style, direction, and length
+        if style_mod or dir_mod:
+            middle = f".{style_mod}{dir_mod}{'.' * (dashes - 1)}"
         else:
-            middle = ".."
+            middle = "." * dashes
         return f"{head}{middle}{tail}"
 
     return base_arrow

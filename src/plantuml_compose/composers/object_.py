@@ -88,6 +88,7 @@ class _RelationshipData:
     style: LineStyleLike | None
     direction: Direction | None
     note: str | None = None
+    length: int | None = None
 
 
 class ObjectElementNamespace:
@@ -157,11 +158,12 @@ class ObjectRelationshipNamespace:
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
         note: str | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="arrow",
             label=label, style=style, direction=direction,
-            note=note,
+            note=note, length=length,
         )
 
     def composition(
@@ -173,11 +175,12 @@ class ObjectRelationshipNamespace:
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
         note: str | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="composition",
             label=label, style=style, direction=direction,
-            note=note,
+            note=note, length=length,
         )
 
     def aggregation(
@@ -189,11 +192,12 @@ class ObjectRelationshipNamespace:
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
         note: str | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="aggregation",
             label=label, style=style, direction=direction,
-            note=note,
+            note=note, length=length,
         )
 
     def association(
@@ -205,11 +209,12 @@ class ObjectRelationshipNamespace:
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
         note: str | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="association",
             label=label, style=style, direction=direction,
-            note=note,
+            note=note, length=length,
         )
 
     def link(
@@ -221,11 +226,12 @@ class ObjectRelationshipNamespace:
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
         note: str | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="line",
             label=label, style=style, direction=direction,
-            note=note,
+            note=note, length=length,
         )
 
     def extension(
@@ -237,11 +243,12 @@ class ObjectRelationshipNamespace:
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
         note: str | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="extension",
             label=label, style=style, direction=direction,
-            note=note,
+            note=note, length=length,
         )
 
     def implementation(
@@ -253,11 +260,12 @@ class ObjectRelationshipNamespace:
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
         note: str | None = None,
+        length: int | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="implementation",
             label=label, style=style, direction=direction,
-            note=note,
+            note=note, length=length,
         )
 
     # --- Bulk methods ---
@@ -290,6 +298,7 @@ class ObjectRelationshipNamespace:
         *targets: EntityRef | str | tuple[EntityRef | str, str],
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> list[_RelationshipData]:
         """Fan-out: one source, many targets.
 
@@ -306,7 +315,8 @@ class ObjectRelationshipNamespace:
             else:
                 target, label = t, None
             results.append(self.arrow(source, target, label,
-                                      style=style, direction=direction))
+                                      style=style, direction=direction,
+                                      length=length))
         return results
 
     def compositions_from(
@@ -317,6 +327,7 @@ class ObjectRelationshipNamespace:
         label: str | None = None,
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
+        length: int | None = None,
     ) -> list[_RelationshipData]:
         """One parent composes many children.
 
@@ -334,7 +345,8 @@ class ObjectRelationshipNamespace:
             r.compositions_from(node1, [ct101, ct102, ct103])
         """
         return [self.composition(parent, child, label,
-                                 style=style, direction=direction)
+                                 style=style, direction=direction,
+                                 length=length)
                 for child in children]
 
 
@@ -461,6 +473,7 @@ class ObjectComposer(BaseComposer):
                     style=coerce_line_style(conn.style) if conn.style else None,
                     direction=conn.direction,
                     note=Label(conn.note) if conn.note else None,
+                    length=conn.length,
                 ))
 
         # Build notes

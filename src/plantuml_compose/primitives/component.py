@@ -229,6 +229,7 @@ class Relationship:
     target_label: str | None = None
     style: LineStyle | None = None
     direction: Direction | None = None
+    length: int | None = None  # Arrow dash count (None = default 2)
     note: Label | None = None
     # Arrow head customization
     left_head: str | None = None  # e.g., "o", "*", "#", etc.

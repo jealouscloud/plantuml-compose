@@ -22,6 +22,7 @@ from ..primitives.state import (
     Transition,
 )
 from .common import (
+    adjust_arrow_length,
     escape_quotes,
     render_caption,
     render_color,
@@ -324,7 +325,14 @@ def _state_ref_to_plantuml(ref: str) -> str:
 
 
 def _build_arrow(trans: Transition) -> str:
-    """Build the arrow string for a transition."""
+    """Build the arrow string for a transition.
+
+    Base arrow is `-->` (2 dashes). The length field controls dash count:
+    length=1 → `->`, length=3 → `--->`, etc.
+
+    Direction and style modifiers are inserted between dashes:
+    `-d->` (length=2), `-d-->` (length=3), etc.
+    """
     # Direction modifier
     dir_mod = ""
     if trans.direction:
@@ -335,12 +343,14 @@ def _build_arrow(trans: Transition) -> str:
     if trans.style:
         style_mod = render_line_style_bracket(trans.style)
 
+    # Effective dash count (default 2 matches `-->`)
+    dashes = trans.length if trans.length is not None else 2
+
     # Construct arrow
-    if style_mod:
-        return f"-{style_mod}{dir_mod}->"
-    if dir_mod:
-        return f"-{dir_mod}->"
-    return "-->"
+    if style_mod or dir_mod:
+        # Modifier pattern: one dash before mods, rest after
+        return f"-{style_mod}{dir_mod}{'-' * (dashes - 1)}>"
+    return f"{'-' * dashes}>"
 
 
 def _build_transition_label(trans: Transition) -> str:

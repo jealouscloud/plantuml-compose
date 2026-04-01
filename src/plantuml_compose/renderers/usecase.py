@@ -238,8 +238,8 @@ def _render_relationship(rel: Relationship, indent: int = 0) -> list[str]:
     }
     base_arrow = arrow_map.get(rel.type, "->")
 
-    # Build arrow with direction and style
-    arrow = _build_arrow(base_arrow, rel.direction, rel.style)
+    # Build arrow with direction, style, and length
+    arrow = _build_arrow(base_arrow, rel.direction, rel.style, rel.length)
 
     # Build the full relationship line
     parts: list[str] = [quote_ref(rel.source), arrow, quote_ref(rel.target)]
@@ -269,8 +269,21 @@ def _render_relationship(rel: Relationship, indent: int = 0) -> list[str]:
     return lines
 
 
-def _build_arrow(base_arrow: str, direction: str | None, style) -> str:
-    """Build arrow with direction and style modifiers."""
+def _build_arrow(
+    base_arrow: str,
+    direction: str | None,
+    style,
+    length: int | None = None,
+) -> str:
+    """Build arrow with direction, style, and length modifiers.
+
+    The length parameter controls the dash/dot count in the arrow stem.
+    Default (None) preserves the base arrow's original dash/dot count.
+
+    Usecase arrows include both single-dash (-> for association) and
+    double-dash (--> for arrow) forms. The default dash count is derived
+    from the base arrow when length is None.
+    """
     # Direction modifier (first letter: u, d, l, r)
     dir_mod = ""
     if direction:
@@ -281,25 +294,43 @@ def _build_arrow(base_arrow: str, direction: str | None, style) -> str:
     if style:
         style_mod = render_line_style_bracket(style)
 
-    # Build the modified arrow
-    # For arrows like -> or -->
+    has_mods = bool(style_mod or dir_mod)
+
+    # For arrows like -> or -->  (also matches <|--)
     if "->" in base_arrow:
-        prefix_part = base_arrow.replace("->", "")
-        if style_mod or dir_mod:
-            return f"{prefix_part}-{style_mod}{dir_mod}->"
-        return base_arrow
+        head = base_arrow.replace("->", "")
+        # Count original dashes in head to determine default length
+        orig_dashes = head.count("-") + 1  # +1 for the - in ->
+        dashes = length if length is not None else orig_dashes
+        if has_mods:
+            return f"{head.rstrip('-')}-{style_mod}{dir_mod}{'-' * (dashes - 1)}>"
+        return f"{head.rstrip('-')}{'-' * dashes}>"
 
-    # For dotted arrows like .>
+    # For dotted arrows like .> or ..>
     if ".>" in base_arrow:
-        if style_mod or dir_mod:
-            return f".{style_mod}{dir_mod}.>"
-        return base_arrow
+        head = base_arrow.replace(".>", "")
+        orig_dots = head.count(".") + 1
+        dashes = length if length is not None else orig_dots
+        if has_mods:
+            return f"{head.rstrip('.')}.{style_mod}{dir_mod}{'.' * (dashes - 1)}>"
+        return f"{head.rstrip('.')}{'.' * dashes}>"
 
-    # For lines like --
+    # For plain lines like --
     if base_arrow == "--":
-        if style_mod or dir_mod:
-            return f"-{style_mod}{dir_mod}-"
-        return base_arrow
+        dashes = length if length is not None else 2
+        if has_mods:
+            return f"-{style_mod}{dir_mod}{'-' * (dashes - 1)}"
+        return "-" * dashes
+
+    # For extension arrows like <|--
+    if "--" in base_arrow:
+        idx = base_arrow.index("--")
+        head = base_arrow[:idx]
+        tail = base_arrow[idx + 2:]
+        dashes = length if length is not None else 2
+        if has_mods:
+            return f"{head}-{style_mod}{dir_mod}{'-' * (dashes - 1)}{tail}"
+        return f"{head}{'-' * dashes}{tail}"
 
     return base_arrow
 

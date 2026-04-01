@@ -20,6 +20,7 @@ from ..primitives.component import (
     Relationship,
 )
 from .common import (
+    adjust_arrow_length,
     escape_quotes,
     needs_quotes,
     quote_ref,
@@ -362,7 +363,11 @@ def _render_relationship(rel: Relationship, indent: int = 0) -> list[str]:
 
 
 def _build_arrow(rel: Relationship) -> str:
-    """Build the arrow string for a relationship."""
+    """Build the arrow string for a relationship.
+
+    The length field controls the dash/dot count in the arrow stem.
+    Default (None) uses 2 dashes/dots matching PlantUML's standard arrows.
+    """
     # Get base arrow for type
     base = _get_arrow_for_type(rel.type, rel.left_head, rel.right_head)
 
@@ -374,30 +379,70 @@ def _build_arrow(rel: Relationship) -> str:
     if rel.style:
         style_mod = render_line_style_bracket(rel.style)
 
-    # If no modifiers, return base arrow
-    if not style_mod and not dir_mod:
-        return base
+    has_mods = bool(style_mod or dir_mod)
 
-    # Insert modifiers into arrow
-    # Arrows can be: -->, ..>, --(, )--, --, ..
-    if "->" in base:
-        # Solid arrow: --> becomes -[style]dir->
-        return base.replace("->", f"-{style_mod}{dir_mod}->")
-    if ".>" in base:
-        # Dotted arrow: ..> becomes .[style]dir.>
-        return base.replace(".>", f".{style_mod}{dir_mod}.>")
+    # Effective dash/dot count (default 2 matches `--` / `..`)
+    dashes = rel.length if rel.length is not None else 2
+
+    # Provides/requires have special syntax: --( and )--
     if "--(" in base:
-        # Provides: --( becomes -[style]dir-(
-        return base.replace("-(", f"-{style_mod}{dir_mod}-(")
+        # Pattern: --(  → head="", stem="--", tail="("
+        if has_mods:
+            middle = f"-{style_mod}{dir_mod}{'-' * (dashes - 1)}"
+        else:
+            middle = "-" * dashes
+        return f"{middle}("
     if ")--" in base:
-        # Requires: )-- becomes )-[style]dir-
-        return base.replace(")-", f"){style_mod}{dir_mod}-")
+        # Pattern: )--  → head=")", stem="--", tail=""
+        if has_mods:
+            middle = f"){style_mod}{dir_mod}{'-' * (dashes - 1)}"
+        else:
+            middle = f"){'-' * dashes}"
+        return middle
+
+    # Split arrow into head/stem/tail and rebuild with length
+    # Solid arrows: -->, <|--, *--, o--, --, etc.
     if "--" in base:
-        # Plain line: -- becomes -[style]dir-
-        return base.replace("--", f"-{style_mod}{dir_mod}-")
+        idx = base.index("--")
+        head = base[:idx]
+        tail = base[idx + 2:]
+        if has_mods:
+            middle = f"-{style_mod}{dir_mod}{'-' * (dashes - 1)}"
+        else:
+            middle = "-" * dashes
+        return f"{head}{middle}{tail}"
+
+    # Dotted arrows: ..>, <|.., .., etc.
     if ".." in base:
-        # Dotted line: .. becomes .[style]dir.
-        return base.replace("..", f".{style_mod}{dir_mod}.")
+        idx = base.index("..")
+        head = base[:idx]
+        tail = base[idx + 2:]
+        if has_mods:
+            middle = f".{style_mod}{dir_mod}{'.' * (dashes - 1)}"
+        else:
+            middle = "." * dashes
+        return f"{head}{middle}{tail}"
+
+    # Single-character arrows: ->, .>
+    if "->" in base:
+        idx = base.index("->")
+        head = base[:idx]
+        tail = base[idx + 2:]
+        if has_mods:
+            middle = f"-{style_mod}{dir_mod}{'-' * (dashes - 1)}>"
+        else:
+            middle = f"{'-' * dashes}>"
+        return f"{head}{middle}{tail}"
+
+    if ".>" in base:
+        idx = base.index(".>")
+        head = base[:idx]
+        tail = base[idx + 2:]
+        if has_mods:
+            middle = f".{style_mod}{dir_mod}{'.' * (dashes - 1)}>"
+        else:
+            middle = f"{'.' * dashes}>"
+        return f"{head}{middle}{tail}"
 
     return base
 
