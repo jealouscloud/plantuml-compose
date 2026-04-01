@@ -913,15 +913,35 @@ class LineStyleDict(TypedDict, total=False):
 
 
 # Type alias for line style arguments
-LineStyleLike: TypeAlias = LineStyle | LineStyleDict
+LineStyleLike: TypeAlias = LineStyle | LineStyleDict | str
 
 _LINE_STYLE_KEYS: frozenset[str] = frozenset({"pattern", "color", "thickness", "bold"})
+_LINE_PATTERN_SHORTHANDS: frozenset[str] = frozenset({
+    "solid", "dashed", "dotted", "hidden",
+})
 
 
 def coerce_line_style(value: LineStyleLike) -> LineStyle:
-    """Convert a LineStyleLike value to a LineStyle object."""
+    """Convert a LineStyleLike value to a LineStyle object.
+
+    Accepts LineStyle, LineStyleDict, or string shorthand:
+        "dashed", "dotted", "solid", "hidden" — line pattern
+        "bold" — bold line
+        "#red", "#FF0000" — line color
+    """
     if isinstance(value, LineStyle):
         return value
+    if isinstance(value, str):
+        if value.startswith("#"):
+            return LineStyle(color=coerce_color(value))
+        if value in _LINE_PATTERN_SHORTHANDS:
+            return LineStyle(pattern=value)
+        if value == "bold":
+            return LineStyle(bold=True)
+        raise ValueError(
+            f"Unknown line style shorthand: {value!r}. "
+            f"Use one of: {', '.join(sorted(_LINE_PATTERN_SHORTHANDS))}, 'bold', or '#color'"
+        )
     _validate_style_dict_keys(value, _LINE_STYLE_KEYS, "LineStyle")
     return LineStyle(
         pattern=value.get("pattern", "solid"),

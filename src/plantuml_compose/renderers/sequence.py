@@ -253,7 +253,13 @@ def _render_message(msg: Message) -> str:
     # Anchor prefix (teoz feature)
     anchor_prefix = f"{{{msg.anchor}}} " if msg.anchor else ""
 
-    return f"{prefix}{anchor_prefix}{msg.source} {arrow} {msg.target}{activation}{label}"
+    # Boundary messages: [ and ] are glued to the arrow with no space
+    source_str = msg.source
+    target_str = msg.target
+    source_sep = "" if source_str == "[" else " "
+    target_sep = "" if target_str == "]" else " "
+
+    return f"{prefix}{anchor_prefix}{source_str}{source_sep}{arrow}{target_sep}{target_str}{activation}{label}"
 
 
 def _build_message_arrow(msg: Message) -> str:

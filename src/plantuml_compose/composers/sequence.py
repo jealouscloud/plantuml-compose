@@ -251,6 +251,40 @@ class SequenceEventNamespace:
             activation=activation,
         )
 
+    def incoming(
+        self,
+        target: EntityRef | str,
+        label: str | None = None,
+        *,
+        line_style: MessageLineStyle = "solid",
+        arrow_head: MessageArrowHead = "normal",
+        style: LineStyleLike | None = None,
+        activation: ActivationAction | None = None,
+    ) -> _MessageData:
+        """Message arriving from outside the diagram boundary ([->)."""
+        return self.message(
+            "[", target, label,
+            line_style=line_style, arrow_head=arrow_head,
+            style=style, activation=activation,
+        )
+
+    def outgoing(
+        self,
+        source: EntityRef | str,
+        label: str | None = None,
+        *,
+        line_style: MessageLineStyle = "solid",
+        arrow_head: MessageArrowHead = "normal",
+        style: LineStyleLike | None = None,
+        activation: ActivationAction | None = None,
+    ) -> _MessageData:
+        """Message leaving to outside the diagram boundary (->])."""
+        return self.message(
+            source, "]", label,
+            line_style=line_style, arrow_head=arrow_head,
+            style=style, activation=activation,
+        )
+
     def reply(
         self,
         source: EntityRef | str,

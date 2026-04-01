@@ -117,6 +117,8 @@ class _RelationshipData:
     note: str | None = None
     qualifier: str | None = None
     length: int | None = None
+    left_head: str | None = None
+    right_head: str | None = None
 
 
 class ClassElementNamespace:
@@ -446,7 +448,9 @@ class ClassRelationshipNamespace:
                      direction: Direction | None = None,
                      note: str | None = None,
                      qualifier: str | None = None,
-                     length: int | None = None) -> _RelationshipData:
+                     length: int | None = None,
+                     left_head: str | None = None,
+                     right_head: str | None = None) -> _RelationshipData:
         """Create a relationship with explicit type.
 
         For when the convenience methods don't fit your needs.
@@ -456,7 +460,8 @@ class ClassRelationshipNamespace:
                                  target_label=target_label,
                                  style=style, direction=direction,
                                  note=note, qualifier=qualifier,
-                                 length=length)
+                                 length=length,
+                                 left_head=left_head, right_head=right_head)
 
     def extends(self, child: EntityRef | str, parent: EntityRef | str, *,
                 label: str | None = None, style: LineStyleLike | None = None,
@@ -955,6 +960,8 @@ class ClassComposer(BaseComposer):
                     style=conn.style,
                     direction=conn.direction,
                     note=note,
+                    left_head=conn.left_head,
+                    right_head=conn.right_head,
                     qualifier=conn.qualifier,
                     length=conn.length,
                 ))

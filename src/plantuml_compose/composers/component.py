@@ -93,6 +93,8 @@ class _RelationshipData:
     style: LineStyleLike | None
     direction: Direction | None
     length: int | None = None
+    left_head: str | None = None
+    right_head: str | None = None
 
 
 class ComponentElementNamespace:
@@ -445,11 +447,14 @@ class ComponentConnectionNamespace:
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
         length: int | None = None,
+        left_head: str | None = None,
+        right_head: str | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="arrow",
             label=label, source_label=source_label, target_label=target_label,
             style=style, direction=direction, length=length,
+            left_head=left_head, right_head=right_head,
         )
 
     def dependency(
@@ -789,6 +794,8 @@ class ComponentComposer(BaseComposer):
                     style=coerce_line_style(conn.style) if conn.style else None,
                     direction=conn.direction,
                     length=conn.length,
+                    left_head=conn.left_head,
+                    right_head=conn.right_head,
                 ))
 
         # Build notes

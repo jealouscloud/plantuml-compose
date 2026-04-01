@@ -196,8 +196,15 @@ def _render_relationship(rel: Relationship, indent: int = 0) -> list[str]:
     }
     base_arrow = arrow_map.get(rel.type, "--")
 
-    # Build arrow with direction, style, and length
-    arrow = _build_arrow(base_arrow, rel.direction, rel.style, rel.length)
+    # When custom heads are specified, build arrow from parts
+    if rel.left_head is not None or rel.right_head is not None:
+        arrow = _build_custom_arrow(
+            base_arrow, rel.direction, rel.style, rel.length,
+            rel.left_head, rel.right_head,
+        )
+    else:
+        # Build arrow with direction, style, and length
+        arrow = _build_arrow(base_arrow, rel.direction, rel.style, rel.length)
 
     # Build the full relationship line
     parts: list[str] = [quote_ref(rel.source), arrow, quote_ref(rel.target)]
@@ -221,6 +228,30 @@ def _render_relationship(rel: Relationship, indent: int = 0) -> list[str]:
             lines.append(f"{prefix}note on link: {note_text}")
 
     return lines
+
+
+def _build_custom_arrow(
+    base_arrow: str,
+    direction: str | None,
+    style,
+    length: int | None,
+    left_head: str | None,
+    right_head: str | None,
+) -> str:
+    """Build arrow from custom head parts."""
+    dir_mod = direction[0] if direction else ""
+    style_mod = render_line_style_bracket(style) if style else ""
+    dashes = length if length is not None else 2
+
+    line_char = "." if ".." in base_arrow else "-"
+    has_arrow = ">" in base_arrow
+    left = left_head or ""
+    right = right_head or (">" if has_arrow else "")
+    if style_mod or dir_mod:
+        middle = f"{line_char}{style_mod}{dir_mod}{line_char * (dashes - 1)}"
+    else:
+        middle = line_char * dashes
+    return f"{left}{middle}{right}"
 
 
 def _build_arrow(

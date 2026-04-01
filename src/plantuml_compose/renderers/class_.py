@@ -423,6 +423,19 @@ def _build_relationship_arrow(rel: Relationship) -> str:
     }
     base_arrow = arrow_map[rel.type]
 
+    # When custom heads are specified, build arrow from parts
+    if rel.left_head is not None or rel.right_head is not None:
+        # Determine line character from base type (solid vs dotted)
+        line_char = "." if ".." in base_arrow else "-"
+        has_arrow = ">" in base_arrow
+        left = rel.left_head or ""
+        right = rel.right_head or (">" if has_arrow else "")
+        if style_mod or dir_mod:
+            middle = f"{line_char}{style_mod}{dir_mod}{line_char * (dashes - 1)}"
+        else:
+            middle = line_char * dashes
+        return f"{left}{middle}{right}"
+
     # Build arrow with direction, style, and length modifiers
     # PlantUML syntax: A -[style,dir]-> B
     if "--" in base_arrow:

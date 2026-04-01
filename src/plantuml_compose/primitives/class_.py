@@ -244,6 +244,9 @@ class Relationship:
     direction: Direction | None = None
     length: int | None = None  # Arrow dash count (None = default 2)
     note: LabelLike | None = None
+    # Arrow head customization
+    left_head: str | None = None  # e.g., "o", "*", "#", etc.
+    right_head: str | None = None
     # Arrow direction indicator in label
     label_direction: Literal["<", ">", None] = None
     # Qualified association: adds a qualifier box at the source end

@@ -135,6 +135,9 @@ class Relationship:
     direction: Direction | None = None
     length: int | None = None  # Arrow dash count (None = default 2)
     note: Label | None = None
+    # Arrow head customization
+    left_head: str | None = None  # e.g., "o", "*", "#", etc.
+    right_head: str | None = None
 
 
 @dataclass(frozen=True)

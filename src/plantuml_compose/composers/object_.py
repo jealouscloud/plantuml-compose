@@ -89,6 +89,8 @@ class _RelationshipData:
     direction: Direction | None
     note: str | None = None
     length: int | None = None
+    left_head: str | None = None
+    right_head: str | None = None
 
 
 class ObjectElementNamespace:
@@ -159,11 +161,14 @@ class ObjectRelationshipNamespace:
         direction: Direction | None = None,
         note: str | None = None,
         length: int | None = None,
+        left_head: str | None = None,
+        right_head: str | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="arrow",
             label=label, style=style, direction=direction,
             note=note, length=length,
+            left_head=left_head, right_head=right_head,
         )
 
     def composition(
@@ -227,11 +232,14 @@ class ObjectRelationshipNamespace:
         direction: Direction | None = None,
         note: str | None = None,
         length: int | None = None,
+        left_head: str | None = None,
+        right_head: str | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="line",
             label=label, style=style, direction=direction,
             note=note, length=length,
+            left_head=left_head, right_head=right_head,
         )
 
     def extension(
@@ -474,6 +482,8 @@ class ObjectComposer(BaseComposer):
                     direction=conn.direction,
                     note=Label(conn.note) if conn.note else None,
                     length=conn.length,
+                    left_head=conn.left_head,
+                    right_head=conn.right_head,
                 ))
 
         # Build notes

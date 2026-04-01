@@ -82,6 +82,8 @@ class _RelationshipData:
     style: LineStyleLike | None
     direction: Direction | None
     length: int | None = None
+    left_head: str | None = None
+    right_head: str | None = None
 
 
 class DeploymentElementNamespace:
@@ -326,18 +328,24 @@ class DeploymentConnectionNamespace:
     def arrow(self, source: EntityRef | str, target: EntityRef | str,
               label: str | None = None, *, style: LineStyleLike | None = None,
               direction: Direction | None = None,
-              length: int | None = None) -> _RelationshipData:
+              length: int | None = None,
+              left_head: str | None = None,
+              right_head: str | None = None) -> _RelationshipData:
         return _RelationshipData(source=source, target=target, type="arrow",
                                  label=label, style=style, direction=direction,
-                                 length=length)
+                                 length=length,
+                                 left_head=left_head, right_head=right_head)
 
     def line(self, source: EntityRef | str, target: EntityRef | str,
              label: str | None = None, *, style: LineStyleLike | None = None,
              direction: Direction | None = None,
-             length: int | None = None) -> _RelationshipData:
+             length: int | None = None,
+             left_head: str | None = None,
+             right_head: str | None = None) -> _RelationshipData:
         return _RelationshipData(source=source, target=target, type="line",
                                  label=label, style=style, direction=direction,
-                                 length=length)
+                                 length=length,
+                                 left_head=left_head, right_head=right_head)
 
     def dependency(self, source: EntityRef | str, target: EntityRef | str,
                    label: str | None = None, *, style: LineStyleLike | None = None,
@@ -479,6 +487,8 @@ class DeploymentComposer(BaseComposer):
                     style=coerce_line_style(conn.style) if conn.style else None,
                     direction=conn.direction,
                     length=conn.length,
+                    left_head=conn.left_head,
+                    right_head=conn.right_head,
                 ))
 
         for note_data in self._notes:
