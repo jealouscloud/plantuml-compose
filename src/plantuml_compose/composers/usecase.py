@@ -268,7 +268,7 @@ class UseCaseRelationshipNamespace:
         right_head: str | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
-            source=source, target=target, type="association",
+            source=source, target=target, type="line",
             label=label, style=style, direction=direction,
             length=length,
             left_head=left_head, right_head=right_head,
