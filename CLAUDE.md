@@ -46,30 +46,35 @@ plantuml --check-syntax <filename>  # Validate syntax only
 
 Three-layer architecture:
 ```
-Layer 3: Builders (state_diagram, etc.) - User-facing API with context managers
+Layer 3: Composers (state_diagram, etc.) - User-facing API with factory functions
 Layer 2: Renderers (render) - Pure functions transforming primitives to PlantUML text
 Layer 1: Primitives (frozen dataclasses) - Immutable domain model
 ```
+
+The composer API uses:
+- **Pure factory functions** for element creation (no side effects)
+- **Positional args** for nesting (children as arguments)
+- **`d.add()`** and **`d.connect()`** as the only mutation points
+- **`EntityRef`** for child access via `parent.child_name` or `parent["child name"]`
+- **Single `ref=` parameter** for naming (replaces old `alias=`)
 
 ## Design Principles
 
 ### Only Expose What PlantUML Actually Renders
 
-PlantUML accepts syntax that it silently ignores. Our builder API must only expose parameters that have visible effect. This prevents user frustration from setting options that do nothing.
+PlantUML accepts syntax that it silently ignores. Our composer API must only expose parameters that have visible effect. This prevents user frustration from setting options that do nothing.
 
 **Process for new features:**
 1. Test the raw PlantUML syntax to confirm it renders visually
 2. Generate SVG output and verify the styling appears
-3. Only then expose the parameter in the builder API
-
-**Example:** Fork/join bars accept `#color` syntax but always render gray. We removed the `style` parameter from `fork()` and `join()` builder methods, though the underlying `PseudoState` primitive retains the field for future compatibility.
+3. Only then expose the parameter in the composer API
 
 **Canary tests:** `tests/test_plantuml_limitations.py` contains tests that verify PlantUML limitations still exist. If PlantUML adds support for a feature, these tests will fail, signaling we can expose the parameter.
 
-### Primitives vs Builders
+### Primitives vs Composers
 
 - **Primitives** (Layer 1): Complete data model, may include fields PlantUML ignores
-- **Builders** (Layer 3): Honest API, only exposes what works
+- **Composers** (Layer 3): Honest API, only exposes what works
 - **Renderers** (Layer 2): Render all primitive fields, even if PlantUML ignores them
 
 This separation allows advanced users to construct primitives directly while protecting typical users from non-functional options.

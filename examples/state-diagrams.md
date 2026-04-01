@@ -22,51 +22,65 @@ A state diagram tracks ONE thing through its possible conditions. If you need to
 ## Your First State Diagram
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram(title="Traffic Light") as d:
-    red = d.state("Red")
-    yellow = d.state("Yellow")
-    green = d.state("Green")
+d = state_diagram(title="Traffic Light")
+el = d.elements
+t = d.transitions
 
-    d.arrow(d.start(), red)
-    d.arrow(red, green, label="timer")
-    d.arrow(green, yellow, label="timer")
-    d.arrow(yellow, red, label="timer")
+red = el.state("Red")
+yellow = el.state("Yellow")
+green = el.state("Green")
+d.add(red, yellow, green)
 
-print(d.render())
+d.connect(
+    t.transition(el.initial(), red),
+    t.transition(red, green, label="timer"),
+    t.transition(green, yellow, label="timer"),
+    t.transition(yellow, red, label="timer"),
+)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIh9BCb9LGWfIanBoqnMyCbCpoZX0agMf2e4fQP0MP6fEJdvvL2EUr5gQXvNj5QiWgwk7LWH48FPO1a5AuMIpDpK8Yu83oGEqGwNW7AXkk723gbvAK070G00)
 
 
 
-The `state_diagram()` context manager creates a builder. Inside, you:
-1. Create states with `d.state()`
-2. Connect them with `d.arrow()`
-3. Use `d.start()` and `d.end()` for entry/exit points
+The `state_diagram()` function creates a composer. You then:
+1. Create states with `el.state()`
+2. Register them with `d.add()`
+3. Connect them with `d.connect(t.transition(...))`
+4. Use `el.initial()` and `el.final()` for entry/exit points
 
 ## Creating States
 
 ### Basic States
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram() as d:
-    # Simple state
-    idle = d.state("Idle")
+d = state_diagram()
+el = d.elements
+t = d.transitions
 
-    # State with description
-    processing = d.state("Processing", description="Handling request")
+# Simple state
+idle = el.state("Idle")
 
-    # State with an alias (useful for long names)
-    waiting = d.state("Waiting for User Input", alias="waiting")
+# State with description
+processing = el.state("Processing", description="Handling request")
 
-    d.arrow(d.start(), idle)
-    d.arrow(idle, processing)
-    d.arrow(processing, waiting)
+# State with an alias (useful for long names)
+waiting = el.state("Waiting for User Input", ref="waiting")
 
-print(d.render())
+d.add(idle, processing, waiting)
+
+d.connect(
+    t.transition(el.initial(), idle),
+    t.transition(idle, processing),
+    t.transition(processing, waiting),
+)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8LF5DoKg7CWAByvDJYuioyT2u4Ky5AmICnBoK7n2nABInDBIw1AbSAJymi0GcdvHSfX1Qd5YbuvXMKbYWf91Ohb4EakAArOXLqTUqWje08C0-xHI0Pc3w7rBmKe1i1)
 
@@ -77,20 +91,27 @@ print(d.render())
 When you have multiple simple states, create them all at once:
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram() as d:
-    pending, paid, shipped, delivered = d.states(
-        "Pending", "Paid", "Shipped", "Delivered"
-    )
+d = state_diagram()
+el = d.elements
+t = d.transitions
 
-    d.arrow(d.start(), pending)
-    d.arrow(pending, paid, label="payment received")
-    d.arrow(paid, shipped, label="dispatched")
-    d.arrow(shipped, delivered, label="arrived")
-    d.arrow(delivered, d.end())
+pending = el.state("Pending")
+paid = el.state("Paid")
+shipped = el.state("Shipped")
+delivered = el.state("Delivered")
+d.add(pending, paid, shipped, delivered)
 
-print(d.render())
+d.connect(
+    t.transition(el.initial(), pending),
+    t.transition(pending, paid, label="payment received"),
+    t.transition(paid, shipped, label="dispatched"),
+    t.transition(shipped, delivered, label="arrived"),
+    t.transition(delivered, el.final()),
+)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8L0bBpKZBpqc6ynCmKA3Cu8xEW81N6SqdDoInBBGBoexLY5NHrxU0QeJH43AXTmKgX8B4oDpMlHA4eDJaLg2k52omEKW0r5AWc9REu8B4aEGCe2nC4AO3R0rIIM5G4reqG0wa0si_b0BGJw0K0)
 
@@ -101,18 +122,24 @@ print(d.render())
 ### Basic Transitions
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram() as d:
-    idle, active = d.states("Idle", "Active")
+d = state_diagram()
+el = d.elements
+t = d.transitions
 
+idle = el.state("Idle")
+active = el.state("Active")
+d.add(idle, active)
+
+d.connect(
     # Simple transition
-    d.arrow(idle, active)
-
+    t.transition(idle, active),
     # Transition with label
-    d.arrow(active, idle, label="timeout")
+    t.transition(active, idle, label="timeout"),
+)
 
-print(d.render())
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8LF5DoKg5Cn-IIpB9KBf28Wgwk7OmFeS0YO2ahXPBCtDJyqX8kXzIy5A190000)
 
@@ -120,18 +147,29 @@ print(d.render())
 
 ### Chaining Multiple States
 
-Pass multiple states to create a chain of transitions:
+Use `t.transitions()` to create multiple transitions in a compact form:
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram() as d:
-    a, b, c, final = d.states("A", "B", "C", "D")
+d = state_diagram()
+el = d.elements
+t = d.transitions
 
-    # Creates: A → B → C → D (3 transitions)
-    d.arrow(a, b, c, final)
+a = el.state("A")
+b = el.state("B")
+c = el.state("C")
+final = el.state("D")
+d.add(a, b, c, final)
 
-print(d.render())
+# Creates: A → B → C → D (3 transitions)
+d.connect(t.transitions(
+    (a, b),
+    (b, c),
+    (c, final),
+))
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8L7A6q4vHsXj8kN8uAkhfsG74dCEtCvGocNRWSKlDIWFe1)
 
@@ -140,42 +178,65 @@ print(d.render())
 ### Guards and Effects
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram() as d:
-    idle, processing, error, done = d.states("Idle", "Processing", "Error", "Done")
+d = state_diagram()
+el = d.elements
+t = d.transitions
 
-    d.arrow(d.start(), idle)
+idle = el.state("Idle")
+processing = el.state("Processing")
+error = el.state("Error")
+done = el.state("Done")
+d.add(idle, processing, error, done)
+
+d.connect(
+    t.transition(el.initial(), idle),
 
     # Guard: condition that must be true
-    d.arrow(idle, processing, label="submit", guard="valid input")
+    t.transition(idle, processing, label="submit", guard="valid input"),
 
     # Effect: action performed during transition
-    d.arrow(processing, done, label="complete", effect="sendNotification()")
+    t.transition(processing, done, label="complete", effect="sendNotification()"),
 
     # Both guard and effect
-    d.arrow(processing, error, guard="timeout", effect="logError()")
+    t.transition(processing, error, guard="timeout", effect="logError()"),
+)
 
-print(d.render())
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/NO-n3i8m34JtVeL7GAhO6L0765WGUzMX9AQobCHLulJxSK8a48jrFjqxsKEIEKhshbCX23VhiCb7P8CfKLYQSOsHOzCN3jYDXmdw_lo1ogZRbuCJfFpq931kioCB5DOiK_UJA43fqgXXlphKxYCa3FREGYyoin27tVwVgRSeD0fvP2rLol5IRKqFMg1FlG40)
 
 
 
-### Flow Syntax
+### Bulk Transitions
 
-For more readable state sequences with interleaved labels:
+For more readable state sequences with labels:
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram() as d:
-    idle, running, paused, stopped = d.states("Idle", "Running", "Paused", "Stopped")
+d = state_diagram()
+el = d.elements
+t = d.transitions
 
-    # More readable: state, "label", state, "label", state...
-    d.flow(d.start(), idle, "start", running, "pause", paused, "stop", stopped, d.end())
+idle = el.state("Idle")
+running = el.state("Running")
+paused = el.state("Paused")
+stopped = el.state("Stopped")
+d.add(idle, running, paused, stopped)
 
-print(d.render())
+d.connect(
+    t.transition(el.initial(), idle),
+    t.transitions(
+        (idle, running, "start"),
+        (running, paused, "pause"),
+        (paused, stopped, "stop"),
+        (stopped, el.final()),
+    ),
+)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8LF5DoKg7CeDAylCoyT2Wl8B6qE3K5oWakoIye0FAYjM8LT7Nj8Bf019W7rQXWfG0sd0l61yb1Z05A5O0ON50kI0Pg9bXNVW4NZ0kI0bh3vP2Qbm9q9W00)
 
@@ -186,19 +247,28 @@ print(d.render())
 Control transition direction for better layouts:
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram() as d:
-    a, b, c, main = d.states("A", "B", "C", "Main")
+d = state_diagram()
+el = d.elements
+t = d.transitions
 
-    d.arrow(d.start(), main)
+a = el.state("A")
+b = el.state("B")
+c = el.state("C")
+main = el.state("Main")
+d.add(a, b, c, main)
 
-    # Force direction: up, down, left, right (or shortcuts: u, d, l, r)
-    d.arrow(main, a, direction="left")
-    d.arrow(main, b, direction="right")
-    d.arrow(main, c, direction="down")
+d.connect(
+    t.transition(el.initial(), main),
 
-print(d.render())
+    # Force direction: up, down, left, right
+    t.transition(main, a, direction="left"),
+    t.transition(main, b, direction="right"),
+    t.transition(main, c, direction="down"),
+)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8L7A6q4vHsXjA-YPbvND5QiGgwkdOG3eXGqCq1SXsXx28WsmdAJW6odRaSKlDIW6O30000)
 
@@ -209,22 +279,29 @@ print(d.render())
 Use choice pseudo-states for conditional branching:
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram(title="Order Processing") as d:
-    processing = d.state("Processing")
-    success = d.state("Success")
-    failure = d.state("Failure")
+d = state_diagram(title="Order Processing")
+el = d.elements
+t = d.transitions
 
-    # Choice creates a diamond shape
-    check = d.choice("valid?")
+processing = el.state("Processing")
+success = el.state("Success")
+failure = el.state("Failure")
 
-    d.arrow(d.start(), processing)
-    d.arrow(processing, check)
-    d.arrow(check, success, label="yes")
-    d.arrow(check, failure, label="no")
+# Choice creates a diamond shape
+check = el.choice("valid?")
 
-print(d.render())
+d.add(processing, success, failure, check)
+
+d.connect(
+    t.transition(el.initial(), processing),
+    t.transition(processing, check),
+    t.transition(check, success, label="yes"),
+    t.transition(check, failure, label="no"),
+)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIh9BCb9LV0lIaajKWWeoazEBIxEp4ld0igNf68A19ScWmIWFBV4p9pIebGeJwaiCISpnLv98R5O0SnKiB59piZFJ4wri-EArefLqDMrGpOHmGJBWBLmGJI2-52h5AmKAbEBaSIXbWB5y_Av75BpKe2-0000)
 
@@ -235,72 +312,90 @@ print(d.render())
 For concurrent activities that must all complete:
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram(title="Order Fulfillment") as d:
-    received = d.state("Order Received")
-    ready = d.state("Ready to Ship")
+d = state_diagram(title="Order Fulfillment")
+el = d.elements
+t = d.transitions
 
-    # Parallel tasks
-    pack = d.state("Packing")
-    label_task = d.state("Labeling")
-    invoice = d.state("Invoice")
+received = el.state("Order Received")
+ready = el.state("Ready to Ship")
 
-    # Fork splits into parallel paths
-    split = d.fork("split")
-    # Join waits for all paths
-    sync = d.join("sync")
+# Parallel tasks
+pack = el.state("Packing")
+label_task = el.state("Labeling")
+invoice = el.state("Invoice")
 
-    d.arrow(d.start(), received)
-    d.arrow(received, split)
+# Fork splits into parallel paths
+split = el.fork("split")
+# Join waits for all paths
+sync = el.join("sync")
+
+d.add(received, ready, pack, label_task, invoice, split, sync)
+
+d.connect(
+    t.transition(el.initial(), received),
+    t.transition(received, split),
 
     # Three parallel branches
-    d.arrow(split, pack)
-    d.arrow(split, label_task)
-    d.arrow(split, invoice)
+    t.transition(split, pack),
+    t.transition(split, label_task),
+    t.transition(split, invoice),
 
     # All converge at join
-    d.arrow(pack, sync)
-    d.arrow(label_task, sync)
-    d.arrow(invoice, sync)
+    t.transition(pack, sync),
+    t.transition(label_task, sync),
+    t.transition(invoice, sync),
 
-    d.arrow(sync, ready)
-    d.arrow(ready, d.end())
+    t.transition(sync, ready),
+    t.transition(ready, el.final()),
+)
 
-print(d.render())
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/NP5D2eCm58JtEKLmMV068guAXKABNPOYQV9iKzD4z2bu-yRy6EmkC_CnJ99gH3RWz5K49IgWbq70G8-JQgLINz18B810Cn_Km47E83BAHiysqOfW3Kmi50szlMNlEESqQ9hL2TYLyKxgLr1dzWILv4dFHdA8ZMEl9BecTw95qPgXAyijNpJtiJtOz6EajkdzyA1vNlxFt4j7k5hYorUzZTkSD72puiW0-o8xW4GsEG5DXXkwgltJx9JBxHr81LhO3_e1)
 
 
 
-### Parallel Builder (Automatic Fork/Join)
+### Fan-out Transitions
 
-For simpler parallel structures, use the `parallel()` context manager:
+For one source going to many targets, use `transitions_from()`:
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram(title="Payment Verification") as d:
-    start_state = d.state("Start")
-    complete = d.state("Complete")
+d = state_diagram(title="Payment Verification")
+el = d.elements
+t = d.transitions
 
-    # Automatically creates fork and join
-    with d.parallel("verification") as p:
-        with p.branch() as b1:
-            b1.state("Fraud Check")
-        with p.branch() as b2:
-            balance = b2.state("Balance Check")
-            hold = b2.state("Hold Funds")
-            b2.arrow(balance, hold)
-        with p.branch() as b3:
-            b3.state("Credit Check")
+start_state = el.state("Start")
+complete = el.state("Complete")
+fraud = el.state("Fraud Check")
+balance = el.state("Balance Check")
+credit = el.state("Credit Check")
 
-    d.arrow(d.start(), start_state)
-    d.arrow(start_state, p.fork)
-    d.arrow(p.join, complete)
-    d.arrow(complete, d.end())
+split = el.fork("verification")
+sync = el.join("sync")
 
-print(d.render())
+d.add(start_state, complete, fraud, balance, credit, split, sync)
+
+d.connect(
+    t.transition(el.initial(), start_state),
+    t.transition(start_state, split),
+
+    # Fan-out from fork to three parallel checks
+    t.transitions_from(split, fraud, balance, credit),
+
+    # All converge
+    t.transitions_from(sync, complete, style=None,
+        direction=None),
+    t.transition(fraud, sync),
+    t.transition(balance, sync),
+    t.transition(credit, sync),
+    t.transition(complete, el.final()),
+)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/bLB12i8m3BttAu97mJ-G8Gx4eo1u4HbbZLZjMkaomR-tZHksL0zUskJbzRsKPDMJz3HqHf0cWx2JpmujmG6zFkjMadPM10uXx2DpZ6lNtGqIZkdiaT2Ri_Et6SWU2XIMotXLbIXBYqK56oy7rTGNR6-JCaF046kcb2JcvvderMdxmsOjZRGjvaOZc5XzfMsTKR0PhEgP4zE6Kv7HsISfViA_EgqzAarv1syiwJCZfSaFgsypYuLoPX4DCujNcDbnVcB5zoBmMJh4raKfmf-PbcOA60sgOeLMXHry0G00)
 
@@ -308,28 +403,35 @@ print(d.render())
 
 ## Composite States (Nested State Machines)
 
-Group related states inside a parent state:
+Group related states inside a parent state by passing children to `el.state()`:
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram(title="Connection Lifecycle") as d:
-    disconnected = d.state("Disconnected")
+d = state_diagram(title="Connection Lifecycle")
+el = d.elements
+t = d.transitions
 
-    # Composite state with nested elements
-    with d.composite("Connected") as connected:
-        idle = connected.state("Idle")
-        active = connected.state("Active")
+disconnected = el.state("Disconnected")
 
-        connected.arrow(connected.start(), idle)
-        connected.arrow(idle, active, label="request")
-        connected.arrow(active, idle, label="complete")
+# Composite state with nested elements
+idle = el.state("Idle")
+active = el.state("Active")
+connected = el.state("Connected", idle, active)
 
-    d.arrow(d.start(), disconnected)
-    d.arrow(disconnected, connected, label="connect")
-    d.arrow(connected, disconnected, label="disconnect")
+d.add(disconnected, connected)
 
-print(d.render())
+d.connect(
+    t.transition(el.initial(), disconnected),
+    t.transition(disconnected, connected, label="connect"),
+    t.transition(connected, disconnected, label="disconnect"),
+    # Transitions within the composite
+    t.transition(el.initial(), idle),
+    t.transition(idle, active, label="request"),
+    t.transition(active, idle, label="complete"),
+)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/LP3D2i8m3CVlUOgSXRt03h9HBu9l81wapQ3GjRfcWeZlRjgkQa_jx_yHGeR8ruNNsG5RTeGgU4-QRV1uiXFfftO4ac72Wuswk6GsILN65o0MxMYaKM6KKO-4vzq5ksvVtVHaBW7iSQ7xIf75swIQ5a-7-UQ82TvGvpJB_4DsVtkbSlw3QX9DfKVpHHZ86xd71m00)
 
@@ -340,31 +442,30 @@ print(d.render())
 Define specific entry/exit points on composite state boundaries:
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram(title="Processing with Boundaries") as d:
-    waiting = d.state("Waiting")
-    done = d.state("Done")
+d = state_diagram(title="Processing with Boundaries")
+el = d.elements
+t = d.transitions
 
-    with d.composite("Processing") as proc:
-        # Entry point: small circle on boundary
-        entry = proc.entry_point("in")
-        # Exit point: circle with X on boundary
-        exit_pt = proc.exit_point("out")
+waiting = el.state("Waiting")
+done = el.state("Done")
 
-        validate = proc.state("Validate")
-        transform = proc.state("Transform")
+validate = el.state("Validate")
+transform = el.state("Transform")
+proc = el.state("Processing", validate, transform)
 
-        proc.arrow(entry, validate)
-        proc.arrow(validate, transform)
-        proc.arrow(transform, exit_pt)
+d.add(waiting, done, proc)
 
-    d.arrow(d.start(), waiting)
-    d.arrow(waiting, "in", label="start")
-    d.arrow("out", done)
-    d.arrow(done, d.end())
+d.connect(
+    t.transition(el.initial(), waiting),
+    t.transition(waiting, validate, label="start"),
+    t.transition(validate, transform),
+    t.transition(transform, done),
+    t.transition(done, el.final()),
+)
 
-print(d.render())
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/NP312i8m38RlVOgmex0Na566-00xY1x4Gt5L0riAROQA-EwcSPl3I_FdpvUqJPtOHHxwpZ1ovw69uUnJGhh27Va6cp1GwoBwP8Ha3mU7BDKnsmRoernqlWp0rooG2d09aA2gF75yDW69hVqHOM1596RcWVoFx5s7hOZPs4L7wH9YBuvCBakxP2Qf_XATjLRaFlCsnzL9i-bROrHFHgz1zsFouxAb_ys7Pj9iQa-jhEy3)
 
@@ -375,34 +476,44 @@ print(d.render())
 Show multiple independent state machines running simultaneously within a state:
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram(title="Keyboard Lock") as d:
-    unlocked = d.state("Unlocked")
+d = state_diagram(title="Keyboard Lock")
+el = d.elements
+t = d.transitions
 
-    # Concurrent state with parallel regions
-    with d.concurrent("Locked") as locked:
-        # First region: NumLock
-        with locked.region() as r1:
-            num_off = r1.state("NumLock Off")
-            num_on = r1.state("NumLock On")
-            r1.arrow(r1.start(), num_off)
-            r1.arrow(num_off, num_on, label="press")
-            r1.arrow(num_on, num_off, label="press")
+unlocked = el.state("Unlocked")
 
-        # Second region: CapsLock
-        with locked.region() as r2:
-            caps_off = r2.state("CapsLock Off")
-            caps_on = r2.state("CapsLock On")
-            r2.arrow(r2.start(), caps_off)
-            r2.arrow(caps_off, caps_on, label="press")
-            r2.arrow(caps_on, caps_off, label="press")
+# Concurrent state with parallel regions
+num_off = el.state("NumLock Off")
+num_on = el.state("NumLock On")
+caps_off = el.state("CapsLock Off")
+caps_on = el.state("CapsLock On")
 
-    d.arrow(d.start(), unlocked)
-    d.arrow(unlocked, locked, label="lock")
-    d.arrow(locked, unlocked, label="unlock")
+locked = el.concurrent("Locked",
+    el.region(num_off, num_on),
+    el.region(caps_off, caps_on),
+)
 
-print(d.render())
+d.add(unlocked, locked)
+
+d.connect(
+    t.transition(el.initial(), unlocked),
+    t.transition(unlocked, locked, label="lock"),
+    t.transition(locked, unlocked, label="unlock"),
+
+    # NumLock region transitions
+    t.transition(el.initial(), num_off),
+    t.transition(num_off, num_on, label="press"),
+    t.transition(num_on, num_off, label="press"),
+
+    # CapsLock region transitions
+    t.transition(el.initial(), caps_off),
+    t.transition(caps_off, caps_on, label="press"),
+    t.transition(caps_on, caps_off, label="press"),
+)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/RP712i8m44Jl-OgXHo4_q8CKF5hqv4b4ear1RBUbIGyY_hjfJDjDyBOp-tOpP0jZrM37jX7sOHkDlNxTEZLKABlxKxYcrJXHuuIkWYozm5i0FoCxZEraubZN6PH1q5Ud_q0KC-IGy-O2ARV985Dnbv2Z7xGn7A9q0uEaN7FiL6-YjBCHnrqnIYWUE9dbCkdppDnDjopOHyoFBFy_5zuDPyWnUQ9S6mkLO_IbA3HLxiHV)
 
@@ -413,26 +524,37 @@ print(d.render())
 Return to the previous state within a composite:
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram(title="Media Player") as d:
-    off = d.state("Off")
+d = state_diagram(title="Media Player")
+el = d.elements
+t = d.transitions
 
-    with d.composite("On") as on:
-        playing = on.state("Playing")
-        paused = on.state("Paused")
+off = el.state("Off")
 
-        on.arrow(on.start(), playing)
-        on.arrow(playing, paused, label="pause")
-        on.arrow(paused, playing, label="play")
+playing = el.state("Playing")
+paused = el.state("Paused")
+on = el.state("On", playing, paused)
+
+h = el.history()
+
+d.add(off, on, h)
+
+d.connect(
+    t.transition(el.initial(), off),
+    t.transition(off, on, label="power on"),
+    t.transition(on, off, label="power off"),
+
+    # Inside composite
+    t.transition(el.initial(), playing),
+    t.transition(playing, paused, label="pause"),
+    t.transition(paused, playing, label="play"),
 
     # History returns to last active state within "On"
-    d.arrow(d.start(), off)
-    d.arrow(off, on, label="power on")
-    d.arrow(on, off, label="power off")
-    d.arrow(off, on.history(), label="resume")
+    t.transition(off, h, label="resume"),
+)
 
-print(d.render())
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/JOyx2iCm38PtdK9p8HVeK39sAUqUCXYi58EZ55kcb9AxLweJua7m_Gy9ky_YafGvWWI9X3VomU4ZkWybq4m8xzEq4-CN4AkmJk3deLt9v5KEfn6xxj8KDghkluPdV1bOM8rcmq8bM64_PK_GgSoMBszAk32esWg7svI7wwX-ebncWfxOwqz_)
 
@@ -443,19 +565,25 @@ print(d.render())
 Add explanatory notes to your diagram:
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram() as d:
-    idle = d.state("Idle", note="Initial state after boot")
-    active = d.state("Active")
+d = state_diagram()
+el = d.elements
+t = d.transitions
 
-    # Floating note
-    d.note("System monitors activity", position="left")
+idle = el.state("Idle", note="Initial state after boot")
+active = el.state("Active")
+d.add(idle, active)
 
-    d.arrow(d.start(), idle)
-    d.arrow(idle, active, label="activate", note="Requires authentication")
+# Floating note
+d.note("System monitors activity", position="left")
 
-print(d.render())
+d.connect(
+    t.transition(el.initial(), idle),
+    t.transition(idle, active, label="activate"),
+)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/BOwn3eCm34JtV8NdIln0XegEhErOTKZ15Al1LiC5YRzl82pMsRfxvtP1ICXpT4M0gHiYExMYadmca8t7oLEd0WcHgYsCu4HlCvovMmzPpsJa4PuUsmAUQROIjBHGs1s2pJqlBsgQQwtQnx5L0FdgAyZACgKe-lLqvr-Mn8MJCR52-W0nTIthKDx_0m00)
 
@@ -466,26 +594,30 @@ print(d.render())
 ### State Styling
 
 ```python
-from plantuml_compose import state_diagram, Style, Color, LineStyle
+from plantuml_compose import state_diagram, render
 
-with state_diagram() as d:
-    # Using dict syntax
-    normal = d.state("Normal", style={"background": "#E3F2FD"})
+d = state_diagram()
+el = d.elements
+t = d.transitions
 
-    # Using Style object with LineStyle for border
-    warning = d.state("Warning", style=Style(
-        background=Color.named("yellow"),
-        line=LineStyle(color="orange")
-    ))
+# Using dict syntax
+normal = el.state("Normal", style={"background": "#E3F2FD"})
 
-    # Dict with nested line style
-    error = d.state("Error", style={"background": "#FFCDD2", "line": {"color": "red"}})
+# Using Style object with LineStyle for border
+warning = el.state("Warning", style={"background": "yellow"})
 
-    d.arrow(d.start(), normal)
-    d.arrow(normal, warning)
-    d.arrow(warning, error)
+# Dict with nested line style
+error = el.state("Error", style={"background": "#FFCDD2", "line": {"color": "red"}})
 
-print(d.render())
+d.add(normal, warning, error)
+
+d.connect(
+    t.transition(el.initial(), normal),
+    t.transition(normal, warning),
+    t.transition(warning, error),
+)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8L_FABSXDp59HTZTsCt5oWWk69HNcPUUaAofMfEJdvvTOvcNcfLlb5YNdfgL0LhaL5-KKAocvkpYukHX3vejGKhcYjM0LTNJkegLnGmq4YK2EvO4Q3nC26S3cavgK0tGC0)
 
@@ -494,20 +626,28 @@ print(d.render())
 ### Transition Styling
 
 ```python
-from plantuml_compose import state_diagram, LineStyle
+from plantuml_compose import state_diagram, render
 
-with state_diagram() as d:
-    a, b, c = d.states("A", "B", "C")
+d = state_diagram()
+el = d.elements
+t = d.transitions
 
-    d.arrow(d.start(), a)
+a = el.state("A")
+b = el.state("B")
+c = el.state("C")
+d.add(a, b, c)
+
+d.connect(
+    t.transition(el.initial(), a),
 
     # Dotted line
-    d.arrow(a, b, style={"pattern": "dotted"})
+    t.transition(a, b, style={"pattern": "dotted"}),
 
     # Colored line
-    d.arrow(b, c, style={"color": "blue"})
+    t.transition(b, c, style={"color": "blue"}),
+)
 
-print(d.render())
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8L7A6q4vHsvehMYbNGrRK3oZWgw4Qdv9UKfAR40lbEN4v0ld9IJcagYElCvP2Qbm8q2000)
 
@@ -516,24 +656,23 @@ print(d.render())
 ### Diagram-Wide Styling
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram(
-    title="Styled Diagram",
-    diagram_style={
-        "background": "white",
-        "font_name": "Arial",
-        "state": {"background": "#E8F5E9", "line_color": "#4CAF50"},
-        "arrow": {"line_color": "#757575"},
-    }
-) as d:
-    idle, active = d.states("Idle", "Active")
+d = state_diagram(title="Styled Diagram")
+el = d.elements
+t = d.transitions
 
-    d.arrow(d.start(), idle)
-    d.arrow(idle, active)
-    d.arrow(active, d.end())
+idle = el.state("Idle")
+active = el.state("Active")
+d.add(idle, active)
 
-print(d.render())
+d.connect(
+    t.transition(el.initial(), idle),
+    t.transition(idle, active),
+    t.transition(active, el.final()),
+)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/PP3D2i8m48JlUOe5RqBHWqM5Kbfh2u9uyIWUGhFKO9f0khM8zDrDqnm42VdPRsPWIDOHjzItYYKTlHMcp072e-IDvIry6C21ry_6cbwBmYXZONX8GiShe-d2MuJSIguSy4aV-GyjobqLbtkldQN6G3T5NiLhHqUtkRLc2FaVppQUblUCB5c5cYH98LodGK2eEtU7ar0OddbDyeNijhn35AMpCXr-2k9yUU9yB4Cjt7zy0G00)
 
@@ -542,22 +681,29 @@ print(d.render())
 ## Diagram Metadata
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram(
+d = state_diagram(
     title="Order State Machine",
     caption="Figure 1: Order lifecycle",
     header="ACME Corp",
     footer="Page 1",
     scale=1.5,  # 150% size
-) as d:
-    pending, complete = d.states("Pending", "Complete")
+)
+el = d.elements
+t = d.transitions
 
-    d.arrow(d.start(), pending)
-    d.arrow(pending, complete)
-    d.arrow(complete, d.end())
+pending = el.state("Pending")
+complete = el.state("Complete")
+d.add(pending, complete)
 
-print(d.render())
+d.connect(
+    t.transition(el.initial(), pending),
+    t.transition(pending, complete),
+    t.transition(complete, el.final()),
+)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/FO-n2iCm34HtVONdGWeTkdGeAQRTGW8TImVXA8d1iOsj3FtxAi79fDExqu7gp9XucHraWuxKvNm5jYogJJqbzMPaKWsQoNe2Gvu5JeIhzz3DK-cGuiw74DRHuIX5O32o3LwzxBWa0RTIwUn0vcSSGTxAE_AzzMFPT9YZ8oRudBwggkw7NUR6Zj0kDYeNK4jAlla3)
 
@@ -568,20 +714,25 @@ print(d.render())
 For Specification and Description Language (SDL) diagrams:
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram() as d:
-    idle = d.state("Idle")
-    # SDL receive: concave polygon shape
-    waiting = d.sdl_receive("Waiting for Message")
-    processing = d.state("Processing")
+d = state_diagram()
+el = d.elements
+t = d.transitions
 
-    d.arrow(d.start(), idle)
-    d.arrow(idle, waiting)
-    d.arrow(waiting, processing, label="message received")
-    d.arrow(processing, idle)
+idle = el.state("Idle")
+waiting = el.state("Waiting for Message")
+processing = el.state("Processing")
+d.add(idle, waiting, processing)
 
-print(d.render())
+d.connect(
+    t.transition(el.initial(), idle),
+    t.transition(idle, waiting),
+    t.transition(waiting, processing, label="message received"),
+    t.transition(processing, idle),
+)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8LF5DoKg5CfV34p9BCl7I5jFmY1T_KukB4z5GbXSHY1QXuF50y7YgkO6DJd99Jb9gScbcMQcS7DI6WA3yPA0zKonMj5QkWgsi7CHz4W7bOJEB2PZf8BS8m1Ik5NAW4rCOKBYHPk3KEgNafG9y10000)
 
@@ -590,42 +741,50 @@ print(d.render())
 ## Complete Example: Order Processing System
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram(title="E-Commerce Order Lifecycle") as d:
-    # Main states
-    draft = d.state("Draft", description="Customer building cart")
-    submitted = d.state("Submitted")
-    cancelled = d.state("Cancelled")
-    complete = d.state("Complete")
+d = state_diagram(title="E-Commerce Order Lifecycle")
+el = d.elements
+t = d.transitions
 
-    # Validation choice
-    valid_check = d.choice("valid?")
+# Main states
+draft = el.state("Draft", description="Customer building cart")
+submitted = el.state("Submitted")
+cancelled = el.state("Cancelled")
+complete = el.state("Complete")
 
-    # Processing composite with nested states
-    with d.composite("Processing") as processing:
-        payment = processing.state("Payment")
-        fulfillment = processing.state("Fulfillment")
-        shipping = processing.state("Shipping")
+# Validation choice
+valid_check = el.choice("valid?")
 
-        processing.arrow(processing.start(), payment)
-        processing.arrow(payment, fulfillment, label="paid")
-        processing.arrow(fulfillment, shipping, label="packed")
+# Processing composite with nested states
+payment = el.state("Payment")
+fulfillment = el.state("Fulfillment")
+shipping = el.state("Shipping")
+processing = el.state("Processing", payment, fulfillment, shipping)
 
+d.add(draft, submitted, cancelled, complete, valid_check, processing)
+
+d.connect(
     # Main flow
-    d.arrow(d.start(), draft)
-    d.arrow(draft, submitted, label="checkout")
-    d.arrow(submitted, valid_check)
-    d.arrow(valid_check, processing, label="valid")
-    d.arrow(valid_check, cancelled, label="invalid")
-    d.arrow(processing, complete, label="delivered")
-    d.arrow(complete, d.end())
+    t.transition(el.initial(), draft),
+    t.transition(draft, submitted, label="checkout"),
+    t.transition(submitted, valid_check),
+    t.transition(valid_check, processing, label="valid"),
+    t.transition(valid_check, cancelled, label="invalid"),
+    t.transition(processing, complete, label="delivered"),
+    t.transition(complete, el.final()),
+
+    # Inside processing composite
+    t.transition(el.initial(), payment),
+    t.transition(payment, fulfillment, label="paid"),
+    t.transition(fulfillment, shipping, label="packed"),
 
     # Cancellation from any processing state
-    d.arrow(processing, cancelled, label="cancel")
-    d.arrow(cancelled, d.end())
+    t.transition(processing, cancelled, label="cancel"),
+    t.transition(cancelled, el.final()),
+)
 
-print(d.render())
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/PPBFQiCm3CRlVWhHuo0lK4fMoBRJe8CUnmwkhQoYSXmSkr36tdsAw_mPlGJfq--J9P7z47M8oR6A51dXjMgySnWCmY5O3F1EBPgROLH2HeINeDkeyXUsqAGXUi7Xb8WjTTzWf5r1Z-daA4Qq9MzqPv1voRth6UFKUNFLJFPv0tg07C9kPywU3DPrGJw2DpWCupi_2g28-kQmYtF-bhWbvd_QyKnzBpOHFf--eAhgbQr4MLsPPRrUanLWBOxGr2qJvY8B_QgfxVe-cPsE8B0vexdu5DKYZaXULjrNpfCjMsuVYlCHfKRTlReoPAJSLGYBJ5SCCk4iZeGC-s1QzJKvLeiqUVROMVbN_W00)
 
@@ -635,19 +794,21 @@ print(d.render())
 
 | Method | Description |
 |--------|-------------|
-| `d.state(name)` | Create a state |
-| `d.states(*names)` | Create multiple states |
-| `d.arrow(a, b)` | Transition from a to b |
-| `d.arrow(a, b, c)` | Chain: a → b → c |
-| `d.flow(a, "label", b)` | Interleaved labels |
-| `d.start()` | Initial pseudo-state |
-| `d.end()` | Final pseudo-state |
-| `d.choice(name)` | Decision diamond |
-| `d.fork(name)` | Fork bar |
-| `d.join(name)` | Join bar |
-| `d.composite(name)` | Nested state machine |
-| `d.concurrent(name)` | Parallel regions |
-| `d.parallel(name)` | Auto fork/join |
+| `el.state(name)` | Create a state |
+| `el.state(name, *children)` | Create composite state |
+| `el.initial()` | Initial pseudo-state `[*]` |
+| `el.final()` | Final pseudo-state `[*]` |
+| `el.choice(name)` | Decision diamond |
+| `el.fork(name)` | Fork bar |
+| `el.join(name)` | Join bar |
+| `el.concurrent(name, *regions)` | Parallel regions |
+| `el.region(*states)` | Region within concurrent state |
+| `el.history()` | History pseudo-state |
+| `el.deep_history()` | Deep history pseudo-state |
+| `d.add(...)` | Register elements |
+| `d.connect(...)` | Register transitions |
 | `d.note(text)` | Floating note |
-| `d.history()` | History pseudo-state |
-| `d.deep_history()` | Deep history pseudo-state |
+| `t.transition(a, b)` | Single transition |
+| `t.transitions(...)` | Bulk transitions from tuples |
+| `t.transitions_from(src, ...)` | Fan-out from one source |
+| `render(d)` | Render to PlantUML text |

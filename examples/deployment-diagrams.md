@@ -24,15 +24,19 @@ Nesting shows containment: a Docker container inside a VM inside a physical serv
 ## Your First Deployment Diagram
 
 ```python
-from plantuml_compose import deployment_diagram
+from plantuml_compose import deployment_diagram, render
 
-with deployment_diagram(title="Simple Server") as d:
-    server = d.component("App Server")
-    db = d.database("PostgreSQL")
+d = deployment_diagram(title="Simple Server")
+el = d.elements
+c = d.connections
 
-    d.arrow(server, db, label="connects")
+server = el.component("App Server")
+db = el.database("PostgreSQL")
 
-print(d.render())
+d.add(server, db)
+d.connect(c.arrow(server, db, "connects"))
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIh9BCb9LGZEp2q0KQb5PQb5NCdvkGNvUQbv9GfAZWK5K54bhfJ4aiIanE9KXO3yufBqejJWG1yke7myH5v1LzSEIKR1IY4vFoylDRcacCiXDIy5Q1S0)
 
@@ -43,31 +47,35 @@ print(d.render())
 ### Basic Elements
 
 ```python
-from plantuml_compose import deployment_diagram
+from plantuml_compose import deployment_diagram, render
 
-with deployment_diagram(title="Element Types") as d:
-    # Component (software module)
-    api = d.component("API Service")
+d = deployment_diagram(title="Element Types")
+el = d.elements
 
-    # Database (cylinder shape)
-    db = d.database("PostgreSQL")
+# Component (software module)
+api = el.component("API Service")
 
-    # Artifact (deployable file)
-    war = d.artifact("app.war")
+# Database (cylinder shape)
+db = el.database("PostgreSQL")
 
-    # Queue
-    mq = d.queue("RabbitMQ")
+# Artifact (deployable file)
+war = el.artifact("app.war")
 
-    # Storage
-    s3 = d.storage("S3 Bucket")
+# Queue
+mq = el.queue("RabbitMQ")
 
-    # Cloud
-    aws = d.cloud("AWS")
+# Storage
+s3 = el.storage("S3 Bucket")
 
-    # Actor (user/external system)
-    user = d.actor("User")
+# Cloud
+aws = el.cloud("AWS")
 
-print(d.render())
+# Actor (user/external system)
+user = el.actor("User")
+
+d.add(api, db, war, mq, s3, aws, user)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/5Ov12i8m44NtSueX1t3Z1QhWGb1eZU9wcdvBC6rYCb6ylN7vuRt7xufArhe4Kgy1V0XOi2fVlmc5N5nINF_RxFeZM-ItTp0qYSee1Tp7edE67KxKCluXhg6IqkOZsT2hee8lCevUpmCLZLbciB5RtbVtX1fo8TQ9TtTBJOsPRmMPEgnJk_G3)
 
@@ -76,15 +84,19 @@ print(d.render())
 ### Stereotypes
 
 ```python
-from plantuml_compose import deployment_diagram
+from plantuml_compose import deployment_diagram, render
 
-with deployment_diagram() as d:
-    # Custom stereotypes
-    api = d.component("API", stereotype="microservice")
-    db = d.database("Redis", stereotype="cache")
-    docker = d.artifact("container.tar", stereotype="docker")
+d = deployment_diagram()
+el = d.elements
 
-print(d.render())
+# Custom stereotypes
+api = el.component("API", stereotype="microservice")
+db = el.database("Redis", stereotype="cache")
+docker = el.artifact("container.tar", stereotype="docker")
+
+d.add(api, db, docker)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/5Or13a1034NtJZ5n02SGOMadRb2TYePffLFEhzRl_VV7wc3-bAj1BRSAYQTfcLFV5qRJIlOoqZ0q6Hmsg9HMobo38-3nWvZp3kYfHHK75h8kccqeMV4a2sSaoV7n0G00)
 
@@ -95,17 +107,22 @@ print(d.render())
 Show containment with nested structures:
 
 ```python
-from plantuml_compose import deployment_diagram
+from plantuml_compose import deployment_diagram, render
 
-with deployment_diagram(title="Server Internals") as d:
-    with d.node_nested("Production Server") as server:
-        api = server.component("API Service", alias="api")
-        server.component("Worker Service")
-        db = server.database("PostgreSQL", alias="db")
+d = deployment_diagram(title="Server Internals")
+el = d.elements
+c = d.connections
 
-    d.arrow(api, db)
+server = el.node("Production Server",
+    el.component("API Service", ref="api"),
+    el.component("Worker Service"),
+    el.database("PostgreSQL", ref="db"),
+)
 
-print(d.render())
+d.add(server)
+d.connect(c.arrow(server.api, server.db))
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/LOwn2iCm34HtVuNmdbyewHZ8u9AXisABOEf8GLQwXFvxdT8E7OzxxxY-6ghjQt6MhH1Cf4zI6DX86KjrB8d01vMqHyl2NyB3uG2Yh9imiO6_Xk5JvKWUi09k-H-uYpxQyezfPKB36Ij1a6gBqdGRJpFDxkMQ3brtEKDFdDh1Dm00)
 
@@ -114,20 +131,27 @@ print(d.render())
 ### Cloud Nested
 
 ```python
-from plantuml_compose import deployment_diagram
+from plantuml_compose import deployment_diagram, render
 
-with deployment_diagram(title="AWS Infrastructure") as d:
-    with d.cloud_nested("AWS") as aws:
-        with aws.node_nested("EC2 Instance") as ec2:
-            webapp = ec2.component("Web App", alias="webapp")
+d = deployment_diagram(title="AWS Infrastructure")
+el = d.elements
+c = d.connections
 
-        rds = aws.database("RDS PostgreSQL", alias="rds")
-        s3 = aws.storage("S3")
+aws = el.cloud("AWS",
+    el.node("EC2 Instance",
+        el.component("Web App", ref="webapp"),
+    ),
+    el.database("RDS PostgreSQL", ref="rds"),
+    el.storage("S3"),
+)
 
-    d.arrow(webapp, rds)
-    d.arrow(webapp, s3)
+d.add(aws)
+d.connect(
+    c.arrow(aws.webapp, aws.rds),
+    c.arrow(aws.webapp, aws["S3"]),
+)
 
-print(d.render())
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/JOun3i8m34NtdCBAtWLsr0eOa1Y039tTn5H8RHB5ZXXGxuuL5WOFzdlV-ZqB5gdhOkGb2y4mEhZ4Pq6MKhtKGiOlgOO6FWOWfa1WpyUTQfgDdcox0_YqvXGf2jYH9XXoje0CRvemPpKsdO224x9-U9mSt1BBNCZThyqiWLLXIGLd0hStc_c5eUiEZVwjYdkAGPj_0G00)
 
@@ -136,22 +160,29 @@ print(d.render())
 ### Multi-Level Nesting
 
 ```python
-from plantuml_compose import deployment_diagram
+from plantuml_compose import deployment_diagram, render
 
-with deployment_diagram(title="Container Orchestration") as d:
-    with d.node_nested("Kubernetes Cluster") as k8s:
-        with k8s.node_nested("Node 1") as node1:
-            api1 = node1.component("API Pod", alias="api1")
-            node1.component("Worker Pod")
+d = deployment_diagram(title="Container Orchestration")
+el = d.elements
+c = d.connections
 
-        with k8s.node_nested("Node 2") as node2:
-            node2.component("API Pod")
-            node2.database("Redis Pod")
+k8s = el.node("Kubernetes Cluster",
+    el.node("Node 1",
+        el.component("API Pod", ref="api1"),
+        el.component("Worker Pod"),
+    ),
+    el.node("Node 2",
+        el.component("API Pod"),
+        el.database("Redis Pod"),
+    ),
+)
 
-    ext_db = d.database("External PostgreSQL", alias="extdb")
-    d.arrow(api1, ext_db)
+ext_db = el.database("External PostgreSQL", ref="extdb")
 
-print(d.render())
+d.add(k8s, ext_db)
+d.connect(c.arrow(k8s.api1, ext_db))
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/VP312i9034Jl-nLXxptK3v1AyI2ALZruJhj15zjisKsX8FrtjwrGzE0ba7d3P4WM1BrqJQt4IasGEnQqJ1vEldfG48zY7IjsXa3lkv8yar20lEw2aDVmKW0pFOupdHM0oZMjOs81lIbsK3YZ0GDWQzDVVdF-6I-EbeY6xy3Ldy19DoXOOeZ-2naRbfX1BMZRnxACTQH1xfwkvyDKXtenfHfBGPAiFsj6RE9BtW00)
 
@@ -162,23 +193,27 @@ print(d.render())
 ### Arrows
 
 ```python
-from plantuml_compose import deployment_diagram
+from plantuml_compose import deployment_diagram, render
 
-with deployment_diagram() as d:
-    api = d.component("API")
-    db = d.database("Database")
-    cache = d.component("Cache")
+d = deployment_diagram()
+el = d.elements
+c = d.connections
 
+api = el.component("API")
+db = el.database("Database")
+cache = el.component("Cache")
+
+d.add(api, db, cache)
+d.connect(
     # Simple arrow
-    d.arrow(api, db)
-
+    c.arrow(api, db),
     # With label
-    d.arrow(api, cache, label="reads")
-
+    c.arrow(api, cache, "reads"),
     # Dotted arrow
-    d.arrow(api, db, dotted=True, label="async")
+    c.arrow(api, db, "async", style={"line_pattern": "dotted"}),
+)
 
-print(d.render())
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr5m3F3aIaaiIKnAB4vLS84oaEIT4vCpKhc0gXHqTUqG2c02O6a5AuMYrCIKOh2edXv26L0YiRWoBvdB8JKl1MWl0000)
 
@@ -187,36 +222,44 @@ print(d.render())
 ### Links (No Direction)
 
 ```python
-from plantuml_compose import deployment_diagram
+from plantuml_compose import deployment_diagram, render
 
-with deployment_diagram() as d:
-    server_a = d.component("Server A")
-    server_b = d.component("Server B")
+d = deployment_diagram()
+el = d.elements
+c = d.connections
 
-    # Bidirectional link
-    d.link(server_a, server_b, label="replication")
+server_a = el.component("Server A")
+server_b = el.component("Server B")
 
-print(d.render())
+d.add(server_a, server_b)
+# Bidirectional link
+d.connect(c.line(server_a, server_b, "replication"))
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr5G2aujAaijKd1KmYBefCG5OSKxAkZgAa3PJWfM2aMf1JcPoOabcVbvN0wfUIb0Gm40)
 
 
 
-### Hub and Spoke (Connect)
+### Hub and Spoke (arrows_from)
 
 ```python
-from plantuml_compose import deployment_diagram
+from plantuml_compose import deployment_diagram, render
 
-with deployment_diagram(title="Load Balancing") as d:
-    lb = d.component("Load Balancer")
-    s1 = d.component("Server 1")
-    s2 = d.component("Server 2")
-    s3 = d.component("Server 3")
+d = deployment_diagram(title="Load Balancing")
+el = d.elements
+c = d.connections
 
-    # Connect lb to all servers
-    d.connect(lb, [s1, s2, s3])
+lb = el.component("Load Balancer")
+s1 = el.component("Server 1")
+s2 = el.component("Server 2")
+s3 = el.component("Server 3")
 
-print(d.render())
+d.add(lb, s1, s2, s3)
+# Connect lb to all servers
+d.connect(c.arrows_from(lb, s1, s2, s3))
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIh9BCb9LV39JqnHS4hCISnBpinBvqhEpot8pqlDAr5GGf99BL92bWbEBIfBBL8mn2PeX4tGM8aBP5eyp3G5NLqx1OXSl25kAIFSKiPS3gbvAK1l0000)
 
@@ -225,17 +268,23 @@ print(d.render())
 ### Direction Hints
 
 ```python
-from plantuml_compose import deployment_diagram
+from plantuml_compose import deployment_diagram, render
 
-with deployment_diagram() as d:
-    web = d.component("Web")
-    api = d.component("API")
-    db = d.database("Database")
+d = deployment_diagram()
+el = d.elements
+c = d.connections
 
-    d.arrow(web, api, direction="down")
-    d.arrow(api, db, direction="down")
+web = el.component("Web")
+api = el.component("API")
+db = el.database("Database")
 
-print(d.render())
+d.add(web, api, db)
+d.connect(
+    c.arrow(web, api, direction="down"),
+    c.arrow(api, db, direction="down"),
+)
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr48Jqr2uZa6U7Ab99Oa9YKMfoguG1bSG3KAkhefkdPWUI26yk0A75BpKe360W00)
 
@@ -244,17 +293,21 @@ print(d.render())
 ## Styling
 
 ```python
-from plantuml_compose import deployment_diagram
+from plantuml_compose import deployment_diagram, render
 
-with deployment_diagram() as d:
-    # Styled elements
-    api = d.component("API", style={"background": "LightBlue"})
-    db = d.database("Database", style={"background": "LightGreen"})
+d = deployment_diagram()
+el = d.elements
+c = d.connections
 
-    # Styled connection
-    d.arrow(api, db, style={"color": "blue"})
+# Styled elements
+api = el.component("API", style={"background": "LightBlue"})
+db = el.database("Database", style={"background": "LightGreen"})
 
-print(d.render())
+d.add(api, db)
+# Styled connection
+d.connect(c.arrow(api, db, style={"color": "blue"}))
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr5m3F1KKFR9JCyeSSefJULAIIn9J4eiJbLmWJ4Wakv5gQbvN235khhHoab0fR6wTd15N0wfUIb0Sm40)
 
@@ -263,18 +316,23 @@ print(d.render())
 ## Notes
 
 ```python
-from plantuml_compose import deployment_diagram
+from plantuml_compose import deployment_diagram, render
 
-with deployment_diagram() as d:
-    api = d.component("API")
-    db = d.database("Database")
+d = deployment_diagram()
+el = d.elements
+c = d.connections
 
-    d.note("Primary instance", target=api)
-    d.note("Read replicas available", target=db, position="left")
+api = el.component("API")
+db = el.database("Database")
 
-    d.arrow(api, db)
+d.add(api, db)
 
-print(d.render())
+d.note("Primary instance", target=api)
+d.note("Read replicas available", target=db, position="left")
+
+d.connect(c.arrow(api, db))
+
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/HOun3i8m40Hxls8_a0-aG46YeOlumSM-m4dsEJeVIFm-1WNHRJ4xkrDpCd-M768jMrLMntc-XaHE2pN6vGX1gpDCxWz7NJ_CYDcaaBqXsYqQ3oRp-aL-pH4tfWJZBKka1dgHP5eoXox1C9p-6nDhwbzs)
 
@@ -283,44 +341,53 @@ print(d.render())
 ## Complete Example: Production Infrastructure
 
 ```python
-from plantuml_compose import deployment_diagram
+from plantuml_compose import deployment_diagram, render
 
-with deployment_diagram(title="Production Environment") as d:
-    # External users
-    user = d.actor("Users")
+d = deployment_diagram(title="Production Environment")
+el = d.elements
+c = d.connections
 
-    # CDN and Load Balancer
-    cdn = d.cloud("CloudFront CDN")
-    lb = d.component("ALB", stereotype="load-balancer")
+# External users
+user = el.actor("Users")
 
-    # Application tier
-    with d.cloud_nested("AWS VPC") as vpc:
-        with vpc.node_nested("App Subnet") as app:
-            with app.node_nested("ECS Cluster") as ecs:
-                api = ecs.component("API Service", alias="api")
-                worker = ecs.component("Worker Service", alias="worker")
+# CDN and Load Balancer
+cdn = el.cloud("CloudFront CDN")
+lb = el.component("ALB", stereotype="load-balancer")
 
-        with vpc.node_nested("Data Subnet") as data:
-            rds = data.database("RDS PostgreSQL", alias="rds")
-            redis = data.database("ElastiCache Redis", alias="redis")
+# Application tier
+vpc = el.cloud("AWS VPC",
+    el.node("App Subnet",
+        el.node("ECS Cluster",
+            el.component("API Service", ref="api"),
+            el.component("Worker Service", ref="worker"),
+        ),
+    ),
+    el.node("Data Subnet",
+        el.database("RDS PostgreSQL", ref="rds"),
+        el.database("ElastiCache Redis", ref="redis"),
+    ),
+)
 
-    # External services
-    s3 = d.storage("S3 Assets")
-    sqs = d.queue("SQS Queue")
+# External services
+s3 = el.storage("S3 Assets")
+sqs = el.queue("SQS Queue")
 
-    # Connections
-    d.arrow(user, cdn)
-    d.arrow(cdn, lb)
-    d.arrow(lb, api)
+d.add(user, cdn, lb, vpc, s3, sqs)
 
-    d.arrow(api, rds)
-    d.arrow(api, redis)
-    d.arrow(api, s3)
-    d.arrow(api, sqs)
-    d.arrow(sqs, worker)
-    d.arrow(worker, rds)
+# Connections
+d.connect(
+    c.arrow(user, cdn),
+    c.arrow(cdn, lb),
+    c.arrow(lb, vpc.api),
+    c.arrow(vpc.api, vpc.rds),
+    c.arrow(vpc.api, vpc.redis),
+    c.arrow(vpc.api, s3),
+    c.arrow(vpc.api, sqs),
+    c.arrow(sqs, vpc.worker),
+    c.arrow(vpc.worker, vpc.rds),
+)
 
-print(d.render())
+print(render(d))
 ```
 ![Diagram](https://www.plantuml.com/plantuml/svg/PP91Rm8X48Nl_8h9tlVarHYtgqsQc6PNqdeq21DBYh1bm1uQ_tk1xMgq1yBZyIrlyh9B2iA7U38iw60GEkzKb44x2sjxrjxP4zh0X0pEmnkX9oQDYmggDc_F2GZGhbuh9jrfS3R1q6oUO3utJgZw88om4lrYCNtMx3YyTsq5Fmp0EeN96WRWyM0nZExahriEhOaKq4yN0BUOgkbUWAC_QuaL208nwF_GplbFz7VSTx4AUc7Z6WDN8eY7ILIo3eBIvNR5eNCKZXvvloaFUKKFqDe82heLyWDXYqhJo6LLaYwCKf7Yc50-WuO80rNiAsBCJi-Xpx9YfMcewmNSQjwdcjdziH2fRfOhppfNa5RHURghBXDC9pxRZz4tf-Vx4iskglX_LOtRzTKbMfL-cLy0)
 
@@ -332,33 +399,33 @@ print(d.render())
 
 | Method | Description |
 |--------|-------------|
-| `d.component(name)` | Software component |
-| `d.database(name)` | Database (cylinder) |
-| `d.artifact(name)` | Deployable file |
-| `d.storage(name)` | Storage system |
-| `d.queue(name)` | Message queue |
-| `d.cloud(name)` | Cloud (simple) |
-| `d.actor(name)` | User/external system |
-| `d.file(name)` | File |
-| `d.folder(name)` | Folder |
+| `el.component(name)` | Software component |
+| `el.database(name)` | Database (cylinder) |
+| `el.artifact(name)` | Deployable file |
+| `el.storage(name)` | Storage system |
+| `el.queue(name)` | Message queue |
+| `el.cloud(name)` | Cloud |
+| `el.actor(name)` | User/external system |
+| `el.file(name)` | File |
+| `el.folder(name)` | Folder |
 
-### Nested Elements
+### Nesting
 
-| Method | Description |
-|--------|-------------|
-| `d.node_nested(name)` | Node with children |
-| `d.cloud_nested(name)` | Cloud with children |
-| `d.database_nested(name)` | Database with children |
-| `d.folder_nested(name)` | Folder with children |
-| `d.frame_nested(name)` | Frame with children |
-| `d.package_nested(name)` | Package with children |
-| `d.rectangle_nested(name)` | Rectangle with children |
+| Pattern | Description |
+|---------|-------------|
+| `el.node(name, *children)` | Node with children |
+| `el.cloud(name, *children)` | Cloud with children |
+| `el.database(name, *children)` | Database with children |
+| `el.folder(name, *children)` | Folder with children |
+| `el.frame(name, *children)` | Frame with children |
+| `el.package(name, *children)` | Package with children |
+| `el.rectangle(name, *children)` | Rectangle with children |
 
 ### Connections
 
 | Method | Description |
 |--------|-------------|
-| `d.arrow(a, b)` | Arrow connection |
-| `d.link(a, b)` | Line (no arrow) |
-| `d.connect(hub, spokes)` | Hub to multiple |
-| `d.note(text, target)` | Add note |
+| `c.arrow(a, b)` | Arrow connection |
+| `c.line(a, b)` | Line (no arrow) |
+| `c.arrows_from(source, *targets)` | Fan-out arrows |
+| `d.note(text, target=ref)` | Add note |

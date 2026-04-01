@@ -1,5 +1,7 @@
 # Activity Diagrams
 
+> **Note:** Activity diagrams do not yet have a composer API. The code examples below use the old builder API and will be updated when the activity composer is available.
+
 Activity diagrams show workflows with decisions and parallel execution. They're ideal for:
 
 - **Business processes**: Order fulfillment, approval workflows

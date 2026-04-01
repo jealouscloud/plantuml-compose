@@ -10,20 +10,26 @@ plantuml-compose solves this by providing:
 
 - **Discoverable APIs**: Use your IDE's autocomplete to explore options
 - **Type safety**: Catch errors before rendering, not after
-- **Context managers**: Natural Python patterns that mirror diagram structure
+- **Pure factory functions**: Compose diagrams declaratively with nesting
 - **Comprehensive documentation**: Each diagram type explains *when* and *why* to use it
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram(title="Simple API Call") as d:
-    client = d.participant("Client")
-    server = d.participant("Server")
+d = sequence_diagram(title="Simple API Call")
+p = d.participants
+e = d.events
 
-    d.message(client, server, "GET /users")
-    d.message(server, client, "200 OK")
+client = p.participant("Client")
+server = p.participant("Server")
+d.add(client, server)
 
-print(d.render())
+d.phase("Request", [
+    e.message(client, server, "GET /users"),
+    e.reply(server, client, "200 OK"),
+])
+
+print(render(d))
 ```
 
 ## Installation
@@ -75,51 +81,72 @@ Requires Python 3.13+.
 ### State Machine
 
 ```python
-from plantuml_compose import state_diagram
+from plantuml_compose import state_diagram, render
 
-with state_diagram(title="Order Lifecycle") as d:
-    pending = d.state("Pending")
-    paid = d.state("Paid")
-    shipped = d.state("Shipped")
-    delivered = d.state("Delivered")
+d = state_diagram(title="Order Lifecycle")
+el = d.elements
+t = d.transitions
 
-    d.arrow(d.start(), pending)
-    d.arrow(pending, paid, label="payment received")
-    d.arrow(paid, shipped, label="items packed")
-    d.arrow(shipped, delivered, label="customer signs")
-    d.arrow(delivered, d.end())
+pending = el.state("Pending")
+paid = el.state("Paid")
+shipped = el.state("Shipped")
+delivered = el.state("Delivered")
 
-print(d.render())
+d.add(pending, paid, shipped, delivered)
+
+d.connect(
+    t.transition(el.initial(), pending),
+    t.transition(pending, paid, label="payment received"),
+    t.transition(paid, shipped, label="items packed"),
+    t.transition(shipped, delivered, label="customer signs"),
+    t.transition(delivered, el.final()),
+)
+
+print(render(d))
 ```
 
 ### Class Relationships
 
 ```python
-from plantuml_compose import class_diagram
+from plantuml_compose import class_diagram, render
 
-with class_diagram(title="E-commerce Model") as d:
-    user = d.class_("User", attributes=["id: int", "email: str"])
-    order = d.class_("Order", attributes=["total: Decimal"])
-    item = d.class_("LineItem", attributes=["quantity: int"])
+d = class_diagram(title="E-commerce Model")
+el = d.elements
+r = d.relationships
 
-    d.has(user, order, part_label="*")       # User has many Orders
-    d.contains(order, item, part_label="1..*")  # Order contains LineItems
+user = el.class_("User", members=(
+    el.field("id", "int"),
+    el.field("email", "str"),
+))
+order = el.class_("Order", members=(el.field("total", "Decimal"),))
+item = el.class_("LineItem", members=(el.field("quantity", "int"),))
 
-print(d.render())
+d.add(user, order, item)
+
+d.connect(
+    r.has(user, order, part_label="*"),
+    r.contains(order, item, part_label="1..*"),
+)
+
+print(render(d))
 ```
 
 ### Project Timeline
 
 ```python
-from plantuml_compose import gantt_diagram
+from plantuml_compose import gantt_diagram, render
 
-with gantt_diagram(title="Sprint 1") as d:
-    d.task("Design API", duration=3)
-    d.task("Implement endpoints", duration=5)
-    d.task("Write tests", duration=3)
-    d.task("Documentation", duration=2)
+d = gantt_diagram(title="Sprint 1")
+tk = d.tasks
 
-print(d.render())
+design = tk.task("Design API", days=3)
+impl = tk.task("Implement endpoints", days=5)
+tests = tk.task("Write tests", days=3)
+docs = tk.task("Documentation", days=2)
+
+d.add(design, impl, tests, docs)
+
+print(render(d))
 ```
 
 ## Design Philosophy
