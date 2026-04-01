@@ -17,6 +17,40 @@ def _get_module_output_dir(request) -> Path:
     return module_dir
 
 
+# Cache plantuml availability check for the session
+_plantuml_available: bool | None = None
+
+
+def _is_plantuml_available() -> bool:
+    global _plantuml_available
+    if _plantuml_available is None:
+        try:
+            result = subprocess.run(
+                ["plantuml", "-version"],
+                capture_output=True, timeout=10,
+            )
+            _plantuml_available = result.returncode == 0
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            _plantuml_available = False
+    return _plantuml_available
+
+
+def _generate_png(puml_path: Path) -> None:
+    """Generate a PNG from a .puml file for visual review.
+
+    Silently skips if plantuml is not available.
+    """
+    if not _is_plantuml_available():
+        return
+    try:
+        subprocess.run(
+            ["plantuml", "-tpng", str(puml_path)],
+            capture_output=True, timeout=30,
+        )
+    except (subprocess.TimeoutExpired, OSError):
+        pass
+
+
 @pytest.fixture(autouse=True)
 def auto_save_puml(request, monkeypatch):
     """Automatically save all rendered PlantUML diagrams to tests/output/<module>/.
@@ -43,7 +77,7 @@ def auto_save_puml(request, monkeypatch):
 
     yield
 
-    # After test completes, save all captured outputs
+    # After test completes, save all captured outputs and generate PNGs
     if captured_outputs:
         test_name = request.node.name
         class_name = request.node.parent.name if request.node.parent else ""
@@ -59,7 +93,10 @@ def auto_save_puml(request, monkeypatch):
                 output_name = base_name
             else:
                 output_name = f"{base_name}__{i}"
-            (module_dir / f"{output_name}.puml").write_text(output)
+            puml_path = module_dir / f"{output_name}.puml"
+            puml_path.write_text(output)
+            # Generate PNG for visual review
+            _generate_png(puml_path)
 
 
 @pytest.fixture
@@ -85,7 +122,8 @@ def validate_plantuml(tmp_path: Path, request):
         else:
             output_name = f"{test_name}__{name}"
         module_dir = _get_module_output_dir(request)
-        (module_dir / f"{output_name}.puml").write_text(puml_text)
+        saved_puml = module_dir / f"{output_name}.puml"
+        saved_puml.write_text(puml_text)
 
         result = subprocess.run(
             ["plantuml", "-tsvg", str(puml_file)],
@@ -96,6 +134,9 @@ def validate_plantuml(tmp_path: Path, request):
         if result.returncode != 0:
             print(f"PlantUML error: {result.stderr}")
             return False
+
+        # Also generate PNG for visual review
+        _generate_png(saved_puml)
 
         return svg_file.exists()
 
@@ -130,7 +171,8 @@ def render_and_parse_svg(tmp_path: Path, request):
             output_name = f"{output_name}__{call_count[0]}"
         call_count[0] += 1
         module_dir = _get_module_output_dir(request)
-        (module_dir / f"{output_name}.puml").write_text(puml_text)
+        saved_puml = module_dir / f"{output_name}.puml"
+        saved_puml.write_text(puml_text)
 
         result = subprocess.run(
             ["plantuml", "-tsvg", str(puml_file)],
@@ -140,6 +182,9 @@ def render_and_parse_svg(tmp_path: Path, request):
 
         if result.returncode != 0:
             pytest.fail(f"PlantUML failed: {result.stderr}")
+
+        # Also generate PNG for visual review
+        _generate_png(saved_puml)
 
         return svg_file.read_text()
 
