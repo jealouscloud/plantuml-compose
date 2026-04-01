@@ -122,6 +122,9 @@ class Separator:
     style: SeparatorStyle = ".."
 
 
+TreeStyle = Literal["T", "T!", "T-", "T+", "T#"]
+
+
 @dataclass(frozen=True)
 class Tree:
     """A tree widget showing hierarchical data.
@@ -135,9 +138,11 @@ class Tree:
         }
 
         nodes: Tuple of (depth, label) pairs. depth=1 is root level.
+        style: Tree line style variant (T, T!, T-, T+, T#)
     """
 
     nodes: tuple[tuple[int, str], ...] = field(default_factory=tuple)
+    style: TreeStyle = "T"
 
 
 @dataclass(frozen=True)

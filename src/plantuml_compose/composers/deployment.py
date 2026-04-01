@@ -186,6 +186,12 @@ class DeploymentElementNamespace:
         return self._make(name, "file", *children, ref=ref,
                           stereotype=stereotype, style=style)
 
+    def action(self, name: str, *children: EntityRef, ref: str | None = None,
+               stereotype: str | Stereotype | None = None,
+               style: StyleLike | None = None) -> EntityRef:
+        return self._make(name, "action", *children, ref=ref,
+                          stereotype=stereotype, style=style)
+
     def actor(self, name: str, *children: EntityRef, ref: str | None = None,
               stereotype: str | Stereotype | None = None,
               style: StyleLike | None = None) -> EntityRef:

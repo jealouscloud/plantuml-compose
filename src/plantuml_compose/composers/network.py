@@ -124,18 +124,23 @@ class NetworkNamespace:
 
     def network(
         self,
-        name: str,
+        name: str | None = None,
         *children: EntityRef,
         address: str | None = None,
         color: ColorLike | None = None,
         description: str | None = None,
         width: Literal["full"] | None = None,
     ) -> EntityRef:
-        """Create a network with nodes as children."""
+        """Create a network with nodes as children.
+
+        Pass name=None or name="" for an anonymous (unnamed) network.
+        """
+        effective_name = name or ""
         return EntityRef(
-            name,
+            effective_name or "__anonymous_network__",
             data={
                 "_type": "network",
+                "_network_name": effective_name,
                 "children": children,
                 "address": address,
                 "color": color,
@@ -219,6 +224,7 @@ class NetworkComposer(BaseComposer):
                     # Standalone node
                     elements.append(StandaloneNode(
                         name=item._name,
+                        address=data.get("address"),
                         shape=data.get("shape"),
                         description=data.get("description"),
                         color=data.get("color"),
@@ -238,8 +244,9 @@ class NetworkComposer(BaseComposer):
                                 description=child_data.get("description"),
                                 color=child_data.get("color"),
                             ))
+                    network_name = data.get("_network_name", item._name)
                     elements.append(Network(
-                        name=item._name,
+                        name=network_name,
                         address=data.get("address"),
                         description=data.get("description"),
                         color=data.get("color"),

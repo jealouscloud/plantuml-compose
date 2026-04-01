@@ -290,3 +290,4 @@ class ComponentDiagram:
     diagram_style: ComponentDiagramStyle | None = None
     # Skin parameters
     hide_stereotype: bool = False
+    hide_unlinked: bool = False

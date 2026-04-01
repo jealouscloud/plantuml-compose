@@ -708,6 +708,7 @@ class ComponentComposer(BaseComposer):
         style: ComponentStyle | None = None,
         diagram_style: ComponentDiagramStyleLike | None = None,
         hide_stereotype: bool = False,
+        hide_unlinked: bool = False,
     ) -> None:
         super().__init__(
             title=title, mainframe=mainframe, caption=caption,
@@ -722,6 +723,7 @@ class ComponentComposer(BaseComposer):
             else None
         )
         self._hide_stereotype = hide_stereotype
+        self._hide_unlinked = hide_unlinked
         self._elements_ns = ComponentElementNamespace()
         self._connections_ns = ComponentConnectionNamespace()
 
@@ -779,6 +781,7 @@ class ComponentComposer(BaseComposer):
             style=self._style,
             diagram_style=self._diagram_style,
             hide_stereotype=self._hide_stereotype,
+            hide_unlinked=self._hide_unlinked,
         )
 
 
@@ -796,6 +799,7 @@ def component_diagram(
     style: ComponentStyle | None = None,
     diagram_style: ComponentDiagramStyleLike | None = None,
     hide_stereotype: bool = False,
+    hide_unlinked: bool = False,
 ) -> ComponentComposer:
     """Create a component diagram composer.
 
@@ -822,4 +826,5 @@ def component_diagram(
         style=style,
         diagram_style=diagram_style,
         hide_stereotype=hide_stereotype,
+        hide_unlinked=hide_unlinked,
     )

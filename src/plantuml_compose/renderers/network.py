@@ -118,7 +118,10 @@ def _render_network(network: Network) -> list[str]:
     lines: list[str] = []
 
     # Network declaration (color goes inside block, not on declaration)
-    lines.append(f"  network {network.name} {{")
+    if network.name:
+        lines.append(f"  network {network.name} {{")
+    else:
+        lines.append("  network {")
 
     # Color (inside block with quotes)
     if network.color:
@@ -166,6 +169,8 @@ def _render_standalone_node(node: StandaloneNode) -> str:
     """Render a standalone node (outside any network)."""
     parts: list[str] = []
 
+    if node.address:
+        parts.append(f'address = "{node.address}"')
     if node.shape:
         parts.append(f"shape = {node.shape}")
     if node.description:

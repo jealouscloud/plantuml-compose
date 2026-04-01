@@ -143,12 +143,14 @@ class StandaloneNode:
     rather than being on a network segment.
 
         name:        Node identifier
+        address:     IP address or addresses
         shape:       Visual shape
         description: Label shown on the node
         color:       Background color
     """
 
     name: str
+    address: str | None = None
     shape: NodeShape | None = None
     description: str | None = None
     color: ColorLike | None = None

@@ -835,6 +835,31 @@ class ClassComposer(BaseComposer):
     def relationships(self) -> ClassRelationshipNamespace:
         return self._relationships_ns
 
+    def note(
+        self,
+        content: str,
+        *,
+        target: EntityRef | str | None = None,
+        position: str = "right",
+        color: ColorLike | None = None,
+        member: str | None = None,
+    ) -> None:
+        """Attach a note to the diagram, a target entity, or a specific member.
+
+        The member= parameter targets a specific class member using
+        PlantUML's ``note right of A::counter`` syntax.
+
+        Example:
+            d.note("Important field", target=user, member="id")
+        """
+        self._notes.append({
+            "content": content,
+            "target": target,
+            "position": position,
+            "color": color,
+            "member": member,
+        })
+
     def together(self, *elements: EntityRef) -> None:
         """Group elements for layout proximity.
 
@@ -858,6 +883,23 @@ class ClassComposer(BaseComposer):
             d.show("methods")
         """
         self._elements.append(("__hideshow__", "show", target))
+
+    def remove(self, target: str) -> None:
+        """Remove elements (like hide, but also removes the space they occupied).
+
+        Example:
+            d.remove("empty members")
+            d.remove("ClassName methods")
+        """
+        self._elements.append(("__hideshow__", "remove", target))
+
+    def restore(self, target: str) -> None:
+        """Restore previously removed/hidden elements.
+
+        Example:
+            d.restore("methods")
+        """
+        self._elements.append(("__hideshow__", "restore", target))
 
     def build(self) -> ClassDiagram:
         all_elements: list[ClassDiagramElement] = []
@@ -904,6 +946,7 @@ class ClassComposer(BaseComposer):
                 content=note_data["content"],
                 position=note_data["position"],
                 target=_resolve_ref(target) if target else None,
+                member=note_data.get("member"),
             ))
 
         return ClassDiagram(

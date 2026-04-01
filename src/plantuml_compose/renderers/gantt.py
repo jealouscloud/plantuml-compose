@@ -185,7 +185,17 @@ def _render_task(task: GanttTask) -> list[str]:
             parts.append(res_str)
 
     # Duration or dates
-    if task.duration_weeks is not None:
+    # When start_date is combined with duration, PlantUML uses:
+    #   [Task] starts <date> and requires N days
+    if task.start_date and task.duration_weeks is not None:
+        unit = "week" if task.duration_weeks == 1 else "weeks"
+        parts.append(f"starts {_format_date(task.start_date)}")
+        parts.append(f"and requires {task.duration_weeks} {unit}")
+    elif task.start_date and task.duration_days is not None:
+        unit = "day" if task.duration_days == 1 else "days"
+        parts.append(f"starts {_format_date(task.start_date)}")
+        parts.append(f"and requires {task.duration_days} {unit}")
+    elif task.duration_weeks is not None:
         unit = "week" if task.duration_weeks == 1 else "weeks"
         parts.append(f"lasts {task.duration_weeks} {unit}")
     elif task.duration_days is not None:

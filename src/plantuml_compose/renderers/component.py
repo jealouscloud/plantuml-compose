@@ -109,6 +109,9 @@ def render_component_diagram(diagram: ComponentDiagram) -> str:
     if diagram.hide_stereotype:
         lines.append("hide stereotype")
 
+    if diagram.hide_unlinked:
+        lines.append("hide @unlinked")
+
     # Render targeted notes last so their targets are defined first
     deferred_notes: list[ComponentNote] = []
     for elem in diagram.elements:

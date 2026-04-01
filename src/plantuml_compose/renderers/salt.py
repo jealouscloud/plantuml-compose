@@ -128,7 +128,7 @@ def _render_grid(grid: Grid, indent: int) -> list[str]:
 def _render_tree(tree: Tree, indent: int) -> list[str]:
     """Render a tree widget."""
     prefix = "  " * indent
-    lines = [f"{prefix}{{T"]
+    lines = [f"{prefix}{{{tree.style}"]
     for depth, label in tree.nodes:
         plus = "+" * depth
         lines.append(f"{prefix}  {plus} {label}")

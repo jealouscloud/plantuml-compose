@@ -38,6 +38,7 @@ from ..primitives.common import (
     Header,
     Label,
     Legend,
+    LineStyleLike,
     Newpage,
     Scale,
     Style,
@@ -45,6 +46,7 @@ from ..primitives.common import (
 )
 from ..primitives.sequence import (
     Activation,
+    ActivationAction,
     Autonumber,
     Box,
     Delay,
@@ -63,6 +65,7 @@ from ..primitives.sequence import (
     SequenceDiagram,
     SequenceDiagramElement,
     SequenceNote,
+    Space,
 )
 from ..primitives.usecase import ActorStyle
 from .base import BaseComposer, EntityRef
@@ -87,13 +90,16 @@ class _MessageData:
     label: str | None
     line_style: MessageLineStyle
     arrow_head: MessageArrowHead
+    style: LineStyleLike | None = None
+    bidirectional: bool = False
+    activation: ActivationAction | None = None
 
 
 @dataclass(frozen=True)
 class _EventNoteData:
     """Pure data from e.note() — a note inside a phase."""
     content: EmbeddableContent
-    over: EntityRef | str | None
+    over: EntityRef | str | list[EntityRef | str] | None
     position: Literal["left", "right", "over"]
     shape: NoteShape
 
@@ -179,43 +185,46 @@ class SequenceParticipantNamespace:
         *,
         ref: str | None = None,
         style: Style | None = None,
+        order: int | None = None,
     ) -> EntityRef:
         data: dict[str, Any] = {"_type": type_}
         if style is not None:
             data["_style"] = style
+        if order is not None:
+            data["_order"] = order
         return EntityRef(name, ref=ref, data=data)
 
     def participant(self, name: str, *, ref: str | None = None,
-                    style: Style | None = None) -> EntityRef:
-        return self._make(name, "participant", ref=ref, style=style)
+                    style: Style | None = None, order: int | None = None) -> EntityRef:
+        return self._make(name, "participant", ref=ref, style=style, order=order)
 
     def actor(self, name: str, *, ref: str | None = None,
-              style: Style | None = None) -> EntityRef:
-        return self._make(name, "actor", ref=ref, style=style)
+              style: Style | None = None, order: int | None = None) -> EntityRef:
+        return self._make(name, "actor", ref=ref, style=style, order=order)
 
     def boundary(self, name: str, *, ref: str | None = None,
-                 style: Style | None = None) -> EntityRef:
-        return self._make(name, "boundary", ref=ref, style=style)
+                 style: Style | None = None, order: int | None = None) -> EntityRef:
+        return self._make(name, "boundary", ref=ref, style=style, order=order)
 
     def control(self, name: str, *, ref: str | None = None,
-                style: Style | None = None) -> EntityRef:
-        return self._make(name, "control", ref=ref, style=style)
+                style: Style | None = None, order: int | None = None) -> EntityRef:
+        return self._make(name, "control", ref=ref, style=style, order=order)
 
     def entity(self, name: str, *, ref: str | None = None,
-               style: Style | None = None) -> EntityRef:
-        return self._make(name, "entity", ref=ref, style=style)
+               style: Style | None = None, order: int | None = None) -> EntityRef:
+        return self._make(name, "entity", ref=ref, style=style, order=order)
 
     def database(self, name: str, *, ref: str | None = None,
-                 style: Style | None = None) -> EntityRef:
-        return self._make(name, "database", ref=ref, style=style)
+                 style: Style | None = None, order: int | None = None) -> EntityRef:
+        return self._make(name, "database", ref=ref, style=style, order=order)
 
     def collections(self, name: str, *, ref: str | None = None,
-                    style: Style | None = None) -> EntityRef:
-        return self._make(name, "collections", ref=ref, style=style)
+                    style: Style | None = None, order: int | None = None) -> EntityRef:
+        return self._make(name, "collections", ref=ref, style=style, order=order)
 
     def queue(self, name: str, *, ref: str | None = None,
-              style: Style | None = None) -> EntityRef:
-        return self._make(name, "queue", ref=ref, style=style)
+              style: Style | None = None, order: int | None = None) -> EntityRef:
+        return self._make(name, "queue", ref=ref, style=style, order=order)
 
 
 class SequenceEventNamespace:
@@ -229,10 +238,15 @@ class SequenceEventNamespace:
         *,
         line_style: MessageLineStyle = "solid",
         arrow_head: MessageArrowHead = "normal",
+        style: LineStyleLike | None = None,
+        bidirectional: bool = False,
+        activation: ActivationAction | None = None,
     ) -> _MessageData:
         return _MessageData(
             source=source, target=target, label=label,
             line_style=line_style, arrow_head=arrow_head,
+            style=style, bidirectional=bidirectional,
+            activation=activation,
         )
 
     def reply(
@@ -251,7 +265,7 @@ class SequenceEventNamespace:
         self,
         content: EmbeddableContent,
         *,
-        over: EntityRef | str | None = None,
+        over: EntityRef | str | list[EntityRef | str] | None = None,
         position: Literal["left", "right"] = "right",
         shape: NoteShape = "note",
     ) -> _EventNoteData:
@@ -338,6 +352,7 @@ def _build_participant(entity_ref: EntityRef) -> Participant:
         alias=alias,
         type=entity_ref._data.get("_type", "participant"),
         style=entity_ref._data.get("_style"),
+        order=entity_ref._data.get("_order"),
     )
 
 
@@ -348,13 +363,19 @@ def _build_message(data: _MessageData) -> Message:
         label=Label(data.label) if data.label else None,
         line_style=data.line_style,
         arrow_head=data.arrow_head,
+        style=data.style,
+        bidirectional=data.bidirectional,
+        activation=data.activation,
     )
 
 
 def _build_event_note(data: _EventNoteData) -> SequenceNote:
     participants: tuple[str, ...] = ()
     if data.over is not None:
-        participants = (_resolve_ref(data.over),)
+        if isinstance(data.over, list):
+            participants = tuple(_resolve_ref(item) for item in data.over)
+        else:
+            participants = (_resolve_ref(data.over),)
     content = Label(data.content) if isinstance(data.content, str) else data.content
     return SequenceNote(
         content=content,
@@ -430,6 +451,7 @@ class SequenceComposer(BaseComposer):
         theme: ThemeLike = None,
         actor_style: ActorStyle | None = None,
         autonumber: bool | Autonumber | None = None,
+        hide_unlinked: bool = False,
     ) -> None:
         super().__init__(
             title=title, mainframe=mainframe, caption=caption,
@@ -437,6 +459,7 @@ class SequenceComposer(BaseComposer):
         )
         self._theme = theme
         self._actor_style = actor_style
+        self._hide_unlinked = hide_unlinked
         if autonumber is True:
             self._autonumber: Autonumber | None = Autonumber()
         elif isinstance(autonumber, Autonumber):
@@ -501,6 +524,10 @@ class SequenceComposer(BaseComposer):
     def delay(self, message: str | None = None) -> None:
         """Add a visual delay indicator (...)."""
         self._timeline.append(Delay(message=message))
+
+    def space(self, pixels: int | None = None) -> None:
+        """Add explicit vertical spacing between elements."""
+        self._timeline.append(Space(pixels=pixels))
 
     # --- Activation / lifecycle (timeline-level) ---
 
@@ -592,6 +619,14 @@ class SequenceComposer(BaseComposer):
             format=format,
         ))
 
+    def autonumber_stop(self) -> None:
+        """Stop automatic message numbering."""
+        self._timeline.append(Autonumber(action="stop"))
+
+    def autonumber_resume(self) -> None:
+        """Resume automatic message numbering."""
+        self._timeline.append(Autonumber(action="resume"))
+
     # --- Newpage ---
 
     def newpage(self, title: str | None = None) -> None:
@@ -621,7 +656,7 @@ class SequenceComposer(BaseComposer):
                 elements.append(_build_block(item))
             elif isinstance(item, _ActivationData):
                 elements.append(_build_activation(item))
-            elif isinstance(item, (Divider, Delay, Reference, Autonumber, Newpage)):
+            elif isinstance(item, (Divider, Delay, Space, Reference, Autonumber, Newpage)):
                 elements.append(item)
 
         # Diagram-level notes
@@ -660,6 +695,7 @@ class SequenceComposer(BaseComposer):
             theme=self._theme,
             actor_style=self._actor_style,
             autonumber=self._autonumber,
+            hide_unlinked=self._hide_unlinked,
         )
 
 
@@ -675,6 +711,7 @@ def sequence_diagram(
     theme: ThemeLike = None,
     actor_style: ActorStyle | None = None,
     autonumber: bool | Autonumber | None = None,
+    hide_unlinked: bool = False,
 ) -> SequenceComposer:
     """Create a sequence diagram composer.
 
@@ -697,4 +734,5 @@ def sequence_diagram(
         title=title, mainframe=mainframe, caption=caption,
         header=header, footer=footer, legend=legend, scale=scale,
         theme=theme, actor_style=actor_style, autonumber=autonumber,
+        hide_unlinked=hide_unlinked,
     )

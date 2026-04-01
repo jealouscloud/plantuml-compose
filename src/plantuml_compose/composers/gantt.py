@@ -96,6 +96,7 @@ class GanttTaskNamespace:
         color: str | None = None,
         resources: tuple[str, ...] = (),
         link: str | None = None,
+        on_same_row_as: EntityRef | str | None = None,
         pauses_on: tuple[date, ...] = (),
         pauses_on_days: tuple[DayOfWeek, ...] = (),
         is_deleted: bool = False,
@@ -118,6 +119,7 @@ class GanttTaskNamespace:
                 "color": color,
                 "resources": resources,
                 "link": link,
+                "on_same_row_as": on_same_row_as,
                 "pauses_on": pauses_on,
                 "pauses_on_days": pauses_on_days,
                 "is_deleted": is_deleted,
@@ -216,6 +218,8 @@ class GanttComposer(BaseComposer):
         scale: Literal["daily", "weekly", "monthly", "quarterly", "yearly"] | None = None,
         scale_zoom: int | None = None,
         print_range: tuple[date, date] | None = None,
+        hide_resource_names: bool = False,
+        hide_resource_footbox: bool = False,
     ) -> None:
         super().__init__(title=title, mainframe=mainframe)
         self._start = start
@@ -224,6 +228,8 @@ class GanttComposer(BaseComposer):
             coerce_gantt_diagram_style(diagram_style) if diagram_style else None
         )
         self._hide_footbox = hide_footbox
+        self._hide_resource_names = hide_resource_names
+        self._hide_resource_footbox = hide_resource_footbox
         self._language = language
         self._week_numbering = week_numbering
         self._show_calendar_date = show_calendar_date
@@ -342,6 +348,13 @@ class GanttComposer(BaseComposer):
                     resources = tuple(
                         GanttResource(name=r) for r in data.get("resources", ())
                     )
+                    # Resolve on_same_row_as ref to alias
+                    same_row_raw = data.get("on_same_row_as")
+                    same_row_alias = (
+                        self._resolve_alias(same_row_raw)
+                        if same_row_raw is not None
+                        else None
+                    )
                     elements.append(GanttTask(
                         name=item._name,
                         alias=alias,
@@ -353,6 +366,7 @@ class GanttComposer(BaseComposer):
                         color=data.get("color"),
                         resources=resources,
                         link=data.get("link"),
+                        on_same_row_as=same_row_alias,
                         pauses_on=data.get("pauses_on", ()),
                         pauses_on_days=data.get("pauses_on_days", ()),
                         is_deleted=data.get("is_deleted", False),
@@ -406,6 +420,7 @@ class GanttComposer(BaseComposer):
                     color=elem.color,
                     resources=elem.resources,
                     link=elem.link,
+                    on_same_row_as=elem.on_same_row_as,
                     pauses_on=elem.pauses_on,
                     pauses_on_days=elem.pauses_on_days,
                     is_deleted=elem.is_deleted,
@@ -464,6 +479,8 @@ class GanttComposer(BaseComposer):
             today=self._today,
             today_color=self._today_color,
             hide_footbox=self._hide_footbox,
+            hide_resource_names=self._hide_resource_names,
+            hide_resource_footbox=self._hide_resource_footbox,
             diagram_style=self._diagram_style,
             language=self._language,
             week_numbering=self._week_numbering,
@@ -493,6 +510,8 @@ def gantt_diagram(
     theme: ThemeLike = None,
     diagram_style: GanttDiagramStyleLike | None = None,
     hide_footbox: bool = False,
+    hide_resource_names: bool = False,
+    hide_resource_footbox: bool = False,
     language: str | None = None,
     week_numbering: int | bool | None = None,
     show_calendar_date: bool = False,
@@ -520,6 +539,8 @@ def gantt_diagram(
         start=start, theme=theme,
         diagram_style=diagram_style,
         hide_footbox=hide_footbox,
+        hide_resource_names=hide_resource_names,
+        hide_resource_footbox=hide_resource_footbox,
         language=language,
         week_numbering=week_numbering,
         show_calendar_date=show_calendar_date,

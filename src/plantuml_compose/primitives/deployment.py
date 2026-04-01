@@ -68,6 +68,7 @@ ElementType = Literal[
     "node",
     "package",
     "person",
+    "action",
     "process",
     "queue",
     "rectangle",

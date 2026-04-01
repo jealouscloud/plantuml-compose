@@ -39,6 +39,7 @@ from plantuml_compose.primitives.salt import (
     Text,
     TextField,
     Tree,
+    TreeStyle,
 )
 from .base import BaseComposer
 
@@ -99,8 +100,10 @@ class SaltWidgetNamespace:
     ) -> Scrollbar:
         return Scrollbar(style=style, content=children)
 
-    def tree(self, *nodes: tuple[int, str]) -> Tree:
-        return Tree(nodes=nodes)
+    def tree(
+        self, *nodes: tuple[int, str], style: TreeStyle = "T",
+    ) -> Tree:
+        return Tree(nodes=nodes, style=style)
 
 
 class SaltComposer(BaseComposer):

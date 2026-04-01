@@ -48,6 +48,7 @@ from ..primitives.timing import (
     TimingHighlight,
     TimingInitialState,
     TimingMessage,
+    TimingNote,
     TimingParticipant,
     TimingParticipantType,
     TimingScale,
@@ -116,21 +117,35 @@ _AtEvent = _StateEventData | _MessageEventData | _IntricatedEventData | _HiddenE
 class TimingParticipantNamespace:
     """Factory namespace for timing diagram participants."""
 
+    def _normalize_states(
+        self, states: tuple[str, ...] | dict[str, str],
+    ) -> tuple[tuple[str, ...], dict[str, str] | None]:
+        """Normalize states input to (state_names, labels_or_none).
+
+        Accepts either a tuple of state names or a dict mapping state
+        names to display labels.
+        """
+        if isinstance(states, dict):
+            return tuple(states.keys()), states
+        return states, None
+
     def robust(
         self,
         name: str,
         *,
-        states: tuple[str, ...] = (),
+        states: tuple[str, ...] | dict[str, str] = (),
         initial: str | None = None,
         ref: str | None = None,
         stereotype: str | None = None,
         compact: bool = False,
     ) -> EntityRef:
+        state_names, labels = self._normalize_states(states)
         return EntityRef(
             name, ref=ref,
             data={
                 "_type": "robust",
-                "states": states,
+                "states": state_names,
+                "labels": labels,
                 "initial": initial,
                 "stereotype": stereotype,
                 "compact": compact,
@@ -141,17 +156,19 @@ class TimingParticipantNamespace:
         self,
         name: str,
         *,
-        states: tuple[str, ...] = (),
+        states: tuple[str, ...] | dict[str, str] = (),
         initial: str | None = None,
         ref: str | None = None,
         stereotype: str | None = None,
         compact: bool = False,
     ) -> EntityRef:
+        state_names, labels = self._normalize_states(states)
         return EntityRef(
             name, ref=ref,
             data={
                 "_type": "concise",
-                "states": states,
+                "states": state_names,
+                "labels": labels,
                 "initial": initial,
                 "stereotype": stereotype,
                 "compact": compact,
@@ -162,17 +179,19 @@ class TimingParticipantNamespace:
         self,
         name: str,
         *,
-        states: tuple[str, ...] = (),
+        states: tuple[str, ...] | dict[str, str] = (),
         initial: str | None = None,
         ref: str | None = None,
         stereotype: str | None = None,
         compact: bool = False,
     ) -> EntityRef:
+        state_names, labels = self._normalize_states(states)
         return EntityRef(
             name, ref=ref,
             data={
                 "_type": "rectangle",
-                "states": states,
+                "states": state_names,
+                "labels": labels,
                 "initial": initial,
                 "stereotype": stereotype,
                 "compact": compact,
@@ -427,6 +446,30 @@ class TimingComposer(BaseComposer):
             "multiple": multiple,
         })
 
+    def note(
+        self,
+        content: str,
+        participant: EntityRef | str,
+        *,
+        position: Literal["top", "bottom"] = "top",
+        time: TimeValue | None = None,
+    ) -> None:
+        """Add a note to a participant at a specific time.
+
+        Args:
+            content: Note text
+            participant: Participant reference or name
+            position: "top" or "bottom" relative to the signal
+            time: Time point for the note (required for rendering)
+        """
+        self._at_groups.append({
+            "_type": "note",
+            "content": content,
+            "participant": participant,
+            "position": position,
+            "time": time,
+        })
+
     def build(self) -> TimingDiagram:
         elements: list[TimingElement] = []
 
@@ -462,6 +505,7 @@ class TimingComposer(BaseComposer):
                     elements.append(TimingStateOrder(
                         participant=alias,
                         states=states,
+                        labels=data.get("labels"),
                     ))
 
                 # initial= produces TimingInitialState
@@ -486,6 +530,19 @@ class TimingComposer(BaseComposer):
                 elements.append(TimingTicks(
                     participant=self._resolve_participant(group["participant"]),
                     multiple=group["multiple"],
+                ))
+                continue
+
+            # Handle note entries
+            if group.get("_type") == "note":
+                note_time = group["time"]
+                if note_time is None:
+                    raise ValueError("TimingNote requires a time value")
+                elements.append(TimingNote(
+                    participant=self._resolve_participant(group["participant"]),
+                    time=note_time,
+                    text=group["content"],
+                    position=group["position"],
                 ))
                 continue
 
