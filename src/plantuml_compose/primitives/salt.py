@@ -18,6 +18,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Literal, TypeAlias
 
+from .common import Footer, Header, Legend
+
 
 # Grid border styles control which lines are drawn
 GridStyle = Literal[
@@ -106,10 +108,15 @@ class Dropdown:
     Rendered as: ^item1^item2^item3^ — items separated by carets.
     The first item is displayed as the selected value.
 
+    When open=True, rendered with double-caret syntax to show the
+    dropdown in expanded state: ^^item1^^item2^^
+
         items: List of dropdown option strings
+        open:  If True, render expanded (double-caret syntax)
     """
 
     items: tuple[str, ...] = field(default_factory=tuple)
+    open: bool = False
 
 
 @dataclass(frozen=True)
@@ -152,12 +159,16 @@ class TabBar:
     Rendered as: {/ Tab1 | Tab2 | Tab3 }
     The content of the active tab appears after the tab bar definition.
 
-        tabs:          Tab label strings
+    When vertical=True, tabs are stacked vertically instead of horizontally.
+
+        tabs:           Tab label strings
         active_content: Widgets displayed in the active tab's content area
+        vertical:       If True, render tabs vertically
     """
 
     tabs: tuple[str, ...]
     active_content: tuple["SaltWidget", ...] = field(default_factory=tuple)
+    vertical: bool = False
 
 
 @dataclass(frozen=True)
@@ -262,8 +273,16 @@ class SaltDiagram:
         content:   Top-level widgets (usually a single Grid)
         title:     Optional diagram title
         mainframe: Optional frame label around the entire diagram
+        caption:   Optional caption text below the diagram
+        header:    Optional header text above the diagram
+        footer:    Optional footer text below the diagram
+        legend:    Optional legend box
     """
 
     content: tuple[SaltWidget, ...] = field(default_factory=tuple)
     title: str | None = None
     mainframe: str | None = None
+    caption: str | None = None
+    header: Header | None = None
+    footer: Footer | None = None
+    legend: Legend | None = None

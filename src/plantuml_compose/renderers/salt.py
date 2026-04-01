@@ -23,7 +23,13 @@ from ..primitives.salt import (
     TextField,
     Tree,
 )
-from .common import render_mainframe
+from .common import (
+    render_caption,
+    render_footer,
+    render_header,
+    render_legend,
+    render_mainframe,
+)
 
 
 def render_salt_diagram(diagram: SaltDiagram) -> str:
@@ -35,6 +41,17 @@ def render_salt_diagram(diagram: SaltDiagram) -> str:
 
     if diagram.title:
         lines.append(f"title {diagram.title}")
+
+    if diagram.header:
+        lines.extend(render_header(diagram.header))
+    if diagram.footer:
+        lines.extend(render_footer(diagram.footer))
+
+    if diagram.caption:
+        lines.append(render_caption(diagram.caption))
+
+    if diagram.legend:
+        lines.extend(render_legend(diagram.legend))
 
     # Salt content is wrapped in { }
     lines.append("{")
@@ -70,8 +87,12 @@ def _render_widget(widget: SaltWidget, indent: int = 0) -> list[str]:
         return [f'{prefix}"{widget.value}{" " * padding}"']
 
     if isinstance(widget, Dropdown):
-        items = "^".join(widget.items)
-        return [f"{prefix}^{items}^"]
+        if widget.open:
+            items = "^^".join(widget.items)
+            return [f"{prefix}^^{items}^^"]
+        else:
+            items = "^".join(widget.items)
+            return [f"{prefix}^{items}^"]
 
     if isinstance(widget, Separator):
         return [f"{prefix}{widget.style}"]
@@ -92,7 +113,7 @@ def _render_widget(widget: SaltWidget, indent: int = 0) -> list[str]:
         return _render_group_box(widget, indent)
 
     if isinstance(widget, Row):
-        return [_render_row(widget, indent)]
+        return _render_row(widget, indent)
 
     if isinstance(widget, Grid):
         return _render_grid(widget, indent)
@@ -100,19 +121,28 @@ def _render_widget(widget: SaltWidget, indent: int = 0) -> list[str]:
     raise TypeError(f"Unknown widget type: {type(widget).__name__}")
 
 
-def _render_row(row: Row, indent: int) -> str:
-    """Render a row as pipe-separated cells on a single line."""
+def _render_row(row: Row, indent: int) -> list[str]:
+    """Render a row as pipe-separated cells.
+
+    When all cells are single-line, renders on one line with | separators.
+    When any cell is multi-line (e.g. a nested Grid), each cell's lines
+    are emitted between | separators on their own lines.
+    """
     prefix = "  " * indent
-    cells: list[str] = []
-    for cell in row.cells:
-        cell_lines = _render_widget(cell, indent=0)
-        if len(cell_lines) > 1:
-            raise TypeError(
-                f"Row cells must be single-line widgets, got multi-line "
-                f"{type(cell).__name__}"
-            )
-        cells.append(cell_lines[0] if cell_lines else "")
-    return f"{prefix}{' | '.join(cells)}"
+    rendered_cells = [_render_widget(cell, indent=0) for cell in row.cells]
+    all_single = all(len(c) == 1 for c in rendered_cells)
+
+    if all_single:
+        return [f"{prefix}{' | '.join(c[0] for c in rendered_cells)}"]
+
+    # Multi-line cells: render each cell, separate with | on its own line
+    lines: list[str] = []
+    for i, cell_lines in enumerate(rendered_cells):
+        for line in cell_lines:
+            lines.append(f"{prefix}{line}")
+        if i < len(rendered_cells) - 1:
+            lines.append(f"{prefix}|")
+    return lines
 
 
 def _render_grid(grid: Grid, indent: int) -> list[str]:
@@ -137,16 +167,33 @@ def _render_tree(tree: Tree, indent: int) -> list[str]:
 
 
 def _render_tab_bar(tab_bar: TabBar, indent: int) -> list[str]:
-    """Render a tab bar container."""
+    """Render a tab bar container.
+
+    Horizontal tabs use pipe separators on one line: {/ Tab1 | Tab2 }
+    Vertical tabs place each tab on its own line with | between them.
+    """
     prefix = "  " * indent
-    tabs_str = " | ".join(tab_bar.tabs)
-    if not tab_bar.active_content:
-        return [f"{prefix}{{/ {tabs_str}}}"]
-    lines = [f"{prefix}{{/ {tabs_str}"]
-    for widget in tab_bar.active_content:
-        lines.extend(_render_widget(widget, indent=indent + 1))
-    lines.append(f"{prefix}}}")
-    return lines
+    if tab_bar.vertical:
+        # Vertical: each tab on its own line, separated by |
+        lines = [f"{prefix}{{/"]
+        for i, tab in enumerate(tab_bar.tabs):
+            lines.append(f"{prefix}  {tab}")
+            if i < len(tab_bar.tabs) - 1:
+                lines.append(f"{prefix}  |")
+        for widget in tab_bar.active_content:
+            lines.extend(_render_widget(widget, indent=indent + 1))
+        lines.append(f"{prefix}}}")
+        return lines
+    else:
+        # Horizontal: all tabs on one line
+        tabs_str = " | ".join(tab_bar.tabs)
+        if not tab_bar.active_content:
+            return [f"{prefix}{{/ {tabs_str}}}"]
+        lines = [f"{prefix}{{/ {tabs_str}"]
+        for widget in tab_bar.active_content:
+            lines.extend(_render_widget(widget, indent=indent + 1))
+        lines.append(f"{prefix}}}")
+        return lines
 
 
 def _render_menu(menu: Menu, indent: int) -> list[str]:

@@ -15,6 +15,7 @@ from plantuml_compose.primitives.timing import (
     TimingHighlight,
     TimingInitialState,
     TimingMessage,
+    TimingNote,
     TimingParticipant,
     TimingScale,
     TimingStateOrder,
@@ -254,6 +255,70 @@ class TestTimingPlantUMLValidation:
             capture_output=True, text=True, timeout=30,
         )
         assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+
+class TestTimingComposerExtended:
+
+    def test_state_comment(self):
+        d = timing_diagram()
+        p = d.participants
+        e = d.events
+        sig = p.robust("Signal", states=("idle", "active"), initial="idle")
+        d.add(sig)
+        d.at(10, e.state(sig, "active", comment="wakeup"))
+        result = d.build()
+        state_changes = [el for el in result.elements if isinstance(el, StateChange)]
+        assert len(state_changes) == 1
+        assert state_changes[0].comment == "wakeup"
+        output = render(d)
+        assert ": wakeup" in output
+
+    def test_message_target_offset(self):
+        d = timing_diagram()
+        p = d.participants
+        e = d.events
+        a = p.robust("A", states=("off", "on"), initial="off")
+        b = p.robust("B", states=("off", "on"), initial="off")
+        d.add(a, b)
+        d.at(10,
+            e.state(a, "on"),
+            e.message(a, b, "data", target_time_offset=5),
+        )
+        result = d.build()
+        messages = [el for el in result.elements if isinstance(el, TimingMessage)]
+        assert len(messages) == 1
+        assert messages[0].target_time_offset == 5
+        output = render(d)
+        assert "@+5" in output
+
+    def test_note(self):
+        d = timing_diagram()
+        p = d.participants
+        e = d.events
+        sig = p.robust("Signal", states=("low", "high"), initial="low")
+        d.add(sig)
+        d.at(10, e.state(sig, "high"))
+        d.note("text", participant=sig, position="top", time=10)
+        result = d.build()
+        notes = [el for el in result.elements if isinstance(el, TimingNote)]
+        assert len(notes) == 1
+        assert notes[0].text == "text"
+        assert notes[0].position == "top"
+        output = render(d)
+        assert "note top of" in output
+
+    def test_state_order_labels(self):
+        d = timing_diagram()
+        p = d.participants
+        r = p.robust("R", states={"high": "35 gpm", "low": "15 gpm"})
+        d.add(r)
+        result = d.build()
+        state_orders = [el for el in result.elements if isinstance(el, TimingStateOrder)]
+        assert len(state_orders) == 1
+        assert state_orders[0].labels is not None
+        assert state_orders[0].labels["high"] == "35 gpm"
+        output = render(d)
+        assert '"35 gpm" as high' in output
 
 
 class TestTimingNewFeatures:

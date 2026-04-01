@@ -5,6 +5,7 @@ import subprocess
 import pytest
 
 from plantuml_compose.composers.salt import salt_diagram
+from plantuml_compose.primitives.common import Footer, Header, Legend
 from plantuml_compose.primitives.salt import (
     Button,
     Checkbox,
@@ -175,6 +176,84 @@ class TestSaltComposer:
         assert "[OK]" in result or "OK" in result
         assert "@endsalt" in result
 
+    def test_header_footer_caption_legend(self):
+        d = salt_diagram(
+            title="Form",
+            caption="Figure 1",
+            header="My Header",
+            footer="My Footer",
+            legend="Color key",
+        )
+        w = d.widgets
+        d.add(w.button("OK"))
+        result = d.build()
+        assert result.caption == "Figure 1"
+        assert isinstance(result.header, Header)
+        assert result.header.content == "My Header"
+        assert isinstance(result.footer, Footer)
+        assert result.footer.content == "My Footer"
+        assert isinstance(result.legend, Legend)
+        assert result.legend.content == "Color key"
+
+        rendered = render(d)
+        assert "header My Header" in rendered
+        assert "footer My Footer" in rendered
+        assert "caption Figure 1" in rendered
+        assert "legend" in rendered
+        assert "Color key" in rendered
+        assert "endlegend" in rendered
+
+    def test_nested_grid_in_row(self):
+        d = salt_diagram()
+        w = d.widgets
+        inner = w.grid("#", w.row(w.text("A"), w.text("B")))
+        d.add(
+            w.grid("#",
+                w.row(w.text("Label"), inner),
+            ),
+        )
+        result = d.build()
+        outer_grid = result.content[0]
+        assert isinstance(outer_grid, Grid)
+        row = outer_grid.rows[0]
+        assert isinstance(row, Row)
+        assert isinstance(row.cells[1], Grid)
+
+        # Should not raise TypeError for multi-line cell
+        rendered = render(d)
+        assert "{#" in rendered
+        assert "Label" in rendered
+        assert "A | B" in rendered
+
+    def test_vertical_tab_bar(self):
+        d = salt_diagram()
+        w = d.widgets
+        d.add(w.tab_bar("Tab1", "Tab2", "Tab3", vertical=True))
+        result = d.build()
+        tab = result.content[0]
+        assert isinstance(tab, TabBar)
+        assert tab.vertical is True
+
+        rendered = render(d)
+        assert "{/" in rendered
+        # Vertical tabs have each tab on its own line
+        lines = rendered.split("\n")
+        tab_lines = [l.strip() for l in lines if "Tab" in l]
+        assert len(tab_lines) == 3
+
+    def test_open_dropdown(self):
+        d = salt_diagram()
+        w = d.widgets
+        d.add(w.dropdown("Item1", "Item2", "Item3", open=True))
+        result = d.build()
+        dd = result.content[0]
+        assert isinstance(dd, Dropdown)
+        assert dd.open is True
+
+        rendered = render(d)
+        assert "^^Item1^^Item2^^Item3^^" in rendered
+
+
 class TestSaltPlantUMLValidation:
 
     @pytest.fixture
@@ -210,6 +289,89 @@ class TestSaltPlantUMLValidation:
         )
 
         puml_file = tmp_path / "salt_composer.puml"
+        puml_file.write_text(render(d))
+
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+    def test_header_footer_valid_plantuml(self, plantuml_check, tmp_path):
+        if not plantuml_check:
+            pytest.skip("PlantUML not available")
+
+        d = salt_diagram(
+            title="With Metadata",
+            caption="Figure 1: Login Form",
+            header="My Application",
+            footer="Page 1",
+            legend="Field guide",
+        )
+        w = d.widgets
+        d.add(w.text_field("username"), w.button("Login"))
+
+        puml_file = tmp_path / "salt_header_footer.puml"
+        puml_file.write_text(render(d))
+
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+    def test_nested_grid_valid_plantuml(self, plantuml_check, tmp_path):
+        if not plantuml_check:
+            pytest.skip("PlantUML not available")
+
+        d = salt_diagram()
+        w = d.widgets
+        inner = w.grid("#", w.row(w.text("A"), w.text("B")))
+        d.add(
+            w.grid("#",
+                w.row(w.text("Label"), inner),
+            ),
+        )
+
+        puml_file = tmp_path / "salt_nested_grid.puml"
+        puml_file.write_text(render(d))
+
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+    def test_vertical_tabs_valid_plantuml(self, plantuml_check, tmp_path):
+        if not plantuml_check:
+            pytest.skip("PlantUML not available")
+
+        d = salt_diagram()
+        w = d.widgets
+        d.add(w.tab_bar(
+            "Tab1", "Tab2", "Tab3",
+            vertical=True,
+            content=(w.text("Content here"),),
+        ))
+
+        puml_file = tmp_path / "salt_vertical_tabs.puml"
+        puml_file.write_text(render(d))
+
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+    def test_open_dropdown_valid_plantuml(self, plantuml_check, tmp_path):
+        if not plantuml_check:
+            pytest.skip("PlantUML not available")
+
+        d = salt_diagram()
+        w = d.widgets
+        d.add(w.dropdown("Option1", "Option2", "Option3", open=True))
+
+        puml_file = tmp_path / "salt_open_dropdown.puml"
         puml_file.write_text(render(d))
 
         result = subprocess.run(

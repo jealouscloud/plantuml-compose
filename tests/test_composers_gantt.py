@@ -219,6 +219,49 @@ class TestGanttPlantUMLValidation:
         assert result.returncode == 0, f"PlantUML error: {result.stderr}"
 
 
+class TestGanttHideAndRowFeatures:
+
+    def test_hide_resource_names(self):
+        d = gantt_diagram(hide_resource_names=True)
+        result = d.build()
+        assert result.hide_resource_names is True
+        output = render(d)
+        assert "hide resources names" in output
+
+    def test_hide_resource_footbox(self):
+        d = gantt_diagram(hide_resource_footbox=True)
+        result = d.build()
+        assert result.hide_resource_footbox is True
+        output = render(d)
+        assert "hide resources footbox" in output
+
+    def test_on_same_row_as(self):
+        d = gantt_diagram(start=date(2026, 4, 6))
+        tk = d.tasks
+        task_a = tk.task("A", days=3)
+        task_b = tk.task("B", on_same_row_as=task_a, days=3)
+        d.add(task_a, task_b)
+        result = d.build()
+        tasks = [e for e in result.elements if isinstance(e, GanttTask)]
+        b_task = [t for t in tasks if t.name == "B"][0]
+        assert b_task.on_same_row_as is not None
+        output = render(d)
+        assert "displays on same row" in output
+
+    def test_start_with_days(self):
+        d = gantt_diagram(start=date(2026, 4, 1))
+        tk = d.tasks
+        task = tk.task("A", start=date(2026, 4, 6), days=5)
+        d.add(task)
+        result = d.build()
+        tasks = [e for e in result.elements if isinstance(e, GanttTask)]
+        assert tasks[0].start_date == date(2026, 4, 6)
+        assert tasks[0].duration_days == 5
+        output = render(d)
+        assert "2026-04-06" in output
+        assert "5 days" in output
+
+
 class TestGanttNewFeatures:
 
     def test_language(self):

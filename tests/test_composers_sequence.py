@@ -17,6 +17,7 @@ from plantuml_compose.primitives.sequence import (
     Return,
     SequenceDiagram,
     SequenceNote,
+    Space,
 )
 from plantuml_compose.renderers import render
 
@@ -623,3 +624,162 @@ class TestSequenceParticipantStyle:
         result = d.build()
         assert result.participants[0].style is not None
         assert result.participants[0].style.background == "#LightBlue"
+
+    def test_participant_order(self):
+        d = sequence_diagram()
+        p = d.participants
+        a = p.actor("A", order=10)
+        d.add(a)
+        result = d.build()
+        assert result.participants[0].order == 10
+        output = render(d)
+        assert "order 10" in output
+
+    def test_message_style(self):
+        d = sequence_diagram()
+        p = d.participants
+        e = d.events
+        a, b = d.add(p.participant("A"), p.participant("B"))
+        d.phase("Flow", [
+            e.message(a, b, "hello", style={"color": "red"}),
+        ])
+        output = render(d)
+        assert "[#red]" in output
+
+    def test_message_bidirectional(self):
+        d = sequence_diagram()
+        p = d.participants
+        e = d.events
+        a, b = d.add(p.participant("A"), p.participant("B"))
+        d.phase("Flow", [
+            e.message(a, b, "sync", bidirectional=True),
+        ])
+        result = d.build()
+        group = [el for el in result.elements if isinstance(el, GroupBlock)][0]
+        msg = group.elements[0]
+        assert isinstance(msg, Message)
+        assert msg.bidirectional is True
+        output = render(d)
+        assert "<->" in output
+
+    def test_message_activation(self):
+        d = sequence_diagram()
+        p = d.participants
+        e = d.events
+        a, b = d.add(p.participant("A"), p.participant("B"))
+        d.phase("Flow", [
+            e.message(a, b, "call", activation="activate"),
+        ])
+        result = d.build()
+        group = [el for el in result.elements if isinstance(el, GroupBlock)][0]
+        msg = group.elements[0]
+        assert isinstance(msg, Message)
+        assert msg.activation == "activate"
+        output = render(d)
+        assert "++" in output
+
+    def test_space(self):
+        d = sequence_diagram()
+        p = d.participants
+        a = p.participant("A")
+        d.add(a)
+        d.space()
+        result = d.build()
+        spaces = [el for el in result.elements if isinstance(el, Space)]
+        assert len(spaces) == 1
+        assert spaces[0].pixels is None
+        output = render(d)
+        assert "|||" in output
+
+        d2 = sequence_diagram()
+        p2 = d2.participants
+        a2 = p2.participant("A")
+        d2.add(a2)
+        d2.space(pixels=45)
+        result2 = d2.build()
+        spaces2 = [el for el in result2.elements if isinstance(el, Space)]
+        assert spaces2[0].pixels == 45
+        output2 = render(d2)
+        assert "||45||" in output2
+
+    def test_note_multi_participant(self):
+        d = sequence_diagram()
+        p = d.participants
+        e = d.events
+        a, b = d.add(p.participant("A"), p.participant("B"))
+        d.phase("Flow", [
+            e.note("shared note", over=[a, b]),
+        ])
+        result = d.build()
+        group = [el for el in result.elements if isinstance(el, GroupBlock)][0]
+        note = group.elements[0]
+        assert isinstance(note, SequenceNote)
+        assert note.position == "over"
+        assert len(note.participants) == 2
+        output = render(d)
+        assert "note over" in output
+        assert "A" in output
+        assert "B" in output
+
+    def test_hide_unlinked(self):
+        d = sequence_diagram(hide_unlinked=True)
+        p = d.participants
+        d.add(p.participant("A"))
+        result = d.build()
+        assert result.hide_unlinked is True
+        output = render(d)
+        assert "hide unlinked" in output
+
+    def test_autonumber_stop_resume(self):
+        d = sequence_diagram(autonumber=True)
+        p = d.participants
+        e = d.events
+        a, b = d.add(p.participant("A"), p.participant("B"))
+        d.phase("Flow", [
+            e.message(a, b, "one"),
+        ])
+        d.autonumber_stop()
+        d.phase("Untracked", [
+            e.message(a, b, "two"),
+        ])
+        d.autonumber_resume()
+        d.phase("Tracked", [
+            e.message(a, b, "three"),
+        ])
+        result = d.build()
+        autonums = [el for el in result.elements if isinstance(el, Autonumber)]
+        actions = [a.action for a in autonums]
+        assert "stop" in actions
+        assert "resume" in actions
+        output = render(d)
+        assert "autonumber stop" in output
+        assert "autonumber resume" in output
+
+    def test_note_across(self):
+        d = sequence_diagram()
+        p = d.participants
+        a, b = d.add(p.participant("A"), p.participant("B"))
+        d.note("broadcast", across=True)
+        result = d.build()
+        notes = [el for el in result.elements if isinstance(el, SequenceNote)]
+        assert len(notes) == 1
+        assert notes[0].across is True
+        output = render(d)
+        assert "note across" in output
+
+    def test_note_aligned(self):
+        d = sequence_diagram()
+        p = d.participants
+        e = d.events
+        a, b = d.add(p.participant("A"), p.participant("B"))
+        d.phase("Flow", [
+            e.note("first", over=a),
+            e.note("aligned note", over=b, aligned=True),
+        ])
+        result = d.build()
+        group = [el for el in result.elements if isinstance(el, GroupBlock)][0]
+        aligned_notes = [el for el in group.elements
+                        if isinstance(el, SequenceNote) and el.aligned]
+        assert len(aligned_notes) == 1
+        output = render(d)
+        assert "/ note" in output

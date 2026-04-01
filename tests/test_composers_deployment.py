@@ -134,6 +134,47 @@ class TestDeploymentComposer:
         assert "Server" in result
         assert "@enduml" in result
 
+    def test_element_description(self):
+        d = deployment_diagram()
+        el = d.elements
+        d.add(el.node("Server", description="Dell R750"))
+        result = d.build()
+        elem = result.elements[0]
+        assert isinstance(elem, DeploymentElement)
+        assert elem.description == "Dell R750"
+        output = render(d)
+        assert "Dell R750" in output
+
+    def test_port_elements(self):
+        d = deployment_diagram()
+        el = d.elements
+        d.add(el.node("Router",
+            el.portin("eth0"),
+            el.portout("eth1"),
+        ))
+        result = d.build()
+        router = result.elements[0]
+        assert len(router.elements) == 2
+        assert router.elements[0].type == "portin"
+        assert router.elements[0].name == "eth0"
+        assert router.elements[1].type == "portout"
+        assert router.elements[1].name == "eth1"
+        output = render(d)
+        assert "portin" in output
+        assert "portout" in output
+
+    def test_action_element(self):
+        d = deployment_diagram()
+        el = d.elements
+        d.add(el.action("Deploy"))
+        result = d.build()
+        elem = result.elements[0]
+        assert isinstance(elem, DeploymentElement)
+        assert elem.type == "action"
+        assert elem.name == "Deploy"
+        output = render(d)
+        assert "action" in output
+
     def test_render_nested_valid(self):
         """Three-level nesting renders valid PlantUML."""
         d = deployment_diagram(title="DC")

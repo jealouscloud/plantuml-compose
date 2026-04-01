@@ -132,6 +132,38 @@ class TestNetworkComposer:
         assert "Internet" in result
         assert "@enduml" in result
 
+class TestNetworkComposerExtended:
+
+    def test_standalone_node_address(self):
+        d = network_diagram()
+        n = d.networks
+        d.add(n.node("srv", address="10.0.0.1"))
+        result = d.build()
+        node = result.elements[0]
+        assert isinstance(node, StandaloneNode)
+        assert node.address == "10.0.0.1"
+        output = render(d)
+        assert "10.0.0.1" in output
+
+    def test_anonymous_network(self):
+        d = network_diagram()
+        n = d.networks
+        d.add(n.network(None, n.node("srv")))
+        result = d.build()
+        net = result.elements[0]
+        assert isinstance(net, Network)
+        assert net.name == ""
+        output = render(d)
+        assert "network {" in output
+
+    def test_diagram_style(self):
+        d = network_diagram(diagram_style={"network": {"background": "lightblue"}})
+        n = d.networks
+        d.add(n.node("srv"))
+        output = render(d)
+        assert "<style>" in output
+
+
 class TestNetworkPlantUMLValidation:
 
     @pytest.fixture

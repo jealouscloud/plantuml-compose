@@ -264,6 +264,45 @@ class TestClassComposer:
         assert hs[0].action == "show"
         assert hs[0].target == "methods"
 
+    def test_remove(self):
+        d = class_diagram()
+        el = d.elements
+        d.add(el.class_("X"))
+        d.remove("empty members")
+        result = d.build()
+        hs = [e for e in result.elements if isinstance(e, HideShow)]
+        assert len(hs) == 1
+        assert hs[0].action == "remove"
+        assert hs[0].target == "empty members"
+
+    def test_restore(self):
+        d = class_diagram()
+        el = d.elements
+        d.add(el.class_("X"))
+        d.restore("methods")
+        result = d.build()
+        hs = [e for e in result.elements if isinstance(e, HideShow)]
+        assert len(hs) == 1
+        assert hs[0].action == "restore"
+        assert hs[0].target == "methods"
+
+    def test_note_with_member(self):
+        d = class_diagram()
+        el = d.elements
+        cls = el.class_("User", members=(
+            el.field("id", "int"),
+            el.field("name", "str"),
+        ))
+        d.add(cls)
+        d.note("important", target=cls, member="id")
+        result = d.build()
+        notes = [e for e in result.elements if isinstance(e, ClassNote)]
+        assert len(notes) == 1
+        assert notes[0].member == "id"
+        assert notes[0].target == cls._ref
+        output = render(d)
+        assert "::id" in output
+
     def test_namespace_separator(self):
         d = class_diagram(namespace_separator="none")
         el = d.elements

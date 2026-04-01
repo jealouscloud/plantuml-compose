@@ -205,6 +205,37 @@ class TestComponentComposer:
         assert rels[0].source == "api"
         assert rels[0].target == "db"
 
+    def test_component_description(self):
+        d = component_diagram()
+        el = d.elements
+        d.add(el.component("API", description="REST API"))
+        result = d.build()
+        comp = result.elements[0]
+        assert isinstance(comp, Component)
+        assert comp.description == "REST API"
+        output = render(d)
+        assert "REST API" in output
+
+    def test_container_description(self):
+        d = component_diagram()
+        el = d.elements
+        d.add(el.package("Pkg", description="My Package"))
+        result = d.build()
+        pkg = result.elements[0]
+        assert isinstance(pkg, Container)
+        assert pkg.description == "My Package"
+        output = render(d)
+        assert "My Package" in output
+
+    def test_hide_unlinked(self):
+        d = component_diagram(hide_unlinked=True)
+        el = d.elements
+        d.add(el.component("A"))
+        result = d.build()
+        assert result.hide_unlinked is True
+        output = render(d)
+        assert "hide @unlinked" in output
+
 
 class TestComponentPlantUMLValidation:
 

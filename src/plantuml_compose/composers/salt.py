@@ -19,6 +19,7 @@ Example:
 
 from __future__ import annotations
 
+from plantuml_compose.primitives.common import Footer, Header, Legend
 from plantuml_compose.primitives.salt import (
     Button,
     Checkbox,
@@ -66,8 +67,8 @@ class SaltWidgetNamespace:
     def text_field(self, value: str = "", *, width: int = 10) -> TextField:
         return TextField(value=value, width=width)
 
-    def dropdown(self, *items: str) -> Dropdown:
-        return Dropdown(items=items)
+    def dropdown(self, *items: str, open: bool = False) -> Dropdown:
+        return Dropdown(items=items, open=open)
 
     def separator(self, style: SeparatorStyle = "..") -> Separator:
         return Separator(style=style)
@@ -89,8 +90,9 @@ class SaltWidgetNamespace:
         self,
         *tabs: str,
         content: tuple[SaltWidget, ...] = (),
+        vertical: bool = False,
     ) -> TabBar:
-        return TabBar(tabs=tabs, active_content=content)
+        return TabBar(tabs=tabs, active_content=content, vertical=vertical)
 
     def group_box(self, title: str, *children: SaltWidget) -> GroupBox:
         return GroupBox(title=title, content=children)
@@ -114,8 +116,15 @@ class SaltComposer(BaseComposer):
         *,
         title: str | None = None,
         mainframe: str | None = None,
+        caption: str | None = None,
+        header: str | Header | None = None,
+        footer: str | Footer | None = None,
+        legend: str | Legend | None = None,
     ) -> None:
-        super().__init__(title=title, mainframe=mainframe)
+        super().__init__(
+            title=title, mainframe=mainframe, caption=caption,
+            header=header, footer=footer, legend=legend,
+        )
         self._widgets_ns = SaltWidgetNamespace()
 
     @property
@@ -131,6 +140,10 @@ class SaltComposer(BaseComposer):
             content=content,
             title=self._title,
             mainframe=self._mainframe,
+            caption=self._caption,
+            header=self._header,
+            footer=self._footer,
+            legend=self._legend,
         )
 
 
@@ -138,6 +151,10 @@ def salt_diagram(
     *,
     title: str | None = None,
     mainframe: str | None = None,
+    caption: str | None = None,
+    header: str | Header | None = None,
+    footer: str | Footer | None = None,
+    legend: str | Legend | None = None,
 ) -> SaltComposer:
     """Create a salt wireframe diagram composer.
 
@@ -147,4 +164,7 @@ def salt_diagram(
         d.add(w.text_field("username"), w.button("Login"))
         print(render(d))
     """
-    return SaltComposer(title=title, mainframe=mainframe)
+    return SaltComposer(
+        title=title, mainframe=mainframe, caption=caption,
+        header=header, footer=footer, legend=legend,
+    )
