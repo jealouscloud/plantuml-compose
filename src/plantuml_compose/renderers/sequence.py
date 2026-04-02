@@ -462,4 +462,5 @@ def _render_sequence_diagram_style(style: SequenceDiagramStyle) -> list[str]:
         ],
         arrow_style=style.arrow,
         title_style=style.title,
+        stereotypes=style.stereotypes,
     )

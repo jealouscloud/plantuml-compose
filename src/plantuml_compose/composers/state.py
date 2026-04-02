@@ -406,6 +406,7 @@ class StateComposer(BaseComposer):
         theme: ThemeLike = None,
         layout: LayoutDirection | None = None,
         hide_empty_description: bool = False,
+        diagram_style: StateDiagramStyleLike | None = None,
     ) -> None:
         super().__init__(
             title=title, mainframe=mainframe, caption=caption,
@@ -414,6 +415,11 @@ class StateComposer(BaseComposer):
         self._theme = theme
         self._layout = layout
         self._hide_empty_description = hide_empty_description
+        self._diagram_style = (
+            coerce_state_diagram_style(diagram_style)
+            if diagram_style
+            else None
+        )
         self._elements_ns = StateElementNamespace()
         self._transitions_ns = StateTransitionNamespace()
 
@@ -472,6 +478,7 @@ class StateComposer(BaseComposer):
             theme=self._theme,
             layout=self._layout,
             hide_empty_description=self._hide_empty_description,
+            diagram_style=self._diagram_style,
         )
 
 
@@ -487,6 +494,7 @@ def state_diagram(
     theme: ThemeLike = None,
     layout: LayoutDirection | None = None,
     hide_empty_description: bool = False,
+    diagram_style: StateDiagramStyleLike | None = None,
 ) -> StateComposer:
     """Create a state diagram composer.
 
@@ -506,4 +514,5 @@ def state_diagram(
         header=header, footer=footer, legend=legend, scale=scale,
         theme=theme, layout=layout,
         hide_empty_description=hide_empty_description,
+        diagram_style=diagram_style,
     )

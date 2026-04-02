@@ -835,6 +835,9 @@ class ElementStyle:
     horizontal_alignment: HorizontalAlignment | None = None
     max_width: int | None = None
     shadowing: bool | None = None
+    diagonal_corner: int | None = None
+    word_wrap: int | None = None
+    hyperlink_color: ColorLike | None = None
 
 
 @dataclass(frozen=True)
@@ -852,6 +855,9 @@ class DiagramArrowStyle:
     line_color: ColorLike | None = None
     line_thickness: int | None = None
     line_pattern: LinePattern | None = None
+    font_color: ColorLike | None = None
+    font_name: str | None = None
+    font_size: int | None = None
 
 
 @dataclass(frozen=True)
@@ -897,6 +903,14 @@ class StateDiagramStyle:
     arrow: DiagramArrowStyle | None = None
     note: ElementStyle | None = None
     title: ElementStyle | None = None
+
+    # Selector-based styles
+    stereotypes: dict[str, ElementStyle] | None = None
+    """Style elements by stereotype name.
+
+    Keys are stereotype names (without << >>).
+    Values are ElementStyle objects applied to elements with that stereotype.
+    """
 
 
 class LineStyleDict(TypedDict, total=False):
@@ -1054,6 +1068,9 @@ class ElementStyleDict(TypedDict, total=False):
     horizontal_alignment: HorizontalAlignment
     max_width: int
     shadowing: bool
+    diagonal_corner: int
+    word_wrap: int
+    hyperlink_color: ColorLike
 
 
 # Type alias for element style arguments
@@ -1063,6 +1080,7 @@ _ELEMENT_STYLE_KEYS: frozenset[str] = frozenset({
     "background", "line_color", "font_color", "font_name", "font_size",
     "font_style", "round_corner", "line_thickness", "line_style",
     "padding", "margin", "horizontal_alignment", "max_width", "shadowing",
+    "diagonal_corner", "word_wrap", "hyperlink_color",
 })
 
 
@@ -1092,7 +1110,30 @@ def coerce_element_style(value: ElementStyleLike) -> ElementStyle:
         horizontal_alignment=value.get("horizontal_alignment"),
         max_width=value.get("max_width"),
         shadowing=value.get("shadowing"),
+        diagonal_corner=value.get("diagonal_corner"),
+        word_wrap=value.get("word_wrap"),
+        hyperlink_color=coerce_color(value["hyperlink_color"])
+        if "hyperlink_color" in value
+        else None,
     )
+
+
+def _coerce_stereotypes(
+    value: dict[str, ElementStyleLike] | None,
+) -> dict[str, ElementStyle] | None:
+    """Coerce a stereotypes dict from mixed types to ElementStyle objects."""
+    if value is None:
+        return None
+    return {k: coerce_element_style(v) for k, v in value.items()}
+
+
+def _coerce_depths(
+    value: dict[int, ElementStyleLike] | None,
+) -> dict[int, ElementStyle] | None:
+    """Coerce a depths dict from mixed types to ElementStyle objects."""
+    if value is None:
+        return None
+    return {k: coerce_element_style(v) for k, v in value.items()}
 
 
 class DiagramArrowStyleDict(TypedDict, total=False):
@@ -1105,6 +1146,9 @@ class DiagramArrowStyleDict(TypedDict, total=False):
     line_color: ColorLike
     line_thickness: int
     line_pattern: LinePattern
+    font_color: ColorLike
+    font_name: str
+    font_size: int
 
 
 # Type alias for diagram arrow style arguments
@@ -1112,6 +1156,7 @@ DiagramArrowStyleLike: TypeAlias = DiagramArrowStyle | DiagramArrowStyleDict
 
 _DIAGRAM_ARROW_STYLE_KEYS: frozenset[str] = frozenset({
     "line_color", "line_thickness", "line_pattern",
+    "font_color", "font_name", "font_size",
 })
 
 
@@ -1128,6 +1173,11 @@ def coerce_diagram_arrow_style(
         else None,
         line_thickness=value.get("line_thickness"),
         line_pattern=value.get("line_pattern"),
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
+        font_name=value.get("font_name"),
+        font_size=value.get("font_size"),
     )
 
 
@@ -1154,6 +1204,7 @@ class StateDiagramStyleDict(TypedDict, total=False):
     arrow: DiagramArrowStyleLike
     note: ElementStyleLike
     title: ElementStyleLike
+    stereotypes: dict[str, ElementStyleLike]
 
 
 # Type alias for state diagram style arguments
@@ -1161,7 +1212,7 @@ StateDiagramStyleLike: TypeAlias = StateDiagramStyle | StateDiagramStyleDict
 
 _STATE_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
     "background", "font_name", "font_size", "font_color",
-    "state", "arrow", "note", "title",
+    "state", "arrow", "note", "title", "stereotypes",
 })
 
 
@@ -1189,6 +1240,7 @@ def coerce_state_diagram_style(
         title=coerce_element_style(value["title"])
         if "title" in value
         else None,
+        stereotypes=_coerce_stereotypes(value.get("stereotypes")),
     )
 
 
@@ -1251,6 +1303,14 @@ class ComponentDiagramStyle:
     cloud: ElementStyle | None = None
     database: ElementStyle | None = None
 
+    # Selector-based styles
+    stereotypes: dict[str, ElementStyle] | None = None
+    """Style elements by stereotype name.
+
+    Keys are stereotype names (without << >>).
+    Values are ElementStyle objects applied to elements with that stereotype.
+    """
+
 
 class ComponentDiagramStyleDict(TypedDict, total=False):
     """Dict form of ComponentDiagramStyle for convenience.
@@ -1283,6 +1343,7 @@ class ComponentDiagramStyleDict(TypedDict, total=False):
     frame: ElementStyleLike
     cloud: ElementStyleLike
     database: ElementStyleLike
+    stereotypes: dict[str, ElementStyleLike]
 
 
 # Type alias for component diagram style arguments
@@ -1294,6 +1355,7 @@ _COMPONENT_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
     "background", "font_name", "font_size", "font_color",
     "component", "interface", "arrow", "note", "title",
     "package", "node", "folder", "frame", "cloud", "database",
+    "stereotypes",
 })
 
 
@@ -1338,6 +1400,7 @@ def coerce_component_diagram_style(
         database=coerce_element_style(value["database"])
         if "database" in value
         else None,
+        stereotypes=_coerce_stereotypes(value.get("stereotypes")),
     )
 
 
@@ -1402,6 +1465,10 @@ class SequenceDiagramStyle:
     reference: ElementStyle | None = None
     title: ElementStyle | None = None
 
+    # Selector-based styles
+    stereotypes: dict[str, ElementStyle] | None = None
+    """Style elements by stereotype name."""
+
 
 class SequenceDiagramStyleDict(TypedDict, total=False):
     """Dict form of SequenceDiagramStyle for convenience.
@@ -1438,6 +1505,7 @@ class SequenceDiagramStyleDict(TypedDict, total=False):
     divider: ElementStyleLike
     reference: ElementStyleLike
     title: ElementStyleLike
+    stereotypes: dict[str, ElementStyleLike]
 
 
 # Type alias for sequence diagram style arguments
@@ -1448,6 +1516,7 @@ _SEQUENCE_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
     "participant", "actor", "boundary", "control", "entity",
     "database", "collections", "queue", "arrow", "lifeline",
     "note", "box", "group", "divider", "reference", "title",
+    "stereotypes",
 })
 
 
@@ -1501,6 +1570,7 @@ def coerce_sequence_diagram_style(
         if "reference" in value
         else None,
         title=coerce_element_style(value["title"]) if "title" in value else None,
+        stereotypes=_coerce_stereotypes(value.get("stereotypes")),
     )
 
 
@@ -1543,6 +1613,10 @@ class ActivityDiagramStyle:
     group: ElementStyle | None = None
     title: ElementStyle | None = None
 
+    # Selector-based styles
+    stereotypes: dict[str, ElementStyle] | None = None
+    """Style elements by stereotype name."""
+
 
 class ActivityDiagramStyleDict(TypedDict, total=False):
     """Dict form of ActivityDiagramStyle for convenience."""
@@ -1559,6 +1633,7 @@ class ActivityDiagramStyleDict(TypedDict, total=False):
     note: ElementStyleLike
     group: ElementStyleLike
     title: ElementStyleLike
+    stereotypes: dict[str, ElementStyleLike]
 
 
 # Type alias for activity diagram style arguments
@@ -1567,7 +1642,7 @@ ActivityDiagramStyleLike: TypeAlias = ActivityDiagramStyle | ActivityDiagramStyl
 _ACTIVITY_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
     "background", "font_name", "font_size", "font_color",
     "activity", "partition", "swimlane", "diamond",
-    "arrow", "note", "group", "title",
+    "arrow", "note", "group", "title", "stereotypes",
 })
 
 
@@ -1605,6 +1680,7 @@ def coerce_activity_diagram_style(
         note=coerce_element_style(value["note"]) if "note" in value else None,
         group=coerce_element_style(value["group"]) if "group" in value else None,
         title=coerce_element_style(value["title"]) if "title" in value else None,
+        stereotypes=_coerce_stereotypes(value.get("stereotypes")),
     )
 
 
@@ -1648,6 +1724,10 @@ class ClassDiagramStyle:
     note: ElementStyle | None = None
     title: ElementStyle | None = None
 
+    # Selector-based styles
+    stereotypes: dict[str, ElementStyle] | None = None
+    """Style elements by stereotype name."""
+
 
 class ClassDiagramStyleDict(TypedDict, total=False):
     """Dict form of ClassDiagramStyle for convenience."""
@@ -1665,6 +1745,7 @@ class ClassDiagramStyleDict(TypedDict, total=False):
     arrow: DiagramArrowStyleLike
     note: ElementStyleLike
     title: ElementStyleLike
+    stereotypes: dict[str, ElementStyleLike]
 
 
 # Type alias for class diagram style arguments
@@ -1673,7 +1754,7 @@ ClassDiagramStyleLike: TypeAlias = ClassDiagramStyle | ClassDiagramStyleDict
 _CLASS_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
     "background", "font_name", "font_size", "font_color",
     "class_", "interface", "abstract", "enum", "annotation",
-    "package", "arrow", "note", "title",
+    "package", "arrow", "note", "title", "stereotypes",
 })
 
 
@@ -1710,6 +1791,7 @@ def coerce_class_diagram_style(
         else None,
         note=coerce_element_style(value["note"]) if "note" in value else None,
         title=coerce_element_style(value["title"]) if "title" in value else None,
+        stereotypes=_coerce_stereotypes(value.get("stereotypes")),
     )
 
 
@@ -1740,6 +1822,10 @@ class ObjectDiagramStyle:
     map: ElementStyle | None = None
     title: ElementStyle | None = None
 
+    # Selector-based styles
+    stereotypes: dict[str, ElementStyle] | None = None
+    """Style elements by stereotype name."""
+
 
 class ObjectDiagramStyleDict(TypedDict, total=False):
     """Dict form of ObjectDiagramStyle for convenience."""
@@ -1751,13 +1837,14 @@ class ObjectDiagramStyleDict(TypedDict, total=False):
     object: ElementStyleLike
     map: ElementStyleLike
     title: ElementStyleLike
+    stereotypes: dict[str, ElementStyleLike]
 
 
 ObjectDiagramStyleLike: TypeAlias = ObjectDiagramStyle | ObjectDiagramStyleDict
 
 _OBJECT_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
     "background", "font_name", "font_size", "font_color",
-    "object", "map", "title",
+    "object", "map", "title", "stereotypes",
 })
 
 
@@ -1778,6 +1865,7 @@ def coerce_object_diagram_style(
         object=coerce_element_style(value["object"]) if "object" in value else None,
         map=coerce_element_style(value["map"]) if "map" in value else None,
         title=coerce_element_style(value["title"]) if "title" in value else None,
+        stereotypes=_coerce_stereotypes(value.get("stereotypes")),
     )
 
 
@@ -1932,6 +2020,14 @@ class MindMapDiagramStyle:
     leaf_node: ElementStyle | None = None
     arrow: DiagramArrowStyle | None = None
 
+    # Selector-based styles
+    depths: dict[int, ElementStyle] | None = None
+    """Style nodes by tree depth level.
+
+    Keys are depth integers (0 = root, 1 = first children, etc.).
+    Values are ElementStyle objects applied at that depth.
+    """
+
 
 class MindMapDiagramStyleDict(TypedDict, total=False):
     """Dict form of MindMapDiagramStyle for convenience."""
@@ -1944,13 +2040,14 @@ class MindMapDiagramStyleDict(TypedDict, total=False):
     root_node: ElementStyleLike
     leaf_node: ElementStyleLike
     arrow: DiagramArrowStyleLike
+    depths: dict[int, ElementStyleLike]
 
 
 MindMapDiagramStyleLike: TypeAlias = MindMapDiagramStyle | MindMapDiagramStyleDict
 
 _MINDMAP_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
     "background", "font_name", "font_size", "font_color",
-    "node", "root_node", "leaf_node", "arrow",
+    "node", "root_node", "leaf_node", "arrow", "depths",
 })
 
 
@@ -1978,6 +2075,7 @@ def coerce_mindmap_diagram_style(
         if "leaf_node" in value
         else None,
         arrow=coerce_diagram_arrow_style(value["arrow"]) if "arrow" in value else None,
+        depths=_coerce_depths(value.get("depths")),
     )
 
 
@@ -2024,6 +2122,10 @@ class NetworkDiagramStyle:
     group: ElementStyle | None = None
     arrow: DiagramArrowStyle | None = None
 
+    # Selector-based styles
+    stereotypes: dict[str, ElementStyle] | None = None
+    """Style elements by stereotype name."""
+
 
 class NetworkDiagramStyleDict(TypedDict, total=False):
     """Dict form of NetworkDiagramStyle for convenience."""
@@ -2036,13 +2138,14 @@ class NetworkDiagramStyleDict(TypedDict, total=False):
     server: ElementStyleLike
     group: ElementStyleLike
     arrow: DiagramArrowStyleLike
+    stereotypes: dict[str, ElementStyleLike]
 
 
 NetworkDiagramStyleLike: TypeAlias = NetworkDiagramStyle | NetworkDiagramStyleDict
 
 _NETWORK_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
     "background", "font_name", "font_size", "font_color",
-    "network", "server", "group", "arrow",
+    "network", "server", "group", "arrow", "stereotypes",
 })
 
 
@@ -2068,6 +2171,7 @@ def coerce_network_diagram_style(
         server=coerce_element_style(value["server"]) if "server" in value else None,
         group=coerce_element_style(value["group"]) if "group" in value else None,
         arrow=coerce_diagram_arrow_style(value["arrow"]) if "arrow" in value else None,
+        stereotypes=_coerce_stereotypes(value.get("stereotypes")),
     )
 
 
@@ -2122,6 +2226,10 @@ class TimingDiagramStyle:
     arrow: DiagramArrowStyle | None = None
     title: ElementStyle | None = None
 
+    # Selector-based styles
+    stereotypes: dict[str, ElementStyle] | None = None
+    """Style elements by stereotype name."""
+
 
 class TimingDiagramStyleDict(TypedDict, total=False):
     """Dict form of TimingDiagramStyle for convenience."""
@@ -2139,6 +2247,7 @@ class TimingDiagramStyleDict(TypedDict, total=False):
     note: ElementStyleLike
     arrow: DiagramArrowStyleLike
     title: ElementStyleLike
+    stereotypes: dict[str, ElementStyleLike]
 
 
 TimingDiagramStyleLike: TypeAlias = TimingDiagramStyle | TimingDiagramStyleDict
@@ -2146,7 +2255,7 @@ TimingDiagramStyleLike: TypeAlias = TimingDiagramStyle | TimingDiagramStyleDict
 _TIMING_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
     "background", "font_name", "font_size", "font_color",
     "robust", "concise", "clock", "binary", "analog",
-    "highlight", "note", "arrow", "title",
+    "highlight", "note", "arrow", "title", "stereotypes",
 })
 
 
@@ -2177,4 +2286,5 @@ def coerce_timing_diagram_style(
         note=coerce_element_style(value["note"]) if "note" in value else None,
         arrow=coerce_diagram_arrow_style(value["arrow"]) if "arrow" in value else None,
         title=coerce_element_style(value["title"]) if "title" in value else None,
+        stereotypes=_coerce_stereotypes(value.get("stereotypes")),
     )

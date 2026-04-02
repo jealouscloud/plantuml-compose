@@ -462,4 +462,5 @@ def _render_activity_diagram_style(style: ActivityDiagramStyle) -> list[str]:
         ],
         arrow_style=style.arrow,
         title_style=style.title,
+        stereotypes=style.stereotypes,
     )

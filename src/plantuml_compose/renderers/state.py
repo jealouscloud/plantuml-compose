@@ -194,6 +194,7 @@ def _render_state_diagram_style(style: StateDiagramStyle) -> list[str]:
         ],
         arrow_style=style.arrow,
         title_style=style.title,
+        stereotypes=style.stereotypes,
     )
 
 

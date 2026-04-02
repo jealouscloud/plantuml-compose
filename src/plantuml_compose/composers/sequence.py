@@ -41,8 +41,10 @@ from ..primitives.common import (
     LineStyleLike,
     Newpage,
     Scale,
+    SequenceDiagramStyleLike,
     Style,
     ThemeLike,
+    coerce_sequence_diagram_style,
 )
 from ..primitives.sequence import (
     Activation,
@@ -493,6 +495,7 @@ class SequenceComposer(BaseComposer):
         actor_style: ActorStyle | None = None,
         autonumber: bool | Autonumber | None = None,
         hide_unlinked: bool = False,
+        diagram_style: SequenceDiagramStyleLike | None = None,
     ) -> None:
         super().__init__(
             title=title, mainframe=mainframe, caption=caption,
@@ -501,6 +504,11 @@ class SequenceComposer(BaseComposer):
         self._theme = theme
         self._actor_style = actor_style
         self._hide_unlinked = hide_unlinked
+        self._diagram_style = (
+            coerce_sequence_diagram_style(diagram_style)
+            if diagram_style
+            else None
+        )
         if autonumber is True:
             self._autonumber: Autonumber | None = Autonumber()
         elif isinstance(autonumber, Autonumber):
@@ -770,6 +778,7 @@ class SequenceComposer(BaseComposer):
             actor_style=self._actor_style,
             autonumber=self._autonumber,
             hide_unlinked=self._hide_unlinked,
+            diagram_style=self._diagram_style,
         )
 
 
@@ -786,6 +795,7 @@ def sequence_diagram(
     actor_style: ActorStyle | None = None,
     autonumber: bool | Autonumber | None = None,
     hide_unlinked: bool = False,
+    diagram_style: SequenceDiagramStyleLike | None = None,
 ) -> SequenceComposer:
     """Create a sequence diagram composer.
 
@@ -808,5 +818,5 @@ def sequence_diagram(
         title=title, mainframe=mainframe, caption=caption,
         header=header, footer=footer, legend=legend, scale=scale,
         theme=theme, actor_style=actor_style, autonumber=autonumber,
-        hide_unlinked=hide_unlinked,
+        hide_unlinked=hide_unlinked, diagram_style=diagram_style,
     )

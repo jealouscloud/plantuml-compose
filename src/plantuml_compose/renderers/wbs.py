@@ -105,4 +105,5 @@ def _render_wbs_diagram_style(style: WBSDiagramStyle) -> list[str]:
         ],
         arrow_style=style.arrow,
         title_style=None,
+        depths=style.depths,
     )

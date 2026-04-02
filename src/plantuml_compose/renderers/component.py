@@ -148,6 +148,7 @@ def _render_component_diagram_style(style: ComponentDiagramStyle) -> list[str]:
         ],
         arrow_style=style.arrow,
         title_style=style.title,
+        stereotypes=style.stereotypes,
     )
 
 

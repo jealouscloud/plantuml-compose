@@ -96,6 +96,7 @@ def _render_network_diagram_style(style: NetworkDiagramStyle) -> str:
         ],
         arrow_style=style.arrow,
         title_style=None,
+        stereotypes=style.stereotypes,
     )
     return "\n".join(lines) if lines else ""
 

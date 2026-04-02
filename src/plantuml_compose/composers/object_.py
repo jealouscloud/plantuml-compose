@@ -38,12 +38,14 @@ from ..primitives.common import (
     LineStyle,
     LineStyleLike,
     LineType,
+    ObjectDiagramStyleLike,
     Scale,
     Stereotype,
     Style,
     StyleLike,
     ThemeLike,
     coerce_line_style,
+    coerce_object_diagram_style,
     coerce_style,
     sanitize_ref,
     validate_style_background_only,
@@ -418,6 +420,7 @@ class ObjectComposer(BaseComposer):
         scale: float | Scale | None = None,
         theme: ThemeLike = None,
         layout: LayoutDirection | None = None,
+        diagram_style: ObjectDiagramStyleLike | None = None,
     ) -> None:
         super().__init__(
             title=title, mainframe=mainframe, caption=caption,
@@ -425,6 +428,11 @@ class ObjectComposer(BaseComposer):
         )
         self._theme = theme
         self._layout = layout
+        self._diagram_style = (
+            coerce_object_diagram_style(diagram_style)
+            if diagram_style
+            else None
+        )
         self._elements_ns = ObjectElementNamespace()
         self._relationships_ns = ObjectRelationshipNamespace()
 
@@ -507,6 +515,7 @@ class ObjectComposer(BaseComposer):
             scale=self._scale,
             theme=self._theme,
             layout=self._layout,
+            diagram_style=self._diagram_style,
         )
 
 
@@ -521,6 +530,7 @@ def object_diagram(
     scale: float | Scale | None = None,
     theme: ThemeLike = None,
     layout: LayoutDirection | None = None,
+    diagram_style: ObjectDiagramStyleLike | None = None,
 ) -> ObjectComposer:
     """Create an object diagram composer.
 
@@ -537,5 +547,5 @@ def object_diagram(
     return ObjectComposer(
         title=title, mainframe=mainframe, caption=caption,
         header=header, footer=footer, legend=legend, scale=scale,
-        theme=theme, layout=layout,
+        theme=theme, layout=layout, diagram_style=diagram_style,
     )

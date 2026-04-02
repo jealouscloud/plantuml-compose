@@ -659,6 +659,12 @@ def render_element_style_block(
         props.append(f"{inner_prefix}MaximumWidth {style.max_width}")
     if style.shadowing is not None:
         props.append(f"{inner_prefix}Shadowing {str(style.shadowing).lower()}")
+    if style.diagonal_corner is not None:
+        props.append(f"{inner_prefix}DiagonalCorner {style.diagonal_corner}")
+    if style.word_wrap is not None:
+        props.append(f"{inner_prefix}WordWrap {style.word_wrap}")
+    if style.hyperlink_color:
+        props.append(f"{inner_prefix}HyperLinkColor {render_color(style.hyperlink_color)}")
 
     if not props:
         return []
@@ -685,6 +691,12 @@ def render_arrow_style_block(style: DiagramArrowStyle, indent: int = 2) -> list[
         props.append(f"{inner_prefix}LineThickness {style.line_thickness}")
     if style.line_pattern:
         props.append(f"{inner_prefix}LineStyle {style.line_pattern}")
+    if style.font_color:
+        props.append(f"{inner_prefix}FontColor {render_color(style.font_color)}")
+    if style.font_name:
+        props.append(f"{inner_prefix}FontName {style.font_name}")
+    if style.font_size:
+        props.append(f"{inner_prefix}FontSize {style.font_size}")
 
     if not props:
         return []
@@ -702,6 +714,8 @@ def render_diagram_style(
     element_styles: list[tuple[str, ElementStyle | None]],
     arrow_style: DiagramArrowStyle | None,
     title_style: ElementStyle | None,
+    depths: dict[int, ElementStyle] | None = None,
+    stereotypes: dict[str, ElementStyle] | None = None,
 ) -> list[str]:
     """Render a complete <style> block for any diagram type.
 
@@ -714,6 +728,8 @@ def render_diagram_style(
         element_styles: List of (selector, ElementStyle) tuples for diagram elements
         arrow_style: Arrow/line styling
         title_style: Title element styling (rendered in document block)
+        depths: Optional depth-level styles (for mindmap/WBS)
+        stereotypes: Optional stereotype styles (for most diagram types)
 
     Returns:
         Lines for the complete <style>...</style> block, empty list if no styles set
@@ -739,6 +755,22 @@ def render_diagram_style(
     # Arrow styles
     if arrow_style:
         diagram_props.extend(render_arrow_style_block(arrow_style))
+
+    # Depth-level styles (for mindmap/WBS)
+    if depths:
+        for depth_level in sorted(depths):
+            depth_style = depths[depth_level]
+            diagram_props.extend(
+                render_element_style_block(f":depth({depth_level})", depth_style)
+            )
+
+    # Stereotype styles
+    if stereotypes:
+        for name in sorted(stereotypes):
+            stereo_style = stereotypes[name]
+            diagram_props.extend(
+                render_element_style_block(f".{name}", stereo_style)
+            )
 
     # Collect document block content (for title)
     document_props: list[str] = []

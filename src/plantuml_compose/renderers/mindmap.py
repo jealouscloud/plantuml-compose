@@ -92,4 +92,5 @@ def _render_mindmap_diagram_style(style: MindMapDiagramStyle) -> list[str]:
         ],
         arrow_style=style.arrow,
         title_style=None,
+        depths=style.depths,
     )

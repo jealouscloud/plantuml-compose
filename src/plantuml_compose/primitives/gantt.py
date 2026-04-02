@@ -17,6 +17,7 @@ from .common import (
     ElementStyleLike,
     Gradient,
     _validate_style_dict_keys,
+    _coerce_stereotypes,
     coerce_color,
     coerce_diagram_arrow_style,
     coerce_element_style,
@@ -271,6 +272,10 @@ class GanttDiagramStyle:
     undone: ElementStyle | None = None  # Incomplete portion styling
     today: ElementStyle | None = None  # Today marker styling
 
+    # Selector-based styles
+    stereotypes: dict[str, ElementStyle] | None = None
+    """Style elements by stereotype name."""
+
 
 class GanttDiagramStyleDict(TypedDict, total=False):
     """Dict form of GanttDiagramStyle for convenience."""
@@ -286,6 +291,7 @@ class GanttDiagramStyleDict(TypedDict, total=False):
     arrow: DiagramArrowStyleLike
     undone: ElementStyleLike
     today: ElementStyleLike
+    stereotypes: dict[str, ElementStyleLike]
 
 
 GanttDiagramStyleLike: TypeAlias = GanttDiagramStyle | GanttDiagramStyleDict
@@ -293,6 +299,7 @@ GanttDiagramStyleLike: TypeAlias = GanttDiagramStyle | GanttDiagramStyleDict
 _GANTT_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
     "background", "font_name", "font_size", "font_color",
     "task", "milestone", "separator", "note", "arrow", "undone", "today",
+    "stereotypes",
 })
 
 
@@ -323,6 +330,7 @@ def coerce_gantt_diagram_style(
         else None,
         undone=coerce_element_style(value["undone"]) if "undone" in value else None,
         today=coerce_element_style(value["today"]) if "today" in value else None,
+        stereotypes=_coerce_stereotypes(value.get("stereotypes")),
     )
 
 

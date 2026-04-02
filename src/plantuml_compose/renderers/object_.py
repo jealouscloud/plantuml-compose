@@ -367,4 +367,5 @@ def _render_object_diagram_style(style: ObjectDiagramStyle) -> list[str]:
         ],
         arrow_style=None,  # PlantUML ignores arrow CSS for object diagrams
         title_style=style.title,
+        stereotypes=style.stereotypes,
     )

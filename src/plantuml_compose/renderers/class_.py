@@ -584,4 +584,5 @@ def _render_class_diagram_style(style: ClassDiagramStyle) -> list[str]:
         ],
         arrow_style=style.arrow,
         title_style=style.title,
+        stereotypes=style.stereotypes,
     )

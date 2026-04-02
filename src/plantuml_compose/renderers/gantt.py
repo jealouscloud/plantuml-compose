@@ -371,4 +371,5 @@ def _render_gantt_diagram_style(style: GanttDiagramStyle) -> list[str]:
         element_styles=element_styles,  # type: ignore[arg-type]
         arrow_style=style.arrow,
         title_style=None,
+        stereotypes=style.stereotypes,
     )
