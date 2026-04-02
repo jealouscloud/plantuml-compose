@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from ..primitives.common import MindMapDiagramStyle
+from ..primitives.styles import MindMapDiagramStyle
 from ..primitives.mindmap import MindMapDiagram, MindMapNode
 from .common import render_color_hash, render_diagram_style, render_mainframe
 

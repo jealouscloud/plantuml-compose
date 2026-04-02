@@ -14,7 +14,7 @@ from ..primitives.network import (
     PeerLink,
     StandaloneNode,
 )
-from ..primitives.common import NetworkDiagramStyle
+from ..primitives.styles import NetworkDiagramStyle
 from .common import (
     render_caption,
     render_color,

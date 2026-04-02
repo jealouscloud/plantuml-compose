@@ -22,12 +22,12 @@ from ..primitives.class_ import (
     _VISIBILITY_TO_SYMBOL,
 )
 from ..primitives.common import (
-    ClassDiagramStyle,
     Note,
     Style,
     coerce_line_style,
     coerce_style,
 )
+from ..primitives.styles import ClassDiagramStyle
 from .common import (
     adjust_arrow_length,
     escape_quotes,

@@ -35,8 +35,6 @@ from ..primitives.gantt import (
     GanttColoredDateRange,
     GanttDependency,
     GanttDiagram,
-    GanttDiagramStyle,
-    GanttDiagramStyleLike,
     GanttElement,
     GanttMilestone,
     GanttOpenDate,
@@ -45,6 +43,10 @@ from ..primitives.gantt import (
     GanttSeparator,
     GanttTask,
     GanttVerticalSeparator,
+)
+from ..primitives.styles import (
+    GanttDiagramStyle,
+    GanttDiagramStyleLike,
     coerce_gantt_diagram_style,
 )
 from .base import BaseComposer, EntityRef

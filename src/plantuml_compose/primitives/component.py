@@ -24,7 +24,6 @@ from typing import TYPE_CHECKING, Literal, Union
 
 from .common import (
     ColorLike,
-    ComponentDiagramStyle,
     Direction,
     EmbeddableContent,
     Footer,
@@ -41,6 +40,7 @@ from .common import (
     Style,
     ThemeLike,
 )
+from .styles import ComponentDiagramStyle
 
 if TYPE_CHECKING:
     pass

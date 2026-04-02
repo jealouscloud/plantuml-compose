@@ -8,7 +8,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Literal
 
-from .common import ColorLike, MindMapDiagramStyle
+from .common import ColorLike
+from .styles import MindMapDiagramStyle
 
 
 @dataclass(frozen=True)

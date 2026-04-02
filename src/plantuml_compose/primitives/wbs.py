@@ -8,7 +8,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Literal
 
-from .common import ColorLike, MindMapDiagramStyle, MindMapDiagramStyleLike
+from .common import ColorLike
+from .styles import MindMapDiagramStyle, MindMapDiagramStyleLike
 
 # WBS reuses MindMap styling since they have the same CSS selectors
 WBSDiagramStyle = MindMapDiagramStyle

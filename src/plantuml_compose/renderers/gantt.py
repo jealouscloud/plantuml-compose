@@ -10,13 +10,13 @@ from datetime import date
 from ..primitives.gantt import (
     GanttDependency,
     GanttDiagram,
-    GanttDiagramStyle,
     GanttMilestone,
     GanttResourceOff,
     GanttSeparator,
     GanttTask,
     GanttVerticalSeparator,
 )
+from ..primitives.styles import GanttDiagramStyle
 from .common import (
     render_color,
     render_diagram_style,

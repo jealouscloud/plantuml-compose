@@ -5,10 +5,8 @@ Pure functions that transform object diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
-from ..primitives.common import (
-    sanitize_ref,
-    ObjectDiagramStyle,
-)
+from ..primitives.common import sanitize_ref
+from ..primitives.styles import ObjectDiagramStyle
 from ..primitives.object_ import (
     Map,
     Object,

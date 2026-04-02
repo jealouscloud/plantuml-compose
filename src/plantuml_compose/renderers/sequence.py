@@ -8,8 +8,8 @@ from __future__ import annotations
 from ..primitives.common import (
     coerce_line_style,
     Newpage,
-    SequenceDiagramStyle,
 )
+from ..primitives.styles import SequenceDiagramStyle
 from ..primitives.sequence import (
     Activation,
     Autonumber,

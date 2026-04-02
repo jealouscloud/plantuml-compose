@@ -24,7 +24,6 @@ from dataclasses import dataclass, field
 from typing import Literal, TypeAlias
 
 from .common import (
-    ActivityDiagramStyle,
     ColorLike,
     EmbeddableContent,
     Footer,
@@ -39,6 +38,7 @@ from .common import (
     Style,
     ThemeLike,
 )
+from .styles import ActivityDiagramStyle
 
 
 # SDL shape types for actions - controls the visual shape

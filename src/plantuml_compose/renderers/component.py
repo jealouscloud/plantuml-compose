@@ -5,10 +5,8 @@ Pure functions that transform component diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
-from ..primitives.common import (
-    ComponentDiagramStyle,
-    sanitize_ref,
-)
+from ..primitives.common import sanitize_ref
+from ..primitives.styles import ComponentDiagramStyle
 from ..primitives.component import (
     Component,
     ComponentDiagram,

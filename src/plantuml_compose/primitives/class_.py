@@ -24,7 +24,6 @@ from dataclasses import dataclass, field
 from typing import Literal, TypeAlias
 
 from .common import (
-    ClassDiagramStyle,
     ColorLike,
     Direction,
     EmbeddableContent,
@@ -43,6 +42,7 @@ from .common import (
     StyleLike,
     ThemeLike,
 )
+from .styles import ClassDiagramStyle
 
 
 # Class element types - determines the visual shape and semantics

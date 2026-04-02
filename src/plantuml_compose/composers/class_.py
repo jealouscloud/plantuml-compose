@@ -27,7 +27,6 @@ from dataclasses import dataclass
 from typing import Literal
 
 from ..primitives.common import (
-    ClassDiagramStyleLike,
     ColorLike,
     Direction,
     Footer,
@@ -44,9 +43,12 @@ from ..primitives.common import (
     Stereotype,
     StyleLike,
     ThemeLike,
-    coerce_class_diagram_style,
     coerce_line_style,
     sanitize_ref,
+)
+from ..primitives.styles import (
+    ClassDiagramStyleLike,
+    coerce_class_diagram_style,
 )
 from ..primitives.class_ import (
     AssociationClass,

@@ -35,13 +35,13 @@ from .common import (
     Legend,
     LineType,
     LineStyle,
-    ObjectDiagramStyle,
     sanitize_ref,
     Scale,
     Stereotype,
     Style,
     ThemeLike,
 )
+from .styles import ObjectDiagramStyle
 
 if TYPE_CHECKING:
     pass

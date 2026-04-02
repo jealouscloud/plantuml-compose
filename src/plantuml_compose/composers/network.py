@@ -30,9 +30,11 @@ from ..primitives.common import (
     Footer,
     Header,
     Legend,
-    NetworkDiagramStyleLike,
     Scale,
     ThemeLike,
+)
+from ..primitives.styles import (
+    NetworkDiagramStyleLike,
     coerce_network_diagram_style,
 )
 from ..primitives.network import (

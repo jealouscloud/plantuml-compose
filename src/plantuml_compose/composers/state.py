@@ -39,14 +39,16 @@ from ..primitives.common import (
     Note,
     NotePosition,
     Scale,
-    StateDiagramStyle,
-    StateDiagramStyleLike,
     StyleLike,
     ThemeLike,
     coerce_line_style,
-    coerce_state_diagram_style,
     coerce_style,
     sanitize_ref,
+)
+from ..primitives.styles import (
+    StateDiagramStyle,
+    StateDiagramStyleLike,
+    coerce_state_diagram_style,
 )
 from ..primitives.state import (
     CompositeState,

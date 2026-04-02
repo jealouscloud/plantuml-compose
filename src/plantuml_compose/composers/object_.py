@@ -38,17 +38,19 @@ from ..primitives.common import (
     LineStyle,
     LineStyleLike,
     LineType,
-    ObjectDiagramStyleLike,
     Scale,
     Stereotype,
     Style,
     StyleLike,
     ThemeLike,
     coerce_line_style,
-    coerce_object_diagram_style,
     coerce_style,
     sanitize_ref,
     validate_style_background_only,
+)
+from ..primitives.styles import (
+    ObjectDiagramStyleLike,
+    coerce_object_diagram_style,
 )
 from ..primitives.object_ import (
     Field,

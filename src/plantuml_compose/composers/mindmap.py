@@ -25,8 +25,10 @@ from typing import Literal
 
 from ..primitives.common import (
     ColorLike,
-    MindMapDiagramStyleLike,
     coerce_color,
+)
+from ..primitives.styles import (
+    MindMapDiagramStyleLike,
     coerce_mindmap_diagram_style,
 )
 from ..primitives.mindmap import MindMapDiagram, MindMapNode

@@ -37,10 +37,10 @@ from .common import (
     Newpage,
     sanitize_ref,
     Scale,
-    SequenceDiagramStyle,
     Style,
     ThemeLike,
 )
+from .styles import SequenceDiagramStyle
 from .usecase import ActorStyle
 
 

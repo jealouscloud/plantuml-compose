@@ -28,7 +28,6 @@ from typing import Literal
 
 from ..primitives.common import (
     ColorLike,
-    ComponentDiagramStyleLike,
     Direction,
     Footer,
     Header,
@@ -44,10 +43,13 @@ from ..primitives.common import (
     Style,
     StyleLike,
     ThemeLike,
-    coerce_component_diagram_style,
     coerce_line_style,
     coerce_style,
     sanitize_ref,
+)
+from ..primitives.styles import (
+    ComponentDiagramStyleLike,
+    coerce_component_diagram_style,
 )
 from ..primitives.component import (
     Component,

@@ -7,10 +7,10 @@ from __future__ import annotations
 
 from ..primitives.common import (
     Note,
-    StateDiagramStyle,
     Style,
     sanitize_ref,
 )
+from ..primitives.styles import StateDiagramStyle
 from ..primitives.state import (
     CompositeState,
     ConcurrentState,

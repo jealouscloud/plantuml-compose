@@ -5,7 +5,7 @@ Pure functions that transform timing diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
-from ..primitives.common import TimingDiagramStyle
+from ..primitives.styles import TimingDiagramStyle
 from ..primitives.timing import (
     HiddenState,
     IntricatedState,

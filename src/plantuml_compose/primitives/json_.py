@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from .common import JsonDiagramStyle, YamlDiagramStyle
+from .styles import JsonDiagramStyle, YamlDiagramStyle
 
 
 @dataclass(frozen=True)

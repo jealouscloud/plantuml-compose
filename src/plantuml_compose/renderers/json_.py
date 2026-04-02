@@ -5,7 +5,7 @@ Pure functions that transform JSON/YAML diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
-from ..primitives.common import JsonDiagramStyle, YamlDiagramStyle
+from ..primitives.styles import JsonDiagramStyle, YamlDiagramStyle
 from ..primitives.json_ import JsonDiagram, YamlDiagram
 from .common import render_diagram_style, render_mainframe
 

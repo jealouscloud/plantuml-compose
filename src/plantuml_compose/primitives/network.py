@@ -23,10 +23,10 @@ from .common import (
     Footer,
     Header,
     Legend,
-    NetworkDiagramStyle,
     Scale,
     ThemeLike,
 )
+from .styles import NetworkDiagramStyle
 
 
 # Node shapes available in nwdiag

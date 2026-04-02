@@ -32,7 +32,7 @@ from ..primitives.common import (
     Legend,
     ThemeLike,
 )
-from ..primitives.common import (
+from ..primitives.styles import (
     TimingDiagramStyle,
     TimingDiagramStyleLike,
     coerce_timing_diagram_style,

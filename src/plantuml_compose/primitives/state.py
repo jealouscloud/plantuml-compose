@@ -41,10 +41,10 @@ from .common import (
     RegionSeparator,
     sanitize_ref,
     Scale,
-    StateDiagramStyle,
     StyleLike,
     ThemeLike,
 )
+from .styles import StateDiagramStyle
 
 
 class PseudoStateKind(Enum):

@@ -41,9 +41,11 @@ from ..primitives.common import (
     LineStyleLike,
     Newpage,
     Scale,
-    SequenceDiagramStyleLike,
     Style,
     ThemeLike,
+)
+from ..primitives.styles import (
+    SequenceDiagramStyleLike,
     coerce_sequence_diagram_style,
 )
 from ..primitives.sequence import (

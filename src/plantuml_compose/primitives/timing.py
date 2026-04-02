@@ -15,8 +15,8 @@ from .common import (
     Header,
     Legend,
     ThemeLike,
-    TimingDiagramStyle,
 )
+from .styles import TimingDiagramStyle
 
 
 # Participant types for timing diagrams

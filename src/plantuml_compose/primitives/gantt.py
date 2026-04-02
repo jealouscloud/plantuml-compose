@@ -7,22 +7,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
-from typing import Literal, TypeAlias, TypedDict
+from typing import Literal, TypeAlias
 
-from .common import (
-    ColorLike,
-    DiagramArrowStyle,
-    DiagramArrowStyleLike,
-    ElementStyle,
-    ElementStyleLike,
-    Gradient,
-    _validate_style_dict_keys,
-    _coerce_stereotypes,
-    coerce_color,
-    coerce_diagram_arrow_style,
-    coerce_element_style,
-    _coerce_color_or_gradient,
-)
+from .common import ColorLike
+from .styles import GanttDiagramStyle
 
 
 # Day of week type
@@ -233,135 +221,6 @@ GanttElement = (
     | GanttVerticalSeparator
     | GanttResourceOff
 )
-
-
-# ---------------------------------------------------------------------------
-# Gantt Diagram Styling
-# ---------------------------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class GanttDiagramStyle:
-    """Diagram-wide styling for Gantt charts.
-
-    This generates a PlantUML <style> block that sets default appearance
-    for all elements in the diagram.
-
-    Example:
-        with gantt_diagram(
-            diagram_style=GanttDiagramStyle(
-                task=ElementStyle(background="LightBlue"),
-                milestone=ElementStyle(background="Gold"),
-            )
-        ) as d:
-            ...
-    """
-
-    # Root-level properties
-    background: ColorLike | Gradient | None = None
-    font_name: str | None = None
-    font_size: int | None = None
-    font_color: ColorLike | None = None
-
-    # Element-specific styles
-    task: ElementStyle | None = None
-    milestone: ElementStyle | None = None
-    separator: ElementStyle | None = None
-    note: ElementStyle | None = None
-    arrow: DiagramArrowStyle | None = None
-    undone: ElementStyle | None = None  # Incomplete portion styling
-    today: ElementStyle | None = None  # Today marker styling
-
-    # Selector-based styles
-    stereotypes: dict[str, ElementStyle] | None = None
-    """Style elements by stereotype name."""
-
-
-class GanttDiagramStyleDict(TypedDict, total=False):
-    """Dict form of GanttDiagramStyle — passed as diagram_style= to gantt_diagram().
-
-    Top-level keys set diagram background and default fonts.
-    Element keys accept ElementStyleDict (see ElementStyleDict for all properties).
-
-    Available keys:
-        background:   Diagram background color
-        font_name:    Default font family
-        font_size:    Default font size
-        font_color:   Default text color
-        task:         Style for tasks (ElementStyleDict)
-        milestone:    Style for milestones (ElementStyleDict)
-        separator:    Style for separators (ElementStyleDict)
-        note:         Style for notes (ElementStyleDict)
-        arrow:        Style for dependency arrows (DiagramArrowStyleDict)
-        undone:       Style for incomplete task portions (ElementStyleDict)
-        today:        Style for the today marker (ElementStyleDict)
-        stereotypes:  Style by stereotype name: {"name": ElementStyleDict}
-
-    Example:
-        gantt_diagram(diagram_style={
-            "background": "white",
-            "task": {"background": "#E3F2FD", "line_color": "#1976D2"},
-            "milestone": {"background": "#FFF9C4"},
-            "arrow": {"line_color": "gray"},
-            "undone": {"background": "#EEEEEE"},
-            "stereotypes": {
-                "critical": {"background": "#FFCDD2", "font_style": "bold"},
-            },
-        })
-    """
-
-    background: ColorLike | Gradient
-    font_name: str
-    font_size: int
-    font_color: ColorLike
-    task: ElementStyleLike
-    milestone: ElementStyleLike
-    separator: ElementStyleLike
-    note: ElementStyleLike
-    arrow: DiagramArrowStyleLike
-    undone: ElementStyleLike
-    today: ElementStyleLike
-    stereotypes: dict[str, ElementStyleLike]
-
-
-GanttDiagramStyleLike: TypeAlias = GanttDiagramStyle | GanttDiagramStyleDict
-
-_GANTT_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
-    "background", "font_name", "font_size", "font_color",
-    "task", "milestone", "separator", "note", "arrow", "undone", "today",
-    "stereotypes",
-})
-
-
-def coerce_gantt_diagram_style(
-    value: GanttDiagramStyleLike,
-) -> GanttDiagramStyle:
-    """Convert a GanttDiagramStyleLike value to a GanttDiagramStyle object."""
-    if isinstance(value, GanttDiagramStyle):
-        return value
-    _validate_style_dict_keys(value, _GANTT_DIAGRAM_STYLE_KEYS, "GanttDiagramStyle")
-    return GanttDiagramStyle(
-        background=_coerce_color_or_gradient(value.get("background")),
-        font_name=value.get("font_name"),
-        font_size=value.get("font_size"),
-        font_color=coerce_color(value["font_color"])
-        if "font_color" in value
-        else None,
-        task=coerce_element_style(value["task"]) if "task" in value else None,
-        milestone=coerce_element_style(value["milestone"])
-        if "milestone" in value
-        else None,
-        separator=coerce_element_style(value["separator"])
-        if "separator" in value
-        else None,
-        note=coerce_element_style(value["note"]) if "note" in value else None,
-        arrow=coerce_diagram_arrow_style(value["arrow"])
-        if "arrow" in value
-        else None,
-        undone=coerce_element_style(value["undone"]) if "undone" in value else None,
-        today=coerce_element_style(value["today"]) if "today" in value else None,
-        stereotypes=_coerce_stereotypes(value.get("stereotypes")),
-    )
 
 
 @dataclass(frozen=True)
