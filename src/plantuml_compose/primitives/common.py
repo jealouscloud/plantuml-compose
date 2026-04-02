@@ -799,26 +799,44 @@ HorizontalAlignment = Literal["left", "center", "right"]
 
 @dataclass(frozen=True)
 class ElementStyle:
-    """Comprehensive style properties for diagram elements.
+    """Style properties for diagram elements (states, classes, notes, etc.).
 
-    Used in diagram-wide style blocks to define default appearance for
-    element types (states, notes, etc.). These properties map to PlantUML's
-    CSS-like <style> block syntax.
+    Maps to PlantUML's CSS-like ``<style>`` block properties. Use via
+    diagram_style dicts on diagram constructors.
 
-        background:           Fill color
+    All properties are optional — only set ones are rendered.
+
+    Properties:
+        background:           Fill color (str name, "#hex", or Color object)
         line_color:           Border/outline color
         font_color:           Text color
         font_name:            Font family (e.g., "Arial", "Courier")
-        font_size:            Font size in points
+        font_size:            Font size in points (e.g., 14)
         font_style:           "normal", "bold", "italic", or "bold italic"
-        round_corner:         Corner radius in pixels (0 for sharp corners)
+        round_corner:         Corner radius in pixels (0 = sharp)
         line_thickness:       Border width in pixels
-        line_style:           Border pattern ("solid", "dashed", "dotted", "hidden")
+        line_style:           Border pattern: "solid", "dashed", "dotted", "hidden"
         padding:              Inner padding in pixels
         margin:               Outer margin in pixels
-        horizontal_alignment: Text alignment ("left", "center", "right")
-        max_width:            Maximum element width in pixels
-        shadowing:            Whether to show drop shadow (True/False)
+        horizontal_alignment: Text alignment: "left", "center", "right"
+        max_width:            Maximum element width in pixels (text wraps)
+        shadowing:            Drop shadow (True/False)
+        diagonal_corner:      Diagonal corner cut in pixels
+        word_wrap:            Word wrap width in pixels
+        hyperlink_color:      Color for hyperlinked text
+
+    Example (dict form in diagram_style):
+        diagram_style={
+            "state": {
+                "background": "#E3F2FD",
+                "line_color": "#1976D2",
+                "round_corner": 10,
+                "font_name": "Arial",
+                "font_size": 12,
+                "padding": 8,
+                "shadowing": True,
+            },
+        }
     """
 
     background: ColorLike | None = None
@@ -842,14 +860,30 @@ class ElementStyle:
 
 @dataclass(frozen=True)
 class DiagramArrowStyle:
-    """Style properties for all arrows in a diagram.
+    """Style properties for all arrows/connections in a diagram.
 
-    Used in diagram-wide style blocks to set default arrow appearance.
-    This affects transitions, relationships, and other connecting lines.
+    Sets diagram-wide default arrow appearance via the ``<style>`` block's
+    ``arrow { }`` section. For styling individual arrows, use ``style=``
+    on specific transitions/relationships instead.
 
-    Note: For styling individual arrows, use LineStyle on specific
-    transitions. This class is for the <style> block's arrow { } section
-    that sets diagram-wide defaults.
+    Properties:
+        line_color:     Arrow line color
+        line_thickness: Arrow line width in pixels
+        line_pattern:   Line pattern: "solid", "dashed", "dotted", "hidden"
+        font_color:     Arrow label text color
+        font_name:      Arrow label font family
+        font_size:      Arrow label font size in points
+
+    Example (dict form in diagram_style):
+        diagram_style={
+            "arrow": {
+                "line_color": "gray",
+                "line_thickness": 2,
+                "line_pattern": "dashed",
+                "font_color": "blue",
+                "font_size": 10,
+            },
+        }
     """
 
     line_color: ColorLike | None = None
@@ -1048,10 +1082,31 @@ def validate_style_background_only(
 
 
 class ElementStyleDict(TypedDict, total=False):
-    """Dict form of ElementStyle for convenience.
+    """Dict form of ElementStyle — used inside diagram_style dicts.
+
+    All keys are optional. Only set properties are rendered.
+
+    Available keys:
+        background:           str color name, "#hex", or Color
+        line_color:           Border color
+        font_color:           Text color
+        font_name:            Font family (e.g., "Arial")
+        font_size:            Font size in points (e.g., 14)
+        font_style:           "normal" | "bold" | "italic" | "bold italic"
+        round_corner:         Corner radius in pixels
+        line_thickness:       Border width in pixels
+        line_style:           "solid" | "dashed" | "dotted" | "hidden"
+        padding:              Inner padding in pixels
+        margin:               Outer margin in pixels
+        horizontal_alignment: "left" | "center" | "right"
+        max_width:            Max element width (text wraps)
+        shadowing:            True/False for drop shadow
+        diagonal_corner:      Diagonal corner cut in pixels
+        word_wrap:            Word wrap width in pixels
+        hyperlink_color:      Hyperlink text color
 
     Example:
-        state={"background": "#E3F2FD", "line_color": "#1976D2", "round_corner": 5}
+        {"background": "#E3F2FD", "line_color": "#1976D2", "round_corner": 5, "padding": 8}
     """
 
     background: ColorLike
@@ -1137,10 +1192,18 @@ def _coerce_depths(
 
 
 class DiagramArrowStyleDict(TypedDict, total=False):
-    """Dict form of DiagramArrowStyle for convenience.
+    """Dict form of DiagramArrowStyle — used as the "arrow" key in diagram_style.
+
+    Available keys:
+        line_color:     Arrow line color
+        line_thickness: Line width in pixels
+        line_pattern:   "solid" | "dashed" | "dotted" | "hidden"
+        font_color:     Arrow label text color
+        font_name:      Arrow label font family
+        font_size:      Arrow label font size in points
 
     Example:
-        arrow={"line_color": "#757575", "line_thickness": 2}
+        {"line_color": "gray", "line_thickness": 2, "font_color": "blue"}
     """
 
     line_color: ColorLike
@@ -1182,18 +1245,32 @@ def coerce_diagram_arrow_style(
 
 
 class StateDiagramStyleDict(TypedDict, total=False):
-    """Dict form of StateDiagramStyle for convenience.
+    """Dict form of StateDiagramStyle — passed as diagram_style= to state_diagram().
+
+    Top-level keys set diagram background and default fonts.
+    Element keys accept ElementStyleDict (see ElementStyleDict for all properties).
+
+    Available keys:
+        background:   Diagram background color
+        font_name:    Default font family
+        font_size:    Default font size
+        font_color:   Default text color
+        state:        Style for state boxes (ElementStyleDict)
+        arrow:        Style for transitions (DiagramArrowStyleDict)
+        note:         Style for notes (ElementStyleDict)
+        title:        Style for the title (ElementStyleDict)
+        stereotypes:  Style by stereotype name: {"name": ElementStyleDict}
 
     Example:
-        with state_diagram(
-            style={
-                "background": "white",
-                "font_name": "Arial",
-                "state": {"background": "#E3F2FD", "line_color": "#1976D2"},
-                "arrow": {"line_color": "#757575"},
-            }
-        ) as d:
-            ...
+        state_diagram(diagram_style={
+            "background": "white",
+            "state": {"background": "#E3F2FD", "round_corner": 10, "padding": 8},
+            "arrow": {"line_color": "gray", "font_size": 10},
+            "note": {"background": "#FFF9C4"},
+            "stereotypes": {
+                "error": {"background": "#FFCDD2", "font_style": "bold"},
+            },
+        })
     """
 
     background: ColorLike | Gradient
@@ -1313,19 +1390,39 @@ class ComponentDiagramStyle:
 
 
 class ComponentDiagramStyleDict(TypedDict, total=False):
-    """Dict form of ComponentDiagramStyle for convenience.
+    """Dict form of ComponentDiagramStyle — passed as diagram_style= to component_diagram().
+
+    Top-level keys set diagram background and default fonts.
+    Element keys accept ElementStyleDict (see ElementStyleDict for all properties).
+
+    Available keys:
+        background:   Diagram background color
+        font_name:    Default font family
+        font_size:    Default font size
+        font_color:   Default text color
+        component:    Style for components (ElementStyleDict)
+        interface:    Style for interfaces (ElementStyleDict)
+        package:      Style for packages (ElementStyleDict)
+        node:         Style for nodes (ElementStyleDict)
+        folder:       Style for folders (ElementStyleDict)
+        frame:        Style for frames (ElementStyleDict)
+        cloud:        Style for clouds (ElementStyleDict)
+        database:     Style for databases (ElementStyleDict)
+        arrow:        Style for connections (DiagramArrowStyleDict)
+        note:         Style for notes (ElementStyleDict)
+        title:        Style for the title (ElementStyleDict)
+        stereotypes:  Style by stereotype name: {"name": ElementStyleDict}
 
     Example:
-        with component_diagram(
-            diagram_style={
-                "background": "white",
-                "font_name": "Arial",
-                "component": {"background": "#E3F2FD", "line_color": "#1976D2"},
-                "package": {"background": "#F5F5F5"},
-                "arrow": {"line_color": "#757575"},
-            }
-        ) as d:
-            ...
+        component_diagram(diagram_style={
+            "background": "white",
+            "component": {"background": "#E3F2FD", "line_color": "#1976D2"},
+            "package": {"background": "#F5F5F5"},
+            "arrow": {"line_color": "#757575"},
+            "stereotypes": {
+                "service": {"background": "#C8E6C9", "font_style": "bold"},
+            },
+        })
     """
 
     background: ColorLike | Gradient
@@ -1471,18 +1568,44 @@ class SequenceDiagramStyle:
 
 
 class SequenceDiagramStyleDict(TypedDict, total=False):
-    """Dict form of SequenceDiagramStyle for convenience.
+    """Dict form of SequenceDiagramStyle — passed as diagram_style= to sequence_diagram().
+
+    Top-level keys set diagram background and default fonts.
+    Element keys accept ElementStyleDict (see ElementStyleDict for all properties).
+
+    Available keys:
+        background:   Diagram background color
+        font_name:    Default font family
+        font_size:    Default font size
+        font_color:   Default text color
+        participant:  Style for participants (ElementStyleDict)
+        actor:        Style for actors (ElementStyleDict)
+        boundary:     Style for boundary participants (ElementStyleDict)
+        control:      Style for control participants (ElementStyleDict)
+        entity:       Style for entity participants (ElementStyleDict)
+        database:     Style for database participants (ElementStyleDict)
+        collections:  Style for collection participants (ElementStyleDict)
+        queue:        Style for queue participants (ElementStyleDict)
+        lifeline:     Style for lifelines (ElementStyleDict)
+        note:         Style for notes (ElementStyleDict)
+        box:          Style for participant boxes (ElementStyleDict)
+        group:        Style for message groups (ElementStyleDict)
+        divider:      Style for divider lines (ElementStyleDict)
+        reference:    Style for reference frames (ElementStyleDict)
+        arrow:        Style for messages (DiagramArrowStyleDict)
+        title:        Style for the title (ElementStyleDict)
+        stereotypes:  Style by stereotype name: {"name": ElementStyleDict}
 
     Example:
-        with sequence_diagram(
-            diagram_style={
-                "background": "white",
-                "font_name": "Arial",
-                "participant": {"background": "#E3F2FD", "line_color": "#1976D2"},
-                "arrow": {"line_color": "#757575"},
-            }
-        ) as d:
-            ...
+        sequence_diagram(diagram_style={
+            "background": "white",
+            "participant": {"background": "#E3F2FD", "line_color": "#1976D2"},
+            "actor": {"background": "#FFF9C4"},
+            "arrow": {"line_color": "#757575", "font_size": 10},
+            "stereotypes": {
+                "external": {"background": "#FFCDD2", "font_style": "italic"},
+            },
+        })
     """
 
     background: ColorLike | Gradient
@@ -1619,7 +1742,37 @@ class ActivityDiagramStyle:
 
 
 class ActivityDiagramStyleDict(TypedDict, total=False):
-    """Dict form of ActivityDiagramStyle for convenience."""
+    """Dict form of ActivityDiagramStyle — passed as diagram_style= to activity_diagram().
+
+    Top-level keys set diagram background and default fonts.
+    Element keys accept ElementStyleDict (see ElementStyleDict for all properties).
+
+    Available keys:
+        background:   Diagram background color
+        font_name:    Default font family
+        font_size:    Default font size
+        font_color:   Default text color
+        activity:     Style for activity boxes (ElementStyleDict)
+        partition:    Style for partitions (ElementStyleDict)
+        swimlane:     Style for swimlanes (ElementStyleDict)
+        diamond:      Style for decision/merge diamonds (ElementStyleDict)
+        arrow:        Style for flow arrows (DiagramArrowStyleDict)
+        note:         Style for notes (ElementStyleDict)
+        group:        Style for groups (ElementStyleDict)
+        title:        Style for the title (ElementStyleDict)
+        stereotypes:  Style by stereotype name: {"name": ElementStyleDict}
+
+    Example:
+        activity_diagram(diagram_style={
+            "background": "white",
+            "activity": {"background": "#E3F2FD", "round_corner": 10},
+            "diamond": {"background": "#FFF9C4"},
+            "arrow": {"line_color": "gray", "font_size": 10},
+            "stereotypes": {
+                "slow": {"background": "#FFCDD2", "font_style": "bold"},
+            },
+        })
+    """
 
     background: ColorLike | Gradient
     font_name: str
@@ -1730,7 +1883,38 @@ class ClassDiagramStyle:
 
 
 class ClassDiagramStyleDict(TypedDict, total=False):
-    """Dict form of ClassDiagramStyle for convenience."""
+    """Dict form of ClassDiagramStyle — passed as diagram_style= to class_diagram().
+
+    Top-level keys set diagram background and default fonts.
+    Element keys accept ElementStyleDict (see ElementStyleDict for all properties).
+
+    Available keys:
+        background:   Diagram background color
+        font_name:    Default font family
+        font_size:    Default font size
+        font_color:   Default text color
+        class_:       Style for classes (ElementStyleDict)
+        interface:    Style for interfaces (ElementStyleDict)
+        abstract:     Style for abstract classes (ElementStyleDict)
+        enum:         Style for enumerations (ElementStyleDict)
+        annotation:   Style for annotations (ElementStyleDict)
+        package:      Style for packages (ElementStyleDict)
+        arrow:        Style for relationships (DiagramArrowStyleDict)
+        note:         Style for notes (ElementStyleDict)
+        title:        Style for the title (ElementStyleDict)
+        stereotypes:  Style by stereotype name: {"name": ElementStyleDict}
+
+    Example:
+        class_diagram(diagram_style={
+            "background": "white",
+            "class_": {"background": "#E3F2FD", "line_color": "#1976D2"},
+            "interface": {"background": "#C8E6C9"},
+            "arrow": {"line_color": "gray"},
+            "stereotypes": {
+                "entity": {"background": "#FFF9C4", "font_style": "bold"},
+            },
+        })
+    """
 
     background: ColorLike | Gradient
     font_name: str
@@ -1828,7 +2012,33 @@ class ObjectDiagramStyle:
 
 
 class ObjectDiagramStyleDict(TypedDict, total=False):
-    """Dict form of ObjectDiagramStyle for convenience."""
+    """Dict form of ObjectDiagramStyle — passed as diagram_style= to object_diagram().
+
+    Top-level keys set diagram background and default fonts.
+    Element keys accept ElementStyleDict (see ElementStyleDict for all properties).
+
+    Note: PlantUML ignores arrow and note CSS for object diagrams.
+
+    Available keys:
+        background:   Diagram background color
+        font_name:    Default font family
+        font_size:    Default font size
+        font_color:   Default text color
+        object:       Style for objects (ElementStyleDict)
+        map:          Style for map objects (ElementStyleDict)
+        title:        Style for the title (ElementStyleDict)
+        stereotypes:  Style by stereotype name: {"name": ElementStyleDict}
+
+    Example:
+        object_diagram(diagram_style={
+            "background": "white",
+            "object": {"background": "#E3F2FD", "line_color": "#1976D2"},
+            "map": {"background": "#C8E6C9"},
+            "stereotypes": {
+                "config": {"background": "#FFF9C4"},
+            },
+        })
+    """
 
     background: ColorLike | Gradient
     font_name: str
@@ -1894,7 +2104,26 @@ class JsonDiagramStyle:
 
 
 class JsonDiagramStyleDict(TypedDict, total=False):
-    """Dict form of JsonDiagramStyle for convenience."""
+    """Dict form of JsonDiagramStyle — passed as diagram_style= to json_diagram().
+
+    Top-level keys set diagram background and default fonts.
+    Element keys accept ElementStyleDict (see ElementStyleDict for all properties).
+
+    Available keys:
+        background:   Diagram background color
+        font_name:    Default font family
+        font_size:    Default font size
+        font_color:   Default text color
+        node:         Style for data nodes (ElementStyleDict)
+        highlight:    Style for highlighted nodes (ElementStyleDict)
+
+    Example:
+        json_diagram(diagram_style={
+            "background": "white",
+            "node": {"background": "#E3F2FD"},
+            "highlight": {"background": "#FFF9C4"},
+        })
+    """
 
     background: ColorLike | Gradient
     font_name: str
@@ -1957,7 +2186,26 @@ class YamlDiagramStyle:
 
 
 class YamlDiagramStyleDict(TypedDict, total=False):
-    """Dict form of YamlDiagramStyle for convenience."""
+    """Dict form of YamlDiagramStyle — passed as diagram_style= to yaml_diagram().
+
+    Top-level keys set diagram background and default fonts.
+    Element keys accept ElementStyleDict (see ElementStyleDict for all properties).
+
+    Available keys:
+        background:   Diagram background color
+        font_name:    Default font family
+        font_size:    Default font size
+        font_color:   Default text color
+        node:         Style for data nodes (ElementStyleDict)
+        highlight:    Style for highlighted nodes (ElementStyleDict)
+
+    Example:
+        yaml_diagram(diagram_style={
+            "background": "white",
+            "node": {"background": "#E3F2FD"},
+            "highlight": {"background": "#FFF9C4"},
+        })
+    """
 
     background: ColorLike | Gradient
     font_name: str
@@ -2030,7 +2278,34 @@ class MindMapDiagramStyle:
 
 
 class MindMapDiagramStyleDict(TypedDict, total=False):
-    """Dict form of MindMapDiagramStyle for convenience."""
+    """Dict form of MindMapDiagramStyle — passed as diagram_style= to mindmap_diagram().
+
+    Top-level keys set diagram background and default fonts.
+    Element keys accept ElementStyleDict (see ElementStyleDict for all properties).
+
+    Available keys:
+        background:   Diagram background color
+        font_name:    Default font family
+        font_size:    Default font size
+        font_color:   Default text color
+        node:         Style for all nodes (ElementStyleDict)
+        root_node:    Style for the root node (ElementStyleDict)
+        leaf_node:    Style for leaf nodes (ElementStyleDict)
+        arrow:        Style for branch connectors (DiagramArrowStyleDict)
+        depths:       Style by tree depth: {0: ElementStyleDict, 1: ElementStyleDict, ...}
+
+    Example:
+        mindmap_diagram(diagram_style={
+            "background": "white",
+            "root_node": {"background": "#1976D2", "font_color": "white"},
+            "node": {"background": "#E3F2FD"},
+            "arrow": {"line_color": "gray"},
+            "depths": {
+                0: {"background": "#1976D2", "font_color": "white"},
+                1: {"background": "#BBDEFB"},
+            },
+        })
+    """
 
     background: ColorLike | Gradient
     font_name: str
@@ -2128,7 +2403,33 @@ class NetworkDiagramStyle:
 
 
 class NetworkDiagramStyleDict(TypedDict, total=False):
-    """Dict form of NetworkDiagramStyle for convenience."""
+    """Dict form of NetworkDiagramStyle — passed as diagram_style= to network_diagram().
+
+    Top-level keys set diagram background and default fonts.
+    Element keys accept ElementStyleDict (see ElementStyleDict for all properties).
+
+    Available keys:
+        background:   Diagram background color
+        font_name:    Default font family
+        font_size:    Default font size
+        font_color:   Default text color
+        network:      Style for network bars (ElementStyleDict)
+        server:       Style for server nodes (ElementStyleDict)
+        group:        Style for group boxes (ElementStyleDict)
+        arrow:        Style for address labels and connectors (DiagramArrowStyleDict)
+        stereotypes:  Style by stereotype name: {"name": ElementStyleDict}
+
+    Example:
+        network_diagram(diagram_style={
+            "background": "white",
+            "network": {"background": "#E3F2FD"},
+            "server": {"background": "#C8E6C9", "line_color": "#388E3C"},
+            "arrow": {"font_size": 10},
+            "stereotypes": {
+                "firewall": {"background": "#FFCDD2"},
+            },
+        })
+    """
 
     background: ColorLike | Gradient
     font_name: str
@@ -2232,7 +2533,39 @@ class TimingDiagramStyle:
 
 
 class TimingDiagramStyleDict(TypedDict, total=False):
-    """Dict form of TimingDiagramStyle for convenience."""
+    """Dict form of TimingDiagramStyle — passed as diagram_style= to timing_diagram().
+
+    Top-level keys set diagram background and default fonts.
+    Element keys accept ElementStyleDict (see ElementStyleDict for all properties).
+
+    Available keys:
+        background:   Diagram background color
+        font_name:    Default font family
+        font_size:    Default font size
+        font_color:   Default text color
+        robust:       Style for robust signals (ElementStyleDict)
+        concise:      Style for concise signals (ElementStyleDict)
+        clock:        Style for clock signals (ElementStyleDict)
+        binary:       Style for binary signals (ElementStyleDict)
+        analog:       Style for analog signals (ElementStyleDict)
+        highlight:    Style for highlight regions (ElementStyleDict)
+        note:         Style for notes (ElementStyleDict)
+        arrow:        Style for message arrows (DiagramArrowStyleDict)
+        title:        Style for the title (ElementStyleDict)
+        stereotypes:  Style by stereotype name: {"name": ElementStyleDict}
+
+    Example:
+        timing_diagram(diagram_style={
+            "background": "white",
+            "robust": {"background": "#E3F2FD", "line_color": "#1976D2"},
+            "concise": {"background": "#C8E6C9"},
+            "highlight": {"background": "#FFF9C4"},
+            "arrow": {"line_color": "gray"},
+            "stereotypes": {
+                "critical": {"line_color": "red", "font_style": "bold"},
+            },
+        })
+    """
 
     background: ColorLike | Gradient
     font_name: str

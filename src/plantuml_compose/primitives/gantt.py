@@ -278,7 +278,37 @@ class GanttDiagramStyle:
 
 
 class GanttDiagramStyleDict(TypedDict, total=False):
-    """Dict form of GanttDiagramStyle for convenience."""
+    """Dict form of GanttDiagramStyle — passed as diagram_style= to gantt_diagram().
+
+    Top-level keys set diagram background and default fonts.
+    Element keys accept ElementStyleDict (see ElementStyleDict for all properties).
+
+    Available keys:
+        background:   Diagram background color
+        font_name:    Default font family
+        font_size:    Default font size
+        font_color:   Default text color
+        task:         Style for tasks (ElementStyleDict)
+        milestone:    Style for milestones (ElementStyleDict)
+        separator:    Style for separators (ElementStyleDict)
+        note:         Style for notes (ElementStyleDict)
+        arrow:        Style for dependency arrows (DiagramArrowStyleDict)
+        undone:       Style for incomplete task portions (ElementStyleDict)
+        today:        Style for the today marker (ElementStyleDict)
+        stereotypes:  Style by stereotype name: {"name": ElementStyleDict}
+
+    Example:
+        gantt_diagram(diagram_style={
+            "background": "white",
+            "task": {"background": "#E3F2FD", "line_color": "#1976D2"},
+            "milestone": {"background": "#FFF9C4"},
+            "arrow": {"line_color": "gray"},
+            "undone": {"background": "#EEEEEE"},
+            "stereotypes": {
+                "critical": {"background": "#FFCDD2", "font_style": "bold"},
+            },
+        })
+    """
 
     background: ColorLike | Gradient
     font_name: str
