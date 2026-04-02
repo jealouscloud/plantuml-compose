@@ -45,6 +45,10 @@ from ..primitives.common import (
     coerce_style,
     sanitize_ref,
 )
+from ..primitives.styles import (
+    DeploymentDiagramStyleLike,
+    coerce_deployment_diagram_style,
+)
 from ..primitives.deployment import (
     DeploymentDiagram,
     DeploymentDiagramElement,
@@ -452,6 +456,7 @@ class DeploymentComposer(BaseComposer):
         scale: float | Scale | None = None,
         theme: ThemeLike = None,
         layout: LayoutDirection | None = None,
+        diagram_style: DeploymentDiagramStyleLike | None = None,
     ) -> None:
         super().__init__(
             title=title, mainframe=mainframe, caption=caption,
@@ -459,6 +464,11 @@ class DeploymentComposer(BaseComposer):
         )
         self._theme = theme
         self._layout = layout
+        self._diagram_style = (
+            coerce_deployment_diagram_style(diagram_style)
+            if diagram_style
+            else None
+        )
         self._elements_ns = DeploymentElementNamespace()
         self._connections_ns = DeploymentConnectionNamespace()
 
@@ -510,6 +520,7 @@ class DeploymentComposer(BaseComposer):
             legend=self._legend,
             scale=self._scale,
             theme=self._theme,
+            diagram_style=self._diagram_style,
             layout=self._layout,
         )
 
@@ -525,6 +536,7 @@ def deployment_diagram(
     scale: float | Scale | None = None,
     theme: ThemeLike = None,
     layout: LayoutDirection | None = None,
+    diagram_style: DeploymentDiagramStyleLike | None = None,
 ) -> DeploymentComposer:
     """Create a deployment diagram composer.
 
@@ -539,5 +551,5 @@ def deployment_diagram(
     return DeploymentComposer(
         title=title, mainframe=mainframe, caption=caption,
         header=header, footer=footer, legend=legend, scale=scale,
-        theme=theme, layout=layout,
+        theme=theme, layout=layout, diagram_style=diagram_style,
     )

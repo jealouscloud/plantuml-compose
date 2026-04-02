@@ -5,6 +5,7 @@ Pure functions that transform deployment diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
+from ..primitives.styles import DeploymentDiagramStyle
 from ..primitives.deployment import (
     DeploymentDiagram,
     DeploymentDiagramElement,
@@ -18,6 +19,7 @@ from .common import (
     quote_ref,
     render_caption,
     render_color_hash,
+    render_diagram_style,
     render_embeddable_content,
     render_footer,
     render_header,
@@ -45,6 +47,10 @@ def render_deployment_diagram(diagram: DeploymentDiagram) -> str:
     theme_line = render_theme(diagram.theme)
     if theme_line:
         lines.append(theme_line)
+
+    # Style block comes after theme
+    if diagram.diagram_style:
+        lines.extend(_render_deployment_diagram_style(diagram.diagram_style))
 
     # Scale (affects output size)
     if diagram.scale:
@@ -102,6 +108,35 @@ def render_deployment_diagram(diagram: DeploymentDiagram) -> str:
 
     lines.append("@enduml")
     return "\n".join(lines)
+
+
+def _render_deployment_diagram_style(style: DeploymentDiagramStyle) -> list[str]:
+    """Render a DeploymentDiagramStyle to PlantUML <style> block."""
+    return render_diagram_style(
+        diagram_type="deploymentDiagram",
+        root_background=style.background,
+        root_font_name=style.font_name,
+        root_font_size=style.font_size,
+        root_font_color=style.font_color,
+        element_styles=[
+            ("node", style.node),
+            ("artifact", style.artifact),
+            ("database", style.database),
+            ("cloud", style.cloud),
+            ("component", style.component),
+            ("frame", style.frame),
+            ("storage", style.storage),
+            ("folder", style.folder),
+            ("package", style.package),
+            ("rectangle", style.rectangle),
+            ("queue", style.queue),
+            ("stack", style.stack),
+            ("note", style.note),
+        ],
+        arrow_style=style.arrow,
+        title_style=style.title,
+        stereotypes=style.stereotypes,
+    )
 
 
 def _render_element(

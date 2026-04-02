@@ -5,6 +5,7 @@ Pure functions that transform use case diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
+from ..primitives.styles import UseCaseDiagramStyle
 from ..primitives.usecase import (
     Actor,
     Container,
@@ -20,6 +21,7 @@ from .common import (
     quote_ref,
     render_caption,
     render_color_hash,
+    render_diagram_style,
     render_embeddable_content,
     render_footer,
     render_header,
@@ -47,6 +49,10 @@ def render_usecase_diagram(diagram: UseCaseDiagram) -> str:
     theme_line = render_theme(diagram.theme)
     if theme_line:
         lines.append(theme_line)
+
+    # Style block comes after theme
+    if diagram.diagram_style:
+        lines.extend(_render_usecase_diagram_style(diagram.diagram_style))
 
     # Scale (affects output size)
     if diagram.scale:
@@ -107,6 +113,27 @@ def render_usecase_diagram(diagram: UseCaseDiagram) -> str:
 
     lines.append("@enduml")
     return "\n".join(lines)
+
+
+def _render_usecase_diagram_style(style: UseCaseDiagramStyle) -> list[str]:
+    """Render a UseCaseDiagramStyle to PlantUML <style> block."""
+    return render_diagram_style(
+        diagram_type="usecaseDiagram",
+        root_background=style.background,
+        root_font_name=style.font_name,
+        root_font_size=style.font_size,
+        root_font_color=style.font_color,
+        element_styles=[
+            ("actor", style.actor),
+            ("usecase", style.usecase),
+            ("package", style.package),
+            ("rectangle", style.rectangle),
+            ("note", style.note),
+        ],
+        arrow_style=style.arrow,
+        title_style=style.title,
+        stereotypes=style.stereotypes,
+    )
 
 
 def _render_element(elem: UseCaseDiagramElement, indent: int = 0) -> list[str]:

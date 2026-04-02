@@ -40,6 +40,7 @@ from .common import (
     Style,
     ThemeLike,
 )
+from .styles import DeploymentDiagramStyle
 
 if TYPE_CHECKING:
     pass
@@ -168,6 +169,7 @@ class DeploymentDiagram:
     legend: Legend | None = None
     scale: Scale | None = None
     theme: ThemeLike = None
+    diagram_style: DeploymentDiagramStyle | None = None
     layout: LayoutDirection | None = None
     layout_engine: LayoutEngine | None = None
     linetype: LineType | None = None

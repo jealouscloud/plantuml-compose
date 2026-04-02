@@ -49,6 +49,10 @@ from ..primitives.common import (
     sanitize_ref,
     validate_style_background_only,
 )
+from ..primitives.styles import (
+    UseCaseDiagramStyleLike,
+    coerce_usecase_diagram_style,
+)
 from ..primitives.usecase import (
     Actor,
     ActorStyle,
@@ -414,6 +418,7 @@ class UseCaseComposer(BaseComposer):
         theme: ThemeLike = None,
         layout: LayoutDirection | None = None,
         actor_style: ActorStyle | None = None,
+        diagram_style: UseCaseDiagramStyleLike | None = None,
     ) -> None:
         super().__init__(
             title=title, mainframe=mainframe, caption=caption,
@@ -422,6 +427,11 @@ class UseCaseComposer(BaseComposer):
         self._theme = theme
         self._layout = layout
         self._actor_style = actor_style
+        self._diagram_style = (
+            coerce_usecase_diagram_style(diagram_style)
+            if diagram_style
+            else None
+        )
         self._elements_ns = UseCaseElementNamespace()
         self._relationships_ns = UseCaseRelationshipNamespace()
 
@@ -476,6 +486,7 @@ class UseCaseComposer(BaseComposer):
             legend=self._legend,
             scale=self._scale,
             theme=self._theme,
+            diagram_style=self._diagram_style,
             actor_style=self._actor_style,
             layout=self._layout,
         )
@@ -493,6 +504,7 @@ def usecase_diagram(
     theme: ThemeLike = None,
     layout: LayoutDirection | None = None,
     actor_style: ActorStyle | None = None,
+    diagram_style: UseCaseDiagramStyleLike | None = None,
 ) -> UseCaseComposer:
     """Create a use case diagram composer.
 
@@ -510,4 +522,5 @@ def usecase_diagram(
         title=title, mainframe=mainframe, caption=caption,
         header=header, footer=footer, legend=legend, scale=scale,
         theme=theme, layout=layout, actor_style=actor_style,
+        diagram_style=diagram_style,
     )

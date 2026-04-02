@@ -41,6 +41,7 @@ from .common import (
     Style,
     ThemeLike,
 )
+from .styles import UseCaseDiagramStyle
 
 if TYPE_CHECKING:
     pass
@@ -167,6 +168,7 @@ class UseCaseDiagram:
     legend: Legend | None = None
     scale: Scale | None = None
     theme: ThemeLike = None
+    diagram_style: UseCaseDiagramStyle | None = None
     actor_style: ActorStyle | None = None
     layout: LayoutDirection | None = None
     layout_engine: LayoutEngine | None = None

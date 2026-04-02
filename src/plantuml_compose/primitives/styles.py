@@ -1613,3 +1613,336 @@ def coerce_gantt_diagram_style(
         today=coerce_element_style(value["today"]) if "today" in value else None,
         stereotypes=_coerce_stereotypes(value.get("stereotypes")),
     )
+
+
+# ---------------------------------------------------------------------------
+# Use Case Diagram Styling
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class UseCaseDiagramStyle:
+    """Diagram-wide styling for use case diagrams.
+
+    This generates a PlantUML <style> block that sets default appearance
+    for all elements in the diagram. Individual elements can still override
+    these defaults with inline styles.
+
+    Root-level properties apply to the diagram background and default fonts.
+    Element-specific properties let you style each element type independently.
+
+    Example:
+        with usecase_diagram(
+            diagram_style=UseCaseDiagramStyle(
+                background="white",
+                font_name="Arial",
+                actor=ElementStyle(background="#E3F2FD"),
+                usecase=ElementStyle(background="#FFF9C4"),
+                arrow=DiagramArrowStyle(line_color="#757575"),
+            )
+        ) as d:
+            ...
+
+    This generates a <style> block in the PlantUML output that themes
+    all actors with blue backgrounds, use cases with yellow backgrounds,
+    and gray arrows.
+    """
+
+    # Root-level properties
+    background: ColorLike | Gradient | None = None
+    font_name: str | None = None
+    font_size: int | None = None
+    font_color: ColorLike | None = None
+
+    # Element-specific styles
+    actor: ElementStyle | None = None
+    usecase: ElementStyle | None = None
+    package: ElementStyle | None = None
+    rectangle: ElementStyle | None = None
+    arrow: DiagramArrowStyle | None = None
+    note: ElementStyle | None = None
+    title: ElementStyle | None = None
+
+    # Selector-based styles
+    stereotypes: dict[str, ElementStyle] | None = None
+    """Style elements by stereotype name.
+
+    Keys are stereotype names (without << >>).
+    Values are ElementStyle objects applied to elements with that stereotype.
+    """
+
+
+class UseCaseDiagramStyleDict(TypedDict, total=False):
+    """Dict form of UseCaseDiagramStyle — passed as diagram_style= to usecase_diagram().
+
+    Top-level keys set diagram background and default fonts.
+    Element keys accept ElementStyleDict (see ElementStyleDict for all properties).
+
+    Available keys:
+        background:   Diagram background color
+        font_name:    Default font family
+        font_size:    Default font size
+        font_color:   Default text color
+        actor:        Style for actors (ElementStyleDict)
+        usecase:      Style for use cases (ElementStyleDict)
+        package:      Style for packages (ElementStyleDict)
+        rectangle:    Style for rectangles (ElementStyleDict)
+        arrow:        Style for relationships (DiagramArrowStyleDict)
+        note:         Style for notes (ElementStyleDict)
+        title:        Style for the title (ElementStyleDict)
+        stereotypes:  Style by stereotype: {"name": ElementStyleDict}
+
+    Example:
+        usecase_diagram(diagram_style={
+            "actor": {"background": "lightblue"},
+            "usecase": {"background": "lightyellow"},
+            "arrow": {"line_color": "gray"},
+        })
+    """
+
+    background: ColorLike | Gradient
+    font_name: str
+    font_size: int
+    font_color: ColorLike
+    actor: ElementStyleLike
+    usecase: ElementStyleLike
+    package: ElementStyleLike
+    rectangle: ElementStyleLike
+    arrow: DiagramArrowStyleLike
+    note: ElementStyleLike
+    title: ElementStyleLike
+    stereotypes: dict[str, ElementStyleLike]
+
+
+# Type alias for use case diagram style arguments
+UseCaseDiagramStyleLike: TypeAlias = UseCaseDiagramStyle | UseCaseDiagramStyleDict
+
+_USECASE_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
+    "background", "font_name", "font_size", "font_color",
+    "actor", "usecase", "package", "rectangle",
+    "arrow", "note", "title", "stereotypes",
+})
+
+
+def coerce_usecase_diagram_style(
+    value: UseCaseDiagramStyleLike,
+) -> UseCaseDiagramStyle:
+    """Convert a UseCaseDiagramStyleLike value to a UseCaseDiagramStyle object."""
+    if isinstance(value, UseCaseDiagramStyle):
+        return value
+    _validate_style_dict_keys(
+        value, _USECASE_DIAGRAM_STYLE_KEYS, "UseCaseDiagramStyle"
+    )
+    return UseCaseDiagramStyle(
+        background=_coerce_color_or_gradient(value.get("background")),
+        font_name=value.get("font_name"),
+        font_size=value.get("font_size"),
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
+        actor=coerce_element_style(value["actor"]) if "actor" in value else None,
+        usecase=coerce_element_style(value["usecase"])
+        if "usecase" in value
+        else None,
+        package=coerce_element_style(value["package"])
+        if "package" in value
+        else None,
+        rectangle=coerce_element_style(value["rectangle"])
+        if "rectangle" in value
+        else None,
+        arrow=coerce_diagram_arrow_style(value["arrow"])
+        if "arrow" in value
+        else None,
+        note=coerce_element_style(value["note"]) if "note" in value else None,
+        title=coerce_element_style(value["title"])
+        if "title" in value
+        else None,
+        stereotypes=_coerce_stereotypes(value.get("stereotypes")),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Deployment Diagram Styling
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class DeploymentDiagramStyle:
+    """Diagram-wide styling for deployment diagrams.
+
+    This generates a PlantUML <style> block that sets default appearance
+    for all elements in the diagram. Individual elements can still override
+    these defaults with inline styles.
+
+    Root-level properties apply to the diagram background and default fonts.
+    Element-specific properties let you style each element type independently.
+
+    Example:
+        with deployment_diagram(
+            diagram_style=DeploymentDiagramStyle(
+                background="white",
+                font_name="Arial",
+                node=ElementStyle(background="#E3F2FD"),
+                database=ElementStyle(background="#FFF9C4"),
+                arrow=DiagramArrowStyle(line_color="#757575"),
+            )
+        ) as d:
+            ...
+
+    This generates a <style> block in the PlantUML output that themes
+    all nodes with blue backgrounds, databases with yellow backgrounds,
+    and gray arrows.
+    """
+
+    # Root-level properties
+    background: ColorLike | Gradient | None = None
+    font_name: str | None = None
+    font_size: int | None = None
+    font_color: ColorLike | None = None
+
+    # Element-specific styles
+    node: ElementStyle | None = None
+    artifact: ElementStyle | None = None
+    database: ElementStyle | None = None
+    cloud: ElementStyle | None = None
+    component: ElementStyle | None = None
+    frame: ElementStyle | None = None
+    storage: ElementStyle | None = None
+    folder: ElementStyle | None = None
+    package: ElementStyle | None = None
+    rectangle: ElementStyle | None = None
+    queue: ElementStyle | None = None
+    stack: ElementStyle | None = None
+    arrow: DiagramArrowStyle | None = None
+    note: ElementStyle | None = None
+    title: ElementStyle | None = None
+
+    # Selector-based styles
+    stereotypes: dict[str, ElementStyle] | None = None
+    """Style elements by stereotype name.
+
+    Keys are stereotype names (without << >>).
+    Values are ElementStyle objects applied to elements with that stereotype.
+    """
+
+
+class DeploymentDiagramStyleDict(TypedDict, total=False):
+    """Dict form of DeploymentDiagramStyle — passed as diagram_style= to deployment_diagram().
+
+    Top-level keys set diagram background and default fonts.
+    Element keys accept ElementStyleDict (see ElementStyleDict for all properties).
+
+    Available keys:
+        background:   Diagram background color
+        font_name:    Default font family
+        font_size:    Default font size
+        font_color:   Default text color
+        node:         Style for nodes (ElementStyleDict)
+        artifact:     Style for artifacts (ElementStyleDict)
+        database:     Style for databases (ElementStyleDict)
+        cloud:        Style for clouds (ElementStyleDict)
+        component:    Style for components (ElementStyleDict)
+        frame:        Style for frames (ElementStyleDict)
+        storage:      Style for storage elements (ElementStyleDict)
+        folder:       Style for folders (ElementStyleDict)
+        package:      Style for packages (ElementStyleDict)
+        rectangle:    Style for rectangles (ElementStyleDict)
+        queue:        Style for queues (ElementStyleDict)
+        stack:        Style for stacks (ElementStyleDict)
+        arrow:        Style for connections (DiagramArrowStyleDict)
+        note:         Style for notes (ElementStyleDict)
+        title:        Style for the title (ElementStyleDict)
+        stereotypes:  Style by stereotype: {"name": ElementStyleDict}
+
+    Example:
+        deployment_diagram(diagram_style={
+            "node": {"background": "lightblue"},
+            "artifact": {"background": "lightyellow"},
+            "arrow": {"line_color": "gray"},
+        })
+    """
+
+    background: ColorLike | Gradient
+    font_name: str
+    font_size: int
+    font_color: ColorLike
+    node: ElementStyleLike
+    artifact: ElementStyleLike
+    database: ElementStyleLike
+    cloud: ElementStyleLike
+    component: ElementStyleLike
+    frame: ElementStyleLike
+    storage: ElementStyleLike
+    folder: ElementStyleLike
+    package: ElementStyleLike
+    rectangle: ElementStyleLike
+    queue: ElementStyleLike
+    stack: ElementStyleLike
+    arrow: DiagramArrowStyleLike
+    note: ElementStyleLike
+    title: ElementStyleLike
+    stereotypes: dict[str, ElementStyleLike]
+
+
+# Type alias for deployment diagram style arguments
+DeploymentDiagramStyleLike: TypeAlias = (
+    DeploymentDiagramStyle | DeploymentDiagramStyleDict
+)
+
+_DEPLOYMENT_DIAGRAM_STYLE_KEYS: frozenset[str] = frozenset({
+    "background", "font_name", "font_size", "font_color",
+    "node", "artifact", "database", "cloud", "component",
+    "frame", "storage", "folder", "package", "rectangle",
+    "queue", "stack", "arrow", "note", "title", "stereotypes",
+})
+
+
+def coerce_deployment_diagram_style(
+    value: DeploymentDiagramStyleLike,
+) -> DeploymentDiagramStyle:
+    """Convert a DeploymentDiagramStyleLike value to a DeploymentDiagramStyle object."""
+    if isinstance(value, DeploymentDiagramStyle):
+        return value
+    _validate_style_dict_keys(
+        value, _DEPLOYMENT_DIAGRAM_STYLE_KEYS, "DeploymentDiagramStyle"
+    )
+    return DeploymentDiagramStyle(
+        background=_coerce_color_or_gradient(value.get("background")),
+        font_name=value.get("font_name"),
+        font_size=value.get("font_size"),
+        font_color=coerce_color(value["font_color"])
+        if "font_color" in value
+        else None,
+        node=coerce_element_style(value["node"]) if "node" in value else None,
+        artifact=coerce_element_style(value["artifact"])
+        if "artifact" in value
+        else None,
+        database=coerce_element_style(value["database"])
+        if "database" in value
+        else None,
+        cloud=coerce_element_style(value["cloud"]) if "cloud" in value else None,
+        component=coerce_element_style(value["component"])
+        if "component" in value
+        else None,
+        frame=coerce_element_style(value["frame"]) if "frame" in value else None,
+        storage=coerce_element_style(value["storage"])
+        if "storage" in value
+        else None,
+        folder=coerce_element_style(value["folder"]) if "folder" in value else None,
+        package=coerce_element_style(value["package"])
+        if "package" in value
+        else None,
+        rectangle=coerce_element_style(value["rectangle"])
+        if "rectangle" in value
+        else None,
+        queue=coerce_element_style(value["queue"]) if "queue" in value else None,
+        stack=coerce_element_style(value["stack"]) if "stack" in value else None,
+        arrow=coerce_diagram_arrow_style(value["arrow"])
+        if "arrow" in value
+        else None,
+        note=coerce_element_style(value["note"]) if "note" in value else None,
+        title=coerce_element_style(value["title"])
+        if "title" in value
+        else None,
+        stereotypes=_coerce_stereotypes(value.get("stereotypes")),
+    )
