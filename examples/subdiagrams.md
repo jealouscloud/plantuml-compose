@@ -184,6 +184,41 @@ print(render(d))
 
 
 
+### Embedding in State Diagram Notes
+
+State diagrams support embedded diagrams in note parameters. Pass a `Note` object with the embedded content:
+
+```python
+from plantuml_compose import state_diagram, component_diagram, render
+from plantuml_compose.primitives.common import Note
+
+# Architecture to embed
+arch = component_diagram()
+el = arch.elements
+c = arch.connections
+api = el.component("API")
+db = el.component("DB")
+arch.add(api, db)
+arch.connect(c.link(api, db))
+
+# State diagram with embedded architecture in a note
+d = state_diagram(title="Service Lifecycle")
+sel = d.elements
+t = d.transitions
+
+starting = sel.state("Starting",
+    note=Note(content=arch.embed(), position="right"),
+)
+running = sel.state("Running")
+d.add(starting, running)
+d.connect(
+    t.transition("[*]", starting),
+    t.transition(starting, running, label="ready"),
+)
+
+print(render(d))
+```
+
 ## Embedding in Messages
 
 Sequence message labels use **inline mode** - the embedded diagram appears on a single line using PlantUML's `%breakline()` syntax. This works but produces more compact output.
@@ -528,6 +563,45 @@ print(render(d))
 
 
 
+### Embed JSON Data
+
+JSON and YAML diagrams use lightweight composers without an `embed()` method. Use `EmbeddedDiagram` directly with the rendered content, specifying `embed_type` so PlantUML uses the correct parser:
+
+```python
+from plantuml_compose import (
+    json_diagram, sequence_diagram, render, EmbeddedDiagram,
+)
+
+# Create JSON content
+jd = json_diagram('{"name": "Alice", "role": "admin", "active": true}')
+rendered = jd.render()
+
+# Strip @start/@end markers for embedding
+lines = rendered.split("\n")
+inner = "\n".join(
+    line for line in lines
+    if not line.strip().startswith("@start") and not line.strip().startswith("@end")
+)
+
+embedded_json = EmbeddedDiagram(content=inner, embed_type="json")
+
+# Use in a sequence diagram note
+d = sequence_diagram()
+p = d.participants
+e = d.events
+
+api = p.participant("API")
+d.add(api)
+
+d.phase("Context", [
+    e.note(embedded_json, over=api),
+])
+
+print(render(d))
+```
+
+The same pattern works for YAML diagrams with `embed_type="yaml"`.
+
 ## Working with EmbeddedDiagram Directly
 
 For advanced use cases, you can work with `EmbeddedDiagram` directly. This is useful when you have raw PlantUML content that wasn't built using the library.
@@ -571,8 +645,11 @@ The inline format (for message labels) produces:
 |---------|-------|
 | Basic embedding | `diagram.embed()` |
 | Opaque background | `diagram.embed(transparent=False)` |
-| In notes | `e.note(other.embed(), over=participant)` |
-| In messages | `e.message(a, b, other.embed())` |
+| In sequence notes | `e.note(other.embed(), over=participant)` |
+| In sequence messages | `e.message(a, b, other.embed())` |
+| In state notes | `el.state("Name", note=Note(content=other.embed()))` |
+| In component notes | `d.note(other.embed(), target=component)` |
 | In legends | `Legend(content=other.embed())` |
+| JSON/YAML embedding | `EmbeddedDiagram(content=inner, embed_type="json")` |
 
 Sub-diagrams make your documentation richer and more self-contained. Instead of referencing separate diagrams, you can include visual context exactly where it's needed.

@@ -1,431 +1,506 @@
 # Deployment Diagrams
 
-Deployment diagrams show WHERE software runs on hardware and infrastructure. They're ideal for:
+Deployment diagrams show where software runs on hardware and infrastructure. Use them for datacenter topologies, cloud architectures, production layouts, and network maps. They support the widest range of element types of any diagram, with arbitrary nesting depth.
 
-- **Production architecture**: Server topology and connectivity
-- **Infrastructure planning**: Cloud resources, containers, VMs
-- **Network topology**: How systems connect
-- **Artifact deployment**: What runs where
-
-Unlike component diagrams (software modules) or class diagrams (code structure), deployment diagrams focus on physical or virtual infrastructure.
-
-## Core Concepts
-
-**Node**: An execution environment (server, VM, container, device).
-
-**Artifact**: A deployable unit (WAR, JAR, Docker image, executable).
-
-**Component**: A software piece running on a node.
-
-**Database**: A data storage system.
-
-Nesting shows containment: a Docker container inside a VM inside a physical server.
-
-## Your First Deployment Diagram
+## Quick Start
 
 ```python
 from plantuml_compose import deployment_diagram, render
 
-d = deployment_diagram(title="Simple Server")
+d = deployment_diagram(title="DC Topology")
 el = d.elements
 c = d.connections
 
-server = el.component("App Server")
-db = el.database("PostgreSQL")
+rack = el.frame("Rack",
+    el.node("Host", el.artifact("app")),
+    el.database("PostgreSQL", ref="pg"),
+)
 
-d.add(server, db)
-d.connect(c.arrow(server, db, "connects"))
-
-print(render(d))
-```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIh9BCb9LGZEp2q0KQb5PQb5NCdvkGNvUQbv9GfAZWK5K54bhfJ4aiIanE9KXO3yufBqejJWG1yke7myH5v1LzSEIKR1IY4vFoylDRcacCiXDIy5Q1S0)
-
-
-
-## Element Types
-
-### Basic Elements
-
-```python
-from plantuml_compose import deployment_diagram, render
-
-d = deployment_diagram(title="Element Types")
-el = d.elements
-
-# Component (software module)
-api = el.component("API Service")
-
-# Database (cylinder shape)
-db = el.database("PostgreSQL")
-
-# Artifact (deployable file)
-war = el.artifact("app.war")
-
-# Queue
-mq = el.queue("RabbitMQ")
-
-# Storage
-s3 = el.storage("S3 Bucket")
-
-# Cloud
-aws = el.cloud("AWS")
-
-# Actor (user/external system)
-user = el.actor("User")
-
-d.add(api, db, war, mq, s3, aws, user)
+d.add(rack)
+d.connect(c.arrow(rack.Host, rack.pg, "JDBC"))
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/5Ov12i8m44NtSueX1t3Z1QhWGb1eZU9wcdvBC6rYCb6ylN7vuRt7xufArhe4Kgy1V0XOi2fVlmc5N5nINF_RxFeZM-ItTp0qYSee1Tp7edE67KxKCluXhg6IqkOZsT2hee8lCevUpmCLZLbciB5RtbVtX1fo8TQ9TtTBJOsPRmMPEgnJk_G3)
 
+## Elements
 
+All element factories live on `d.elements` (aliased as `el` by convention). Every factory returns an `EntityRef` that you pass to `d.add()`. Every element type supports nesting via positional `*children` arguments.
 
-### Stereotypes
+### Infrastructure Elements
 
 ```python
-from plantuml_compose import deployment_diagram, render
-
 d = deployment_diagram()
 el = d.elements
 
-# Custom stereotypes
-api = el.component("API", stereotype="microservice")
-db = el.database("Redis", stereotype="cache")
-docker = el.artifact("container.tar", stereotype="docker")
+server   = el.node("Web Server")          # 3D box (primary infrastructure shape)
+app      = el.artifact("webapp.war")       # Deployable artifact
+comp     = el.component("API")             # Software component
+db       = el.database("PostgreSQL")       # Cylinder
+store    = el.storage("NFS")               # Storage unit
+sky      = el.cloud("AWS")                 # Cloud shape
+frm      = el.frame("DMZ")                # Frame with title bar
+dir_     = el.folder("Config")             # Folder icon
+pkg      = el.package("com.example")       # Tab folder
+rect     = el.rectangle("Cluster")         # Plain rectangle
+q        = el.queue("Messages")            # Queue shape
+stk      = el.stack("Layers")              # Stack shape
+f        = el.file("config.yaml")          # File icon
 
-d.add(api, db, docker)
-
-print(render(d))
+d.add(server, app, comp, db, store, sky, frm, dir_, pkg, rect, q, stk, f)
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/5Or13a1034NtJZ5n02SGOMadRb2TYePffLFEhzRl_VV7wc3-bAj1BRSAYQTfcLFV5qRJIlOoqZ0q6Hmsg9HMobo38-3nWvZp3kYfHHK75h8kccqeMV4a2sSaoV7n0G00)
 
-
-
-## Nested Elements (Nodes)
-
-Show containment with nested structures:
+### Actor and Agent Elements
 
 ```python
-from plantuml_compose import deployment_diagram, render
-
-d = deployment_diagram(title="Server Internals")
+d = deployment_diagram()
 el = d.elements
-c = d.connections
 
-server = el.node("Production Server",
-    el.component("API Service", ref="api"),
-    el.component("Worker Service"),
-    el.database("PostgreSQL", ref="db"),
+user     = el.actor("End User")            # Stick figure
+bot      = el.agent("Monitoring Agent")     # Agent shape
+wall     = el.boundary("Firewall")          # Boundary notation
+card_    = el.card("Task Card")             # Card shape
+dot      = el.circle("Endpoint")            # Circle
+group    = el.collections("Workers")        # Stacked copies
+ctl      = el.control("Scheduler")          # Control circle
+ent      = el.entity("Order")               # Entity with underline
+hex_     = el.hexagon("Router")             # Hexagon shape
+lbl      = el.label_("v2.1")               # Plain text label
+person_  = el.person("DevOps Engineer")     # Person shape
+proc     = el.process("Worker Process")     # Process shape
+iface    = el.interface("REST API")         # Interface circle
+uc       = el.usecase("Deploy App")         # Usecase ellipse
+act      = el.action("Build Step")          # Action shape
+
+d.add(user, bot, wall, card_, dot, group, ctl, ent, hex_, lbl, person_, proc, iface, uc, act)
+```
+
+### Ports
+
+Ports appear as small squares on element boundaries. Add them as children of any element:
+
+```python
+d = deployment_diagram()
+el = d.elements
+
+server = el.node("Server",
+    el.portin("http_in"),      # input port (inward arrow)
+    el.portout("log_out"),     # output port (outward arrow)
+    el.port("mgmt"),           # bidirectional port
 )
 
 d.add(server)
-d.connect(c.arrow(server.api, server.db))
-
-print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/LOwn2iCm34HtVuNmdbyewHZ8u9AXisABOEf8GLQwXFvxdT8E7OzxxxY-6ghjQt6MhH1Cf4zI6DX86KjrB8d01vMqHyl2NyB3uG2Yh9imiO6_Xk5JvKWUi09k-H-uYpxQyezfPKB36Ij1a6gBqdGRJpFDxkMQ3brtEKDFdDh1Dm00)
 
+### Common Element Signature
 
-
-### Cloud Nested
+All element factories share the same signature:
 
 ```python
-from plantuml_compose import deployment_diagram, render
+el.node(  # or any element type
+    name,
+    *children,             # nested EntityRef elements
+    ref=None,              # short alias for connections (default: sanitized name)
+    stereotype=None,       # str or Stereotype object
+    style=None,            # StyleLike dict for inline visual override
+    description=None,      # text shown below the element name
+)
+```
 
-d = deployment_diagram(title="AWS Infrastructure")
+### Element Descriptions
+
+Any element can show descriptive text below its name:
+
+```python
+server = el.node("app-server-01",
+    description="8 cores, 32GB RAM\nUbuntu 22.04",
+)
+```
+
+### Stereotypes
+
+Pass a string for simple stereotypes, or a `Stereotype` with a `Spot` for a colored indicator:
+
+```python
+from plantuml_compose import deployment_diagram, render, Stereotype, Spot
+
+d = deployment_diagram()
+el = d.elements
+
+# Simple string stereotype
+lb = el.node("Load Balancer", stereotype="nginx")
+
+# Stereotype with colored spot
+primary = el.database("Primary", stereotype=Stereotype("master", Spot("M", "DodgerBlue")))
+
+d.add(lb, primary)
+```
+
+### Deep Nesting
+
+Elements can nest arbitrarily deep. Access children through chained attribute or bracket access:
+
+```python
+d = deployment_diagram()
 el = d.elements
 c = d.connections
 
-aws = el.cloud("AWS",
-    el.node("EC2 Instance",
-        el.component("Web App", ref="webapp"),
+dc = el.frame("Data Center",
+    el.node("Rack 1",
+        el.node("Host A",
+            el.artifact("api.jar", ref="api"),
+            el.artifact("worker.jar", ref="worker"),
+        ),
     ),
-    el.database("RDS PostgreSQL", ref="rds"),
-    el.storage("S3"),
+    el.cloud("CDN",
+        el.artifact("static assets", ref="cdn"),
+    ),
+    el.database("PostgreSQL", ref="pg"),
 )
 
-d.add(aws)
+d.add(dc)
 d.connect(
-    c.arrow(aws.webapp, aws.rds),
-    c.arrow(aws.webapp, aws["S3"]),
+    c.arrow(dc["Rack 1"]["Host A"].api, dc.pg, "JDBC"),
+    c.arrow(dc.CDN.cdn, dc["Rack 1"]["Host A"].api, "origin pull"),
 )
-
-print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/JOun3i8m34NtdCBAtWLsr0eOa1Y039tTn5H8RHB5ZXXGxuuL5WOFzdlV-ZqB5gdhOkGb2y4mEhZ4Pq6MKhtKGiOlgOO6FWOWfa1WpyUTQfgDdcox0_YqvXGf2jYH9XXoje0CRvemPpKsdO224x9-U9mSt1BBNCZThyqiWLLXIGLd0hStc_c5eUiEZVwjYdkAGPj_0G00)
-
-
-
-### Multi-Level Nesting
-
-```python
-from plantuml_compose import deployment_diagram, render
-
-d = deployment_diagram(title="Container Orchestration")
-el = d.elements
-c = d.connections
-
-k8s = el.node("Kubernetes Cluster",
-    el.node("Node 1",
-        el.component("API Pod", ref="api1"),
-        el.component("Worker Pod"),
-    ),
-    el.node("Node 2",
-        el.component("API Pod"),
-        el.database("Redis Pod"),
-    ),
-)
-
-ext_db = el.database("External PostgreSQL", ref="extdb")
-
-d.add(k8s, ext_db)
-d.connect(c.arrow(k8s.api1, ext_db))
-
-print(render(d))
-```
-![Diagram](https://www.plantuml.com/plantuml/svg/VP312i9034Jl-nLXxptK3v1AyI2ALZruJhj15zjisKsX8FrtjwrGzE0ba7d3P4WM1BrqJQt4IasGEnQqJ1vEldfG48zY7IjsXa3lkv8yar20lEw2aDVmKW0pFOupdHM0oZMjOs81lIbsK3YZ0GDWQzDVVdF-6I-EbeY6xy3Ldy19DoXOOeZ-2naRbfX1BMZRnxACTQH1xfwkvyDKXtenfHfBGPAiFsj6RE9BtW00)
-
-
 
 ## Connections
 
-### Arrows
+All connection factories live on `d.connections` (aliased as `c` by convention). Pass results to `d.connect()`.
+
+### Connection Types
 
 ```python
-from plantuml_compose import deployment_diagram, render
-
 d = deployment_diagram()
 el = d.elements
 c = d.connections
 
-api = el.component("API")
-db = el.database("Database")
-cache = el.component("Cache")
+server = el.node("Server")
+db = el.database("DB")
+monitor = el.agent("Monitor")
 
-d.add(api, db, cache)
+d.add(server, db, monitor)
+
 d.connect(
-    # Simple arrow
-    c.arrow(api, db),
-    # With label
-    c.arrow(api, cache, "reads"),
-    # Dotted arrow
-    c.arrow(api, db, "async", style={"line_pattern": "dotted"}),
+    # Arrow (directed, solid line with arrowhead)
+    c.arrow(server, db, "JDBC"),
+
+    # Line (undirected, no arrowhead)
+    c.line(server, monitor, "heartbeat"),
+
+    # Dependency (dotted arrow)
+    c.dependency(server, db, "requires"),
 )
-
-print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr5m3F3aIaaiIKnAB4vLS84oaEIT4vCpKhc0gXHqTUqG2c02O6a5AuMYrCIKOh2edXv26L0YiRWoBvdB8JKl1MWl0000)
 
+### Common Parameters
 
+Every connection method supports:
 
-### Links (No Direction)
+| Parameter | Description |
+|---|---|
+| `label` | Text on the connection (positional argument) |
+| `style=` | `LineStyleLike` -- string (`"dashed"`), dict, or `LineStyle` |
+| `direction=` | `"up"`, `"down"`, `"left"`, `"right"` -- layout hint |
+| `length=` | Connection length (number of dashes) |
+
+### Custom Arrow Heads
+
+Override the default arrowheads on `arrow()` and `line()` with `left_head=` and `right_head=`:
 
 ```python
-from plantuml_compose import deployment_diagram, render
-
-d = deployment_diagram()
-el = d.elements
-c = d.connections
-
-server_a = el.component("Server A")
-server_b = el.component("Server B")
-
-d.add(server_a, server_b)
-# Bidirectional link
-d.connect(c.line(server_a, server_b, "replication"))
-
-print(render(d))
+c.arrow(a, b, left_head="<|", right_head="*")
+c.arrow(a, b, left_head="o", right_head="|>")
+c.line(a, b, left_head="0", right_head="0")
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr5G2aujAaijKd1KmYBefCG5OSKxAkZgAa3PJWfM2aMf1JcPoOabcVbvN0wfUIb0Gm40)
 
+### Line Style
 
-
-### Hub and Spoke (arrows_from)
+The `style=` parameter accepts a string shorthand, a dict, or a `LineStyle` object:
 
 ```python
-from plantuml_compose import deployment_diagram, render
+# String shorthand
+c.arrow(server, db, style="dashed")
 
-d = deployment_diagram(title="Load Balancing")
-el = d.elements
-c = d.connections
-
-lb = el.component("Load Balancer")
-s1 = el.component("Server 1")
-s2 = el.component("Server 2")
-s3 = el.component("Server 3")
-
-d.add(lb, s1, s2, s3)
-# Connect lb to all servers
-d.connect(c.arrows_from(lb, s1, s2, s3))
-
-print(render(d))
+# Dict form
+c.arrow(server, db, style={"pattern": "dotted", "color": "gray", "thickness": 2})
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIh9BCb9LV39JqnHS4hCISnBpinBvqhEpot8pqlDAr5GGf99BL92bWbEBIfBBL8mn2PeX4tGM8aBP5eyp3G5NLqx1OXSl25kAIFSKiPS3gbvAK1l0000)
 
+### Bulk Connection Helpers
 
-
-### Direction Hints
+#### arrows() -- multiple arrows from tuples
 
 ```python
-from plantuml_compose import deployment_diagram, render
-
-d = deployment_diagram()
-el = d.elements
-c = d.connections
-
-web = el.component("Web")
-api = el.component("API")
-db = el.database("Database")
-
-d.add(web, api, db)
-d.connect(
-    c.arrow(web, api, direction="down"),
-    c.arrow(api, db, direction="down"),
-)
-
-print(render(d))
+d.connect(c.arrows(
+    (server, db),
+    (server, cache, "reads"),     # optional label
+    (db, backup),
+))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr48Jqr2uZa6U7Ab99Oa9YKMfoguG1bSG3KAkhefkdPWUI26yk0A75BpKe360W00)
 
-
-
-## Styling
+#### arrows_from() -- fan-out from one source
 
 ```python
-from plantuml_compose import deployment_diagram, render
-
-d = deployment_diagram()
-el = d.elements
-c = d.connections
-
-# Styled elements
-api = el.component("API", style={"background": "LightBlue"})
-db = el.database("Database", style={"background": "LightGreen"})
-
-d.add(api, db)
-# Styled connection
-d.connect(c.arrow(api, db, style={"color": "blue"}))
-
-print(render(d))
+d.connect(c.arrows_from(switch,
+    server1,
+    server2,
+    (storage, "iSCSI"),           # mix bare targets and (target, label) tuples
+    style="dashed",
+    direction="down",
+    length=3,
+))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr5m3F1KKFR9JCyeSSefJULAIIn9J4eiJbLmWJ4Wakv5gQbvN235khhHoab0fR6wTd15N0wfUIb0Sm40)
 
+#### lines() -- multiple undirected links from tuples
 
+```python
+d.connect(c.lines(
+    (switch_a, switch_b),
+    (switch_b, switch_c),
+))
+```
+
+#### lines_from() -- fan-out undirected links from one source
+
+```python
+d.connect(c.lines_from(tor_switch, host1, host2, host3))
+```
+
+All bulk helpers return lists that `d.connect()` flattens automatically.
 
 ## Notes
 
 ```python
-from plantuml_compose import deployment_diagram, render
-
 d = deployment_diagram()
 el = d.elements
-c = d.connections
 
-api = el.component("API")
-db = el.database("Database")
+server = el.node("Server")
+d.add(server)
 
-d.add(api, db)
+# Floating note
+d.note("Production environment")
 
-d.note("Primary instance", target=api)
-d.note("Read replicas available", target=db, position="left")
+# Targeted note with position
+d.note("Primary node", target=server, position="left")
 
-d.connect(c.arrow(api, db))
-
-print(render(d))
+# Colored note
+d.note("Needs upgrade", target=server, position="top", color="#FFCDD2")
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/HOun3i8m40Hxls8_a0-aG46YeOlumSM-m4dsEJeVIFm-1WNHRJ4xkrDpCd-M768jMrLMntc-XaHE2pN6vGX1gpDCxWz7NJ_CYDcaaBqXsYqQ3oRp-aL-pH4tfWJZBKka1dgHP5eoXox1C9p-6nDhwbzs)
 
+**Positions**: `"right"` (default), `"left"`, `"top"`, `"bottom"`
 
+## Layout and Organization
 
-## Complete Example: Production Infrastructure
+### Layout Direction
+
+```python
+d = deployment_diagram(
+    layout="left_to_right",    # "top_to_bottom" (default) or "left_to_right"
+)
+```
+
+## Styling
+
+### Inline Element Style
+
+Any element accepts `style=` as a `StyleLike` dict:
+
+```python
+server = el.node("Server", style={
+    "background": "#E3F2FD",
+    "line": {"color": "#1976D2"},
+    "text_color": "navy",
+})
+```
+
+### Diagram-Wide Styling with diagram_style=
+
+The `diagram_style=` parameter on `deployment_diagram()` applies styles globally. Pass a dict with any of these top-level keys:
+
+| Key | Type | Description |
+|---|---|---|
+| `background` | color | Diagram background |
+| `font_name` | str | Default font family |
+| `font_size` | int | Default font size |
+| `font_color` | color | Default text color |
+| `node` | ElementStyleDict | Style for all nodes |
+| `artifact` | ElementStyleDict | Style for all artifacts |
+| `database` | ElementStyleDict | Style for all databases |
+| `cloud` | ElementStyleDict | Style for all clouds |
+| `component` | ElementStyleDict | Style for all components |
+| `frame` | ElementStyleDict | Style for all frames |
+| `storage` | ElementStyleDict | Style for all storage elements |
+| `folder` | ElementStyleDict | Style for all folders |
+| `package` | ElementStyleDict | Style for all packages |
+| `rectangle` | ElementStyleDict | Style for all rectangles |
+| `queue` | ElementStyleDict | Style for all queues |
+| `stack` | ElementStyleDict | Style for all stacks |
+| `arrow` | DiagramArrowStyleDict | Style for all connection arrows |
+| `note` | ElementStyleDict | Style for all notes |
+| `title` | ElementStyleDict | Style for the title |
+| `stereotypes` | dict | Style by stereotype name |
+
+**ElementStyleDict keys**: `background`, `line_color`, `font_color`, `font_name`, `font_size`, `font_style`, `round_corner`, `line_thickness`, `line_style`, `padding`, `margin`, `horizontal_alignment`, `max_width`, `shadowing`, `diagonal_corner`, `word_wrap`, `hyperlink_color`
+
+**DiagramArrowStyleDict keys**: `line_color`, `line_thickness`, `line_pattern`, `font_color`, `font_name`, `font_size`
+
+```python
+d = deployment_diagram(
+    title="Styled Topology",
+    diagram_style={
+        "background": "white",
+        "node": {"background": "#E3F2FD", "line_color": "#1976D2"},
+        "artifact": {"background": "#FFF9C4"},
+        "database": {"background": "#FFF3E0", "line_color": "#E65100"},
+        "cloud": {"background": "#E8F5E9"},
+        "frame": {"background": "#F5F5F5"},
+        "storage": {"background": "#FCE4EC"},
+        "queue": {"background": "#E8EAF6"},
+        "arrow": {"line_color": "#757575", "font_size": 11},
+        "note": {"background": "#FFFDE7"},
+        "stereotypes": {
+            "master": {"background": "#C8E6C9", "font_style": "bold"},
+            "replica": {"background": "#FFECB3"},
+        },
+    },
+)
+```
+
+## Advanced Features
+
+### Diagram Metadata
+
+```python
+from plantuml_compose import deployment_diagram, render, Header, Footer, Legend, Scale
+
+d = deployment_diagram(
+    title="Production DC",
+    mainframe="US-East-1",
+    caption="Generated 2025-01-15",
+    header=Header(content="Confidential", alignment="right"),
+    footer="Page %page%",
+    legend=Legend(content="Blue = compute\nOrange = storage", position="bottom"),
+    scale=1.5,
+    theme="plain",
+)
+```
+
+### String References
+
+You can use raw strings instead of `EntityRef` objects for connections:
+
+```python
+d.connect(c.arrow("Server", "Database", "JDBC"))
+```
+
+### Full Topology Example
 
 ```python
 from plantuml_compose import deployment_diagram, render
 
-d = deployment_diagram(title="Production Environment")
+d = deployment_diagram(title="K8s Cluster", layout="left_to_right")
 el = d.elements
 c = d.connections
 
-# External users
-user = el.actor("Users")
-
-# CDN and Load Balancer
-cdn = el.cloud("CloudFront CDN")
-lb = el.component("ALB", stereotype="load-balancer")
-
-# Application tier
-vpc = el.cloud("AWS VPC",
-    el.node("App Subnet",
-        el.node("ECS Cluster",
-            el.component("API Service", ref="api"),
-            el.component("Worker Service", ref="worker"),
-        ),
+cluster = el.frame("Kubernetes",
+    el.node("Control Plane",
+        el.component("API Server", ref="api"),
+        el.component("etcd", ref="etcd"),
+        el.component("Scheduler", ref="sched"),
     ),
-    el.node("Data Subnet",
-        el.database("RDS PostgreSQL", ref="rds"),
-        el.database("ElastiCache Redis", ref="redis"),
+    el.node("Worker 1",
+        el.artifact("Pod: web", ref="web1"),
+        el.artifact("Pod: api", ref="api1"),
+    ),
+    el.node("Worker 2",
+        el.artifact("Pod: web", ref="web2"),
+        el.artifact("Pod: worker", ref="wrk"),
     ),
 )
 
-# External services
-s3 = el.storage("S3 Assets")
-sqs = el.queue("SQS Queue")
+lb = el.cloud("Load Balancer", ref="lb")
+db = el.database("PostgreSQL", ref="pg")
+user = el.actor("User")
 
-d.add(user, cdn, lb, vpc, s3, sqs)
+d.add(cluster, lb, db, user)
 
-# Connections
 d.connect(
-    c.arrow(user, cdn),
-    c.arrow(cdn, lb),
-    c.arrow(lb, vpc.api),
-    c.arrow(vpc.api, vpc.rds),
-    c.arrow(vpc.api, vpc.redis),
-    c.arrow(vpc.api, s3),
-    c.arrow(vpc.api, sqs),
-    c.arrow(sqs, vpc.worker),
-    c.arrow(vpc.worker, vpc.rds),
+    c.arrow(user, lb, "HTTPS"),
+    c.arrows_from(lb, cluster["Worker 1"].web1, cluster["Worker 2"].web2),
+    c.arrow(cluster["Worker 1"].api1, db, "SQL"),
+    c.arrow(cluster["Worker 2"].wrk, db, "SQL"),
+    c.arrow(cluster["Control Plane"].api, cluster["Control Plane"].etcd, "state"),
 )
-
-print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/PP91Rm8X48Nl_8h9tlVarHYtgqsQc6PNqdeq21DBYh1bm1uQ_tk1xMgq1yBZyIrlyh9B2iA7U38iw60GEkzKb44x2sjxrjxP4zh0X0pEmnkX9oQDYmggDc_F2GZGhbuh9jrfS3R1q6oUO3utJgZw88om4lrYCNtMx3YyTsq5Fmp0EeN96WRWyM0nZExahriEhOaKq4yN0BUOgkbUWAC_QuaL208nwF_GplbFz7VSTx4AUc7Z6WDN8eY7ILIo3eBIvNR5eNCKZXvvloaFUKKFqDe82heLyWDXYqhJo6LLaYwCKf7Yc50-WuO80rNiAsBCJi-Xpx9YfMcewmNSQjwdcjdziH2fRfOhppfNa5RHURghBXDC9pxRZz4tf-Vx4iskglX_LOtRzTKbMfL-cLy0)
-
-
 
 ## Quick Reference
 
-### Basic Elements
+### Element Factories
 
-| Method | Description |
-|--------|-------------|
-| `el.component(name)` | Software component |
-| `el.database(name)` | Database (cylinder) |
-| `el.artifact(name)` | Deployable file |
-| `el.storage(name)` | Storage system |
-| `el.queue(name)` | Message queue |
+All elements share the signature `el.<type>(name, *children, ref=, stereotype=, style=, description=)`.
+
+| Factory | Shape |
+|---|---|
+| `el.node(name)` | 3D box |
+| `el.artifact(name)` | Artifact icon |
+| `el.component(name)` | Component |
+| `el.database(name)` | Cylinder |
+| `el.storage(name)` | Storage unit |
 | `el.cloud(name)` | Cloud |
-| `el.actor(name)` | User/external system |
-| `el.file(name)` | File |
-| `el.folder(name)` | Folder |
+| `el.frame(name)` | Frame with title |
+| `el.folder(name)` | Folder icon |
+| `el.package(name)` | Tab folder |
+| `el.rectangle(name)` | Plain rectangle |
+| `el.queue(name)` | Queue |
+| `el.stack(name)` | Stack |
+| `el.file(name)` | File icon |
+| `el.actor(name)` | Stick figure |
+| `el.interface(name)` | Interface circle |
+| `el.agent(name)` | Agent |
+| `el.boundary(name)` | Boundary |
+| `el.card(name)` | Card |
+| `el.circle(name)` | Circle |
+| `el.collections(name)` | Stacked copies |
+| `el.control(name)` | Control |
+| `el.entity(name)` | Entity |
+| `el.hexagon(name)` | Hexagon |
+| `el.label_(name)` | Plain text |
+| `el.person(name)` | Person |
+| `el.process(name)` | Process |
+| `el.usecase(name)` | Ellipse |
+| `el.action(name)` | Action |
+| `el.port(name)` | Bidirectional port |
+| `el.portin(name)` | Input port |
+| `el.portout(name)` | Output port |
 
-### Nesting
+### Connection Factories
 
-| Pattern | Description |
-|---------|-------------|
-| `el.node(name, *children)` | Node with children |
-| `el.cloud(name, *children)` | Cloud with children |
-| `el.database(name, *children)` | Database with children |
-| `el.folder(name, *children)` | Folder with children |
-| `el.frame(name, *children)` | Frame with children |
-| `el.package(name, *children)` | Package with children |
-| `el.rectangle(name, *children)` | Rectangle with children |
+| Factory | Arrow | Meaning |
+|---|---|---|
+| `c.arrow(src, tgt, label)` | `-->` | Directed connection |
+| `c.line(src, tgt, label)` | `--` | Undirected connection |
+| `c.dependency(src, tgt, label)` | `..>` | Dotted dependency |
 
-### Connections
+### Bulk Helpers
 
-| Method | Description |
-|--------|-------------|
-| `c.arrow(a, b)` | Arrow connection |
-| `c.line(a, b)` | Line (no arrow) |
-| `c.arrows_from(source, *targets)` | Fan-out arrows |
-| `d.note(text, target=ref)` | Add note |
+| Helper | Purpose |
+|---|---|
+| `c.arrows(*tuples)` | Multiple arrows |
+| `c.arrows_from(src, *targets)` | Fan-out from one source |
+| `c.lines(*tuples)` | Multiple undirected links |
+| `c.lines_from(src, *targets)` | Fan-out undirected links |
+
+### Composer Options
+
+| Parameter | Default | Description |
+|---|---|---|
+| `title=` | None | Diagram title |
+| `mainframe=` | None | Frame around entire diagram |
+| `caption=` | None | Caption below diagram |
+| `header=` | None | Header text or Header object |
+| `footer=` | None | Footer text or Footer object |
+| `legend=` | None | Legend text or Legend object |
+| `scale=` | None | Scale factor or Scale object |
+| `theme=` | None | PlantUML theme name |
+| `layout=` | None | `"top_to_bottom"` or `"left_to_right"` |
+| `diagram_style=` | None | Global styling dict |

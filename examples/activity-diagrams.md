@@ -1,8 +1,6 @@
 # Activity Diagrams
 
-> **Note:** Activity diagrams do not yet have a composer API. The code examples below use the old builder API and will be updated when the activity composer is available.
-
-Activity diagrams show workflows with decisions and parallel execution. They're ideal for:
+Activity diagrams show workflows with decisions and parallel execution. They are ideal for:
 
 - **Business processes**: Order fulfillment, approval workflows
 - **Algorithms**: Code flow with branching logic
@@ -11,574 +9,1189 @@ Activity diagrams show workflows with decisions and parallel execution. They're 
 
 Unlike state diagrams (which track one entity's lifecycle), activity diagrams show step-by-step processes with decision points and parallelism.
 
-## Core Concepts
-
-**Action**: A step in the workflow (rounded rectangle).
-
-**Decision**: Branch based on conditions (if/else, switch).
-
-**Fork/Join**: Split into parallel paths, then synchronize.
-
-**Swimlane**: Organize actions by actor or department.
-
-## Your First Activity Diagram
+## Quick Start
 
 ```python
-from plantuml_compose import activity_diagram
+from plantuml_compose import activity_diagram, render
 
-with activity_diagram(title="Simple Process") as d:
-    d.start()
-    d.action("Receive Request")
-    d.action("Process Request")
-    d.action("Send Response")
-    d.stop()
+d = activity_diagram(title="Order Process")
+el = d.elements
 
-print(d.render())
+d.add(
+    el.start(),
+    el.action("Receive Order"),
+    el.action("Process Order"),
+    el.action("Ship Order"),
+    el.stop(),
+)
+
+print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIh9BCb9LGZEp2q0KW55-ScfnSLSO5akgw3KvDJCibI5eDJ2qjJY4cikAwW2997WrBmK8BUu83-lEDKQg3E_WCi1A0Oq6m00)
 
+The pattern is:
+1. Create a composer with `activity_diagram()`
+2. Get the namespace: `el = d.elements`
+3. Build the flow with `d.add(el.start(), el.action(...), el.stop())`
+4. Everything is sequential -- items are rendered in the order added
+5. Render with `render(d)`
 
+## Elements
 
-## Actions
+### Actions
 
-### Basic Actions
+The basic building block. Actions are rounded rectangles by default, with optional SDL shapes and stereotypes:
 
 ```python
-from plantuml_compose import activity_diagram
+from plantuml_compose import activity_diagram, render
 
-with activity_diagram() as d:
-    d.start()
+d = activity_diagram()
+el = d.elements
 
-    # Simple action
-    d.action("Validate Input")
+d.add(
+    el.start(),
 
-    # Action with styling
-    d.action("Important Step", style={"background": "yellow"})
+    # Basic action
+    el.action("Process Request"),
 
-    d.stop()
+    # Action with inline style (background color)
+    el.action("Critical Step", style={"background": "#FFCDD2"}),
 
-print(d.render())
+    # Action with gradient background (two colors)
+    el.action("Gradient Step", style={"background": {"start": "#4CAF50", "end": "#81C784"}}),
+
+    # Action with UML stereotype
+    el.action("Read Input", stereotype="input"),
+
+    el.stop(),
+)
+
+print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkAp24dCoKn9BKXKyymfAIwovb2jJStBoowqySmloYqeIyqeKWajI2wo1olCBk1nIyrA0UW40)
 
+### SDL Shapes
 
-
-### Arrow Labels
+Actions can use SDL (Specification and Description Language) shapes:
 
 ```python
-from plantuml_compose import activity_diagram
+from plantuml_compose import activity_diagram, render
 
-with activity_diagram() as d:
-    d.start()
-    d.action("Step 1")
+d = activity_diagram()
+el = d.elements
 
-    # Labeled arrow
-    d.arrow("proceed")
+d.add(
+    el.start(),
+    el.action("Standard Action", shape="default"),       # :text;  rounded rectangle
+    el.action("Start/End Shape", shape="start_end"),      # :text|  stadium/pill
+    el.action("Receive Event", shape="receive"),           # :text<  left-pointing flag
+    el.action("Send Signal", shape="send"),                # :text>  right-pointing flag
+    el.action("Data Flow", shape="slant"),                 # :text/  parallelogram
+    el.action("Document", shape="document"),               # :text]  wavy bottom
+    el.action("Database Op", shape="database"),            # :text}  cylinder
+    el.stop(),
+)
 
-    d.action("Step 2")
-
-    # Styled arrow
-    d.arrow(pattern="dashed", style={"color": "gray"})
-
-    d.action("Step 3")
-    d.stop()
-
-print(d.render())
+print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkAo2Ir8B50ojkNHrxHGAYlAJKrDJhA6YHa3HQENqeiHAdPJ4uepKb5XTEwYKiJLGVtu1bqDgNWhGC000)
 
+| Shape | PlantUML | Visual |
+|-------|----------|--------|
+| `"default"` | `:text;` | Rounded rectangle |
+| `"start_end"` | `:text\|` | Stadium/pill |
+| `"receive"` | `:text<` | Left-pointing flag |
+| `"send"` | `:text>` | Right-pointing flag |
+| `"slant"` | `:text/` | Parallelogram |
+| `"document"` | `:text]` | Document (wavy bottom) |
+| `"database"` | `:text}` | Cylinder |
 
+### Stereotypes on Actions
 
-## Decisions
-
-### If/Else
+UML stereotypes classify actions visually:
 
 ```python
-from plantuml_compose import activity_diagram
+from plantuml_compose import activity_diagram, render
 
-with activity_diagram(title="Validation") as d:
-    d.start()
-    d.action("Get Input")
+d = activity_diagram()
+el = d.elements
 
-    with d.if_("Valid?", then_label="yes") as branch:
-        branch.action("Process")
+d.add(
+    el.start(),
+    el.action("Read Config", stereotype="input"),
+    el.action("Transform Data", stereotype="process"),
+    el.action("Send Notification", stereotype="sendSignal"),
+    el.action("Wait for Response", stereotype="timeEvent"),
+    el.stop(),
+)
 
-        with branch.else_("no") as else_branch:
-            else_branch.action("Show Error")
-
-    d.action("Continue")
-    d.stop()
-
-print(d.render())
+print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/7Oqn2iCm34LtdKAZSmLxQA24qArGw6uQXGXSASWoeRUlyVhUv_svUZPltmBENWZVkV2MdLLW68WhEJxaR9w0TmnZS9lG3n8CFweJ8CQdwOTgJK2b4WRHGL-7NhYOgNKX6-yGxohEqYZrl9umTzpF_m00)
 
+### Action Parameters
 
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `label` | `str \| Label` | required | Action text |
+| `shape=` | `ActionShape` | `"default"` | SDL shape type |
+| `style=` | `StyleLike \| None` | `None` | Background color/gradient only |
+| `stereotype=` | `str \| None` | `None` | UML stereotype (<<name>>) |
+
+### Start, Stop, and End
+
+```python
+from plantuml_compose import activity_diagram, render
+
+d = activity_diagram()
+el = d.elements
+
+d.add(
+    el.start(),       # Filled black circle
+    el.action("Do something"),
+    el.stop(),        # Filled circle with border (normal termination)
+)
+
+print(render(d))
+```
+
+```python
+from plantuml_compose import activity_diagram, render
+
+d = activity_diagram()
+el = d.elements
+
+d.add(
+    el.start(),
+    el.action("Do something"),
+    el.end(),         # Circle with X (alternative termination)
+)
+
+print(render(d))
+```
+
+## Arrows
+
+Customize the arrows between actions:
+
+```python
+from plantuml_compose import activity_diagram, render
+
+d = activity_diagram()
+el = d.elements
+
+d.add(
+    el.start(),
+    el.action("Step 1"),
+
+    # Arrow with a label
+    el.arrow("next step"),
+    el.action("Step 2"),
+
+    # Dashed arrow
+    el.arrow("async", pattern="dashed"),
+    el.action("Step 3"),
+
+    # Dotted arrow
+    el.arrow(pattern="dotted"),
+    el.action("Step 4"),
+
+    # Hidden arrow (connects but invisible)
+    el.arrow(pattern="hidden"),
+    el.action("Step 5"),
+
+    # Styled arrow (color and bold)
+    el.arrow("important", style={"color": "red", "bold": True}),
+    el.action("Step 6"),
+
+    # Color-only string shorthand
+    el.arrow(style="blue"),
+    el.action("Step 7"),
+
+    el.stop(),
+)
+
+print(render(d))
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `label` | `str \| Label \| None` | `None` | Arrow label text |
+| `pattern=` | `"solid" \| "dashed" \| "dotted" \| "hidden"` | `"solid"` | Line pattern |
+| `style=` | `LineStyleLike \| None` | `None` | Color, bold, thickness |
+
+## Control Flow
 
 ### If/ElseIf/Else
 
 ```python
-from plantuml_compose import activity_diagram
+from plantuml_compose import activity_diagram, render
 
-with activity_diagram(title="Grade Calculator") as d:
-    d.start()
-    d.action("Get Score")
+d = activity_diagram()
+el = d.elements
 
-    with d.if_("Score >= 90?", then_label="A") as branch:
-        branch.action("Excellent!")
+d.add(
+    el.start(),
 
-        with branch.elseif("Score >= 80?", then_label="B") as elif_b:
-            elif_b.action("Good!")
+    # Simple if/else
+    el.if_("Valid?", [
+        el.action("Process"),
+    ], "no", [
+        el.action("Reject"),
+    ], then_label="yes"),
 
-        with branch.elseif("Score >= 70?", then_label="C") as elif_c:
-            elif_c.action("Passing")
+    el.stop(),
+)
 
-        with branch.else_("F") as else_branch:
-            else_branch.action("Needs Improvement")
-
-    d.stop()
-
-print(d.render())
+print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/RS_12i8m30RWUvuYthQRDtL3dGuTNaJm2SgQQI5jHvk9Zs-fXo5u-yd_GP8cYWeoMGOnmeHTK9gmLTnFhCG7o3rK7GdUUn-e1ZDWaIFkjhXPxakK9pai3YKWLgTtJypaP543SQGVlPxrCUlEU_qFhcROPdXJCHht-58ipdbu9T8HBtOC_aKsxKorqsP8H_iHcfJJOny0)
 
+```python
+from plantuml_compose import activity_diagram, render
 
+d = activity_diagram()
+el = d.elements
+
+d.add(
+    el.start(),
+
+    # If/elseif/else chain
+    # Extra branches are alternating (label, events) pairs
+    # Non-last branches with string labels become elseif conditions
+    # The last branch becomes the else
+    el.if_("Score >= 90?", [
+        el.action("Grade: A"),
+    ], "Score >= 80?", [
+        el.action("Grade: B"),
+    ], "Score >= 70?", [
+        el.action("Grade: C"),
+    ], None, [
+        el.action("Grade: F"),
+    ], then_label="A"),
+
+    el.stop(),
+)
+
+print(render(d))
+```
+
+The first positional `events` list is the "then" branch. Additional branches are alternating `(label, events)` pairs. The last branch is the "else". Use `then_label=` to label the "then" arrow.
 
 ### Switch/Case
 
 ```python
-from plantuml_compose import activity_diagram
+from plantuml_compose import activity_diagram, render
 
-with activity_diagram(title="Type Handler") as d:
-    d.start()
-    d.action("Get Request")
+d = activity_diagram()
+el = d.elements
 
-    with d.switch("Request Type?") as sw:
-        with sw.case("GET") as get_case:
-            get_case.action("Handle GET")
+d.add(
+    el.start(),
 
-        with sw.case("POST") as post_case:
-            post_case.action("Handle POST")
+    # Cases are (label, events) tuples as positional args
+    el.switch("Request Type?",
+        ("GET", [el.action("Handle GET")]),
+        ("POST", [el.action("Handle POST")]),
+        ("DELETE", [el.action("Handle DELETE")]),
+    ),
 
-        with sw.case("DELETE") as delete_case:
-            delete_case.action("Handle DELETE")
+    el.stop(),
+)
 
-    d.action("Send Response")
-    d.stop()
-
-print(d.render())
+print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/LOun3i8m34Ltdy9ZUuLae0DH6P10RIuGjPQe5D9GkqBS7jCK2JR__sJxDInXaVKUGIQ9XFwL2KyXZP4Ms1YObWGxUgp4Oe6VammthFPYMpZKC0Gch5hdQq0qvG1gj3kvNle_zCbVTdHdvzqlBOq5IcFv1wRNMIqupub9DMJEq6Ydwcy0)
-
-
-
-## Loops
 
 ### While Loop
 
 ```python
-from plantuml_compose import activity_diagram
+from plantuml_compose import activity_diagram, render
 
-with activity_diagram(title="Processing Loop") as d:
-    d.start()
-    d.action("Initialize")
+d = activity_diagram()
+el = d.elements
 
-    with d.while_("More items?", is_label="yes", endwhile_label="no") as loop:
-        loop.action("Process Item")
-        loop.action("Update Counter")
+d.add(
+    el.start(),
 
-    d.action("Finalize")
-    d.stop()
+    el.while_("Items remaining?", [
+        el.action("Process next item"),
+    ],
+        is_label="yes",            # label on the "true" path
+        endwhile_label="no more",  # label on the "exit" path
+        backward_action="increment counter",  # label on the backward arrow
+    ),
 
-print(d.render())
+    el.stop(),
+)
+
+print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/BOv12iCm30JlUeMEyHViGmE5Gg25Nle0auXMu4Z1KYZjw-iKNtUMsHtDS_LzBU3iXV1UTIOpbYTULJVuOuYJi7Ck_AK4xnUtud3JIiXEgvq2ik7m8Gk06Bi2fyRI4Jos9JlXMNTngWb8bkuG3H0lBDritXR7XjkV7m00)
 
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `condition` | `str` | Loop condition text |
+| `events` | `list` | Loop body |
+| `is_label=` | `str \| None` | "True" path label |
+| `endwhile_label=` | `str \| None` | "Exit" path label |
+| `backward_action=` | `str \| None` | Backward arrow label |
 
-
-### Repeat-While (Do-While)
+### Repeat (Do-While)
 
 ```python
-from plantuml_compose import activity_diagram
+from plantuml_compose import activity_diagram, render
 
-with activity_diagram(title="Retry Logic") as d:
-    d.start()
+d = activity_diagram()
+el = d.elements
 
-    with d.repeat(condition="Success?", is_label="no", not_label="yes") as loop:
-        loop.action("Attempt Operation")
+d.add(
+    el.start(),
 
-    d.action("Done")
-    d.stop()
+    el.repeat([
+        el.action("Attempt connection"),
+    ],
+        condition="Connected?",        # exit condition
+        is_label="no",                 # label for "repeat" path
+        not_label="yes, done",         # label for "exit" path
+        backward_action="wait 5s",     # backward arrow label
+        start_label="retry loop",      # label at the top of the loop
+    ),
 
-print(d.render())
+    el.stop(),
+)
+
+print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/BOr12W8n34NtEKMMxHLc5exWKX3q1AK63SmafVc3pEqjulhntbi2fMFVLe9Y5RuB-i5NVscb7w8kJGg8UJe3iZNmhKalKBVv3_dprk6cnrwhH9moQt0opsmEJeT4fkdY9lDeUgD5x3cMNm00)
 
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `events` | `list` | Loop body |
+| `condition=` | `str \| None` | Exit condition |
+| `is_label=` | `str \| None` | "Repeat" path label |
+| `not_label=` | `str \| None` | "Exit" path label |
+| `backward_action=` | `str \| None` | Backward arrow label |
+| `start_label=` | `str \| None` | Label at loop start |
 
+### Break
 
-### Break from Loop
+Break out of an enclosing loop:
 
 ```python
-from plantuml_compose import activity_diagram
+from plantuml_compose import activity_diagram, render
 
-with activity_diagram() as d:
-    d.start()
+d = activity_diagram()
+el = d.elements
 
-    with d.while_("Processing") as loop:
-        loop.action("Process Item")
+d.add(
+    el.start(),
 
-        with loop.if_("Error?") as check:
-            check.break_()  # Exit the loop
+    el.while_("Processing?", [
+        el.action("Process item"),
+        el.if_("Error?", [
+            el.action("Log error"),
+            el.break_(),   # exits the while loop
+        ], "no", [
+            el.action("Continue"),
+        ]),
+    ]),
 
-    d.stop()
+    el.stop(),
+)
 
-print(d.render())
+print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkCepCdDI5JG2YlAJKukBC_FIDRaK5AoWN0NFajHSQw10Pfg2XcjHKNwHlQP2IKPg7b18GI6fA3Kn6yXApKl9JEC2ac2pWERc5t0v0Bb0Im00)
-
-
 
 ## Parallel Execution
 
-### Fork and Join
+### Fork (With Synchronization Bar)
+
+Fork splits into parallel branches and synchronizes at the end:
 
 ```python
-from plantuml_compose import activity_diagram
+from plantuml_compose import activity_diagram, render
 
-with activity_diagram(title="Parallel Tasks") as d:
-    d.start()
-    d.action("Receive Order")
+d = activity_diagram()
+el = d.elements
 
-    with d.fork() as f:
-        with f.branch() as b1:
-            b1.action("Check Inventory")
+d.add(
+    el.start(),
 
-        with f.branch() as b2:
-            b2.action("Process Payment")
+    # Each branch is a list of elements as positional args
+    el.fork(
+        [el.action("Task A1"), el.action("Task A2")],
+        [el.action("Task B1")],
+        [el.action("Task C1"), el.action("Task C2"), el.action("Task C3")],
+    ),
 
-        with f.branch() as b3:
-            b3.action("Generate Invoice")
+    el.action("All tasks complete"),
+    el.stop(),
+)
 
-    d.action("Ship Order")
-    d.stop()
-
-print(d.render())
+print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/NSun3i8m38NXtQVmETAb4WDYeW8kOAKF6YLDAiTKwkr9YrYOF-j_xgk9sdjEPC4IU12Lb93u8JLMEfJS3HvX1LzrX7RqB1g9sPqc-CYNl29RqUqBB2y9UUT1YqUjhRdDxUAVpyXGCUo14ZmwGXxvQBlx59RVMhMoKD-iVVa1)
 
+#### Fork End Styles
 
-
-### Split (No Sync Bar)
+Control how the fork block ends:
 
 ```python
-from plantuml_compose import activity_diagram
+from plantuml_compose import activity_diagram, render
 
-with activity_diagram() as d:
-    d.start()
+d = activity_diagram()
+el = d.elements
 
-    with d.split() as s:
-        with s.branch() as b1:
-            b1.action("Path A")
+d.add(
+    el.start(),
 
-        with s.branch() as b2:
-            b2.action("Path B")
+    # "fork" (default): end fork (synchronization bar)
+    el.fork(
+        [el.action("Path 1")],
+        [el.action("Path 2")],
+        end_style="fork",
+    ),
 
-    d.stop()
+    el.action("After fork sync"),
+    el.stop(),
+)
 
-print(d.render())
+print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pk8eBSZ9Bk1GKh08IIp8K7AqX0Wg9wOcPUN1X9skkrBmK1OZQufBy0Yu781ze2000)
 
+| `end_style` | PlantUML | Meaning |
+|-------------|----------|---------|
+| `"fork"` | `end fork` | Synchronization bar (default) |
+| `"merge"` | `end merge` | Merge without sync |
+| `"or"` | `fork again` | OR semantics |
+| `"and"` | `end fork {and}` | AND semantics |
 
+### Split (No Synchronization Bar)
 
-## Swimlanes
-
-Organize actions by actor, department, or system:
+Parallel paths without a visible sync bar:
 
 ```python
-from plantuml_compose import activity_diagram
+from plantuml_compose import activity_diagram, render
 
-with activity_diagram(title="Order Process") as d:
-    d.swimlane("Customer")
-    d.start()
-    d.action("Place Order")
+d = activity_diagram()
+el = d.elements
 
-    d.swimlane("Sales")
-    d.action("Verify Order")
+d.add(
+    el.start(),
 
-    d.swimlane("Warehouse")
-    d.action("Pick Items")
-    d.action("Pack Items")
+    el.split(
+        [el.action("Path 1"), el.action("Merge back")],
+        [el.action("Path 2"), el.action("Merge back")],
+    ),
 
-    d.swimlane("Shipping")
-    d.action("Ship Order")
+    el.stop(),
+)
 
-    d.swimlane("Customer")
-    d.action("Receive Order")
-    d.stop()
-
-print(d.render())
+print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/HOwn2iCm34HtVOM_8ra2dJhLDD3Enb4RKJisaXme-EFhbk9iTwTtd2PHnrfY02KDQ2wy81lBoQC8r5CHJH6vme-3mGRd_zG8TNO1fS9mGwR7kyTtnxYc8jXEblpBd1MZZCsumzHvfPnfUpReAtlxs1okw97sljVo31DkI_lt0m00)
 
+## Organization
 
+### Swimlanes
 
-### Colored Swimlanes
+Vertical partitions showing responsibility:
 
 ```python
-from plantuml_compose import activity_diagram
+from plantuml_compose import activity_diagram, render
 
-with activity_diagram() as d:
-    d.swimlane("Frontend", color="LightBlue")
-    d.start()
-    d.action("User Input")
+d = activity_diagram(title="Order Process")
+el = d.elements
 
-    d.swimlane("Backend", color="LightGreen")
-    d.action("Process Request")
+d.add(
+    el.start(),
 
-    d.swimlane("Database", color="LightYellow")
-    d.action("Store Data")
+    # Switch to a swimlane (creates header)
+    el.swimlane("Customer"),
+    el.action("Place Order"),
 
-    d.stop()
+    # display_name= shows a different label in the header
+    el.swimlane("warehouse", display_name="Warehouse Team"),
+    el.action("Pick Items"),
+    el.action("Pack Order"),
 
-print(d.render())
+    # color= sets the lane background
+    el.swimlane("shipping", color="#E8F5E9", display_name="Shipping"),
+    el.action("Ship Package"),
+
+    el.swimlane("Customer"),
+    el.action("Receive Package"),
+
+    el.stop(),
+)
+
+print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/HSwn2i9040JG_hxYmBz8cX144In4iR1Suw3YUHjtzqYp7vyp8BOpZs4wDH8hxnHyjN_U7zQd0jy8PqE-ULZgq9mL4dTvBDR-u5Q0x3qDhmKs1-41gl68Ju7-tGKfyUHhChgIeigJiI1-WxRkynYwkb0lp000)
 
-
-
-## Grouping
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` | `str` | Lane identifier (used to switch back) |
+| `color` | `ColorLike \| None` | Lane background color |
+| `display_name=` | `str \| None` | Visual label (instead of `name`) |
 
 ### Partition
 
+Visual grouping box around activities:
+
 ```python
-from plantuml_compose import activity_diagram
+from plantuml_compose import activity_diagram, render
 
-with activity_diagram() as d:
-    d.start()
+d = activity_diagram()
+el = d.elements
 
-    with d.partition("Validation", color="LightBlue") as p:
-        p.action("Check Format")
-        p.action("Verify Data")
+d.add(
+    el.start(),
 
-    with d.partition("Processing") as p:
-        p.action("Transform")
-        p.action("Calculate")
+    el.partition("Validation", [
+        el.action("Check input"),
+        el.action("Verify credentials"),
+    ], color="#E3F2FD"),
 
-    d.stop()
+    el.partition("Processing", [
+        el.action("Transform data"),
+        el.action("Save results"),
+    ]),
 
-print(d.render())
+    el.stop(),
+)
+
+print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/JOwn2iCm34HtVOLm_w9PGXCwTUXGiWj7IKGTEzZo44h_lNQwP3aU1--uDYb5pQk30s0h8Ih1end8oKYL3LuUCYzwSvdn0uZNRc7xndk8AsbJYu6ZJ3lsfDJ0zpppZC5oIk9dytTVaNoQYdg87JcR7IbNBMdOe6K_baC_)
 
+#### Partition Keyword Variants
 
+The same grouping box rendered with different PlantUML keywords:
+
+```python
+from plantuml_compose import activity_diagram, render
+
+d = activity_diagram()
+el = d.elements
+
+d.add(
+    el.start(),
+
+    # partition (default keyword)
+    el.partition("Standard Partition", [
+        el.action("Step 1"),
+    ]),
+
+    # package keyword
+    el.package("Package Group", [
+        el.action("Step 2"),
+    ]),
+
+    # rectangle keyword
+    el.rectangle("Rectangle Group", [
+        el.action("Step 3"),
+    ], color="#FFF9C4"),
+
+    # card keyword
+    el.card("Card Group", [
+        el.action("Step 4"),
+    ]),
+
+    el.stop(),
+)
+
+print(render(d))
+```
 
 ### Group
 
-```python
-from plantuml_compose import activity_diagram
-
-with activity_diagram() as d:
-    d.start()
-
-    with d.group("Authentication") as g:
-        g.action("Get Credentials")
-        g.action("Verify Token")
-
-    d.action("Process Request")
-    d.stop()
-
-print(d.render())
-```
-![Diagram](https://www.plantuml.com/plantuml/svg/7Osn3eCm30LtVuM_WomWXgweghf7y2WHDAQsCo34lnVOJZVSrUPHlNmNke4-AcNbflY4xAcFdYJpJipL0ywjOhXyN2nSxWrDuyOlcP437LHrAZtC-8bVWNaugx9IZJoSYpy0)
-
-
-
-## Flow Control
-
-### Kill (Abnormal Termination)
+Minimal visual grouping (lighter than partition):
 
 ```python
-from plantuml_compose import activity_diagram
+from plantuml_compose import activity_diagram, render
 
-with activity_diagram() as d:
-    d.start()
-    d.action("Process")
-    d.action("Detect Fatal Error")
-    d.kill()  # X symbol - abnormal termination
+d = activity_diagram()
+el = d.elements
 
-print(d.render())
+d.add(
+    el.start(),
+
+    el.group("Setup Phase", [
+        el.action("Initialize"),
+        el.action("Configure"),
+    ]),
+
+    el.group("Execution Phase", [
+        el.action("Run"),
+        el.action("Verify"),
+    ]),
+
+    el.stop(),
+)
+
+print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkAm2YlAJKukBhRciN59BKfDB5DmIIn9p55oBYlABhBcoCtDok1nIyrA0EW00)
-
-
-
-### End (Alternative Stop)
-
-```python
-from plantuml_compose import activity_diagram
-
-with activity_diagram() as d:
-    d.start()
-    d.action("Normal Path")
-    d.action("Complete")
-    d.end()  # Circle with X - alternative to stop()
-
-print(d.render())
-```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkApyyejo4tCK0X9BCgovh9ppSmjoKajIhRbIyrAu7804K2a0)
-
-
-
-### Detach (Async Path)
-
-```python
-from plantuml_compose import activity_diagram
-
-with activity_diagram() as d:
-    d.start()
-
-    with d.fork() as f:
-        with f.branch() as main:
-            main.action("Main Flow")
-
-        with f.branch() as async_branch:
-            async_branch.action("Background Task")
-            async_branch.detach()  # Continues independently
-
-    d.action("Main Continues")
-    d.stop()
-
-print(d.render())
-```
-![Diagram](https://www.plantuml.com/plantuml/svg/9OrB3e0W34JtFKNF8HkYYJjtNg01H09ImoTUtugxoPky6LqRbTQl12F0mIK2uhHHoBWcVjH0I5x0LynaeY_SiyMTQbJ2h6jaJd22XlxB2-SMSdTLoJJVeAMNdnS0)
-
-
-
-### Connectors (Goto-like)
-
-```python
-from plantuml_compose import activity_diagram
-
-with activity_diagram() as d:
-    d.start()
-    d.action("Start Processing")
-
-    d.connector("A")  # Define connector point
-
-    d.action("Process Item")
-
-    with d.if_("More?") as check:
-        check.connector("A")  # Jump back to A
-
-        with check.else_() as else_branch:
-            else_branch.action("Done")
-
-    d.stop()
-
-print(d.render())
-```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkAo2GPH2G55-ScfnSMPUkZMNXgCcbnLKGC6p93NNcYipJK73DxyerLvJeIGZDOzBGG6aA3MdE1N8j7B9pqkrvahDIybC0vgQNy3b06G3hG00)
-
-
 
 ## Notes
 
-```python
-from plantuml_compose import activity_diagram
+### Positioned Notes
 
-with activity_diagram() as d:
-    d.start()
-
-    d.action("Validate")
-    d.note("Check all required fields", position="right")
-
-    d.action("Process")
-    d.note("May take time", position="left")
-
-    # Floating note
-    d.note("Important!", floating=True)
-
-    d.stop()
-
-print(d.render())
-```
-![Diagram](https://www.plantuml.com/plantuml/svg/JOun3i8m34Ltdy9S8ooLc1YGcDYjnccjEd5nt87RDq8CR6zuUlzFFSZZg0fVWFGYbKp1LsWMZ2xB6WblAyyRaYewlmznpbY4DNT8JxUPU__vocNe3_fWqCOOKXcA6eMq1V-BzxgR1xMuZ6NROUAMnuqJ)
-
-
-
-## Complete Example: Order Fulfillment
+Attached to the adjacent action:
 
 ```python
-from plantuml_compose import activity_diagram
+from plantuml_compose import activity_diagram, render
 
-with activity_diagram(title="Order Fulfillment Process") as d:
-    d.swimlane("Customer")
-    d.start()
-    d.action("Place Order")
+d = activity_diagram()
+el = d.elements
 
-    d.swimlane("OrderSystem")
-    d.action("Receive Order")
+d.add(
+    el.start(),
 
-    with d.if_("Valid Order?", then_label="yes") as valid:
-        valid.action("Create Order Record")
+    el.action("Process Data"),
+    el.note("This step takes ~5 seconds", "right"),
 
-        with valid.fork() as f:
-            with f.branch() as payment:
-                payment.action("Process Payment")
+    el.action("Save Results"),
+    el.note("Writes to PostgreSQL", "left"),
 
-            with f.branch() as inventory:
-                inventory.action("Reserve Inventory")
+    el.stop(),
+)
 
-        with valid.if_("Payment OK?", then_label="yes") as payment_check:
-            payment_check.action("Pick Items")
-            payment_check.action("Pack Order")
-            payment_check.action("Ship Package")
-
-            with payment_check.else_("no") as payment_else:
-                payment_else.action("Release Inventory")
-                payment_else.action("Cancel Order")
-
-        with valid.else_("no") as valid_else:
-            valid_else.action("Reject Order")
-
-    d.stop()
-
-print(d.render())
+print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/NP51YiCm34NtFeMMoHMInHGA0sKM3IrqBnobzTInYwqK0Zdyo8dT3btPVFqlFTcxo1Xu6grYmvRW67eAy3tPmLWxacFeWjSKerhsKsG_KbZKcb5DPr7dHAkMzJpFaMbSL7CYJURvgfe1gWjQqs_2Lmry8mVLJB5M0Cq-47APBbaV-bRqmOUx76B85D3XdAXA4V2AncsM4qKAClBWdkBmOKucSdtfaXXo78u_dmXfXj5tE0X_RBE08kGDLk5yCmz8AbvfxMuZGULyNGWiOVmWIDkXqsJVdGJA3Ef_MAA_fBbODeCyzqFjv2xVymS0)
 
+### Floating Notes
 
+Independent notes not attached to any action:
+
+```python
+from plantuml_compose import activity_diagram, render
+
+d = activity_diagram()
+el = d.elements
+
+d.add(
+    el.start(),
+
+    el.note("System overview:\nThis flow handles\norder processing", "right", floating=True),
+
+    el.action("Step 1"),
+    el.action("Step 2"),
+
+    el.stop(),
+)
+
+print(render(d))
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `content` | `str \| Label` | required | Note text |
+| `position` | `"left" \| "right"` | `"right"` | Which side |
+| `floating=` | `bool` | `False` | Float independently |
+
+## Connectors, Goto, and Label
+
+### Connectors
+
+Named circle connectors for jump points:
+
+```python
+from plantuml_compose import activity_diagram, render
+
+d = activity_diagram()
+el = d.elements
+
+d.add(
+    el.start(),
+    el.action("Step 1"),
+    el.connector("A"),        # creates connector point "(A)"
+
+    el.action("Step 2"),
+    el.connector("A"),        # jump back to connector A
+
+    el.action("Step 3"),
+    el.connector("B", color="red"),  # colored connector
+    el.stop(),
+)
+
+print(render(d))
+```
+
+### Goto and Label (Experimental)
+
+```python
+from plantuml_compose import activity_diagram, render
+
+d = activity_diagram()
+el = d.elements
+
+d.add(
+    el.start(),
+    el.label("retry"),       # label target
+    el.action("Attempt"),
+    el.if_("Success?", [
+        el.action("Done"),
+    ], "no", [
+        el.goto("retry"),    # jump to label
+    ], then_label="yes"),
+    el.stop(),
+)
+
+print(render(d))
+```
+
+## Kill and Detach
+
+### Kill
+
+Abrupt termination (X symbol):
+
+```python
+from plantuml_compose import activity_diagram, render
+
+d = activity_diagram()
+el = d.elements
+
+d.add(
+    el.start(),
+    el.if_("Fatal error?", [
+        el.action("Log fatal"),
+        el.kill(),           # abrupt stop
+    ], "no", [
+        el.action("Continue"),
+    ]),
+    el.stop(),
+)
+
+print(render(d))
+```
+
+### Detach
+
+Detach from flow (for async continuations where the path just disappears):
+
+```python
+from plantuml_compose import activity_diagram, render
+
+d = activity_diagram()
+el = d.elements
+
+d.add(
+    el.start(),
+    el.fork(
+        [
+            el.action("Main path"),
+            el.action("Finish"),
+        ],
+        [
+            el.action("Fire-and-forget"),
+            el.detach(),    # this path ends without connecting back
+        ],
+    ),
+    el.stop(),
+)
+
+print(render(d))
+```
+
+## Styling
+
+### Inline Action Styling
+
+Only background color (and gradient) is supported on actions:
+
+```python
+from plantuml_compose import activity_diagram, render
+from plantuml_compose.primitives.common import Gradient
+
+d = activity_diagram()
+el = d.elements
+
+d.add(
+    el.start(),
+
+    # Solid background color
+    el.action("Normal", style={"background": "#E3F2FD"}),
+
+    # Named color
+    el.action("Warning", style={"background": "yellow"}),
+
+    # Gradient background
+    el.action("Gradient", style={"background": Gradient(
+        start="#4CAF50", end="#81C784", direction="horizontal",
+    )}),
+
+    # Dict gradient shorthand
+    el.action("Gradient Dict", style={
+        "background": {"start": "#FF5722", "end": "#FF8A65"},
+    }),
+
+    el.stop(),
+)
+
+print(render(d))
+```
+
+### Diagram-Wide Styling (`diagram_style=`)
+
+```python
+from plantuml_compose import activity_diagram, render
+
+d = activity_diagram(
+    title="Styled Activity",
+    diagram_style={
+        # Root-level: diagram background and fonts
+        "background": "white",
+        "font_name": "Arial",
+        "font_size": 12,
+        "font_color": "#333333",
+
+        # Activity boxes
+        "activity": {
+            "background": "#E3F2FD",
+            "line_color": "#1976D2",
+            "round_corner": 10,
+            "padding": 8,
+        },
+
+        # Decision/merge diamonds
+        "diamond": {
+            "background": "#FFF9C4",
+            "line_color": "#F9A825",
+        },
+
+        # Flow arrows
+        "arrow": {
+            "line_color": "#757575",
+            "font_size": 10,
+            "line_thickness": 1,
+        },
+
+        # Partitions
+        "partition": {
+            "background": "#F5F5F5",
+            "line_color": "#9E9E9E",
+        },
+
+        # Swimlanes
+        "swimlane": {
+            "line_color": "#BDBDBD",
+        },
+
+        # Notes
+        "note": {
+            "background": "#FFF9C4",
+            "line_color": "#F9A825",
+        },
+
+        # Groups
+        "group": {
+            "background": "#ECEFF1",
+        },
+
+        # Title
+        "title": {
+            "font_size": 16,
+            "font_style": "bold",
+        },
+
+        # Stereotype-based styles
+        "stereotypes": {
+            "slow": {
+                "background": "#FFCDD2",
+                "font_style": "bold",
+            },
+            "critical": {
+                "background": "#FF8A80",
+                "line_color": "#D32F2F",
+            },
+        },
+    },
+)
+el = d.elements
+
+d.add(
+    el.start(),
+    el.action("Process"),
+    el.if_("OK?", [
+        el.action("Done"),
+    ], "no", [
+        el.action("Retry", stereotype="slow"),
+    ]),
+    el.stop(),
+)
+
+print(render(d))
+```
+
+**`diagram_style=` selectors:**
+
+| Selector | Target | Style Type |
+|----------|--------|------------|
+| `background` | Diagram background | `ColorLike \| Gradient` |
+| `font_name` | Default font | `str` |
+| `font_size` | Default font size | `int` |
+| `font_color` | Default text color | `ColorLike` |
+| `activity` | Activity boxes | `ElementStyleDict` |
+| `partition` | Partitions | `ElementStyleDict` |
+| `swimlane` | Swimlanes | `ElementStyleDict` |
+| `diamond` | Decision/merge diamonds | `ElementStyleDict` |
+| `arrow` | Flow arrows | `DiagramArrowStyleDict` |
+| `note` | Notes | `ElementStyleDict` |
+| `group` | Groups | `ElementStyleDict` |
+| `title` | Diagram title | `ElementStyleDict` |
+| `stereotypes` | By stereotype name | `dict[str, ElementStyleDict]` |
+
+## Advanced Features
+
+### Theme Support
+
+```python
+from plantuml_compose import activity_diagram, render
+
+d = activity_diagram(title="Themed Activity", theme="cerulean-outline")
+el = d.elements
+
+d.add(
+    el.start(),
+    el.action("Step 1"),
+    el.action("Step 2"),
+    el.stop(),
+)
+
+print(render(d))
+```
+
+### Layout Engine
+
+Use the Smetana layout engine for local rendering without Graphviz:
+
+```python
+from plantuml_compose import activity_diagram, render
+
+d = activity_diagram(layout_engine="smetana")
+el = d.elements
+
+d.add(
+    el.start(),
+    el.action("Process"),
+    el.stop(),
+)
+
+print(render(d))
+```
+
+### Line Type
+
+Control arrow routing style:
+
+```python
+from plantuml_compose import activity_diagram, render
+
+# "ortho" = right-angle routing, "polyline" = angled routing
+d = activity_diagram(linetype="ortho")
+el = d.elements
+
+d.add(
+    el.start(),
+    el.if_("Check?", [
+        el.action("A"),
+    ], None, [
+        el.action("B"),
+    ]),
+    el.stop(),
+)
+
+print(render(d))
+```
+
+### Vertical If Layout
+
+Force if/else diamonds to render vertically instead of horizontally:
+
+```python
+from plantuml_compose import activity_diagram, render
+
+d = activity_diagram(vertical_if=True)
+el = d.elements
+
+d.add(
+    el.start(),
+    el.if_("Condition?", [
+        el.action("True path"),
+    ], None, [
+        el.action("False path"),
+    ]),
+    el.stop(),
+)
+
+print(render(d))
+```
+
+### Diagram Metadata
+
+```python
+from plantuml_compose import activity_diagram, render
+
+d = activity_diagram(
+    title="Order Processing Workflow",
+    mainframe="Order Module",
+    caption="Figure 3: Complete order flow",
+    header="ACME Corp",
+    footer="Page 1",
+    scale=1.5,
+    legend="Color guide:\nBlue = normal\nRed = error",
+)
+el = d.elements
+
+d.add(
+    el.start(),
+    el.action("Process"),
+    el.stop(),
+)
+
+print(render(d))
+```
+
+### Complete Example
+
+```python
+from plantuml_compose import activity_diagram, render
+
+d = activity_diagram(
+    title="CI/CD Pipeline",
+    diagram_style={
+        "activity": {"background": "#E3F2FD", "round_corner": 8},
+        "diamond": {"background": "#FFF9C4"},
+        "arrow": {"line_color": "#546E7A"},
+    },
+)
+el = d.elements
+
+d.add(
+    el.start(),
+
+    el.swimlane("Developer"),
+    el.action("Push to Git"),
+
+    el.swimlane("CI Server", color="#F5F5F5"),
+    el.action("Clone Repository"),
+
+    el.fork(
+        [
+            el.action("Run Unit Tests"),
+            el.action("Run Integration Tests"),
+        ],
+        [
+            el.action("Lint Code"),
+            el.action("Check Types"),
+        ],
+        [
+            el.action("Build Docker Image"),
+        ],
+    ),
+
+    el.if_("All Passed?", [
+        el.swimlane("CD Server", color="#E8F5E9"),
+        el.action("Deploy to Staging"),
+
+        el.repeat([
+            el.action("Run Smoke Tests"),
+        ],
+            condition="Tests pass?",
+            is_label="retry",
+            not_label="pass",
+            backward_action="wait 30s",
+        ),
+
+        el.action("Deploy to Production"),
+        el.note("Blue/green deployment", "right"),
+    ], "no", [
+        el.swimlane("Developer"),
+        el.action("Fix Issues"),
+        el.action("Notify Team", stereotype="sendSignal"),
+    ], then_label="yes"),
+
+    el.stop(),
+)
+
+print(render(d))
+```
 
 ## Quick Reference
 
-| Method | Description |
-|--------|-------------|
-| `d.start()` | Start node |
-| `d.stop()` | Stop node (filled circle) |
-| `d.end()` | End node (circle with X) |
-| `d.action(label)` | Activity step |
-| `d.arrow(label)` | Labeled arrow |
-| `d.if_(condition)` | If/else decision |
-| `d.switch(condition)` | Switch/case |
-| `d.while_(condition)` | While loop |
-| `d.repeat(condition)` | Repeat-while loop |
-| `d.fork()` | Parallel fork/join |
-| `d.split()` | Split without sync |
-| `d.swimlane(name)` | Switch swimlane |
-| `d.partition(name)` | Grouping with border |
-| `d.group(name)` | Light grouping |
-| `d.note(text)` | Add note |
-| `d.break_()` | Exit loop |
-| `d.kill()` | Abnormal termination |
-| `d.detach()` | Async continuation |
-| `d.connector(name)` | Jump point |
+### Diagram Constructor
 
-### Inside If/Switch/Loop
+```python
+activity_diagram(
+    title=,            # str | None
+    mainframe=,        # str | None
+    caption=,          # str | None
+    header=,           # str | Header | None
+    footer=,           # str | Footer | None
+    legend=,           # str | Legend | None
+    scale=,            # float | Scale | None
+    theme=,            # PlantUMLBuiltinTheme | ExternalTheme | None
+    layout_engine=,    # "smetana" | None
+    linetype=,         # "ortho" | "polyline" | None
+    diagram_style=,    # ActivityDiagramStyleDict | ActivityDiagramStyle | None
+    vertical_if=,      # bool (default False)
+)
+```
+
+### Composer Methods
 
 | Method | Description |
 |--------|-------------|
-| `branch.else_(label)` | Else branch |
-| `branch.elseif(condition)` | Else-if branch |
-| `sw.case(label)` | Switch case |
-| `f.branch()` | Fork branch |
+| `d.add(...)` | Register flow elements (sequential order) |
+| `d.render()` | Shortcut: build and render to PlantUML text |
+| `render(d)` | Render to PlantUML text |
+
+### Element Factories (`el = d.elements`)
+
+**Simple Elements:**
+
+| Method | Description |
+|--------|-------------|
+| `el.start()` | Start node (filled circle) |
+| `el.stop()` | Stop node (filled circle with border) |
+| `el.end()` | End node (circle with X) |
+| `el.action(label, shape=, style=, stereotype=)` | Action step |
+| `el.arrow(label=, pattern=, style=)` | Custom arrow |
+| `el.note(content, position, floating=)` | Note annotation |
+| `el.kill()` | Abrupt termination (X) |
+| `el.detach()` | Detach from flow |
+| `el.break_()` | Break out of enclosing loop |
+| `el.connector(name, color=)` | Named connector circle |
+| `el.goto(label)` | Goto statement (experimental) |
+| `el.label(name)` | Label for goto (experimental) |
+
+**Swimlanes and Partitions:**
+
+| Method | Description |
+|--------|-------------|
+| `el.swimlane(name, color=, display_name=)` | Switch to swimlane |
+| `el.partition(name, events, color=)` | Partition grouping |
+| `el.package(name, events, color=)` | Package grouping |
+| `el.rectangle(name, events, color=)` | Rectangle grouping |
+| `el.card(name, events, color=)` | Card grouping |
+| `el.group(name, events)` | Minimal grouping |
+
+**Control Flow:**
+
+| Method | Description |
+|--------|-------------|
+| `el.if_(condition, events, *branches, then_label=)` | If/elseif/else |
+| `el.switch(condition, *cases)` | Switch/case |
+| `el.while_(condition, events, is_label=, endwhile_label=, backward_action=)` | While loop |
+| `el.repeat(events, condition=, is_label=, not_label=, backward_action=, start_label=)` | Do-while loop |
+
+**Parallel:**
+
+| Method | Description |
+|--------|-------------|
+| `el.fork(*branches, end_style=)` | Fork/join parallel (end_style: "fork", "merge", "or", "and") |
+| `el.split(*branches)` | Split parallel (no sync bar) |
+
+### Inline Style Dicts
+
+**`style=` on actions (StyleDict, background only):**
+```python
+{"background": "#E3F2FD"}
+{"background": {"start": "#4CAF50", "end": "#81C784", "direction": "horizontal"}}
+```
+
+**`style=` on arrows (LineStyleDict):**
+```python
+{"color": "red", "pattern": "dashed", "thickness": 2, "bold": True}
+```

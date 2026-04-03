@@ -426,9 +426,41 @@ print(render(d))
 
 
 
+### Bulk Arrow Shortcuts
+
+The connections namespace offers `arrows_from()` to fan out from one source, and `arrows()` for multiple pairs at once:
+
+```python
+from plantuml_compose import wbs_diagram, render
+
+d = wbs_diagram()
+n = d.nodes
+c = d.connections
+
+design = n.leaf("Design", ref="design")
+backend = n.leaf("Backend", ref="backend")
+frontend = n.leaf("Frontend", ref="frontend")
+testing = n.leaf("Testing", ref="testing")
+
+d.add(n.node("Sprint",
+    design, backend, frontend, testing,
+))
+
+# Fan-out: design feeds both backend and frontend
+d.connect(c.arrows_from(design, backend, frontend))
+
+# Multiple pairs at once
+d.connect(c.arrows(
+    (backend, testing),
+    (frontend, testing),
+))
+
+print(render(d))
+```
+
 ## Styling with diagram_style
 
-Apply consistent styling across the entire diagram:
+Apply consistent styling across the entire diagram. WBS uses the same style keys as mindmap (`node`, `root_node`, `leaf_node`, `arrow`, `depths`):
 
 ### Basic Styling
 
@@ -604,6 +636,55 @@ print(render(d))
 
 
 
+### Depth-Based Styling
+
+Style nodes by tree depth level, where 0 = root, 1 = first children, etc.:
+
+```python
+from plantuml_compose import wbs_diagram, render
+
+d = wbs_diagram(diagram_style={
+    "depths": {
+        0: {"background": "#1565C0", "font_color": "white"},
+        1: {"background": "#42A5F5", "font_color": "white"},
+        2: {"background": "#BBDEFB"},
+    },
+})
+n = d.nodes
+
+d.add(n.node("Product Launch",
+    n.node("Engineering",
+        n.leaf("Backend"),
+        n.leaf("Frontend"),
+    ),
+    n.node("Marketing",
+        n.leaf("Website"),
+        n.leaf("Campaign"),
+    ),
+))
+
+print(render(d))
+```
+
+## Mainframe
+
+Add a titled border around the entire diagram:
+
+```python
+from plantuml_compose import wbs_diagram, render
+
+d = wbs_diagram(mainframe="Q2 Sprint Plan")
+n = d.nodes
+
+d.add(n.node("Sprint 5",
+    n.leaf("Feature A"),
+    n.leaf("Feature B"),
+    n.leaf("Bug Fixes"),
+))
+
+print(render(d))
+```
+
 ## Complete Examples
 
 ### Software Project WBS
@@ -770,6 +851,7 @@ print(render(d))
 | Code | Description |
 |------|-------------|
 | `wbs_diagram()` | Create a WBS diagram |
+| `mainframe="..."` | Add titled border |
 | `diagram_style={...}` | Apply styling |
 
 ### Node Methods
@@ -780,6 +862,8 @@ print(render(d))
 | `n.leaf(text)` | Create a leaf node (no children) |
 | `d.add(root_node)` | Register the root node tree |
 | `c.arrow(source, target)` | Create a dependency arrow |
+| `c.arrows_from(source, *targets)` | Fan-out: one source, many targets |
+| `c.arrows(*tuples)` | Bulk: multiple `(source, target)` pairs |
 | `d.connect(...)` | Register arrows |
 
 ### Node Parameters
@@ -805,6 +889,7 @@ print(render(d))
 | `root_node` | Style for root node only |
 | `leaf_node` | Style for leaf nodes only |
 | `arrow` | Style for connecting lines |
+| `depths` | Dict of `{depth_int: style}` for depth-based styling |
 
 ### Node/Arrow Style Keys
 

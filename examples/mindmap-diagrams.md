@@ -588,6 +588,58 @@ print(render(d))
 ![Diagram](https://www.plantuml.com/plantuml/svg/VP312e9048Rl-nG3tRnK2kP1GbrT2B9BJx3aPfBknBeX4hvxgov8438CpCp_ySFyKQkvqaqbYuQ_IDZglXP7OlUqugNY3Nm8GC9lprBXMnOKQrImoMZ6sDue4Win8NyWoj8WfKORJ2j4VLc1NTzplM3I64ezNxj7fOKrg0M_hncmU2mBSwMmi-Ivai8o_kwG1id432JSseSTk8v30Rdv778JXUC0vLgKg7g8pUR0IOi6zile_Z398dWa4YQ_ESCl)
 
 
+### Depth-Based Styling
+
+Style nodes by their tree depth level. Keys are integers where 0 = root, 1 = first children, 2 = grandchildren, etc. This is a powerful way to create visual hierarchy without setting colors on individual nodes:
+
+```python
+from plantuml_compose import mindmap_diagram, render
+
+d = mindmap_diagram(diagram_style={
+    "depths": {
+        0: {"background": "#1976D2", "font_color": "white"},
+        1: {"background": "#BBDEFB"},
+        2: {"background": "#E3F2FD"},
+    },
+})
+n = d.nodes
+
+d.add(n.node("Architecture",
+    n.node("Frontend",
+        n.leaf("React"),
+        n.leaf("TypeScript"),
+    ),
+    n.node("Backend",
+        n.leaf("Python"),
+        n.leaf("PostgreSQL"),
+    ),
+))
+
+print(render(d))
+```
+
+Depth styles can be combined with other selectors. More specific selectors (like `root_node` or individual `color=`) take precedence.
+
+
+
+## Mainframe
+
+Add a titled border around the entire diagram with `mainframe=`:
+
+```python
+from plantuml_compose import mindmap_diagram, render
+
+d = mindmap_diagram(mainframe="Project Overview")
+n = d.nodes
+
+d.add(n.node("Website Redesign",
+    n.leaf("Research"),
+    n.leaf("Design"),
+    n.leaf("Development"),
+))
+
+print(render(d))
+```
 
 ## Complete Examples
 
@@ -729,6 +781,7 @@ print(render(d))
 | `direction="top_to_bottom"` | Vertical layout |
 | `direction="left_to_right"` | Horizontal (left start) |
 | `direction="right_to_left"` | Horizontal (right start) |
+| `mainframe="..."` | Add titled border |
 | `diagram_style={...}` | Apply styling |
 
 ### Node Methods
@@ -761,6 +814,7 @@ print(render(d))
 | `root_node` | Style for root node only |
 | `leaf_node` | Style for leaf nodes only |
 | `arrow` | Style for connecting lines |
+| `depths` | Dict of `{depth_int: style}` for depth-based styling |
 
 ### Node/Arrow Style Keys
 
