@@ -1,4 +1,4 @@
-"""Tests for the activity diagram composer."""
+"""Tests for the activity diagram composer (namespace pattern)."""
 
 import subprocess
 
@@ -47,9 +47,12 @@ class TestActivityComposerBasic:
 
     def test_start_stop_flow(self):
         d = activity_diagram()
-        d.start()
-        d.action("Do something")
-        d.stop()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.action("Do something"),
+            el.stop(),
+        )
         result = d.build()
         assert len(result.elements) == 3
         assert isinstance(result.elements[0], Start)
@@ -58,7 +61,8 @@ class TestActivityComposerBasic:
 
     def test_action_label(self):
         d = activity_diagram()
-        d.action("Process data")
+        el = d.elements
+        d.add(el.action("Process data"))
         result = d.build()
         action = result.elements[0]
         assert isinstance(action, Action)
@@ -66,12 +70,14 @@ class TestActivityComposerBasic:
 
     def test_action_empty_label_raises(self):
         d = activity_diagram()
+        el = d.elements
         with pytest.raises(ValueError, match="empty"):
-            d.action("")
+            el.action("")
 
     def test_end_node(self):
         d = activity_diagram()
-        d.end()
+        el = d.elements
+        d.add(el.end())
         result = d.build()
         assert isinstance(result.elements[0], End)
 
@@ -120,6 +126,25 @@ class TestActivityComposerBasic:
         result = d.build()
         assert result.vertical_if is True
 
+    def test_elements_namespace_property(self):
+        d = activity_diagram()
+        el = d.elements
+        from plantuml_compose.composers.activity import ActivityElementNamespace
+        assert isinstance(el, ActivityElementNamespace)
+
+    def test_add_returns_single(self):
+        d = activity_diagram()
+        el = d.elements
+        item = d.add(el.start())
+        assert isinstance(item, type(el.start()))
+
+    def test_add_returns_tuple(self):
+        d = activity_diagram()
+        el = d.elements
+        items = d.add(el.start(), el.stop())
+        assert isinstance(items, tuple)
+        assert len(items) == 2
+
 
 class TestActivityActionShapes:
 
@@ -128,13 +153,15 @@ class TestActivityActionShapes:
     ])
     def test_action_shape(self, shape):
         d = activity_diagram()
-        d.action("Shaped action", shape=shape)
+        el = d.elements
+        d.add(el.action("Shaped action", shape=shape))
         result = d.build()
         assert result.elements[0].shape == shape
 
     def test_action_style_background(self):
         d = activity_diagram()
-        d.action("Colored", style={"background": "#FF0000"})
+        el = d.elements
+        d.add(el.action("Colored", style={"background": "#FF0000"}))
         result = d.build()
         action = result.elements[0]
         assert action.style is not None
@@ -145,40 +172,48 @@ class TestActivityArrows:
 
     def test_arrow_no_label(self):
         d = activity_diagram()
-        d.action("A")
-        d.arrow()
-        d.action("B")
+        el = d.elements
+        d.add(
+            el.action("A"),
+            el.arrow(),
+            el.action("B"),
+        )
         result = d.build()
         assert isinstance(result.elements[1], Arrow)
         assert result.elements[1].label is None
 
     def test_arrow_with_label(self):
         d = activity_diagram()
-        d.arrow("next")
+        el = d.elements
+        d.add(el.arrow("next"))
         result = d.build()
         assert result.elements[0].label.text == "next"
 
     def test_arrow_dashed(self):
         d = activity_diagram()
-        d.arrow(pattern="dashed")
+        el = d.elements
+        d.add(el.arrow(pattern="dashed"))
         result = d.build()
         assert result.elements[0].pattern == "dashed"
 
     def test_arrow_dotted(self):
         d = activity_diagram()
-        d.arrow(pattern="dotted")
+        el = d.elements
+        d.add(el.arrow(pattern="dotted"))
         result = d.build()
         assert result.elements[0].pattern == "dotted"
 
     def test_arrow_hidden(self):
         d = activity_diagram()
-        d.arrow(pattern="hidden")
+        el = d.elements
+        d.add(el.arrow(pattern="hidden"))
         result = d.build()
         assert result.elements[0].pattern == "hidden"
 
     def test_arrow_style_color(self):
         d = activity_diagram()
-        d.arrow(style={"color": "red"})
+        el = d.elements
+        d.add(el.arrow(style={"color": "red"}))
         result = d.build()
         assert result.elements[0].line_style is not None
         assert result.elements[0].line_style.color is not None
@@ -188,8 +223,12 @@ class TestActivityIfElse:
 
     def test_if_then(self):
         d = activity_diagram()
-        with d.if_("Valid?", then_label="yes") as branch:
-            branch.action("Process")
+        el = d.elements
+        d.add(
+            el.if_("Valid?", [
+                el.action("Process"),
+            ], then_label="yes"),
+        )
         result = d.build()
         if_stmt = result.elements[0]
         assert isinstance(if_stmt, If)
@@ -199,10 +238,14 @@ class TestActivityIfElse:
 
     def test_if_else(self):
         d = activity_diagram()
-        with d.if_("Valid?", then_label="yes") as branch:
-            branch.action("Process")
-            with branch.else_("no") as else_block:
-                else_block.action("Reject")
+        el = d.elements
+        d.add(
+            el.if_("Valid?", [
+                el.action("Process"),
+            ], "no", [
+                el.action("Reject"),
+            ], then_label="yes"),
+        )
         result = d.build()
         if_stmt = result.elements[0]
         assert if_stmt.else_label == "no"
@@ -210,33 +253,32 @@ class TestActivityIfElse:
 
     def test_if_elseif_else(self):
         d = activity_diagram()
-        with d.if_("Score >= 90?", then_label="A") as branch:
-            branch.action("Excellent")
-            with branch.elseif("Score >= 80?", then_label="B") as elif_branch:
-                elif_branch.action("Good")
-            with branch.else_("C") as else_block:
-                else_block.action("Average")
+        el = d.elements
+        d.add(
+            el.if_("Score >= 90?", [
+                el.action("Excellent"),
+            ], "Score >= 80?", [
+                el.action("Good"),
+            ], None, [
+                el.action("Average"),
+            ], then_label="A"),
+        )
         result = d.build()
         if_stmt = result.elements[0]
         assert len(if_stmt.elseif_branches) == 1
         assert if_stmt.elseif_branches[0].condition == "Score >= 80?"
-        assert if_stmt.elseif_branches[0].then_label == "B"
         assert len(if_stmt.else_elements) == 1
-
-    def test_elseif_after_else_raises(self):
-        d = activity_diagram()
-        with d.if_("x?") as branch:
-            with branch.else_():
-                pass
-            with pytest.raises(ValueError, match="elseif.*cannot.*after.*else"):
-                with branch.elseif("y?"):
-                    pass
 
     def test_nested_if(self):
         d = activity_diagram()
-        with d.if_("Outer?") as outer:
-            with outer.if_("Inner?") as inner:
-                inner.action("Deep action")
+        el = d.elements
+        d.add(
+            el.if_("Outer?", [
+                el.if_("Inner?", [
+                    el.action("Deep action"),
+                ]),
+            ]),
+        )
         result = d.build()
         outer_if = result.elements[0]
         assert isinstance(outer_if, If)
@@ -247,10 +289,14 @@ class TestActivityIfElse:
     def test_end_in_if(self):
         """end() is valid inside if branches."""
         d = activity_diagram()
-        with d.if_("Fatal?") as branch:
-            branch.end()
-            with branch.else_() as else_block:
-                else_block.action("Continue")
+        el = d.elements
+        d.add(
+            el.if_("Fatal?", [
+                el.end(),
+            ], None, [
+                el.action("Continue"),
+            ]),
+        )
         result = d.build()
         if_stmt = result.elements[0]
         assert isinstance(if_stmt.then_elements[0], End)
@@ -260,11 +306,13 @@ class TestActivitySwitch:
 
     def test_switch_case(self):
         d = activity_diagram()
-        with d.switch("Type?") as sw:
-            with sw.case("A") as case_a:
-                case_a.action("Handle A")
-            with sw.case("B") as case_b:
-                case_b.action("Handle B")
+        el = d.elements
+        d.add(
+            el.switch("Type?",
+                ("A", [el.action("Handle A")]),
+                ("B", [el.action("Handle B")]),
+            ),
+        )
         result = d.build()
         switch = result.elements[0]
         assert isinstance(switch, Switch)
@@ -275,17 +323,21 @@ class TestActivitySwitch:
 
     def test_switch_no_cases_raises(self):
         d = activity_diagram()
+        el = d.elements
         with pytest.raises(ValueError, match="at least one case"):
-            with d.switch("Type?") as sw:
-                pass  # No cases added
+            el.switch("Type?")
 
 
 class TestActivityWhile:
 
     def test_while_loop(self):
         d = activity_diagram()
-        with d.while_("More items?", is_label="yes", endwhile_label="no") as loop:
-            loop.action("Process item")
+        el = d.elements
+        d.add(
+            el.while_("More items?", [
+                el.action("Process item"),
+            ], is_label="yes", endwhile_label="no"),
+        )
         result = d.build()
         while_stmt = result.elements[0]
         assert isinstance(while_stmt, While)
@@ -296,10 +348,15 @@ class TestActivityWhile:
 
     def test_while_break(self):
         d = activity_diagram()
-        with d.while_("Running?") as loop:
-            loop.action("Work")
-            with loop.if_("Error?") as check:
-                check.break_()
+        el = d.elements
+        d.add(
+            el.while_("Running?", [
+                el.action("Work"),
+                el.if_("Error?", [
+                    el.break_(),
+                ]),
+            ]),
+        )
         result = d.build()
         while_stmt = result.elements[0]
         if_stmt = while_stmt.elements[1]
@@ -309,9 +366,13 @@ class TestActivityWhile:
     def test_while_kill(self):
         """kill() is valid inside while loops."""
         d = activity_diagram()
-        with d.while_("Running?") as loop:
-            loop.action("Work")
-            loop.kill()
+        el = d.elements
+        d.add(
+            el.while_("Running?", [
+                el.action("Work"),
+                el.kill(),
+            ]),
+        )
         result = d.build()
         while_stmt = result.elements[0]
         assert isinstance(while_stmt.elements[1], Kill)
@@ -319,8 +380,12 @@ class TestActivityWhile:
     def test_while_detach(self):
         """detach() is valid inside while loops."""
         d = activity_diagram()
-        with d.while_("Running?") as loop:
-            loop.detach()
+        el = d.elements
+        d.add(
+            el.while_("Running?", [
+                el.detach(),
+            ]),
+        )
         result = d.build()
         while_stmt = result.elements[0]
         assert isinstance(while_stmt.elements[0], Detach)
@@ -330,8 +395,12 @@ class TestActivityRepeat:
 
     def test_repeat_while(self):
         d = activity_diagram()
-        with d.repeat(condition="More?", is_label="yes", not_label="no") as loop:
-            loop.action("Process")
+        el = d.elements
+        d.add(
+            el.repeat([
+                el.action("Process"),
+            ], condition="More?", is_label="yes", not_label="no"),
+        )
         result = d.build()
         repeat = result.elements[0]
         assert isinstance(repeat, Repeat)
@@ -342,16 +411,24 @@ class TestActivityRepeat:
 
     def test_repeat_with_backward_action(self):
         d = activity_diagram()
-        with d.repeat(condition="Done?", backward_action="Log attempt") as loop:
-            loop.action("Try operation")
+        el = d.elements
+        d.add(
+            el.repeat([
+                el.action("Try operation"),
+            ], condition="Done?", backward_action="Log attempt"),
+        )
         result = d.build()
         repeat = result.elements[0]
         assert repeat.backward_action == "Log attempt"
 
     def test_repeat_with_start_label(self):
         d = activity_diagram()
-        with d.repeat(start_label="Begin loop", condition="Continue?") as loop:
-            loop.action("Work")
+        el = d.elements
+        d.add(
+            el.repeat([
+                el.action("Work"),
+            ], start_label="Begin loop", condition="Continue?"),
+        )
         result = d.build()
         repeat = result.elements[0]
         assert repeat.start_label == "Begin loop"
@@ -359,8 +436,12 @@ class TestActivityRepeat:
     def test_repeat_infinite(self):
         """repeat with no condition is infinite."""
         d = activity_diagram()
-        with d.repeat() as loop:
-            loop.action("Forever")
+        el = d.elements
+        d.add(
+            el.repeat([
+                el.action("Forever"),
+            ]),
+        )
         result = d.build()
         repeat = result.elements[0]
         assert repeat.condition is None
@@ -370,11 +451,13 @@ class TestActivityFork:
 
     def test_fork_join(self):
         d = activity_diagram()
-        with d.fork() as f:
-            with f.branch() as b1:
-                b1.action("Task 1")
-            with f.branch() as b2:
-                b2.action("Task 2")
+        el = d.elements
+        d.add(
+            el.fork(
+                [el.action("Task 1")],
+                [el.action("Task 2")],
+            ),
+        )
         result = d.build()
         fork = result.elements[0]
         assert isinstance(fork, Fork)
@@ -383,51 +466,63 @@ class TestActivityFork:
 
     def test_fork_merge(self):
         d = activity_diagram()
-        with d.fork(end_style="merge") as f:
-            with f.branch() as b1:
-                b1.action("Path 1")
-            with f.branch() as b2:
-                b2.action("Path 2")
+        el = d.elements
+        d.add(
+            el.fork(
+                [el.action("Path 1")],
+                [el.action("Path 2")],
+                end_style="merge",
+            ),
+        )
         result = d.build()
         assert result.elements[0].end_style == "merge"
 
     def test_fork_or(self):
         d = activity_diagram()
-        with d.fork(end_style="or") as f:
-            with f.branch() as b:
-                b.action("Path")
+        el = d.elements
+        d.add(
+            el.fork(
+                [el.action("Path")],
+                end_style="or",
+            ),
+        )
         result = d.build()
         assert result.elements[0].end_style == "or"
 
     def test_fork_and(self):
         d = activity_diagram()
-        with d.fork(end_style="and") as f:
-            with f.branch() as b:
-                b.action("Path")
+        el = d.elements
+        d.add(
+            el.fork(
+                [el.action("Path")],
+                end_style="and",
+            ),
+        )
         result = d.build()
         assert result.elements[0].end_style == "and"
 
     def test_fork_invalid_end_style_raises(self):
         d = activity_diagram()
+        el = d.elements
         with pytest.raises(ValueError):
-            with d.fork(end_style="invalid") as f:
-                pass
+            el.fork([el.action("x")], end_style="invalid")
 
     def test_fork_no_branches_raises(self):
         d = activity_diagram()
+        el = d.elements
         with pytest.raises(ValueError, match="at least one branch"):
-            with d.fork() as f:
-                pass  # No branches
+            el.fork()
 
     def test_fork_branch_kill(self):
         """kill() is valid inside fork branches."""
         d = activity_diagram()
-        with d.fork() as f:
-            with f.branch() as b1:
-                b1.action("Error path")
-                b1.kill()
-            with f.branch() as b2:
-                b2.action("Normal path")
+        el = d.elements
+        d.add(
+            el.fork(
+                [el.action("Error path"), el.kill()],
+                [el.action("Normal path")],
+            ),
+        )
         result = d.build()
         fork = result.elements[0]
         assert isinstance(fork.branches[0][-1], Kill)
@@ -435,10 +530,12 @@ class TestActivityFork:
     def test_fork_branch_detach(self):
         """detach() is valid inside fork branches."""
         d = activity_diagram()
-        with d.fork() as f:
-            with f.branch() as b:
-                b.action("Background")
-                b.detach()
+        el = d.elements
+        d.add(
+            el.fork(
+                [el.action("Background"), el.detach()],
+            ),
+        )
         result = d.build()
         fork = result.elements[0]
         assert isinstance(fork.branches[0][-1], Detach)
@@ -448,11 +545,13 @@ class TestActivitySplit:
 
     def test_split(self):
         d = activity_diagram()
-        with d.split() as s:
-            with s.branch() as b1:
-                b1.action("Path 1")
-            with s.branch() as b2:
-                b2.action("Path 2")
+        el = d.elements
+        d.add(
+            el.split(
+                [el.action("Path 1")],
+                [el.action("Path 2")],
+            ),
+        )
         result = d.build()
         split = result.elements[0]
         assert isinstance(split, Split)
@@ -460,19 +559,22 @@ class TestActivitySplit:
 
     def test_split_no_branches_raises(self):
         d = activity_diagram()
+        el = d.elements
         with pytest.raises(ValueError, match="at least one branch"):
-            with d.split() as s:
-                pass
+            el.split()
 
 
 class TestActivitySwimlanes:
 
     def test_swimlane(self):
         d = activity_diagram()
-        d.swimlane("Client")
-        d.action("Submit order")
-        d.swimlane("Server")
-        d.action("Validate order")
+        el = d.elements
+        d.add(
+            el.swimlane("Client"),
+            el.action("Submit order"),
+            el.swimlane("Server"),
+            el.action("Validate order"),
+        )
         result = d.build()
         assert isinstance(result.elements[0], Swimlane)
         assert result.elements[0].name == "Client"
@@ -481,23 +583,29 @@ class TestActivitySwimlanes:
 
     def test_swimlane_with_color(self):
         d = activity_diagram()
-        d.swimlane("Client", color="#LightBlue")
+        el = d.elements
+        d.add(el.swimlane("Client", color="#LightBlue"))
         result = d.build()
         lane = result.elements[0]
         assert lane.color is not None
 
     def test_swimlane_empty_name_raises(self):
         d = activity_diagram()
+        el = d.elements
         with pytest.raises(ValueError, match="empty"):
-            d.swimlane("")
+            el.swimlane("")
 
 
 class TestActivityPartitions:
 
     def test_partition(self):
         d = activity_diagram()
-        with d.partition("Validation") as p:
-            p.action("Validate input")
+        el = d.elements
+        d.add(
+            el.partition("Validation", [
+                el.action("Validate input"),
+            ]),
+        )
         result = d.build()
         part = result.elements[0]
         assert isinstance(part, Partition)
@@ -506,23 +614,31 @@ class TestActivityPartitions:
 
     def test_partition_with_color(self):
         d = activity_diagram()
-        with d.partition("Section", color="LightBlue") as p:
-            p.action("Task")
+        el = d.elements
+        d.add(
+            el.partition("Section", [
+                el.action("Task"),
+            ], color="LightBlue"),
+        )
         result = d.build()
         assert result.elements[0].color is not None
 
     def test_partition_empty_name_raises(self):
         d = activity_diagram()
+        el = d.elements
         with pytest.raises(ValueError, match="empty"):
-            with d.partition("") as p:
-                pass
+            el.partition("", [])
 
     def test_partition_kill(self):
         """kill() is valid inside partitions."""
         d = activity_diagram()
-        with d.partition("Error handling") as p:
-            p.action("Handle error")
-            p.kill()
+        el = d.elements
+        d.add(
+            el.partition("Error handling", [
+                el.action("Handle error"),
+                el.kill(),
+            ]),
+        )
         result = d.build()
         part = result.elements[0]
         assert isinstance(part.elements[-1], Kill)
@@ -532,8 +648,12 @@ class TestActivityGroups:
 
     def test_group(self):
         d = activity_diagram()
-        with d.group("Processing") as g:
-            g.action("Process")
+        el = d.elements
+        d.add(
+            el.group("Processing", [
+                el.action("Process"),
+            ]),
+        )
         result = d.build()
         grp = result.elements[0]
         assert isinstance(grp, Group)
@@ -542,16 +662,20 @@ class TestActivityGroups:
 
     def test_group_empty_name_raises(self):
         d = activity_diagram()
+        el = d.elements
         with pytest.raises(ValueError, match="empty"):
-            with d.group("") as g:
-                pass
+            el.group("", [])
 
     def test_group_detach(self):
         """detach() is valid inside groups."""
         d = activity_diagram()
-        with d.group("Async") as g:
-            g.action("Fire and forget")
-            g.detach()
+        el = d.elements
+        d.add(
+            el.group("Async", [
+                el.action("Fire and forget"),
+                el.detach(),
+            ]),
+        )
         result = d.build()
         grp = result.elements[0]
         assert isinstance(grp.elements[-1], Detach)
@@ -561,8 +685,11 @@ class TestActivityNotes:
 
     def test_note_right(self):
         d = activity_diagram()
-        d.action("Process")
-        d.note("Check all fields")
+        el = d.elements
+        d.add(
+            el.action("Process"),
+            el.note("Check all fields"),
+        )
         result = d.build()
         note = result.elements[1]
         assert isinstance(note, ActivityNote)
@@ -571,37 +698,46 @@ class TestActivityNotes:
 
     def test_note_left(self):
         d = activity_diagram()
-        d.note("Left note", "left")
+        el = d.elements
+        d.add(el.note("Left note", "left"))
         result = d.build()
         assert result.elements[0].position == "left"
 
     def test_note_floating(self):
         d = activity_diagram()
-        d.note("Important!", floating=True)
+        el = d.elements
+        d.add(el.note("Important!", floating=True))
         result = d.build()
         assert result.elements[0].floating is True
 
     def test_note_empty_raises(self):
         d = activity_diagram()
+        el = d.elements
         with pytest.raises(ValueError, match="empty"):
-            d.note("")
+            el.note("")
 
 
 class TestActivityKillDetach:
 
     def test_kill_top_level(self):
         d = activity_diagram()
-        d.start()
-        d.action("Error")
-        d.kill()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.action("Error"),
+            el.kill(),
+        )
         result = d.build()
         assert isinstance(result.elements[2], Kill)
 
     def test_detach_top_level(self):
         d = activity_diagram()
-        d.start()
-        d.action("Background")
-        d.detach()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.action("Background"),
+            el.detach(),
+        )
         result = d.build()
         assert isinstance(result.elements[2], Detach)
 
@@ -610,21 +746,24 @@ class TestActivityConnectorsGoto:
 
     def test_connector(self):
         d = activity_diagram()
-        d.connector("A")
+        el = d.elements
+        d.add(el.connector("A"))
         result = d.build()
         assert isinstance(result.elements[0], Connector)
         assert result.elements[0].name == "A"
 
     def test_goto(self):
         d = activity_diagram()
-        d.goto("retry")
+        el = d.elements
+        d.add(el.goto("retry"))
         result = d.build()
         assert isinstance(result.elements[0], Goto)
         assert result.elements[0].label == "retry"
 
     def test_label(self):
         d = activity_diagram()
-        d.label("retry_point")
+        el = d.elements
+        d.add(el.label("retry_point"))
         result = d.build()
         assert isinstance(result.elements[0], ActivityLabel)
         assert result.elements[0].name == "retry_point"
@@ -645,9 +784,12 @@ class TestActivityRendering:
 
     def test_render_basic_flow(self):
         d = activity_diagram(title="Basic")
-        d.start()
-        d.action("Process")
-        d.stop()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.action("Process"),
+            el.stop(),
+        )
         result = render(d)
         assert "@startuml" in result
         assert "@enduml" in result
@@ -658,10 +800,14 @@ class TestActivityRendering:
 
     def test_render_if_else(self):
         d = activity_diagram()
-        with d.if_("Valid?", then_label="yes") as branch:
-            branch.action("Accept")
-            with branch.else_("no") as else_block:
-                else_block.action("Reject")
+        el = d.elements
+        d.add(
+            el.if_("Valid?", [
+                el.action("Accept"),
+            ], "no", [
+                el.action("Reject"),
+            ], then_label="yes"),
+        )
         result = render(d)
         assert "if (Valid?) then (yes)" in result
         assert "else (no)" in result
@@ -669,16 +815,24 @@ class TestActivityRendering:
 
     def test_render_while(self):
         d = activity_diagram()
-        with d.while_("More?", is_label="yes", endwhile_label="no") as loop:
-            loop.action("Work")
+        el = d.elements
+        d.add(
+            el.while_("More?", [
+                el.action("Work"),
+            ], is_label="yes", endwhile_label="no"),
+        )
         result = render(d)
         assert "while (More?) is (yes)" in result
         assert "endwhile (no)" in result
 
     def test_render_repeat(self):
         d = activity_diagram()
-        with d.repeat(condition="Again?", is_label="yes", not_label="no", backward_action="Log") as loop:
-            loop.action("Try")
+        el = d.elements
+        d.add(
+            el.repeat([
+                el.action("Try"),
+            ], condition="Again?", is_label="yes", not_label="no", backward_action="Log"),
+        )
         result = render(d)
         assert "repeat" in result
         assert "backward :Log;" in result
@@ -686,11 +840,13 @@ class TestActivityRendering:
 
     def test_render_fork(self):
         d = activity_diagram()
-        with d.fork() as f:
-            with f.branch() as b1:
-                b1.action("Task 1")
-            with f.branch() as b2:
-                b2.action("Task 2")
+        el = d.elements
+        d.add(
+            el.fork(
+                [el.action("Task 1")],
+                [el.action("Task 2")],
+            ),
+        )
         result = render(d)
         assert "fork" in result
         assert "fork again" in result
@@ -698,11 +854,13 @@ class TestActivityRendering:
 
     def test_render_split(self):
         d = activity_diagram()
-        with d.split() as s:
-            with s.branch() as b1:
-                b1.action("Path 1")
-            with s.branch() as b2:
-                b2.action("Path 2")
+        el = d.elements
+        d.add(
+            el.split(
+                [el.action("Path 1")],
+                [el.action("Path 2")],
+            ),
+        )
         result = render(d)
         assert "split" in result
         assert "split again" in result
@@ -710,11 +868,13 @@ class TestActivityRendering:
 
     def test_render_switch(self):
         d = activity_diagram()
-        with d.switch("Type?") as sw:
-            with sw.case("A") as c:
-                c.action("Handle A")
-            with sw.case("B") as c:
-                c.action("Handle B")
+        el = d.elements
+        d.add(
+            el.switch("Type?",
+                ("A", [el.action("Handle A")]),
+                ("B", [el.action("Handle B")]),
+            ),
+        )
         result = render(d)
         assert "switch (Type?)" in result
         assert "case (A)" in result
@@ -723,54 +883,74 @@ class TestActivityRendering:
 
     def test_render_swimlane(self):
         d = activity_diagram()
-        d.swimlane("Client")
-        d.action("Order")
+        el = d.elements
+        d.add(
+            el.swimlane("Client"),
+            el.action("Order"),
+        )
         result = render(d)
         assert "|Client|" in result
 
     def test_render_partition(self):
         d = activity_diagram()
-        with d.partition("Validation") as p:
-            p.action("Validate")
+        el = d.elements
+        d.add(
+            el.partition("Validation", [
+                el.action("Validate"),
+            ]),
+        )
         result = render(d)
         assert 'partition "Validation"' in result
 
     def test_render_group(self):
         d = activity_diagram()
-        with d.group("Batch") as g:
-            g.action("Process")
+        el = d.elements
+        d.add(
+            el.group("Batch", [
+                el.action("Process"),
+            ]),
+        )
         result = render(d)
         assert "group Batch {" in result
 
     def test_render_note(self):
         d = activity_diagram()
-        d.action("Step")
-        d.note("Check this")
+        el = d.elements
+        d.add(
+            el.action("Step"),
+            el.note("Check this"),
+        )
         result = render(d)
         assert "note right: Check this" in result
 
     def test_render_floating_note(self):
         d = activity_diagram()
-        d.note("Important!", floating=True)
+        el = d.elements
+        d.add(el.note("Important!", floating=True))
         result = render(d)
         assert "floating note right: Important!" in result
 
     def test_render_arrow_styled(self):
         d = activity_diagram()
-        d.action("A")
-        d.arrow("next", pattern="dashed", style={"color": "#FF0000"})
-        d.action("B")
+        el = d.elements
+        d.add(
+            el.action("A"),
+            el.arrow("next", pattern="dashed", style={"color": "#FF0000"}),
+            el.action("B"),
+        )
         result = render(d)
-        # Should contain dashed arrow with color
         assert "dashed" in result
         assert "#FF0000" in result
 
     def test_render_action_shapes(self):
         d = activity_diagram()
-        d.action("Default")
-        d.action("Send", shape="send")
-        d.action("Receive", shape="receive")
-        d.action("DB", shape="database")
+        el = d.elements
+        d.add(
+            el.action("Default"),
+            el.action("Send", shape="send"),
+            el.action("Receive", shape="receive"),
+            el.action("DB", shape="database"),
+        )
         result = render(d)
         assert ":Default;" in result
         assert ":Send>" in result
@@ -779,58 +959,80 @@ class TestActivityRendering:
 
     def test_render_action_colored(self):
         d = activity_diagram()
-        d.action("Important", style={"background": "#FF0000"})
+        el = d.elements
+        d.add(el.action("Important", style={"background": "#FF0000"}))
         result = render(d)
         assert "#FF0000" in result
 
     def test_render_kill(self):
         d = activity_diagram()
-        d.start()
-        d.kill()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.kill(),
+        )
         result = render(d)
         assert "kill" in result
 
     def test_render_detach(self):
         d = activity_diagram()
-        d.start()
-        d.detach()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.detach(),
+        )
         result = render(d)
         assert "detach" in result
 
     def test_render_connector(self):
         d = activity_diagram()
-        d.connector("A")
+        el = d.elements
+        d.add(el.connector("A"))
         result = render(d)
         assert "(A)" in result
 
     def test_render_goto(self):
         d = activity_diagram()
-        d.label("retry")
-        d.action("Try")
-        d.goto("retry")
+        el = d.elements
+        d.add(
+            el.label("retry"),
+            el.action("Try"),
+            el.goto("retry"),
+        )
         result = render(d)
         assert "label retry" in result
         assert "goto retry" in result
 
     def test_render_break(self):
         d = activity_diagram()
-        with d.while_("Running?") as loop:
-            loop.break_()
+        el = d.elements
+        d.add(
+            el.while_("Running?", [
+                el.break_(),
+            ]),
+        )
         result = render(d)
         assert "break" in result
 
     def test_render_via_composer_method(self):
         """d.render() should produce the same output as render(d)."""
         d = activity_diagram(title="Test")
-        d.start()
-        d.action("Go")
-        d.stop()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.action("Go"),
+            el.stop(),
+        )
         assert d.render() == render(d)
 
     def test_render_vertical_if(self):
         d = activity_diagram(vertical_if=True)
-        with d.if_("x?") as branch:
-            branch.action("A")
+        el = d.elements
+        d.add(
+            el.if_("x?", [
+                el.action("A"),
+            ]),
+        )
         result = render(d)
         assert "!pragma useVerticalIf on" in result
 
@@ -850,20 +1052,22 @@ class TestActivityComplex:
     def test_full_workflow(self):
         """End-to-end test: a realistic order processing workflow."""
         d = activity_diagram(title="Order Processing")
-        d.start()
-        d.action("Receive Order")
-
-        with d.if_("Valid?", then_label="yes") as branch:
-            branch.action("Process Payment")
-            with branch.if_("Payment OK?") as inner:
-                inner.action("Ship Order")
-                with inner.else_() as fail:
-                    fail.action("Notify Customer")
-            with branch.else_("no") as invalid:
-                invalid.action("Reject Order")
-
-        d.stop()
-
+        el = d.elements
+        d.add(
+            el.start(),
+            el.action("Receive Order"),
+            el.if_("Valid?", [
+                el.action("Process Payment"),
+                el.if_("Payment OK?", [
+                    el.action("Ship Order"),
+                ], None, [
+                    el.action("Notify Customer"),
+                ]),
+            ], "no", [
+                el.action("Reject Order"),
+            ], then_label="yes"),
+            el.stop(),
+        )
         result = render(d)
         assert "@startuml" in result
         assert "@enduml" in result
@@ -872,18 +1076,22 @@ class TestActivityComplex:
     def test_parallel_with_conditions(self):
         """Fork with conditional logic inside branches."""
         d = activity_diagram()
-        d.start()
-        with d.fork() as f:
-            with f.branch() as b1:
-                b1.action("Validate A")
-                with b1.if_("A OK?") as check:
-                    check.action("Accept A")
-                    with check.else_() as fail:
-                        fail.action("Reject A")
-            with f.branch() as b2:
-                b2.action("Validate B")
-        d.stop()
-
+        el = d.elements
+        d.add(
+            el.start(),
+            el.fork(
+                [
+                    el.action("Validate A"),
+                    el.if_("A OK?", [
+                        el.action("Accept A"),
+                    ], None, [
+                        el.action("Reject A"),
+                    ]),
+                ],
+                [el.action("Validate B")],
+            ),
+            el.stop(),
+        )
         result = render(d)
         assert "fork" in result
         assert "fork again" in result
@@ -892,12 +1100,49 @@ class TestActivityComplex:
     def test_nested_partition_with_loop(self):
         """Partition containing a while loop."""
         d = activity_diagram()
-        with d.partition("Retry Logic") as p:
-            with p.while_("Retries < 3") as loop:
-                loop.action("Attempt connection")
+        el = d.elements
+        d.add(
+            el.partition("Retry Logic", [
+                el.while_("Retries < 3", [
+                    el.action("Attempt connection"),
+                ]),
+            ]),
+        )
         result = render(d)
         assert 'partition "Retry Logic"' in result
         assert "while (Retries < 3)" in result
+
+    def test_complex_pipeline(self):
+        """Complex pipeline with swimlanes, forks, and loops."""
+        d = activity_diagram(title="Pipeline")
+        el = d.elements
+        d.add(
+            el.start(),
+            el.swimlane("Client"),
+            el.action("Submit Order"),
+            el.swimlane("Server"),
+            el.action("Validate"),
+            el.if_("Valid?", [
+                el.action("Process Payment"),
+                el.arrow("next", pattern="dashed"),
+                el.action("Ship"),
+            ], "no", [
+                el.action("Reject"),
+                el.kill(),
+            ], then_label="yes"),
+            el.while_("More items?", [
+                el.action("Process item"),
+            ], is_label="yes", endwhile_label="no"),
+            el.fork(
+                [el.action("Send Email")],
+                [el.action("Update DB")],
+            ),
+            el.stop(),
+        )
+        result = render(d)
+        assert "|Client|" in result
+        assert "|Server|" in result
+        assert "fork" in result
 
 
 class TestActivityPlantUMLValidation:
@@ -918,12 +1163,15 @@ class TestActivityPlantUMLValidation:
             pytest.skip("PlantUML not available")
 
         d = activity_diagram(title="Syntax Check")
-        d.start()
-        d.action("Step 1")
-        d.action("Step 2", shape="send")
-        d.arrow("continue", pattern="dashed")
-        d.action("Step 3", shape="receive")
-        d.stop()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.action("Step 1"),
+            el.action("Step 2", shape="send"),
+            el.arrow("continue", pattern="dashed"),
+            el.action("Step 3", shape="receive"),
+            el.stop(),
+        )
 
         puml_file = tmp_path / "activity_basic.puml"
         puml_file.write_text(render(d))
@@ -939,22 +1187,22 @@ class TestActivityPlantUMLValidation:
             pytest.skip("PlantUML not available")
 
         d = activity_diagram()
-        d.start()
-
-        with d.if_("Condition A?", then_label="yes") as branch:
-            branch.action("Do A")
-            with branch.elseif("Condition B?", then_label="also yes") as elif_b:
-                elif_b.action("Do B")
-            with branch.else_("no") as else_block:
-                else_block.action("Do default")
-
-        with d.switch("Type") as sw:
-            with sw.case("X") as c:
-                c.action("Handle X")
-            with sw.case("Y") as c:
-                c.action("Handle Y")
-
-        d.stop()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.if_("Condition A?", [
+                el.action("Do A"),
+            ], "Condition B?", [
+                el.action("Do B"),
+            ], "no", [
+                el.action("Do default"),
+            ], then_label="yes"),
+            el.switch("Type",
+                ("X", [el.action("Handle X")]),
+                ("Y", [el.action("Handle Y")]),
+            ),
+            el.stop(),
+        )
 
         puml_file = tmp_path / "activity_branching.puml"
         puml_file.write_text(render(d))
@@ -970,15 +1218,17 @@ class TestActivityPlantUMLValidation:
             pytest.skip("PlantUML not available")
 
         d = activity_diagram()
-        d.start()
-
-        with d.while_("More items?", is_label="yes", endwhile_label="no") as loop:
-            loop.action("Process item")
-
-        with d.repeat(condition="Done?", is_label="yes", not_label="no", backward_action="Retry") as loop:
-            loop.action("Attempt")
-
-        d.stop()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.while_("More items?", [
+                el.action("Process item"),
+            ], is_label="yes", endwhile_label="no"),
+            el.repeat([
+                el.action("Attempt"),
+            ], condition="Done?", is_label="yes", not_label="no", backward_action="Retry"),
+            el.stop(),
+        )
 
         puml_file = tmp_path / "activity_loops.puml"
         puml_file.write_text(render(d))
@@ -994,25 +1244,20 @@ class TestActivityPlantUMLValidation:
             pytest.skip("PlantUML not available")
 
         d = activity_diagram()
-        d.start()
-
-        with d.fork() as f:
-            with f.branch() as b1:
-                b1.action("Task A")
-            with f.branch() as b2:
-                b2.action("Task B")
-            with f.branch() as b3:
-                b3.action("Task C")
-
-        with d.split() as s:
-            with s.branch() as b1:
-                b1.action("Path 1")
-                b1.kill()
-            with s.branch() as b2:
-                b2.action("Path 2")
-                b2.detach()
-
-        d.stop()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.fork(
+                [el.action("Task A")],
+                [el.action("Task B")],
+                [el.action("Task C")],
+            ),
+            el.split(
+                [el.action("Path 1"), el.kill()],
+                [el.action("Path 2"), el.detach()],
+            ),
+            el.stop(),
+        )
 
         puml_file = tmp_path / "activity_fork_split.puml"
         puml_file.write_text(render(d))
@@ -1028,14 +1273,17 @@ class TestActivityPlantUMLValidation:
             pytest.skip("PlantUML not available")
 
         d = activity_diagram()
-        d.swimlane("Client")
-        d.start()
-        d.action("Place Order")
-        d.swimlane("Server")
-        d.action("Validate")
-        d.swimlane("Client")
-        d.action("Receive Confirmation")
-        d.stop()
+        el = d.elements
+        d.add(
+            el.swimlane("Client"),
+            el.start(),
+            el.action("Place Order"),
+            el.swimlane("Server"),
+            el.action("Validate"),
+            el.swimlane("Client"),
+            el.action("Receive Confirmation"),
+            el.stop(),
+        )
 
         puml_file = tmp_path / "activity_swimlanes.puml"
         puml_file.write_text(render(d))
@@ -1051,17 +1299,19 @@ class TestActivityPlantUMLValidation:
             pytest.skip("PlantUML not available")
 
         d = activity_diagram()
-        d.start()
-
-        with d.partition("Input Phase", color="LightBlue") as p:
-            p.action("Read data")
-            p.action("Parse data")
-
-        with d.group("Processing") as g:
-            g.action("Transform")
-            g.action("Validate")
-
-        d.stop()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.partition("Input Phase", [
+                el.action("Read data"),
+                el.action("Parse data"),
+            ], color="LightBlue"),
+            el.group("Processing", [
+                el.action("Transform"),
+                el.action("Validate"),
+            ]),
+            el.stop(),
+        )
 
         puml_file = tmp_path / "activity_partition_group.puml"
         puml_file.write_text(render(d))
@@ -1077,12 +1327,15 @@ class TestActivityPlantUMLValidation:
             pytest.skip("PlantUML not available")
 
         d = activity_diagram()
-        d.start()
-        d.action("Process")
-        d.note("Check all fields", "right")
-        d.note("Important!", "left", floating=True)
-        d.action("Continue")
-        d.stop()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.action("Process"),
+            el.note("Check all fields", "right"),
+            el.note("Important!", "left", floating=True),
+            el.action("Continue"),
+            el.stop(),
+        )
 
         puml_file = tmp_path / "activity_notes.puml"
         puml_file.write_text(render(d))
@@ -1098,12 +1351,15 @@ class TestActivityPlantUMLValidation:
             pytest.skip("PlantUML not available")
 
         d = activity_diagram()
-        d.start()
-        d.action("Step 1")
-        d.connector("A")
-        d.action("Step 2")
-        d.connector("A")
-        d.stop()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.action("Step 1"),
+            el.connector("A"),
+            el.action("Step 2"),
+            el.connector("A"),
+            el.stop(),
+        )
 
         puml_file = tmp_path / "activity_connectors.puml"
         puml_file.write_text(render(d))
