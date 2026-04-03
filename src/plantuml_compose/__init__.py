@@ -19,6 +19,8 @@ Supported diagram types:
     timing_diagram:     Timing diagrams
     network_diagram:    Network architecture diagrams
     salt_diagram:       Salt wireframe UI diagrams
+    json_diagram:       JSON data visualization
+    yaml_diagram:       YAML data visualization
 
 Quick Start:
     from plantuml_compose import state_diagram, render
@@ -53,10 +55,12 @@ APIs accept either the typed objects or convenient string shortcuts
 """
 
 from .composers import (
+    activity_diagram,
     class_diagram,
     component_diagram,
     deployment_diagram,
     gantt_diagram,
+    json_diagram,
     mindmap_diagram,
     network_diagram,
     object_diagram,
@@ -66,6 +70,7 @@ from .composers import (
     timing_diagram,
     usecase_diagram,
     wbs_diagram,
+    yaml_diagram,
 )
 from .composers.base import EntityRef
 from .primitives import (
@@ -164,10 +169,12 @@ from .renderers import link, render
 
 __all__ = [
     # Composers
+    "activity_diagram",
     "class_diagram",
     "component_diagram",
     "deployment_diagram",
     "gantt_diagram",
+    "json_diagram",
     "mindmap_diagram",
     "network_diagram",
     "object_diagram",
@@ -177,6 +184,7 @@ __all__ = [
     "timing_diagram",
     "usecase_diagram",
     "wbs_diagram",
+    "yaml_diagram",
     # Composer base
     "EntityRef",
     # Renderers

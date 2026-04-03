@@ -19,10 +19,12 @@ Example:
     print(render(d))
 """
 
+from .activity import activity_diagram
 from .class_ import class_diagram
 from .component import component_diagram
 from .deployment import deployment_diagram
 from .gantt import gantt_diagram
+from .json_ import json_diagram, yaml_diagram
 from .mindmap import mindmap_diagram
 from .network import network_diagram
 from .object_ import object_diagram
@@ -34,10 +36,12 @@ from .usecase import usecase_diagram
 from .wbs import wbs_diagram
 
 __all__ = [
+    "activity_diagram",
     "class_diagram",
     "component_diagram",
     "deployment_diagram",
     "gantt_diagram",
+    "json_diagram",
     "mindmap_diagram",
     "network_diagram",
     "object_diagram",
@@ -47,4 +51,5 @@ __all__ = [
     "timing_diagram",
     "usecase_diagram",
     "wbs_diagram",
+    "yaml_diagram",
 ]
