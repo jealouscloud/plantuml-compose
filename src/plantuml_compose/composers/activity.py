@@ -47,6 +47,7 @@ from ..primitives.activity import (
     If,
     Kill,
     Partition,
+    PartitionKeyword,
     Repeat,
     Split,
     Start,
@@ -105,6 +106,7 @@ class _ActionData:
     label: str | Label
     shape: ActionShape = "default"
     style: StyleLike | None = None
+    stereotype: str | None = None
 
 
 @dataclass(frozen=True)
@@ -139,6 +141,7 @@ class _BreakData:
 @dataclass(frozen=True)
 class _ConnectorData:
     name: str
+    color: ColorLike | None = None
 
 
 @dataclass(frozen=True)
@@ -155,6 +158,7 @@ class _LabelData:
 class _SwimlaneData:
     name: str
     color: ColorLike | None = None
+    display_name: str | None = None
 
 
 @dataclass(frozen=True)
@@ -174,6 +178,7 @@ class _WhileData:
     events: tuple[Any, ...]
     is_label: str | None = None
     endwhile_label: str | None = None
+    backward_action: str | None = None
 
 
 @dataclass(frozen=True)
@@ -208,6 +213,7 @@ class _PartitionData:
     name: str
     events: tuple[Any, ...]
     color: ColorLike | None = None
+    keyword: PartitionKeyword = "partition"
 
 
 @dataclass(frozen=True)
@@ -254,6 +260,7 @@ class ActivityElementNamespace:
         *,
         shape: ActionShape = "default",
         style: StyleLike | None = None,
+        stereotype: str | None = None,
     ) -> _ActionData:
         """An action step.
 
@@ -261,11 +268,12 @@ class ActivityElementNamespace:
             label: Action text
             shape: SDL shape type
             style: Visual style (background only)
+            stereotype: UML stereotype (e.g. "input", "sendSignal", "timeEvent")
         """
         text = label.text if isinstance(label, Label) else label
         if not text:
             raise ValueError("Action label cannot be empty")
-        return _ActionData(label=label, shape=shape, style=style)
+        return _ActionData(label=label, shape=shape, style=style, stereotype=stereotype)
 
     def arrow(
         self,
@@ -314,9 +322,14 @@ class ActivityElementNamespace:
         """Break out of enclosing loop."""
         return _BreakData()
 
-    def connector(self, name: str) -> _ConnectorData:
-        """Named connector point for jumps."""
-        return _ConnectorData(name=name)
+    def connector(self, name: str, *, color: ColorLike | None = None) -> _ConnectorData:
+        """Named connector point for jumps.
+
+        Args:
+            name: Connector label (shown inside circle)
+            color: Connector color
+        """
+        return _ConnectorData(name=name, color=color)
 
     def goto(self, label: str) -> _GotoData:
         """Goto statement (experimental)."""
@@ -326,16 +339,23 @@ class ActivityElementNamespace:
         """Label for goto (experimental)."""
         return _LabelData(name=name)
 
-    def swimlane(self, name: str, color: ColorLike | None = None) -> _SwimlaneData:
+    def swimlane(
+        self,
+        name: str,
+        color: ColorLike | None = None,
+        *,
+        display_name: str | None = None,
+    ) -> _SwimlaneData:
         """Switch to a swimlane.
 
         Args:
-            name: Lane name
+            name: Lane identifier (used when switching back to the lane)
             color: Lane background color
+            display_name: Visual label shown in header instead of name
         """
         if not name:
             raise ValueError("Swimlane name cannot be empty")
-        return _SwimlaneData(name=name, color=color)
+        return _SwimlaneData(name=name, color=color, display_name=display_name)
 
     # --- Control structures ---
 
@@ -392,6 +412,7 @@ class ActivityElementNamespace:
         *,
         is_label: str | None = None,
         endwhile_label: str | None = None,
+        backward_action: str | None = None,
     ) -> _WhileData:
         """While loop.
 
@@ -400,12 +421,14 @@ class ActivityElementNamespace:
             events: Loop body
             is_label: Label for the "true" path
             endwhile_label: Label for the "false" path
+            backward_action: Action label on the backward arrow
         """
         return _WhileData(
             condition=condition,
             events=tuple(events),
             is_label=is_label,
             endwhile_label=endwhile_label,
+            backward_action=backward_action,
         )
 
     def repeat(
@@ -527,6 +550,24 @@ class ActivityElementNamespace:
             raise ValueError("Partition name cannot be empty")
         return _PartitionData(name=name, events=tuple(events), color=color)
 
+    def package(self, name: str, events: list[_FlowItem], *, color: ColorLike | None = None) -> _PartitionData:
+        """Package grouping (visual box with package keyword)."""
+        if not name:
+            raise ValueError("Package name cannot be empty")
+        return _PartitionData(name=name, events=tuple(events), color=color, keyword="package")
+
+    def rectangle(self, name: str, events: list[_FlowItem], *, color: ColorLike | None = None) -> _PartitionData:
+        """Rectangle grouping (visual box with rectangle keyword)."""
+        if not name:
+            raise ValueError("Rectangle name cannot be empty")
+        return _PartitionData(name=name, events=tuple(events), color=color, keyword="rectangle")
+
+    def card(self, name: str, events: list[_FlowItem], *, color: ColorLike | None = None) -> _PartitionData:
+        """Card grouping (visual box with card keyword)."""
+        if not name:
+            raise ValueError("Card name cannot be empty")
+        return _PartitionData(name=name, events=tuple(events), color=color, keyword="card")
+
     def group(self, name: str, events: list[_FlowItem]) -> _GroupData:
         """Group (minimal visual grouping).
 
@@ -555,7 +596,7 @@ def _build_item(item: _FlowItem) -> ActivityElement:
     if isinstance(item, _ActionData):
         label_obj = Label(item.label) if isinstance(item.label, str) else item.label
         style_obj = validate_style_background_only(item.style, "Action")
-        return Action(label=label_obj, shape=item.shape, style=style_obj)
+        return Action(label=label_obj, shape=item.shape, style=style_obj, stereotype=item.stereotype)
     if isinstance(item, _ArrowData):
         label_obj = Label(item.label) if isinstance(item.label, str) else item.label
         style_obj = coerce_line_style(item.style) if item.style else None
@@ -574,13 +615,13 @@ def _build_item(item: _FlowItem) -> ActivityElement:
     if isinstance(item, _BreakData):
         return Break()
     if isinstance(item, _ConnectorData):
-        return Connector(name=item.name)
+        return Connector(name=item.name, color=item.color)
     if isinstance(item, _GotoData):
         return Goto(label=item.label)
     if isinstance(item, _LabelData):
         return ActivityLabel(name=item.name)
     if isinstance(item, _SwimlaneData):
-        return Swimlane(name=item.name, color=item.color)
+        return Swimlane(name=item.name, color=item.color, display_name=item.display_name)
     if isinstance(item, _IfData):
         return _build_if(item)
     if isinstance(item, _WhileData):
@@ -647,6 +688,7 @@ def _build_while(data: _WhileData) -> While:
         is_label=data.is_label,
         elements=_build_items(data.events),
         endwhile_label=data.endwhile_label,
+        backward_action=data.backward_action,
     )
 
 
@@ -688,6 +730,7 @@ def _build_partition(data: _PartitionData) -> Partition:
         name=data.name,
         elements=_build_items(data.events),
         color=data.color,
+        keyword=data.keyword,
     )
 
 

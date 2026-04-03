@@ -1369,3 +1369,462 @@ class TestActivityPlantUMLValidation:
             capture_output=True, text=True, timeout=30,
         )
         assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+
+class TestActivitySwimlaneDisplayName:
+
+    def test_swimlane_display_name_primitive(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.swimlane("svc", display_name="Service Layer"))
+        result = d.build()
+        lane = result.elements[0]
+        assert isinstance(lane, Swimlane)
+        assert lane.name == "svc"
+        assert lane.display_name == "Service Layer"
+
+    def test_swimlane_display_name_renders_alias_syntax(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(
+            el.swimlane("svc", display_name="Service Layer"),
+            el.action("Do work"),
+        )
+        result = render(d)
+        assert "|svc| Service Layer" in result
+
+    def test_swimlane_display_name_with_color(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(
+            el.swimlane("svc", color="#LightBlue", display_name="Service Layer"),
+            el.action("Do work"),
+        )
+        result = render(d)
+        assert "|#LightBlue|svc| Service Layer" in result
+
+    def test_swimlane_no_display_name_unchanged(self):
+        """Without display_name, swimlane renders as before."""
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.swimlane("Client"))
+        result = render(d)
+        assert "|Client|" in result
+
+    def test_swimlane_switch_back_with_alias(self):
+        """After defining with display_name, switch back using just name."""
+        d = activity_diagram()
+        el = d.elements
+        d.add(
+            el.swimlane("svc", display_name="Service Layer"),
+            el.action("First task"),
+            el.swimlane("cli", display_name="Client App"),
+            el.action("Client task"),
+            el.swimlane("svc"),
+            el.action("Back to service"),
+        )
+        result = render(d)
+        assert "|svc| Service Layer" in result
+        assert "|cli| Client App" in result
+        # Second use of svc has no display_name, renders as plain alias
+        lines = result.split("\n")
+        svc_lines = [l for l in lines if l.strip().startswith("|svc")]
+        assert len(svc_lines) == 2
+        assert svc_lines[1].strip() == "|svc|"
+
+
+class TestActivityStereotype:
+
+    def test_action_stereotype_primitive(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.action("Read input", stereotype="input"))
+        result = d.build()
+        action = result.elements[0]
+        assert isinstance(action, Action)
+        assert action.stereotype == "input"
+
+    def test_action_stereotype_renders(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.action("Read input", stereotype="input"))
+        result = render(d)
+        assert ":Read input;<<input>>" in result
+
+    def test_action_no_stereotype_unchanged(self):
+        """Without stereotype, action renders as before."""
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.action("Normal"))
+        result = render(d)
+        assert ":Normal;" in result
+        assert "<<" not in result
+
+    def test_action_stereotype_with_shape(self):
+        """Stereotype works alongside SDL shapes."""
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.action("Data", shape="database", stereotype="output"))
+        result = render(d)
+        assert ":Data}<<output>>" in result
+
+    def test_action_stereotype_with_style(self):
+        """Stereotype works alongside colored actions."""
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.action("Alert", style={"background": "#FF0000"}, stereotype="sendSignal"))
+        result = render(d)
+        assert "<<sendSignal>>" in result
+        assert "#FF0000" in result
+
+    @pytest.mark.parametrize("stereotype", [
+        "acceptEvent",
+        "timeEvent",
+        "sendSignal",
+        "object",
+        "trigger",
+    ])
+    def test_uml_stereotypes(self, stereotype):
+        """UML-specific stereotypes render correctly."""
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.action("Test action", stereotype=stereotype))
+        result = render(d)
+        assert f"<<{stereotype}>>" in result
+
+    def test_sdl_stereotypes(self):
+        """SDL stereotypes (input, output, start, end) render correctly."""
+        d = activity_diagram()
+        el = d.elements
+        d.add(
+            el.action("Read data", stereotype="input"),
+            el.action("Write data", stereotype="output"),
+        )
+        result = render(d)
+        assert ":Read data;<<input>>" in result
+        assert ":Write data;<<output>>" in result
+
+
+class TestActivityWhileBackwardAction:
+
+    def test_while_backward_action_primitive(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(
+            el.while_("More?", [
+                el.action("Process"),
+            ], backward_action="Log iteration"),
+        )
+        result = d.build()
+        while_stmt = result.elements[0]
+        assert isinstance(while_stmt, While)
+        assert while_stmt.backward_action == "Log iteration"
+
+    def test_while_backward_action_renders(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(
+            el.while_("More?", [
+                el.action("Process"),
+            ], is_label="yes", endwhile_label="no", backward_action="Log iteration"),
+        )
+        result = render(d)
+        assert "backward :Log iteration;" in result
+        assert "while (More?) is (yes)" in result
+        assert "endwhile (no)" in result
+
+    def test_while_no_backward_action_unchanged(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(
+            el.while_("More?", [
+                el.action("Process"),
+            ]),
+        )
+        result = render(d)
+        assert "backward" not in result
+
+
+class TestActivityConnectorColor:
+
+    def test_connector_color_primitive(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.connector("B", color="blue"))
+        result = d.build()
+        conn = result.elements[0]
+        assert isinstance(conn, Connector)
+        assert conn.name == "B"
+        assert conn.color == "blue"
+
+    def test_connector_color_renders(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.connector("B", color="blue"))
+        result = render(d)
+        assert "#blue:(B)" in result
+
+    def test_connector_no_color_unchanged(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.connector("A"))
+        result = render(d)
+        assert "(A)" in result
+        assert "#" not in result
+
+    def test_connector_hex_color(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.connector("C", color="#FF0000"))
+        result = render(d)
+        assert "#FF0000:(C)" in result
+
+
+class TestActivityPackageRectangleCard:
+
+    def test_package_primitive(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.package("My Package", [el.action("Work")]))
+        result = d.build()
+        part = result.elements[0]
+        assert isinstance(part, Partition)
+        assert part.keyword == "package"
+        assert part.name == "My Package"
+
+    def test_rectangle_primitive(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.rectangle("My Rectangle", [el.action("Work")]))
+        result = d.build()
+        part = result.elements[0]
+        assert isinstance(part, Partition)
+        assert part.keyword == "rectangle"
+
+    def test_card_primitive(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.card("My Card", [el.action("Work")]))
+        result = d.build()
+        part = result.elements[0]
+        assert isinstance(part, Partition)
+        assert part.keyword == "card"
+
+    def test_package_renders(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.package("My Package", [el.action("Work")]))
+        result = render(d)
+        assert 'package "My Package" {' in result
+
+    def test_rectangle_renders(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.rectangle("My Rectangle", [el.action("Work")]))
+        result = render(d)
+        assert 'rectangle "My Rectangle" {' in result
+
+    def test_card_renders(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.card("My Card", [el.action("Work")]))
+        result = render(d)
+        assert 'card "My Card" {' in result
+
+    def test_package_with_color(self):
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.package("Pkg", [el.action("Work")], color="LightBlue"))
+        result = render(d)
+        assert 'package "Pkg"' in result
+        assert "LightBlue" in result
+
+    def test_partition_keyword_default(self):
+        """Regular partition still renders as partition."""
+        d = activity_diagram()
+        el = d.elements
+        d.add(el.partition("Section", [el.action("Work")]))
+        result = render(d)
+        assert 'partition "Section" {' in result
+
+    def test_package_empty_name_raises(self):
+        d = activity_diagram()
+        el = d.elements
+        with pytest.raises(ValueError, match="empty"):
+            el.package("", [])
+
+    def test_rectangle_empty_name_raises(self):
+        d = activity_diagram()
+        el = d.elements
+        with pytest.raises(ValueError, match="empty"):
+            el.rectangle("", [])
+
+    def test_card_empty_name_raises(self):
+        d = activity_diagram()
+        el = d.elements
+        with pytest.raises(ValueError, match="empty"):
+            el.card("", [])
+
+
+class TestActivityNewFeaturesPlantUMLValidation:
+
+    @pytest.fixture
+    def plantuml_check(self):
+        try:
+            result = subprocess.run(
+                ["plantuml", "-version"],
+                capture_output=True, timeout=10,
+            )
+            return result.returncode == 0
+        except FileNotFoundError:
+            return False
+
+    def test_plantuml_swimlane_display_name(self, plantuml_check, tmp_path):
+        if not plantuml_check:
+            pytest.skip("PlantUML not available")
+
+        d = activity_diagram()
+        el = d.elements
+        d.add(
+            el.swimlane("svc", color="#LightBlue", display_name="Service Layer"),
+            el.start(),
+            el.action("Process request"),
+            el.swimlane("db", display_name="Database"),
+            el.action("Query data"),
+            el.swimlane("svc"),
+            el.action("Return response"),
+            el.stop(),
+        )
+
+        puml_file = tmp_path / "activity_swimlane_alias.puml"
+        puml_file.write_text(render(d))
+
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+    def test_plantuml_action_stereotype(self, plantuml_check, tmp_path):
+        if not plantuml_check:
+            pytest.skip("PlantUML not available")
+
+        d = activity_diagram()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.action("Read input", stereotype="input"),
+            el.action("Process", stereotype="object"),
+            el.action("Write output", stereotype="output"),
+            el.stop(),
+        )
+
+        puml_file = tmp_path / "activity_stereotype.puml"
+        puml_file.write_text(render(d))
+
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+    def test_plantuml_while_backward_action(self, plantuml_check, tmp_path):
+        if not plantuml_check:
+            pytest.skip("PlantUML not available")
+
+        d = activity_diagram()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.while_("More items?", [
+                el.action("Process item"),
+            ], is_label="yes", endwhile_label="no", backward_action="Log iteration"),
+            el.stop(),
+        )
+
+        puml_file = tmp_path / "activity_while_backward.puml"
+        puml_file.write_text(render(d))
+
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+    def test_plantuml_connector_color(self, plantuml_check, tmp_path):
+        if not plantuml_check:
+            pytest.skip("PlantUML not available")
+
+        d = activity_diagram()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.action("Step 1"),
+            el.connector("B", color="blue"),
+            el.action("Step 2"),
+            el.connector("B", color="blue"),
+            el.stop(),
+        )
+
+        puml_file = tmp_path / "activity_connector_color.puml"
+        puml_file.write_text(render(d))
+
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+    def test_plantuml_package_rectangle_card(self, plantuml_check, tmp_path):
+        if not plantuml_check:
+            pytest.skip("PlantUML not available")
+
+        d = activity_diagram()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.package("Package Name", [
+                el.action("Action in package"),
+            ]),
+            el.rectangle("Rectangle Name", [
+                el.action("Action in rectangle"),
+            ]),
+            el.card("Card Name", [
+                el.action("Action in card"),
+            ]),
+            el.stop(),
+        )
+
+        puml_file = tmp_path / "activity_package_rect_card.puml"
+        puml_file.write_text(render(d))
+
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+    def test_plantuml_uml_stereotypes(self, plantuml_check, tmp_path):
+        if not plantuml_check:
+            pytest.skip("PlantUML not available")
+
+        d = activity_diagram()
+        el = d.elements
+        d.add(
+            el.start(),
+            el.action("Wait for timeout", stereotype="timeEvent"),
+            el.action("Send notification", stereotype="sendSignal"),
+            el.action("Wait for response", stereotype="acceptEvent"),
+            el.action("Process object", stereotype="object"),
+            el.action("Handle trigger", stereotype="trigger"),
+            el.stop(),
+        )
+
+        puml_file = tmp_path / "activity_uml_stereotypes.puml"
+        puml_file.write_text(render(d))
+
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"

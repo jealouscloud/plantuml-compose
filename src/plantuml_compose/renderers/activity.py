@@ -149,6 +149,8 @@ def _render_element(elem: ActivityElement, indent: int = 0) -> list[str]:
     if isinstance(elem, Detach):
         return [f"{prefix}detach"]
     if isinstance(elem, Connector):
+        if elem.color:
+            return [f"{prefix}{render_color_hash(elem.color)}:({elem.name})"]
         return [f"{prefix}({elem.name})"]
     if isinstance(elem, Goto):
         return [f"{prefix}goto {elem.label}"]
@@ -187,7 +189,13 @@ def _render_action(action: Action) -> str:
     if action.style and action.style.background:
         color_prefix = render_color_hash(action.style.background)
 
-    return f"{color_prefix}:{label}{shape_suffix}"
+    result = f"{color_prefix}:{label}{shape_suffix}"
+
+    # UML/SDL stereotype (e.g. <<input>>, <<sendSignal>>, <<timeEvent>>)
+    if action.stereotype:
+        result += f"<<{action.stereotype}>>"
+
+    return result
 
 
 def _render_arrow(arrow: Arrow) -> str:
@@ -283,6 +291,10 @@ def _render_while(while_stmt: While, indent: int) -> list[str]:
     for elem in while_stmt.elements:
         lines.extend(_render_element(elem, indent + 1))
 
+    # backward action (appears before endwhile)
+    if while_stmt.backward_action:
+        lines.append(f"{prefix}backward :{while_stmt.backward_action};")
+
     # endwhile
     endwhile_line = f"{prefix}endwhile"
     if while_stmt.endwhile_label:
@@ -368,7 +380,16 @@ def _render_split(split: Split, indent: int) -> list[str]:
 
 
 def _render_swimlane(lane: Swimlane) -> str:
-    """Render a swimlane."""
+    """Render a swimlane.
+
+    PlantUML alias syntax: |#color|alias| Display Title
+    When display_name is set, name acts as the alias (short identifier)
+    and display_name is shown in the lane header.
+    """
+    if lane.display_name:
+        if lane.color:
+            return f"|{render_color_hash(lane.color)}|{lane.name}| {lane.display_name}"
+        return f"|{lane.name}| {lane.display_name}"
     if lane.color:
         return f"|{render_color_hash(lane.color)}|{lane.name}|"
     return f"|{lane.name}|"
@@ -380,7 +401,7 @@ def _render_partition(partition: Partition, indent: int) -> list[str]:
     lines: list[str] = []
 
     # Opening
-    opening = f'{prefix}partition "{partition.name}"'
+    opening = f'{prefix}{partition.keyword} "{partition.name}"'
     if partition.color:
         opening += f" {render_color_hash(partition.color)}"
     opening += " {"

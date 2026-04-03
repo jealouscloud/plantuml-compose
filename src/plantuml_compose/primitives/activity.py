@@ -99,11 +99,13 @@ class Action:
         label: Description of the action
         shape: Visual shape (affects meaning - see ActionShape)
         style: Visual style (background, line, text_color)
+        stereotype: UML stereotype (e.g. "input", "sendSignal", "timeEvent")
     """
 
     label: LabelLike
     shape: ActionShape = "default"
     style: Style | None = None
+    stereotype: str | None = None
 
 
 @dataclass(frozen=True)
@@ -210,6 +212,7 @@ class While:
     is_label: str | None = None  # "is (yes)"
     elements: tuple["ActivityElement", ...] = field(default_factory=tuple)
     endwhile_label: str | None = None  # "endwhile (no)"
+    backward_action: str | None = None  # "backward :action;"
 
 
 @dataclass(frozen=True)
@@ -312,6 +315,7 @@ class Connector:
     """
 
     name: str
+    color: ColorLike | None = None
 
 
 @dataclass(frozen=True)
@@ -344,12 +348,18 @@ class Swimlane:
     a different role, system, or department. Actions placed after
     a swimlane declaration appear in that lane.
 
-        name:  Lane label (shown at top)
-        color: Lane background color
+        name:         Lane identifier (used when switching back to the lane)
+        color:        Lane background color
+        display_name: Visual label shown in lane header instead of name
     """
 
     name: str
     color: ColorLike | None = None
+    display_name: str | None = None
+
+
+# Keywords for partition-style grouping constructs
+PartitionKeyword = Literal["partition", "package", "rectangle", "card"]
 
 
 @dataclass(frozen=True)
@@ -357,16 +367,19 @@ class Partition:
     """A bordered region grouping related activities.
 
     Partitions draw a box around a set of activities to show they
-    belong together, with a title in the border.
+    belong together, with a title in the border. The keyword field
+    controls the visual style: partition, package, rectangle, or card.
 
         name:     Partition label
         elements: Activities inside the partition
         color:    Background color
+        keyword:  Grouping keyword (partition, package, rectangle, card)
     """
 
     name: str
     elements: tuple["ActivityElement", ...] = field(default_factory=tuple)
     color: ColorLike | None = None
+    keyword: PartitionKeyword = "partition"
 
 
 @dataclass(frozen=True)
