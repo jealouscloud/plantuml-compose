@@ -39,6 +39,9 @@ print(render(d))
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9I24zDAiuiILK8AChFIaqkuTBIKWXABIpDB4hDJSqhAGRnNLABCzFp8Aoor9py0f0CY1kIMboIcPVEvP2Qbm8q3G00)
 
 
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9I24zDAiuiILK8AChFIaqkuTBIKWXABIpDB4hDJSqhAGRnNLABCzFp8Aoor9py0f0CY1kIMboIcPVEvP2Qbm8q3G00)
+
+
 
 This creates a simple WBS with one project and four deliverables.
 
@@ -63,6 +66,9 @@ d.add(n.node("Mobile App",
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9IyCrFoin9LN0iAE3Iqb88BKujKWXABKvDB4hE00juAhYa5cUcvu4uJed9sQbvAGgE0PuWRaXgSKbcNZgN0r0CQ1W0)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9IyCrFoin9LN0iAE3Iqb88BKujKWXABKvDB4hE00juAhYa5cUcvu4uJed9sQbvAGgE0PuWRaXgSKbcNZgN0r0CQ1W0)
 
 
@@ -94,6 +100,9 @@ d.add(n.node("Software Project",
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/DOvB3i8m34JtEONNEKL128bTnUS0RcfAeDZWkFJwTLEn6u_VZAOfXcfpLqA4YznjHYLeLPwKBCG8xOZCcGVN4SxqdRBIczXADNQQ7jaSdPHM-a0_6kMp0lL_L64Zxkknn_JQD5ofsB_qnjcgiLMUF30eMXOEZUC-RG40)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/DOvB3i8m34JtEONNEKL128bTnUS0RcfAeDZWkFJwTLEn6u_VZAOfXcfpLqA4YznjHYLeLPwKBCG8xOZCcGVN4SxqdRBIczXADNQQ7jaSdPHM-a0_6kMp0lL_L64Zxkknn_JQD5ofsB_qnjcgiLMUF30eMXOEZUC-RG40)
 
 
@@ -131,6 +140,9 @@ print(render(d))
 ![Diagram](https://www.plantuml.com/plantuml/svg/FOv13i8m30JlVONFUKLHu4QbIEK39h62HUeWnuNlarALstfNuzsn6Qfzxcrm4BIcDHfSSPNu69o32VL9nfBxuU3CcGtBfXtCDJ8Mc2WnxivbGIxWSNaXPzcz43oSKllXDyN4nbME5q5Px8Wx_oQnJSECXVuCoz7lQobef9qVIL8V_GK0)
 
 
+![Diagram](https://www.plantuml.com/plantuml/svg/FOv13i8m30JlVONFUKLHu4QbIEK39h62HUeWnuNlarALstfNuzsn6Qfzxcrm4BIcDHfSSPNu69o32VL9nfBxuU3CcGtBfXtCDJ8Mc2WnxivbGIxWSNaXPzcz43oSKllXDyN4nbME5q5Px8Wx_oQnJSECXVuCoz7lQobef9qVIL8V_GK0)
+
+
 
 ## Controlling Branch Direction
 
@@ -145,17 +157,22 @@ d = wbs_diagram()
 n = d.nodes
 
 d.add(n.node("Project",
-    n.node("Phase A", side="left",
+    n.node("Phase A",
         n.leaf("Task A1"),
         n.leaf("Task A2"),
+        side="left",
     ),
-    n.node("Phase B", side="left",
+    n.node("Phase B",
         n.leaf("Task B1"),
+        side="left",
     ),
 ))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9I22ZApqfDBk7Iqh9H2CX8B4vLS0IoWPoGnE9i1KT3P8uHaYed90adGow7rBmKe840)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9I22ZApqfDBk7Iqh9H2CX8B4vLS0IoWPoGnE9i1KT3P8uHaYed90adGow7rBmKe840)
 
 
@@ -169,17 +186,22 @@ d = wbs_diagram()
 n = d.nodes
 
 d.add(n.node("Project",
-    n.node("Phase A", side="right",
+    n.node("Phase A",
         n.leaf("Task A1"),
+        side="right",
     ),
-    n.node("Phase B", side="right",
+    n.node("Phase B",
         n.leaf("Task B1"),
         n.leaf("Task B2"),
+        side="right",
     ),
 ))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9I22ZApqfDBk7Iqh9J2CX8B4vLS0IoWPoGnE9i1KT390ad90adGsIE4PT3QbuAq400)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9I22ZApqfDBk7Iqh9J2CX8B4vLS0IoWPoGnE9i1KT390ad90adGsIE4PT3QbuAq400)
 
 
@@ -195,20 +217,25 @@ d = wbs_diagram()
 n = d.nodes
 
 d.add(n.node("Conference Planning",
-    n.node("Venue", side="left",
+    n.node("Venue",
         n.leaf("Location"),
         n.leaf("Catering"),
         n.leaf("AV Setup"),
+        side="left",
     ),
-    n.node("Content", side="right",
+    n.node("Content",
         n.leaf("Speakers"),
         n.leaf("Schedule"),
         n.leaf("Materials"),
+        side="right",
     ),
 ))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/BSx12eCm40JGUxvYp_c68XQl5GJ1-ngdhHWsacpextTjUfl73iFsHJdhPotEqv3aYGm9e2coo2ulv_sD5aY59OkF55Zt94q3At9hcUuBpT1wchfhIo5wNJgQJ_21NFuARsmrecdyRN0iheTiziWN)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/BSx12eCm40JGUxvYp_c68XQl5GJ1-ngdhHWsacpextTjUfl73iFsHJdhPotEqv3aYGm9e2coo2ulv_sD5aY59OkF55Zt94q3At9hcUuBpT1wchfhIo5wNJgQJ_21NFuARsmrecdyRN0iheTiziWN)
 
 
@@ -225,13 +252,17 @@ from plantuml_compose import wbs_diagram, render
 d = wbs_diagram()
 n = d.nodes
 
-d.add(n.node("Project", color="LightBlue",
+d.add(n.node("Project",
     n.leaf("Critical Task", color="Salmon"),
     n.leaf("Normal Task"),
+    color="LightBlue",
 ))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvjAALlR9JCyeSSefJOrL22ZApqfDBk7I0We79-RavkV5AZWNPPPa9YVcA8Ga5cS3PHJyyejoOLo7rBmKe340)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvjAALlR9JCyeSSefJOrL22ZApqfDBk7I0We79-RavkV5AZWNPPPa9YVcA8Ga5cS3PHJyyejoOLo7rBmKe340)
 
 
@@ -245,21 +276,27 @@ d = wbs_diagram()
 n = d.nodes
 
 d.add(n.node("Sprint 1",
-    n.node("Completed", color="#90EE90",
+    n.node("Completed",
         n.leaf("Design"),
         n.leaf("Backend"),
+        color="#90EE90",
     ),
-    n.node("In Progress", color="#FFE4B5",
+    n.node("In Progress",
         n.leaf("Frontend"),
+        color="#FFE4B5",
     ),
-    n.node("Not Started", color="#E0E0E0",
+    n.node("Not Started",
         n.leaf("Testing"),
         n.leaf("Deployment"),
+        color="#E0E0E0",
     ),
 ))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9I22ueoimhKJ3aqjAALhOqS7MrD8XLSCxFBSX9BKbD0OfgARYa5cUcvu6PJed9sQbvAM35Rcwk9awciGgUUGe1HVdfHQd5nM0rRaNvUIKmHQu681Yhu9TVeX0CiXLgPaXgSKbcNZhK_8AS_ChSrBmIBWUWFg2x0000)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9I22ueoimhKJ3aqjAALhOqS7MrD8XLSCxFBSX9BKbD0OfgARYa5cUcvu6PJed9sQbvAM35Rcwk9awciGgUUGe1HVdfHQd5nM0rRaNvUIKmHQu681Yhu9TVeX0CiXLgPaXgSKbcNZhK_8AS_ChSrBmIBWUWFg2x0000)
 
 
@@ -272,14 +309,18 @@ from plantuml_compose import wbs_diagram, render
 d = wbs_diagram()
 n = d.nodes
 
-d.add(n.node("Priorities", color="#E3F2FD",
+d.add(n.node("Priorities",
     n.leaf("High", color="#F44336"),
     n.leaf("Medium", color="#FF9800"),
     n.leaf("Low", color="#4CAF50"),
+    color="#E3F2FD",
 ))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvjAALdOrTZDoSubL22ZAp2_ABCbC1Oe2XTrCJ8oDpM8LF3BJCo02RfOM1WQn2hwfAPcbkM0X4sT7DrEWa4z-EPT3QbuAq4G0)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvjAALdOrTZDoSubL22ZAp2_ABCbC1Oe2XTrCJ8oDpM8LF3BJCo02RfOM1WQn2hwfAPcbkM0X4sT7DrEWa4z-EPT3QbuAq4G0)
 
 
@@ -297,13 +338,17 @@ n = d.nodes
 d.add(n.node("Main Topic",
     n.leaf("With box"),
     n.leaf("Without box", boxless=True),
-    n.node("Boxless branch", boxless=True,
+    n.node("Boxless branch",
         n.leaf("Child node"),
+        boxless=True,
     ),
 ))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9Iy4tCp5C8oI_8JERIqb88pop9K4ZAhm2ouy6S_D8IEDyflo8djRXO8QaeCIyv0oYafU2SaPcJef2NdvBAvP2Qbm8q4W00)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9Iy4tCp5C8oI_8JERIqb88pop9K4ZAhm2ouy6S_D8IEDyflo8djRXO8QaeCIyv0oYafU2SaPcJef2NdvBAvP2Qbm8q4W00)
 
 
@@ -316,18 +361,24 @@ from plantuml_compose import wbs_diagram, render
 d = wbs_diagram()
 n = d.nodes
 
-d.add(n.node("Outline Style", boxless=True,
-    n.node("Category A", boxless=True,
+d.add(n.node("Outline Style",
+    n.node("Category A",
         n.leaf("Item 1", boxless=True),
         n.leaf("Item 2", boxless=True),
+        boxless=True,
     ),
-    n.node("Category B", boxless=True,
+    n.node("Category B",
         n.leaf("Item 3", boxless=True),
+        boxless=True,
     ),
+    boxless=True,
 ))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvjAAL_0lBSd9p4jL22wfp4dbqWAAE2UMfARd5rKgE0AvGBvdIMgkWY4IsmXLcHEIb36NGsfU2j1e0000)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvjAAL_0lBSd9p4jL22wfp4dbqWAAE2UMfARd5rKgE0AvGBvdIMgkWY4IsmXLcHEIb36NGsfU2j1e0000)
 
 
@@ -350,6 +401,9 @@ d.add(n.node("Q1 Goals",
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9I23HKSCzFp04ojQny4alpaZCKVCC2k98g5NmJYu0SGrDha9H7Pb6gWh52QbvwPbvgQb4nLrf-aK9IOd9sQbwAGabgOYvObNDEVd6gGd1gKMPgiO8ZbugfhmBGflJK4cik1w12e8q0)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9I23HKSCzFp04ojQny4alpaZCKVCC2k98g5NmJYu0SGrDha9H7Pb6gWh52QbvwPbvgQb4nLrf-aK9IOd9sQbwAGabgOYvObNDEVd6gGd1gKMPgiO8ZbugfhmBGflJK4cik1w12e8q0)
 
 
@@ -380,6 +434,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9IK0eeoizAJIvHKaWiLe2okRI0uYwfnPdfUM3X530JAbgMcfDV01Kk0uk5f1P3j9S06LmGnGgwTc1v80OnmJ8EgNafG4i1)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9I22ZApqfDBk7Iqb9GSaajpapFKr98B5P80JEXecMfEVa5KE4oi5X8Qd49MA04oE22A5RGjGFB0p682PPnICrB0Te30000)
 
 
@@ -401,8 +458,8 @@ comp = n.leaf("Components", ref="comp")
 integ = n.leaf("Integration", ref="integ")
 
 d.add(n.node("Release",
-    n.node("Backend", side="left", api, db, svc),
-    n.node("Frontend", side="right", ui, comp, integ),
+    n.node("Backend", api, db, svc, side="left"),
+    n.node("Frontend", ui, comp, integ, side="right"),
 ))
 
 # Backend dependencies
@@ -422,6 +479,9 @@ d.connect(c.arrow(svc, integ))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LP112i8m44NtFSMGPS4RY5GjGdUYU819EfIW9YMJrkixIHF4JPZ_N_xFa8uZXlZHtBIWRlGYP5A036LksdOFweJcIMxCeCm24ZbU1-Y9xUGonDaMq6D4NSj6NTmxXTKQukpoQiG-WBe4xsBjho8bX3t--XTRxBD_pzwHYrkL4Ld88EafOBH-YzYa6raCTeVyvAZhj6GlPzEHn7PRu4zqienyq1S0)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/LO_H2i8m34NVznMXZmN_GCRK8UnD53yWRSCeQZkQRlw-MLSHNqBkkRbfsd76bD-66mrNUX8oDLhluOZsGS59Bq8TBWFqn7uC2f019r-D7ZCQoHJiJAKtIektn8NoOWMtS4unvBgo1NN_spZxYa_nDSL08MzXAx8wWwJ7XDd7BU9NtSWfi6lB8yvykxcmabtBAhPfCN-YasFauny0)
 
 
@@ -457,6 +517,9 @@ d.connect(c.arrows(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvj9IK0ekAChCAr5II2nMW32vj82YBgd5cUbvOD4KC1CiwfIOd9sQbm8MJeAmmU9kHVbv9J29D2W7B1EIMboIcPSEbYY1iBaW1Yhesi7DG8Z0DKEbG68mVJ0vP34781_e4G00)
+
+
 
 ## Styling with diagram_style
 
@@ -480,6 +543,9 @@ d.add(n.node("Styled WBS",
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvh8fBgdCIRNZ0h9TCXFJYn9p5Qgv51IS4fEpquloI_DIdFDpyeiKbDqSGH0euvQVL-ANc9kgu5YKcPZ3LSjbemyrGaiX6CH8KGXt2kRIqb9mpiZCIL4mH32Dk1nIyrA0DW40)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvh8fBgdCIRNZ0h9TCXFJYn9p5Qgv51IS4fEpquloI_DIdFDpyeiKbDqSGH0euvQVL-ANc9kgu5YKcPZ3LSjbemyrGaiX6CH8KGXt2kRIqb9mpiZCIL4mH32Dk1nIyrA0DW40)
 
 
@@ -507,6 +573,9 @@ d.add(n.node("Blue Theme",
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JOvD2i8m48NtSue1TzbeAtLLfAOrAvTUO6p6LamJI5AabDxTK0gw-zuFZrU5I3v-7W7A42V3PqZSlAZpDE0CYDPfNW5HKllkl1kjhfrn7dVNeyfLisRAsRYvMN4gwaDo5rYWt6-p0gKP6Uyz3mmYAK-sxV6IME2DwOdP3_E_XeIAhKwllW00)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/JOvD2i8m48NtSue1TzbeAtLLfAOrAvTUO6p6LamJI5AabDxTK0gw-zuFZrU5I3v-7W7A42V3PqZSlAZpDE0CYDPfNW5HKllkl1kjhfrn7dVNeyfLisRAsRYvMN4gwaDo5rYWt6-p0gKP6Uyz3mmYAK-sxV6IME2DwOdP3_E_XeIAhKwllW00)
 
 
@@ -539,6 +608,9 @@ print(render(d))
 ![Diagram](https://www.plantuml.com/plantuml/svg/VOwz2W8n48JxVOe5kpH6RHGEEVm9LbVu1l4ISi5S5fALG-JUtH3j18k1ORvXc3QpJZpTCZIPdy7keVYJroxf4L-06CdOQX0Fkh-xH8zeZXGeuK8fjJdBmkQYHCJTt_9kAsLbYY9_qcdmREl03Cto-q3WnRiX5B4rU2sx80Hsb4OTi1zyCBZwITRGscZA-JS0)
 
 
+![Diagram](https://www.plantuml.com/plantuml/svg/VOwz2W8n48JxVOe5kpH6RHGEEVm9LbVu1l4ISi5S5fALG-JUtH3j18k1ORvXc3QpJZpTCZIPdy7keVYJroxf4L-06CdOQX0Fkh-xH8zeZXGeuK8fjJdBmkQYHCJTt_9kAsLbYY9_qcdmREl03Cto-q3WnRiX5B4rU2sx80Hsb4OTi1zyCBZwITRGscZA-JS0)
+
+
 
 ### Leaf Node Styling
 
@@ -568,6 +640,9 @@ print(render(d))
 ![Diagram](https://www.plantuml.com/plantuml/svg/HKvB2i8m5Do_KmouoqPGH8KYRMsB2t7X3PvDhCMO1qb4H7ftOocucnypauV8FhukWR8GtzRiAE6gvyxp0ny2hE7hIRGP2L1oU--yF9tUYnMFMRrfLlLsz1fnSL8NzRfQBf8wq43PVAfME8j4KWe73cXllTNUkCGLZca6nH-MlrHXWu372vGRfzErBm00)
 
 
+![Diagram](https://www.plantuml.com/plantuml/svg/HKvB2i8m5Do_KmouoqPGH8KYRMsB2t7X3PvDhCMO1qb4H7ftOocucnypauV8FhukWR8GtzRiAE6gvyxp0ny2hE7hIRGP2L1oU--yF9tUYnMFMRrfLlLsz1fnSL8NzRfQBf8wq43PVAfME8j4KWe73cXllTNUkCGLZca6nH-MlrHXWu372vGRfzErBm00)
+
+
 
 ### Arrow Styling
 
@@ -593,6 +668,9 @@ d.add(n.node("Central",
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JOun2i9044NxESK7kst4T4AGO69dwGN6E9Z5THPc5e98xkug8lARnoiUl_F2LkQpK-lbaMH7bOV8L-CxdWImMPu_11oZIfzJDgosX_T-zZJ5yQRYZgQwXHPgrzzUG2zQZ1E5WBsnZXCsbGC6AHp_TKETwAKUU040)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/JOun2i9044NxESK7kst4T4AGO69dwGN6E9Z5THPc5e98xkug8lARnoiUl_F2LkQpK-lbaMH7bOV8L-CxdWImMPu_11oZIfzJDgosX_T-zZJ5yQRYZgQwXHPgrzzUG2zQZ1E5WBsnZXCsbGC6AHp_TKETwAKUU040)
 
 
@@ -635,6 +713,9 @@ print(render(d))
 ![Diagram](https://www.plantuml.com/plantuml/svg/VP112u9048Nl-oi6kdaf5So3XBgw44GN3vstt4pI7LWtHCB_tceB4eGC0s_cVJoOYJlDbUwl7OawFJJYG8pEQbuftiAR0AJyzgmKlcH9iK45cvpcZBd6aLYA6Va3KPQ56JNUQ5eXwlCAx0M-vuUpnr3gxxP_r5hOW4Rm-re0IwQoC5SAUqkUQYai4-psMPZEp4YYhJtMWM8I9LpIWZWEKAv5XMg0n4mE7BLemLsazyEaY-6JMCZIlEu3)
 
 
+![Diagram](https://www.plantuml.com/plantuml/svg/VP112u9048Nl-oi6kdaf5So3XBgw44GN3vstt4pI7LWtHCB_tceB4eGC0s_cVJoOYJlDbUwl7OawFJJYG8pEQbuftiAR0AJyzgmKlcH9iK45cvpcZBd6aLYA6Va3KPQ56JNUQ5eXwlCAx0M-vuUpnr3gxxP_r5hOW4Rm-re0IwQoC5SAUqkUQYai4-psMPZEp4YYhJtMWM8I9LpIWZWEKAv5XMg0n4mE7BLemLsazyEaY-6JMCZIlEu3)
+
+
 
 ### Depth-Based Styling
 
@@ -665,6 +746,9 @@ d.add(n.node("Product Launch",
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/XP0x3u8m58Nt_egRk2YBGCJ148FbCMdYvboWAGtGab92ZE6_Muh6YRYTS-_9TnzHhudIOzwZiDVFXfwHqGadJ94MNWZWLD9ELrjtPnq09aNDb1n46Sj6AjXumJ68NTlBfD1BTQoufgOs_GZUAk7WNu8i-4_mLmaO9sc6RNf2uVvpYGDt9SkXq70bWoWgv3YG2iO5fOeBPgnZKLIKLcVAJ5yCt8YggVwc7ZJlvtLc7PEs8vm959ceUTOR)
+
+
 
 ## Mainframe
 
@@ -684,6 +768,9 @@ d.add(n.node("Sprint 5",
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKygvifDpCnBAqhCJLK8D588BYZAp2jH2CX9pEFIWl5CkRIq5DnI4qjAYr8L794vJY2EKscwWbjcHMenbqDgNWhGI000)
+
+
 
 ## Complete Examples
 
@@ -696,12 +783,13 @@ d = wbs_diagram()
 n = d.nodes
 
 d.add(n.node("E-Commerce Platform",
-    n.node("Planning", side="left",
+    n.node("Planning",
         n.leaf("Requirements"),
         n.leaf("Architecture"),
         n.leaf("Timeline"),
+        side="left",
     ),
-    n.node("Development", side="left",
+    n.node("Development",
         n.node("Frontend",
             n.leaf("Product Pages"),
             n.leaf("Cart"),
@@ -712,21 +800,27 @@ d.add(n.node("E-Commerce Platform",
             n.leaf("Product API"),
             n.leaf("Order API"),
         ),
+        side="left",
     ),
-    n.node("Testing", side="right",
+    n.node("Testing",
         n.leaf("Unit Tests"),
         n.leaf("Integration"),
         n.leaf("UAT"),
+        side="right",
     ),
-    n.node("Deployment", side="right",
+    n.node("Deployment",
         n.leaf("Infrastructure"),
         n.leaf("CI/CD"),
         n.leaf("Monitoring"),
+        side="right",
     ),
 ))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NL11Ri8m4Bpp2fyZ8JvGHOIabNAe6g7m0ECimIBUXVKQrD_NZWD8lUsCPsPdlVMYMHv7lohKvxecvu0Dg6xISY9sgwBuI03HuXX1H7ku1SlW0CLdfc9pjW960aDcUkjWiWYplO4xJ7HDXlpwnOG2E2IKufc6O4HrUWI_S7KizHpFO2uK5kzEcylRUl30gkhQVqblveU7bw9KFNXPxYZL0QtCZC-uZPr6rc895q7Lpwu6hXFzFkiduOcr5mwlWqjLjvkwoUCtnM3Yj6SRcyQl_GC0)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/NL11Ri8m4Bpp2fyZ8JvGHOIabNAe6g7m0ECimIBUXVKQrD_NZWD8lUsCPsPdlVMYMHv7lohKvxecvu0Dg6xISY9sgwBuI03HuXX1H7ku1SlW0CLdfc9pjW960aDcUkjWiWYplO4xJ7HDXlpwnOG2E2IKufc6O4HrUWI_S7KizHpFO2uK5kzEcylRUl30gkhQVqblveU7bw9KFNXPxYZL0QtCZC-uZPr6rc895q7Lpwu6hXFzFkiduOcr5mwlWqjLjvkwoUCtnM3Yj6SRcyQl_GC0)
 
 
@@ -770,6 +864,9 @@ print(render(d))
 ![Diagram](https://www.plantuml.com/plantuml/svg/VP1BQyD038Jl_XM2tdmfJQ2b44eUJYvzqa1wLjQgizYHKgrCC2N_lTxTzjh3mgUPGOns7WpLpljGp88D7JqK8rSU6yKZV1S0B3Kb05YYQnkLdkkLTA9mjPvk9fjgz2xZKn5x-ITyStztMqsIjn6sh9uFtYWjk1Ipwzy69IoOU-nW9Vn9IkoeA4lO4VSHIdWIX-Q5OKkexf2qCMkApd801-aZmfjAF2MfZpIm68KqB9Mm7KDv-X1jmq5ESO9dr9RCSvCjseTOClBwYBvBj1NdCIAydaXJcxpfdHeVB2kv61hftxB53jPVlJyTYQsO4zVZR_y0)
 
 
+![Diagram](https://www.plantuml.com/plantuml/svg/VP1BQyD038Jl_XM2tdmfJQ2b44eUJYvzqa1wLjQgizYHKgrCC2N_lTxTzjh3mgUPGOns7WpLpljGp88D7JqK8rSU6yKZV1S0B3Kb05YYQnkLdkkLTA9mjPvk9fjgz2xZKn5x-ITyStztMqsIjn6sh9uFtYWjk1Ipwzy69IoOU-nW9Vn9IkoeA4lO4VSHIdWIX-Q5OKkexf2qCMkApd801-aZmfjAF2MfZpIm68KqB9Mm7KDv-X1jmq5ESO9dr9RCSvCjseTOClBwYBvBj1NdCIAydaXJcxpfdHeVB2kv61hftxB53jPVlJyTYQsO4zVZR_y0)
+
+
 
 ### Construction Project with Dependencies
 
@@ -788,8 +885,8 @@ roof = n.leaf("Roofing", ref="roof")
 ext = n.leaf("Exterior", ref="ext")
 
 d.add(n.node("House Construction",
-    n.node("Foundation", side="left", survey, excav, pour),
-    n.node("Structure", side="right", frame, roof, ext),
+    n.node("Foundation", survey, excav, pour, side="left"),
+    n.node("Structure", frame, roof, ext, side="right"),
 ))
 
 # Foundation sequence
@@ -807,6 +904,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JP113e8m44NtdA9XIU8D324n49T63s0g5CF2ZfbE4M_lpBI0cydy_zhVdpQ1BDBd4OhAb6U8mPaJ-40OUvh0byO6e_RztowgwcZA3g8Vx7Pibuo5toBExgiiw9hzTkdjlDzp8ZEwG4GfqACZf_JD3iEQu_JrYCdVbDnasg5zJVwfREHzzQy0u-eZxzbk5t8u0UO6LAI6vb3dFZf5QW4P8bAoJf4Qk2c9QPmV-3T_)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/FP112eD034NtdYAu7EWDYWX5wRBK4qmr5XUTb4p6sjjt4iTkGjx_uIUaZU9PFezOERXIYWWN2b4uZR9Gg9mxGqyfJBvWvdf8lEAt1XyXMblqRXlzQeFceMAnRfHOaqT6GNFVMSbc0uCjIumwsa3TityjuMb3S-uF_Kuq7phdliZT9iWBSLafrNuId9foW5L5swX5OK-sgcY1VzAO5iEKt_83)
 
 
@@ -820,26 +920,33 @@ d = wbs_diagram()
 n = d.nodes
 
 d.add(n.node("2024 Roadmap",
-    n.node("Q1", color="#BBDEFB",
+    n.node("Q1",
         n.leaf("MVP Launch"),
         n.leaf("Beta Testing"),
+        color="#BBDEFB",
     ),
-    n.node("Q2", color="#C8E6C9",
+    n.node("Q2",
         n.leaf("User Feedback"),
         n.leaf("Performance"),
+        color="#C8E6C9",
     ),
-    n.node("Q3", color="#FFF9C4",
+    n.node("Q3",
         n.leaf("New Features"),
         n.leaf("Integrations"),
+        color="#FFF9C4",
     ),
-    n.node("Q4", color="#FFCCBC",
+    n.node("Q4",
         n.leaf("Scale"),
         n.leaf("Enterprise"),
+        color="#FFCCBC",
     ),
 ))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/BO_B2i8m44Nt_Og0kwoq5h4xIMn0KAdFZRYOfcCjshHCKlhxXi7Tt7lFMSp61w0mLJwH8fsdcJZtK7Sm958-Pafj2wEUuhI8KOh3lHHx69rzSrGOG5pHXzOrZEjriT9vn5FURnv96CIw0llXfaHwzTI1iyY2CIRNMHIMF1znYZo4aT1piNC16uBGzix_1QsLZaB6-yN25_ag8aa3jHwJ3Rew_lC3)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/BO_B2i8m44Nt_Og0kwoq5h4xIMn0KAdFZRYOfcCjshHCKlhxXi7Tt7lFMSp61w0mLJwH8fsdcJZtK7Sm958-Pafj2wEUuhI8KOh3lHHx69rzSrGOG5pHXzOrZEjriT9vn5FURnv96CIw0llXfaHwzTI1iyY2CIRNMHIMF1znYZo4aT1piNC16uBGzix_1QsLZaB6-yN25_ag8aa3jHwJ3Rew_lC3)
 
 

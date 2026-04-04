@@ -27,6 +27,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIh9BCb9LV0lIaajKWWeoazEBIxc0ajoMGMb9gTcba4bhRcieD9mVd16PW6CKroINy3ba9gN0ZGJ0000)
+
+
 
 The pattern is:
 1. Create a composer with `activity_diagram()`
@@ -42,7 +45,7 @@ The pattern is:
 The basic building block. Actions are rounded rectangles by default, with optional SDL shapes and stereotypes:
 
 ```python
-from plantuml_compose import activity_diagram, render
+from plantuml_compose import activity_diagram, render, Gradient
 
 d = activity_diagram()
 el = d.elements
@@ -57,7 +60,7 @@ d.add(
     el.action("Critical Step", style={"background": "#FFCDD2"}),
 
     # Action with gradient background (two colors)
-    el.action("Gradient Step", style={"background": {"start": "#4CAF50", "end": "#81C784"}}),
+    el.action("Gradient Step", style={"background": Gradient(start="#4CAF50", end="#81C784")}),
 
     # Action with UML stereotype
     el.action("Read Input", stereotype="input"),
@@ -67,6 +70,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkAm2YlAJKukB5O9I2qjJYqkikPJTt9nTN8oid8ioIpAJ4tCKWajI2u329iwERgO6DSeMXixc5YPMxaM9APcfUILGQQkWrCGK1S-yWj8IQnkRJ11jPmUq8x-0oo4rBmLe8G00)
+
+
 
 ### SDL Shapes
 
@@ -92,6 +98,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkAo2InBpKXABKXGSaqioy_EimI959VgkUIaAmHc91QarN5P1gScfcMMf2gvbgNabDa0LgI39pFIyn1mxBYkNn9941RUS_79z83i_kJGNg2WM8foKM9ogu5zG2xGilu3B0QWDQ3C0)
+
+
 
 | Shape | PlantUML | Visual |
 |-------|----------|--------|
@@ -124,6 +133,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/7Ox12iCm34Fl-Gf_HrTAOTjrXtQmiscTOcZi4Blx_Zcx2Jr9Q3R7vbSvqr-aOI7SuQwI-RYD8qkzV9hIy6uebhKLUA1ZaDfq8xFELf8TNkgSUKDdbS0Mtig7uDaJ7sI7QCD2LbMC8k5SwFabwVFcMjCSbJZo0m00)
+
+
 
 ### Action Parameters
 
@@ -150,6 +162,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkAnSyXMAytDJIp8oyzAjWOBv1LmEgNafG1K0)
+
+
 
 ```python
 from plantuml_compose import activity_diagram, render
@@ -165,6 +180,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkAnSyXMAytDJIp8oyzAjkLBpKhWSW0HG0G00)
+
+
 
 ## Arrows
 
@@ -201,7 +219,7 @@ d.add(
     el.action("Step 6"),
 
     # Color-only string shorthand
-    el.arrow(style="blue"),
+    el.arrow(style="#blue"),
     el.action("Step 7"),
 
     el.stop(),
@@ -209,6 +227,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/HOxB2eCm44Nt-Of0jtNHfs2W-0zTIXUnCw0G9o4PeVrxnq5nDvnpvtBRmZxpF0MZXsdUZCbUdAcgboNyiIq2tCQlmZlmPK3uYFVbJz_TtTH5PdKRlAzm606G3lXOuIaZdFiOj6YSKipiYVUofqRwCEFnLZlP69DfaK06Bm00)
+
+
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -241,6 +262,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pk3BJ53J24dCoK-mr5KeoKlCKD2fJYpMv51Ii0ehoarEBYwsvKdEAKnKqylB1ea6fMQd99K31l9JCDA0P-GLS3a0sq400)
+
+
 
 ```python
 from plantuml_compose import activity_diagram, render
@@ -270,6 +294,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pk3BJ53I2a_EBKXNiR1Ki3Umr5KeoKlCKD1mrkHGKhDoB4bDIhHGShRbISufJKTHQmDGYgNF2eiuSYpfdY3ea4JUWI5vAPXhGLVa5N0v0Dj290000)
+
+
 
 The first positional `events` list is the "then" branch. Additional branches are alternating `(label, events)` pairs. The last branch is the "else". Use `then_label=` to label the "then" arrow.
 
@@ -296,6 +323,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pk8hBCqkICnGqWb8BIrEBInH2AWjIxJMvaXEBKnKqt5r3DBaK5Amy4lDISb8LW5nhg4o0Vp2A58WFatDnzN4DSKMMXOXOSwNcfK3i0rgUNy3b0EG3NG80)
+
+
 
 ### While Loop
 
@@ -321,6 +351,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/BOqn3iCm30DtlO9Z_8LaQDPk-OBh2AdGM2ua1Mb_7wFeHe0ytkoHBOwwqo_G-PITCTo3gyEuPb7HxPOWZk7BdWWO5sk5tQ7y2KYVJlJ8vNLcMp6Abiwn1aexDDWcObt_lzfGct7gjlQckHTTVG40)
+
+
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -356,6 +389,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/DOun3iCW40HxNh4bI6dJG657UGc1auACxn1SXFnxMudIRJ6ZsNLexFhPg_aEqwbHLFXEsWzKaHOCu1-gj3T54cPAMeI3USMqpTWp_8n5SH_XRyztgGJx_C6K5uSoO5aSM1Jse7535YPtLQMPbJXV5qu0)
+
+
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -394,6 +430,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/BOun3eD030Hxly8bzmKeG8hIKUGB91YmSjYHpoZVZpdIM3khrNg7ufFviMUe0huRPyBcOVgYKbZMFW5Y-sTafxqBWnTixcPgVKBVICAArAWhqkbsbPz6qpiKvHALekbAtLISvQ0pH3Bp0d7htzYW7nW2Oz0F)
+
+
 
 ## Parallel Execution
 
@@ -423,6 +462,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkDBoYxAv51IiGXABinKS3QqHR2DhiAH2OdfYPXvSsCaGgx0paavd8oIsiJLNQbwA0jWQAyUS78KIe72nGd9-Ra5EQacgDT0P-GLS3a0rG3S10000)
+
+
 
 #### Fork End Styles
 
@@ -450,6 +492,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkDBoYxAv51Ii0X9BCXGChS5yXSJqnCmykAYHDLTgNee2MAMLOrf9QX6OhL1ScPTi3JGclu3B0QW0Q2O0)
+
+
 
 | `end_style` | PlantUML | Meaning |
 |-------------|----------|---------|
@@ -481,6 +526,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pk8eBSZ9Bk1GKh08IIp8K3Ar1JD_KelHKXQJ4v6nhYBn2OdfYPXvSbH66gjIy50M8ISKb-GLS3a0-q0e0)
+
+
 
 ## Organization
 
@@ -518,6 +566,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LOx12i8m44Jl-nKBVeEWxQKW5JnPgk0vf4CRJDgIJVIIZpUL5l7sXdd3RYL1-H2TfM221Lzz1y-DdpH4w5jIEaK9auDFL3HMwTKgARsLnp15GUB7Xdo7Sbaq-icN02Tb3Yg7RRIh3-TzVKmoc7asOv_ujX8L2_5Ygnxbt-4M6kQ5NvcRcIgCNNx-0m00)
+
+
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -553,6 +604,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JOwn3i9034Ft-uge_05iTAa4T4O2TOzwAKHSSrMIGqA8VwSj2ujb3tvsOuxgPKnXDM6QXPspGDLXueYBhs1pshNRzWZl0B0_tAb_0CjKl5voHyh32tgbIEACoUhm-IUTDVTandAhVeIhejYGTOHv05V81Py4IbQIhtNpF8M69CxVlW00)
+
+
 
 #### Partition Keyword Variants
 
@@ -592,6 +646,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pk0g0H6P9PdwUWb9mIM9UIc9HYa80J4n9ePfBGS4gk2IrGC7GcgiMg3evEp4zLK4f0CfmByelBK1MPWHILfIQ33GhFGUeC0ZEX2fLTdDpitGsGT9Y3DAI3B9OoHb4OfXf0b9GN99VmEMGcfS2T3i0)
+
+
 
 ### Group
 
@@ -621,6 +678,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkDAByaiB589JIu1aG4PYSQf2DPU2WfLdNcP9Pc9EPbMgDOZhd9-NbfbUMWJarKArk5Qa9fUMPERd8MiBAiq3gmzBBSfCgmGfBYx9B-1oICrB0Le90000)
+
+
 
 ## Notes
 
@@ -648,6 +708,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/BOqn3i8m40JxUyLzWiOqAIWf0a6Yjf9BOc5yaNT3oTknKBefPZGT62ltTvO_IEYhZmRe9JAUfJXDQrfM1dsi2GhQfemlWtvF2XkzJ90mn8_ftR1dugYopIrwriJcqhLtSAastAvjvPjqLgRs_G40)
+
+
 
 ### Floating Notes
 
@@ -672,6 +735,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/BOr12iCm30JlUeM-q1wJI_wGVi3KszZWM4PI4_hxYf3RCWopYtbI_-wDha6V9ibhtxYBWxLknObv_PbZPpcWHyKv1NgLQXpsoINrt631H3EKXyeRPX4Xz7o5Q5eTWn_pFPvptCcW9OJu_WC0)
+
+
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -706,6 +772,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkAo2Ir8B50ojkJGSDQ4S8sIEiJMNSb5gYfM6aoPGHtu1bqDgNWfGEm00)
+
+
 
 ### Goto and Label (Experimental)
 
@@ -729,6 +798,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/BOsx3O0m30LxJ-4oh0058B414mHuVAGGHx4fs9w0w4vNt7LgFjjr1lg0WfyGECFoJNLlXZDPGyVARhpc6QfjnROZihkX5J7NWqGqXA1W5-LLcvZy2SJbM4jQ4dM5o-S1)
+
+
 
 ## Kill and Detach
 
@@ -755,6 +827,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/7Omn3e0W303tlg8ZV446IKoS_0I9HOcrDL3-BxhTvPABpLArVZFy02MZMvCbHgfLw-pHJX90d3OzC7yb3BiACn0tGYVglxoeM95E0KZsaiTE7uY3n_i5)
+
+
 
 ### Detach
 
@@ -783,6 +858,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkDBoYxAv51IiV1CpynGA4aioh44yjyoyp68W4oIha9WEb8E85gNg9kQbw0A5qrDBG2fJKaiIapEuKlDI5C0c5PVa5t0v0Bb06m00)
+
+
 
 ## Styling
 
@@ -811,9 +889,9 @@ d.add(
         start="#4CAF50", end="#81C784", direction="horizontal",
     )}),
 
-    # Dict gradient shorthand
+    # Gradient via constructor
     el.action("Gradient Dict", style={
-        "background": {"start": "#FF5722", "end": "#FF8A65"},
+        "background": Gradient(start="#FF5722", end="#FF8A65"),
     }),
 
     el.stop(),
@@ -821,6 +899,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pk9HTZTsCt5oi_FABSXDphBcKArDpSlBBhS8JY_8oyzA10YREZcwc1ZNA5eREvXOcLkv5YIcPgNabG1atDrDp8wCQ86tXQ6OAbr5moKm6IXUNv1TmEQJcfG0j0m00)
+
+
 
 ### Diagram-Wide Styling (`diagram_style=`)
 
@@ -913,6 +994,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/fLFBRi8m4BpxAonnWKjBGda44EKHV6dL8kWFkF425ewD75D44VzUsxYqWkRKh2B5avdPjNSzB0pLPfSBPBWHW1Vc883XKMRu1pS7r2ySC40q02cdAqrpV4GOZscsMMcrasoYXD9ul-O6B4wKD2yq1ppId8e0BFWdu2WEgxEWql2FnRxjlU-jSsNQ8359_RzdBY6WKT9kfR57vsUobg1nLFVGZ3B6vGftxEfatwtTA3TSoR8afEdYEaaoTH4yYZtF1PKGB7xHngcBG6ESvagoqaI499E7QmUIZ3fnCpX8PU0VSiVVbXxcP4f859XKQxM_tKwxwUA2lgrvjf5G53Zos4z7wy7dBjFsS3CgoglkZ3hrwpnf8xQT_VOenAMMF_IJD3JRPtTpYT-LO5vyGanbknoayVhpC1-lQcsLg_ltOT3zVK3TcLQPtMuFyIMklZuzrh1PWxJaRgeaz1280d1Lgfg3vc3qeTVlk_870mIIyQKrKbiqjD_sSdq1)
+
+
 
 **`diagram_style=` selectors:**
 
@@ -951,6 +1035,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuL8ioKZDJLL8JYqgpKbDpDFDBot9oSnBvIh9BCb9LGW1IQOeE2QNP9PbbbHoWRLnMGMNf1Oe65f36KRMGF7y0Yw7rBmKe940)
+
+
 
 ### Layout Engine
 
@@ -970,6 +1057,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuL8iA4fCpqrKo4cip2yjKIZEJIr9p4la0ijpMGKKvIUd5XTR0_dv1LmEgNafG3q0)
+
+
 
 ### Line Type
 
@@ -994,6 +1084,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/7Smz3e0W343XlQVeg5VGmR-J42sX0Gg1EdXxgzitlBorgsjwvmGzibJNNCR4GlfKmj8q5FWBO8_34UYCouWQI01nscQWrEdZRfIBlTMbmcgsvmi0)
+
+
 
 ### Vertical If Layout
 
@@ -1017,6 +1110,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/DOqz2e0m34Rtd29kUWKTB0Y2kxW7JRLGszAczpSARe_7zsEAK9PwUsXIflCch8Ktpk9syel56E1BWBFOJZ4SJbmCOuToSG34VisLCP5S0x0l_AgP57wd3QiJCO5HrgC7)
+
+
 
 ### Diagram Metadata
 
@@ -1042,6 +1138,9 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/DKzB2W8n3Dtd53c18E9cHF23xWO7DwxBD5EBQLCoBLxVEEWglBnFyWvpTLfROaWkvabT8hof9yLUV6E2UNHCk5vjeSRAVt9G6McUOmxu47rDB6yOALUZdkI-YkEvl-1PjFptayXt32vO78okr2WPhp4q9Tnqfas5gHBASc69P0gKFQ2HB8gXHK-TmHCtmZrcqUJOy9syGL8L1JFyR4irw7w_xWnBWOCnLlS3)
+
+
 
 ### Complete Example
 
@@ -1107,12 +1206,15 @@ d.add(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/TL9XQzim4FskNt7GB_6dZBRPsYHaRUnu6CO8IVS3jFXY7v4b8vsJcQN_VMSrePGnX44-lNTwx-cU0clFNMCK4nk4j1Yd6QofHKCMrJnmRt2Xz8xfIDndf2kl6_YZ0Awr-0EmrBj3vLrdozGPv-5cTPVVvbaysxoLlKKF3r9vbQyatJXR_e-Tv_bZUd_1Qk_TwOByBhekcCdzvzMNvuXvLVFnHMjqfCuP7j6u5lrPJTTTg84TV2EUgVDDFXdMEIrWY_uO4Qbn5c63hGl4plSpjNV-8Asdcyx2JqiCBnWupAwbmZ9A54pENay61kXAanr0efCXTIL6IbhZxW0lVOl_09STcH8ojpj8EaMZAs6W11C5q1v6pyR0MeU0vTS4k4OBenv38aPM3_bazNYM5xiQaNuPjiRrWzqjwufiDGZmsABc662KlstS0Tyj_PBuJzgNC3rfiNhtARoJu5IJJCOeWg4L8IA30emyikyJi8vXD9IJZxUllIkxtH3Gq4jG29wgcgUmD1sEAu_Yf8pm1YqhD45kiIxvy7RICgVVK8JGuLlwFnpJlXVjkfdDvq6Ysb9bjLaiXjXeBmFWMlKaUndhlm00)
+
+
 
 ## Quick Reference
 
 ### Diagram Constructor
 
-```python
+```text
 activity_diagram(
     title=,            # str | None
     mainframe=,        # str | None
@@ -1186,12 +1288,12 @@ activity_diagram(
 ### Inline Style Dicts
 
 **`style=` on actions (StyleDict, background only):**
-```python
+```text
 {"background": "#E3F2FD"}
-{"background": {"start": "#4CAF50", "end": "#81C784", "direction": "horizontal"}}
+{"background": Gradient(start="#4CAF50", end="#81C784", direction="horizontal")}
 ```
 
 **`style=` on arrows (LineStyleDict):**
-```python
+```text
 {"color": "red", "pattern": "dashed", "thickness": 2, "bold": True}
 ```

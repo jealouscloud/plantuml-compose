@@ -1,686 +1,1328 @@
 # Sequence Diagrams
 
-Sequence diagrams show how multiple entities interact over time. They're ideal for:
+Sequence diagrams show how multiple entities interact over time. They are ideal for:
 
-- **API request/response flows**: Client → Server → Database
+- **API request/response flows**: Client -> Server -> Database
 - **Object collaboration**: How objects work together in a scenario
 - **Protocol exchanges**: Authentication handshakes, message protocols
 - **Multi-step processes**: Order processing, user registration flows
 
 Unlike state diagrams (which track ONE entity), sequence diagrams show MULTIPLE participants exchanging messages.
 
-## Core Concepts
-
-**Participant**: An entity that sends or receives messages. Can be a user, service, database, etc.
-
-**Message**: Communication between participants, shown as arrows.
-
-**Activation**: A vertical bar showing when a participant is actively processing.
-
-**Grouping Blocks**: Combined fragments for control flow (alt, opt, loop, par, critical).
-
-## Your First Sequence Diagram
+## Quick Start
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram(title="Simple Request") as d:
-    client = d.participant("Client")
-    server = d.participant("Server")
+d = sequence_diagram(title="Simple Request")
+p = d.participants
+e = d.events
 
-    d.message(client, server, "request()")
-    d.message(server, client, "response()")
+client = p.participant("Client")
+server = p.participant("Server")
+d.add(client, server)
 
-print(d.render())
+d.phase("Request", [
+    e.message(client, server, "GET /data"),
+    e.reply(server, client, "200 OK"),
+])
+
+print(render(d))
 ```
 
-## Participant Types
+The pattern is:
+1. Create a composer with `sequence_diagram()`
+2. Get namespace shortcuts: `p = d.participants`, `e = d.events`
+3. Create participants with `p.actor()`, `p.participant()`, etc.
+4. Register them with `d.add()`
+5. Build the timeline with `d.phase()`, `d.if_()`, `d.loop()`, etc.
+6. Render with `render(d)`
+
+## Elements
+
+### Participant Types
 
 Different shapes communicate the role of each participant:
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram(title="Participant Types") as d:
-    # Standard box
-    service = d.participant("Service")
+d = sequence_diagram(title="Participant Types")
+p = d.participants
+e = d.events
 
-    # Stick figure - human users
-    user = d.actor("User")
+user = p.actor("User")
+web = p.participant("Web App")
+ctrl = p.control("Controller")
+bound = p.boundary("API Gateway")
+ent = p.entity("Order")
+db = p.database("PostgreSQL")
+coll = p.collections("Log Store")
+q = p.queue("Task Queue")
 
-    # System boundary
-    api = d.boundary("API Gateway")
+d.add(user, web, ctrl, bound, ent, db, coll, q)
 
-    # Control logic
-    handler = d.control("Handler")
+d.phase("Request Flow", [
+    e.message(user, web, "Browse"),
+    e.message(web, ctrl, "Handle"),
+    e.message(ctrl, bound, "Route"),
+    e.message(bound, ent, "Query"),
+    e.message(ent, db, "SELECT"),
+    e.message(db, coll, "Log"),
+    e.message(coll, q, "Enqueue"),
+])
 
-    # Domain entity
-    order = d.entity("Order")
-
-    # Database cylinder
-    db = d.database("PostgreSQL")
-
-    # Message queue
-    mq = d.queue("RabbitMQ")
-
-    # Multiple instances
-    workers = d.collections("Workers")
-
-    d.message(user, api, "request")
-    d.message(api, handler, "process")
-    d.message(handler, order, "create")
-    d.message(handler, db, "save")
-    d.message(handler, mq, "publish")
-    d.message(mq, workers, "distribute")
-
-print(d.render())
+print(render(d))
 ```
 
-### Bulk Participant Creation
+| Factory | Shape | Use For |
+|---------|-------|---------|
+| `p.participant(name)` | Rectangle | Services, systems |
+| `p.actor(name)` | Stick figure | Human users |
+| `p.boundary(name)` | Circle + line | UI or API boundary |
+| `p.control(name)` | Circle + arrow | Controller/logic |
+| `p.entity(name)` | Circle + underline | Domain objects |
+| `p.database(name)` | Cylinder | Databases |
+| `p.collections(name)` | Stacked rectangles | Collections/groups |
+| `p.queue(name)` | Queue shape | Message queues |
+
+### Participant Options
+
+All participant factories accept the same optional parameters:
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram() as d:
-    client, server, db = d.participants("Client", "Server", "Database")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    d.message(client, server, "request")
-    d.message(server, db, "query")
-    d.message(db, server, "result")
-    d.message(server, client, "response")
+# ref= provides an alias for long names
+api = p.participant("API Gateway Service", ref="api")
 
-print(d.render())
+# order= controls left-to-right positioning (lower = further left)
+db = p.database("Database", order=30)
+cache = p.database("Cache", order=20)
+client = p.actor("Client", order=10)
+
+d.add(client, cache, db, api)
+
+d.phase("Lookup", [
+    e.message(client, api, "Request"),
+    e.message(api, cache, "Check cache"),
+    e.reply(cache, api, "Miss"),
+    e.message(api, db, "Query"),
+])
+
+print(render(d))
 ```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` | `str` | Display name |
+| `ref=` | `str \| None` | Alias for referencing |
+| `style=` | `Style \| None` | Visual style object |
+| `order=` | `int \| None` | Left-to-right ordering (lower = further left) |
 
 ## Messages
 
 ### Basic Messages
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram() as d:
-    a, b = d.participants("Alice", "Bob")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    # Solid line, filled arrow (synchronous)
-    d.message(a, b, "hello()")
+a = p.participant("A")
+b = p.participant("B")
+d.add(a, b)
 
-    # Dotted line (response/return)
-    d.message(b, a, "hi back", line_style="dotted")
+d.phase("Messages", [
+    # Solid arrow (synchronous)
+    e.message(a, b, "sync call"),
 
-    # Open arrow head (asynchronous)
-    d.message(a, b, "async event", arrow_head="open")
+    # Dotted return (reply sugar)
+    e.reply(b, a, "response"),
+])
 
-print(d.render())
+print(render(d))
 ```
 
-### Self-Messages
+### Message Line Styles and Arrow Heads
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram() as d:
-    service = d.participant("Service")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    d.message(service, service, "internal processing")
+a = p.participant("A")
+b = p.participant("B")
+d.add(a, b)
 
-print(d.render())
+d.phase("Arrow Styles", [
+    # line_style: "solid" (default) or "dotted"
+    e.message(a, b, "solid + normal", line_style="solid", arrow_head="normal"),
+    e.message(a, b, "dotted + thin", line_style="dotted", arrow_head="thin"),
+    e.message(a, b, "solid + lost", arrow_head="lost"),
+    e.message(a, b, "solid + open", arrow_head="open"),
+    e.message(a, b, "solid + circle", arrow_head="circle"),
+    e.message(a, b, "no arrowhead", arrow_head="none"),
+])
+
+print(render(d))
 ```
+
+| `line_style` | PlantUML | Meaning |
+|--------------|----------|---------|
+| `"solid"` | `->` | Synchronous message |
+| `"dotted"` | `-->` | Asynchronous or return |
+
+| `arrow_head` | PlantUML | Meaning |
+|--------------|----------|---------|
+| `"normal"` | `>` | Standard filled arrow |
+| `"thin"` | `>>` | Thin/async arrow |
+| `"lost"` | `>x` | Message lost |
+| `"open"` | `\` | Upper half arrow |
+| `"circle"` | `>o` | Arrow with circle |
+| `"none"` | (no head) | Plain line |
 
 ### Bidirectional Messages
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram() as d:
-    a, b = d.participants("A", "B")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    d.message(a, b, "sync", bidirectional=True)
+a = p.participant("A")
+b = p.participant("B")
+d.add(a, b)
 
-print(d.render())
+d.phase("Bidirectional", [
+    e.message(a, b, "ping/pong", bidirectional=True),
+])
+
+print(render(d))
 ```
 
-## Activation (Processing Bars)
+### Incoming and Outgoing Messages
 
-Show when a participant is actively processing:
+Messages from/to outside the diagram boundary:
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram(title="Activation Bars") as d:
-    client = d.participant("Client")
-    server = d.participant("Server")
-    db = d.database("Database")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    d.message(client, server, "request()")
-    d.activate(server)
+server = p.participant("Server")
+d.add(server)
 
-    d.message(server, db, "query()")
-    d.activate(db)
-    d.message(db, server, "results")
-    d.deactivate(db)
+d.phase("Boundary Messages", [
+    # Message arriving from outside ([->)
+    e.incoming(server, "External request"),
 
-    d.message(server, client, "response()")
-    d.deactivate(server)
+    # Message leaving to outside (->])
+    e.outgoing(server, "Webhook callback"),
+])
 
-print(d.render())
+print(render(d))
 ```
 
-### Colored Activation
+### Message Styling
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram() as d:
-    a, b = d.participants("A", "B")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    d.message(a, b, "process")
-    d.activate(b, color="yellow")
-    d.message(b, a, "done")
-    d.deactivate(b)
+a = p.participant("A")
+b = p.participant("B")
+d.add(a, b)
 
-print(d.render())
+d.phase("Styled", [
+    # style= accepts LineStyleDict for per-message coloring
+    e.message(a, b, "important", style={"color": "red", "bold": True}),
+    e.message(b, a, "normal", style="#blue"),
+])
+
+print(render(d))
 ```
 
-### Create and Destroy
+### Activation Shorthand on Messages
+
+The `activation=` parameter adds activation markers inline with a message:
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram(title="Lifecycle") as d:
-    factory = d.participant("Factory")
-    worker = d.participant("Worker")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    # Create shows the participant appearing
-    d.create(worker)
-    d.message(factory, worker, "new()")
+client = p.actor("Client")
+server = p.participant("Server")
+db = p.database("DB")
+d.add(client, server, db)
 
-    d.message(factory, worker, "process()")
-    d.message(worker, factory, "done")
+d.phase("With Activation", [
+    # "activate" shows activation bar on target (++)
+    e.message(client, server, "request", activation="activate"),
+    e.message(server, db, "query", activation="activate"),
+    # "deactivate" ends activation bar on source (--)
+    e.message(db, server, "result", activation="deactivate"),
+    e.message(server, client, "response", activation="deactivate"),
+])
 
-    # Destroy shows X on lifeline
-    d.destroy(worker)
-
-print(d.render())
+print(render(d))
 ```
 
-## Return Messages
+`activation=` values: `"activate"` (++), `"deactivate"` (--), `"create"` (**), `"destroy"` (!!).
+
+### Message Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `source` | `EntityRef \| str` | required | Sender |
+| `target` | `EntityRef \| str` | required | Receiver |
+| `label` | `str \| None` | `None` | Message text |
+| `line_style=` | `"solid" \| "dotted"` | `"solid"` | Line pattern |
+| `arrow_head=` | `"normal" \| "thin" \| "lost" \| "open" \| "circle" \| "none"` | `"normal"` | Arrow head type |
+| `style=` | `LineStyleLike \| None` | `None` | Color/bold override |
+| `bidirectional=` | `bool` | `False` | Two-headed arrow |
+| `activation=` | `ActivationAction \| None` | `None` | Inline activation shorthand |
+
+## Events Inside Phases
+
+All events are created from `e = d.events` and placed inside phase/block event lists.
+
+### Lifecycle Events
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram() as d:
-    client = d.participant("Client")
-    server = d.participant("Server")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    d.message(client, server, "getData()")
-    d.activate(server)
-    d.return_("data")
-    d.deactivate(server)
+client = p.actor("Client")
+server = p.participant("Server")
+worker = p.participant("Worker")
+d.add(client, server, worker)
 
-print(d.render())
+d.phase("Lifecycle", [
+    e.message(client, server, "start"),
+
+    # Explicit activate/deactivate
+    e.activate(server),
+    e.message(server, worker, "delegate"),
+    e.activate(worker, color="#FFCCCC"),  # colored activation bar
+
+    # Create a participant mid-flow
+    e.create(worker),
+
+    e.message(worker, server, "done"),
+    e.deactivate(worker),
+    e.deactivate(server),
+
+    # Destroy a participant (X on lifeline)
+    e.destroy(worker),
+])
+
+print(render(d))
 ```
 
-## Grouping Blocks
-
-### Alt (If/Else)
+### Return
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram(title="Login Flow") as d:
-    user = d.actor("User")
-    api = d.boundary("API")
-    db = d.database("DB")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    d.message(user, api, "login(user, pass)")
-    d.message(api, db, "verify credentials")
+client = p.actor("Client")
+server = p.participant("Server")
+d.add(client, server)
 
-    with d.alt("valid credentials") as alt:
-        alt.message(db, api, "user found")
-        alt.message(api, user, "200 OK + token")
+d.phase("With Return", [
+    e.message(client, server, "call()"),
+    e.activate(server),
+    e.return_("result"),
+    e.deactivate(server),
+])
 
-        with alt.else_("invalid") as invalid:
-            invalid.message(db, api, "not found")
-            invalid.message(api, user, "401 Unauthorized")
-
-print(d.render())
+print(render(d))
 ```
 
-### Opt (Optional)
+### Notes Inside Phases
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram() as d:
-    client = d.participant("Client")
-    cache = d.participant("Cache")
-    server = d.participant("Server")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    d.message(client, cache, "get(key)")
+a = p.participant("A")
+b = p.participant("B")
+d.add(a, b)
 
-    with d.opt("cache hit") as opt:
-        opt.message(cache, client, "cached value")
+d.phase("With Notes", [
+    # Note over a single participant
+    e.note("Starting process", over=a),
 
-    d.message(client, server, "fetch()")
+    e.message(a, b, "request"),
 
-print(d.render())
+    # Note over multiple participants
+    e.note("Handshake complete", over=[a, b]),
+
+    # Note shapes: "note" (default), "hnote" (hexagonal), "rnote" (rounded)
+    e.note("Important!", over=b, shape="hnote"),
+
+    # Positioned note (left/right of last message)
+    e.note("Side note", position="left"),
+
+    # Aligned with previous note
+    e.note("Aligned note", over=a, aligned=True),
+])
+
+print(render(d))
 ```
 
-### Loop
+### Interaction Frames Inside Events
+
+Blocks can be nested inside event lists for inline control flow:
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram(title="Batch Processing") as d:
-    processor = d.participant("Processor")
-    db = d.database("Database")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    with d.loop("for each item") as loop:
-        loop.message(processor, db, "fetch next")
-        loop.message(db, processor, "item data")
-        loop.message(processor, processor, "process")
+client = p.actor("Client")
+server = p.participant("Server")
+d.add(client, server)
 
-print(d.render())
+d.phase("Nested Blocks", [
+    e.message(client, server, "login"),
+
+    # Inline if/else inside a phase
+    e.if_("valid credentials", [
+        e.message(server, client, "200 OK"),
+    ], "invalid", [
+        e.message(server, client, "401 Unauthorized"),
+    ]),
+
+    # Inline loop
+    e.loop("retry 3 times", [
+        e.message(client, server, "ping"),
+        e.reply(server, client, "pong"),
+    ]),
+
+    # Inline optional
+    e.optional("if cached", [
+        e.message(server, client, "cached response"),
+    ]),
+
+    # Inline parallel
+    e.parallel([
+        e.message(server, client, "data part 1"),
+    ], None, [
+        e.message(server, client, "data part 2"),
+    ]),
+
+    # Inline break
+    e.break_("timeout", [
+        e.message(server, client, "504 Timeout"),
+    ]),
+
+    # Inline critical
+    e.critical("atomic", [
+        e.message(client, server, "commit"),
+        e.reply(server, client, "ack"),
+    ]),
+])
+
+print(render(d))
 ```
 
-### Par (Parallel)
+## Interaction Frames (Top-Level)
+
+These are the same block types as the event-level versions, but registered directly on the composer (`d.if_()`, `d.loop()`, etc.) rather than inside event lists.
+
+### Conditional: `d.if_()`
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram(title="Parallel Requests") as d:
-    client = d.participant("Client")
-    service_a = d.participant("Service A")
-    service_b = d.participant("Service B")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    with d.par("concurrent") as par:
-        par.message(client, service_a, "request A")
+client = p.actor("Client")
+api = p.participant("API")
+d.add(client, api)
 
-        with par.else_("") as par2:
-            par2.message(client, service_b, "request B")
+# Alternating label/events pairs after the primary branch
+d.if_("authenticated", [
+    e.message(api, client, "200 OK"),
+], "expired token", [
+    e.message(api, client, "401 Refresh"),
+], "invalid", [
+    e.message(api, client, "403 Forbidden"),
+])
 
-    d.message(service_a, client, "response A")
-    d.message(service_b, client, "response B")
-
-print(d.render())
+print(render(d))
 ```
 
-### Critical (Atomic)
+### Loop: `d.loop()`
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram(title="Transaction") as d:
-    api = d.participant("API")
-    db = d.database("Database")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    with d.critical("atomic operation") as crit:
-        crit.message(api, db, "BEGIN")
-        crit.message(api, db, "INSERT order")
-        crit.message(api, db, "UPDATE inventory")
-        crit.message(api, db, "COMMIT")
+sensor = p.participant("Sensor")
+controller = p.participant("Controller")
+d.add(sensor, controller)
 
-print(d.render())
+d.loop("every 5 seconds", [
+    e.message(sensor, controller, "temperature reading"),
+    e.reply(controller, sensor, "ack"),
+])
+
+print(render(d))
 ```
 
-### Break
+### Optional: `d.optional()`
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram() as d:
-    client = d.participant("Client")
-    api = d.participant("API")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    d.message(client, api, "request")
+client = p.actor("Client")
+cache = p.database("Cache")
+d.add(client, cache)
 
-    with d.break_("validation failed") as brk:
-        brk.message(api, client, "400 Bad Request")
+d.optional("cache hit", [
+    e.message(cache, client, "cached data"),
+])
 
-print(d.render())
+print(render(d))
 ```
 
-### Custom Group
+### Parallel: `d.parallel()`
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram() as d:
-    client = d.participant("Client")
-    auth = d.participant("Auth")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    with d.group("Authentication", "OAuth2") as grp:
-        grp.message(client, auth, "redirect")
-        grp.message(auth, client, "code")
-        grp.message(client, auth, "exchange code")
-        grp.message(auth, client, "access token")
+server = p.participant("Server")
+db = p.database("DB")
+cache = p.database("Cache")
+d.add(server, db, cache)
 
-print(d.render())
+# Multiple parallel branches: primary + alternating label/events
+d.parallel([
+    e.message(server, db, "query"),
+    e.reply(db, server, "result"),
+], None, [
+    e.message(server, cache, "invalidate"),
+    e.reply(cache, server, "ok"),
+])
+
+print(render(d))
 ```
+
+### Break: `d.break_()`
+
+```python
+from plantuml_compose import sequence_diagram, render
+
+d = sequence_diagram()
+p = d.participants
+e = d.events
+
+a = p.participant("A")
+b = p.participant("B")
+d.add(a, b)
+
+d.loop("process items", [
+    e.message(a, b, "next item"),
+])
+
+d.break_("error occurred", [
+    e.message(b, a, "error response"),
+])
+
+print(render(d))
+```
+
+### Critical: `d.critical()`
+
+```python
+from plantuml_compose import sequence_diagram, render
+
+d = sequence_diagram()
+p = d.participants
+e = d.events
+
+app = p.participant("App")
+db = p.database("DB")
+d.add(app, db)
+
+d.critical("transaction", [
+    e.message(app, db, "BEGIN"),
+    e.message(app, db, "INSERT"),
+    e.message(app, db, "COMMIT"),
+    e.reply(db, app, "OK"),
+])
+
+print(render(d))
+```
+
+## Phase Grouping
+
+`d.phase()` creates a labeled visual group around a set of events:
+
+```python
+from plantuml_compose import sequence_diagram, render
+
+d = sequence_diagram(title="Multi-Phase Flow")
+p = d.participants
+e = d.events
+
+client = p.actor("Client")
+api = p.participant("API")
+db = p.database("DB")
+d.add(client, api, db)
+
+d.phase("Authentication", [
+    e.message(client, api, "POST /login"),
+    e.message(api, db, "verify credentials"),
+    e.reply(db, api, "valid"),
+    e.reply(api, client, "token"),
+])
+
+d.phase("Data Access", [
+    e.message(client, api, "GET /data"),
+    e.message(api, db, "SELECT"),
+    e.reply(db, api, "rows"),
+    e.reply(api, client, "JSON response"),
+])
+
+print(render(d))
+```
+
+## Box Grouping
+
+Group participants inside a visual box:
+
+```python
+from plantuml_compose import sequence_diagram, render
+
+d = sequence_diagram()
+p = d.participants
+e = d.events
+
+user = p.actor("User")
+web = p.participant("Web")
+api = p.participant("API")
+db = p.database("DB")
+d.add(user)
+
+# Box groups participants with optional title and color
+d.box("Backend Services", api, db, color="#LightBlue")
+d.box("Frontend", web)
+
+d.phase("Request", [
+    e.message(user, web, "click"),
+    e.message(web, api, "fetch"),
+    e.message(api, db, "query"),
+])
+
+print(render(d))
+```
+
+Participants inside a `d.box()` are removed from the top-level participant list and placed within the box.
 
 ## Notes
 
+### Diagram-Level Notes
+
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram() as d:
-    client = d.participant("Client")
-    server = d.participant("Server")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    # Note on a participant
-    d.note("Initiates request", of=client)
+a = p.participant("A")
+b = p.participant("B")
+d.add(a, b)
 
-    d.message(client, server, "request")
+# Note over a participant
+d.note("Important service", target=a, position="over")
 
-    # Note spanning multiple participants
-    d.note("Handshake complete", over=(client, server))
+# Note to the left/right of a participant
+d.note("Left side note", target=a, position="left")
+d.note("Right side note", target=b, position="right")
 
-    d.message(server, client, "response")
+# Note across all participants
+d.note("System-wide note", across=True)
 
-    # Note on the right side
-    d.note("Processing done", position="right", of=server)
+d.phase("Flow", [
+    e.message(a, b, "hello"),
+])
 
-print(d.render())
+print(render(d))
 ```
+
+### Event-Level Notes
+
+See the "Notes Inside Phases" section above for `e.note()` usage within event lists.
 
 ### Note Shapes
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram() as d:
-    a, b = d.participants("A", "B")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    # Standard note
-    d.note("Regular note", of=a, shape="note")
+a = p.participant("A")
+d.add(a)
 
-    d.message(a, b, "message")
+d.phase("Note Shapes", [
+    e.note("Standard note", over=a, shape="note"),
+    e.note("Hexagonal note", over=a, shape="hnote"),
+    e.note("Rounded note", over=a, shape="rnote"),
+])
 
-    # Hexagonal note
-    d.note("Hexagonal", of=b, shape="hnote")
-
-    # Rectangular note
-    d.note("Rectangle", of=a, shape="rnote")
-
-print(d.render())
+print(render(d))
 ```
 
-## Dividers and Spacing
+## Divider, Delay, and Space
+
+### Divider
+
+Horizontal line with a centered title, separating sections:
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram(title="Phased Flow") as d:
-    client = d.participant("Client")
-    server = d.participant("Server")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    d.divider("Phase 1: Setup")
+a = p.participant("A")
+b = p.participant("B")
+d.add(a, b)
 
-    d.message(client, server, "init()")
-    d.message(server, client, "ready")
+d.phase("Phase 1", [
+    e.message(a, b, "request"),
+])
 
-    d.space(30)  # 30 pixel gap
+d.divider("Initialization Complete")
 
-    d.divider("Phase 2: Processing")
+d.phase("Phase 2", [
+    e.message(b, a, "notify"),
+])
 
-    d.message(client, server, "process()")
-
-    d.delay("waiting for external system")
-
-    d.message(server, client, "complete")
-
-print(d.render())
+print(render(d))
 ```
 
-## References
+### Delay
 
-Link to other diagrams:
+Visual pause indicator (`...`):
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram() as d:
-    client = d.participant("Client")
-    auth = d.participant("Auth Service")
-    api = d.participant("API")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    d.message(client, auth, "authenticate")
+a = p.participant("A")
+b = p.participant("B")
+d.add(a, b)
 
-    d.ref(client, auth, label="See: Authentication Flow Diagram")
+d.phase("Start", [
+    e.message(a, b, "initiate"),
+])
 
-    d.message(auth, client, "token")
-    d.message(client, api, "request + token")
+d.delay("5 minutes later")
+d.delay()  # no message, just dots
 
-print(d.render())
+d.phase("Resume", [
+    e.message(b, a, "ready"),
+])
+
+print(render(d))
 ```
 
-## Participant Boxes
+### Space
 
-Group related participants:
+Explicit vertical spacing:
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram(title="System Architecture") as d:
-    user = d.actor("User")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    with d.box("Frontend", color="LightBlue") as frontend:
-        web = frontend.participant("Web App")
+a = p.participant("A")
+b = p.participant("B")
+d.add(a, b)
 
-    with d.box("Backend", color="LightGreen") as backend:
-        api = backend.participant("API")
-        worker = backend.participant("Worker")
+d.phase("Spaced", [
+    e.message(a, b, "first"),
+])
 
-    with d.box("Data Layer", color="LightYellow") as data:
-        db = data.database("Database")
-        cache = data.participant("Cache")
+d.space(45)   # 45 pixels of space
+d.space()     # default spacing
 
-    d.message(user, web, "click")
-    d.message(web, api, "request")
-    d.message(api, cache, "check cache")
-    d.message(api, db, "query")
-    d.message(db, api, "result")
-    d.message(api, web, "response")
-    d.message(web, user, "display")
+d.phase("After Space", [
+    e.message(b, a, "second"),
+])
 
-print(d.render())
+print(render(d))
 ```
 
-## Autonumbering
+## Newpage and Ref
+
+### Page Break
+
+Split a long diagram across multiple pages:
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram(autonumber=True) as d:
-    a, b, c = d.participants("A", "B", "C")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    d.message(a, b, "first")
-    d.message(b, c, "second")
-    d.message(c, a, "third")
+a = p.participant("A")
+b = p.participant("B")
+d.add(a, b)
 
-print(d.render())
+d.phase("Page 1", [
+    e.message(a, b, "hello"),
+])
+
+d.newpage("Page 2 Title")
+
+d.phase("Page 2", [
+    e.message(b, a, "world"),
+])
+
+print(render(d))
 ```
 
-### Autonumber Control
+### Reference
+
+Point to another diagram:
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram() as d:
-    a, b = d.participants("A", "B")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    d.autonumber("start", start=10)
-    d.message(a, b, "numbered 10")
-    d.message(b, a, "numbered 11")
+client = p.actor("Client")
+api = p.participant("API")
+auth = p.participant("Auth")
+d.add(client, api, auth)
 
-    d.autonumber("stop")
-    d.message(a, b, "not numbered")
+d.phase("Main Flow", [
+    e.message(client, api, "request"),
+])
 
-    d.autonumber("resume")
-    d.message(b, a, "numbered 12")
+# Reference spanning multiple participants
+d.ref(api, auth, label="See: Authentication Flow Diagram")
 
-print(d.render())
+d.phase("After Auth", [
+    e.message(api, client, "response"),
+])
+
+print(render(d))
 ```
 
-### Hierarchical Autonumber
+## Autonumber
 
-For complex diagrams, use multi-level numbering (1.1.1, 1.1.2, 2.1.1, etc.):
+### At Diagram Creation
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram() as d:
-    client, server, db = d.participants("Client", "Server", "Database")
+# Simple: just enable autonumbering
+d = sequence_diagram(autonumber=True)
+p = d.participants
+e = d.events
 
-    # Start with hierarchical format
-    d.autonumber("start", start="1.1.1")
-    d.message(client, server, "login")       # 1.1.1
-    d.message(server, db, "verify")          # 1.1.2
+a = p.participant("A")
+b = p.participant("B")
+d.add(a, b)
 
-    # Increment first level (resets lower levels)
-    d.autonumber("inc", level="A")
-    d.message(db, server, "confirmed")       # 2.1.1
-    d.message(server, client, "token")       # 2.1.2
+d.phase("Numbered", [
+    e.message(a, b, "first"),
+    e.message(b, a, "second"),
+    e.message(a, b, "third"),
+])
 
-    # Increment second level (resets third level)
-    d.autonumber("inc", level="B")
-    d.message(client, server, "request")     # 2.2.1
-    d.message(server, db, "query")           # 2.2.2
-
-print(d.render())
+print(render(d))
 ```
 
-Use level `"A"` to increment the first digit, `"B"` for the second. When a level is incremented, all digits to the right reset to 1.
-
-## Participant Ordering
-
-Control left-to-right order:
+### Custom Autonumber
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
+from plantuml_compose.primitives.sequence import Autonumber
 
-with sequence_diagram() as d:
-    # Order determines position (lower = leftmost)
-    db = d.database("Database", order=3)
-    api = d.participant("API", order=2)
-    client = d.participant("Client", order=1)
+# Start at 10, increment by 5, with format string
+d = sequence_diagram(
+    autonumber=Autonumber(start=10, increment=5, format="<b>[000]"),
+)
+p = d.participants
+e = d.events
 
-    d.message(client, api, "request")
-    d.message(api, db, "query")
+a = p.participant("A")
+b = p.participant("B")
+d.add(a, b)
 
-print(d.render())
+d.phase("Custom Numbers", [
+    e.message(a, b, "first"),   # [010]
+    e.message(b, a, "second"),  # [015]
+])
+
+print(render(d))
 ```
 
-## Message Styling
+### Runtime Autonumber Control
+
+Stop and resume numbering mid-diagram:
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram() as d:
-    a, b = d.participants("A", "B")
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    # Colored message
-    d.message(a, b, "important", style={"color": "red"})
+a = p.participant("A")
+b = p.participant("B")
+d.add(a, b)
 
-    # Bold message
-    d.message(b, a, "response", style={"bold": True})
+# Start numbering
+d.autonumber(start=1)
 
-print(d.render())
+d.phase("Numbered", [
+    e.message(a, b, "first"),
+    e.message(b, a, "second"),
+])
+
+# Stop numbering
+d.autonumber_stop()
+
+d.phase("Unnumbered", [
+    e.message(a, b, "no number"),
+])
+
+# Resume numbering from where it left off
+d.autonumber_resume()
+
+d.phase("Numbered Again", [
+    e.message(b, a, "third"),
+])
+
+print(render(d))
 ```
 
-## Hide Unlinked Participants
+`d.autonumber()` accepts: `start=`, `increment=`, `format=`.
+
+## Activation (Timeline-Level)
+
+In addition to event-level activation (`e.activate()` inside phases), you can use timeline-level methods directly on the composer:
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram(hide_unlinked=True) as d:
-    a = d.participant("Active")
-    b = d.participant("Also Active")
-    unused = d.participant("Unused")  # Won't appear
+d = sequence_diagram()
+p = d.participants
+e = d.events
 
-    d.message(a, b, "hello")
+client = p.actor("Client")
+server = p.participant("Server")
+d.add(client, server)
 
-print(d.render())
+d.phase("Call", [
+    e.message(client, server, "request"),
+])
+d.activate(server, color="#CCFFCC")
+
+d.phase("Process", [
+    e.message(server, client, "response"),
+])
+d.deactivate(server)
+
+# Create and destroy at timeline level
+d.create(server)
+d.destroy(server)
+
+print(render(d))
 ```
 
-## Complete Example: E-Commerce Checkout
+## Layout and Organization
+
+### Hide Unlinked Participants
+
+Remove participants that have no messages:
 
 ```python
-from plantuml_compose import sequence_diagram
+from plantuml_compose import sequence_diagram, render
 
-with sequence_diagram(title="Checkout Flow") as d:
-    user = d.actor("Customer")
-    web = d.boundary("Web UI")
-    api = d.control("API")
-    cart = d.entity("Cart")
-    payment = d.participant("Payment Service")
-    inventory = d.participant("Inventory")
-    db = d.database("Database")
+d = sequence_diagram(hide_unlinked=True)
+p = d.participants
+e = d.events
 
-    d.message(user, web, "Click Checkout")
-    d.message(web, api, "POST /checkout")
-    d.activate(api)
+a = p.participant("Active")
+b = p.participant("Also Active")
+unused = p.participant("Unused")
+d.add(a, b, unused)
 
-    d.message(api, cart, "getItems()")
-    d.message(cart, api, "items[]")
+d.phase("Only Active", [
+    e.message(a, b, "hello"),
+])
 
-    d.divider("Validation")
+print(render(d))
+```
 
-    with d.loop("for each item") as loop:
-        loop.message(api, inventory, "checkStock(item)")
-        loop.message(inventory, api, "available")
+### Actor Style
 
-    d.divider("Payment")
+Change the visual style of all actors in the diagram:
 
-    d.message(api, payment, "charge(total)")
+```python
+from plantuml_compose import sequence_diagram, render
 
-    with d.alt("payment success") as alt:
-        alt.message(payment, api, "confirmed")
-        alt.message(api, db, "createOrder()")
-        alt.message(api, inventory, "reserveItems()")
-        alt.message(api, web, "200 OK")
-        alt.message(web, user, "Order Confirmed!")
+# "default" = stick figure, "awesome" = person icon, "hollow" = outline figure
+d = sequence_diagram(actor_style="awesome")
+p = d.participants
+e = d.events
 
-        with alt.else_("payment failed") as failed:
-            failed.message(payment, api, "declined")
-            failed.message(api, web, "402 Payment Required")
-            failed.message(web, user, "Payment Failed")
+user = p.actor("User")
+admin = p.actor("Admin")
+api = p.participant("API")
+d.add(user, admin, api)
 
-    d.deactivate(api)
+d.phase("Interaction", [
+    e.message(user, api, "request"),
+    e.message(admin, api, "admin request"),
+])
 
-print(d.render())
+print(render(d))
+```
+
+## Styling
+
+### Diagram-Wide Styling (`diagram_style=`)
+
+```python
+from plantuml_compose import sequence_diagram, render
+
+d = sequence_diagram(
+    title="Styled Sequence",
+    diagram_style={
+        # Root-level
+        "background": "white",
+        "font_name": "Arial",
+        "font_size": 12,
+
+        # Participant types
+        "participant": {
+            "background": "#E3F2FD",
+            "line_color": "#1976D2",
+            "round_corner": 5,
+        },
+        "actor": {
+            "background": "#FFF9C4",
+        },
+        "database": {
+            "background": "#E8F5E9",
+            "line_color": "#388E3C",
+        },
+        "boundary": {"background": "#F3E5F5"},
+        "control": {"background": "#FFF3E0"},
+        "entity": {"background": "#E0F2F1"},
+        "collections": {"background": "#FCE4EC"},
+        "queue": {"background": "#F1F8E9"},
+
+        # Messages
+        "arrow": {
+            "line_color": "#757575",
+            "font_size": 10,
+            "line_thickness": 1,
+        },
+
+        # Lifelines
+        "lifeline": {
+            "line_color": "#BDBDBD",
+        },
+
+        # Notes
+        "note": {
+            "background": "#FFF9C4",
+            "line_color": "#F9A825",
+        },
+
+        # Boxes
+        "box": {
+            "background": "#F5F5F5",
+            "line_color": "#9E9E9E",
+        },
+
+        # Groups
+        "group": {
+            "background": "#ECEFF1",
+        },
+
+        # Dividers
+        "divider": {
+            "background": "#CFD8DC",
+            "font_style": "bold",
+        },
+
+        # References
+        "reference": {
+            "background": "#E8EAF6",
+        },
+
+        # Title
+        "title": {
+            "font_size": 16,
+            "font_style": "bold",
+        },
+
+        # Stereotype-based styles
+        "stereotypes": {
+            "external": {
+                "background": "#FFCDD2",
+                "font_style": "italic",
+            },
+        },
+    },
+)
+p = d.participants
+e = d.events
+
+client = p.actor("Client")
+server = p.participant("Server")
+d.add(client, server)
+
+d.phase("Request", [
+    e.message(client, server, "GET /data"),
+    e.reply(server, client, "200 OK"),
+])
+
+print(render(d))
+```
+
+**`diagram_style=` selectors:**
+
+| Selector | Target | Style Type |
+|----------|--------|------------|
+| `background` | Diagram background | `ColorLike \| Gradient` |
+| `font_name` | Default font | `str` |
+| `font_size` | Default font size | `int` |
+| `font_color` | Default text color | `ColorLike` |
+| `participant` | Participant boxes | `ElementStyleDict` |
+| `actor` | Actor shapes | `ElementStyleDict` |
+| `boundary` | Boundary participants | `ElementStyleDict` |
+| `control` | Control participants | `ElementStyleDict` |
+| `entity` | Entity participants | `ElementStyleDict` |
+| `database` | Database participants | `ElementStyleDict` |
+| `collections` | Collections participants | `ElementStyleDict` |
+| `queue` | Queue participants | `ElementStyleDict` |
+| `arrow` | Message arrows | `DiagramArrowStyleDict` |
+| `lifeline` | Lifelines | `ElementStyleDict` |
+| `note` | Notes | `ElementStyleDict` |
+| `box` | Participant boxes | `ElementStyleDict` |
+| `group` | Group frames | `ElementStyleDict` |
+| `divider` | Dividers | `ElementStyleDict` |
+| `reference` | Reference frames | `ElementStyleDict` |
+| `title` | Diagram title | `ElementStyleDict` |
+| `stereotypes` | By stereotype name | `dict[str, ElementStyleDict]` |
+
+## Advanced Features
+
+### Theme Support
+
+```python
+from plantuml_compose import sequence_diagram, render
+
+d = sequence_diagram(title="Themed Sequence", theme="cerulean-outline")
+p = d.participants
+e = d.events
+
+a = p.actor("User")
+b = p.participant("API")
+d.add(a, b)
+
+d.phase("Request", [
+    e.message(a, b, "GET /"),
+    e.reply(b, a, "200"),
+])
+
+print(render(d))
+```
+
+### Combining Features
+
+```python
+from plantuml_compose import sequence_diagram, render
+
+d = sequence_diagram(
+    title="Authentication Flow",
+    autonumber=True,
+    actor_style="awesome",
+)
+p = d.participants
+e = d.events
+
+user = p.actor("User")
+gateway = p.boundary("Gateway")
+auth = p.control("Auth Service")
+db = p.database("User DB")
+d.add(user)
+
+d.box("Backend", gateway, auth, db, color="#E8F5E9")
+
+d.phase("Login", [
+    e.message(user, gateway, "POST /login"),
+    e.message(gateway, auth, "authenticate(credentials)"),
+    e.activate(auth),
+    e.message(auth, db, "findUser(email)"),
+    e.reply(db, auth, "user record"),
+])
+
+d.if_("user found", [
+    e.if_("password valid", [
+        e.message(auth, gateway, "JWT token"),
+        e.deactivate(auth),
+        e.message(gateway, user, "200 + token"),
+    ], "invalid", [
+        e.message(auth, gateway, "auth failed"),
+        e.deactivate(auth),
+        e.message(gateway, user, "401 Unauthorized"),
+    ]),
+], "not found", [
+    e.message(auth, gateway, "user not found"),
+    e.deactivate(auth),
+    e.message(gateway, user, "404 Not Found"),
+])
+
+print(render(d))
 ```
 
 ## Quick Reference
 
+### Diagram Constructor
+
+```text
+sequence_diagram(
+    title=,            # str | None
+    mainframe=,        # str | None
+    caption=,          # str | None
+    header=,           # str | Header | None
+    footer=,           # str | Footer | None
+    legend=,           # str | Legend | None
+    scale=,            # float | Scale | None
+    theme=,            # PlantUMLBuiltinTheme | ExternalTheme | None
+    actor_style=,      # "default" | "awesome" | "hollow" | None
+    autonumber=,       # bool | Autonumber | None
+    hide_unlinked=,    # bool (default False)
+    diagram_style=,    # SequenceDiagramStyleDict | SequenceDiagramStyle | None
+)
+```
+
+### Composer Methods
+
 | Method | Description |
 |--------|-------------|
-| `d.participant(name)` | Create participant |
-| `d.actor(name)` | Stick figure participant |
-| `d.boundary(name)` | Boundary participant |
-| `d.control(name)` | Control participant |
-| `d.entity(name)` | Entity participant |
-| `d.database(name)` | Database (cylinder) |
-| `d.queue(name)` | Queue participant |
-| `d.collections(name)` | Multiple instances |
-| `d.message(a, b, label)` | Send message |
-| `d.return_(label)` | Return message |
-| `d.activate(p)` | Start activation bar |
-| `d.deactivate(p)` | End activation bar |
-| `d.create(p)` | Create participant |
-| `d.destroy(p)` | Destroy participant |
-| `d.note(text, of=p)` | Add note |
-| `d.ref(*p, label=text)` | Reference another diagram |
-| `d.divider(title)` | Section divider |
-| `d.delay(msg)` | Delay indicator |
-| `d.space(px)` | Vertical spacing |
-| `d.autonumber(action)` | Control numbering |
-| `d.alt(label)` | If/else block |
-| `d.opt(label)` | Optional block |
-| `d.loop(label)` | Loop block |
-| `d.par(label)` | Parallel block |
-| `d.critical(label)` | Atomic block |
-| `d.break_(label)` | Break block |
-| `d.group(label)` | Custom group |
-| `d.box(name, color)` | Group participants |
+| `d.add(...)` | Register participants |
+| `d.phase(label, events)` | Labeled group of events |
+| `d.if_(label, events, *branches)` | Alt/else block |
+| `d.optional(label, events)` | Opt block |
+| `d.loop(label, events)` | Loop block |
+| `d.parallel(events, *branches)` | Par block |
+| `d.break_(label, events)` | Break block |
+| `d.critical(label, events)` | Critical block |
+| `d.box(title, *participants, color=)` | Participant box |
+| `d.divider(label)` | Horizontal divider |
+| `d.delay(message=)` | Delay indicator |
+| `d.space(pixels=)` | Vertical spacing |
+| `d.ref(*participants, label=)` | Reference frame |
+| `d.newpage(title=)` | Page break |
+| `d.note(content, target=, position=, across=, aligned=)` | Diagram-level note |
+| `d.activate(participant, color=)` | Start activation bar |
+| `d.deactivate(participant)` | End activation bar |
+| `d.create(participant)` | Create participant mid-flow |
+| `d.destroy(participant)` | Destroy participant |
+| `d.autonumber(start=, increment=, format=)` | Start numbering |
+| `d.autonumber_stop()` | Stop numbering |
+| `d.autonumber_resume()` | Resume numbering |
+| `render(d)` | Render to PlantUML text |
+
+### Participant Factories (`p = d.participants`)
+
+| Method | Shape |
+|--------|-------|
+| `p.participant(name, ref=, style=, order=)` | Rectangle |
+| `p.actor(name, ref=, style=, order=)` | Stick figure |
+| `p.boundary(name, ref=, style=, order=)` | Circle + line |
+| `p.control(name, ref=, style=, order=)` | Circle + arrow |
+| `p.entity(name, ref=, style=, order=)` | Circle + underline |
+| `p.database(name, ref=, style=, order=)` | Cylinder |
+| `p.collections(name, ref=, style=, order=)` | Stacked rectangles |
+| `p.queue(name, ref=, style=, order=)` | Queue |
+
+### Event Factories (`e = d.events`)
+
+| Method | Description |
+|--------|-------------|
+| `e.message(src, tgt, label, line_style=, arrow_head=, style=, bidirectional=, activation=)` | Message arrow |
+| `e.reply(src, tgt, label)` | Dotted return message |
+| `e.incoming(tgt, label, ...)` | Message from outside `[->` |
+| `e.outgoing(src, label, ...)` | Message to outside `->]` |
+| `e.note(content, over=, position=, shape=, across=, aligned=)` | Note in event list |
+| `e.activate(participant, color=)` | Start activation |
+| `e.deactivate(participant)` | End activation |
+| `e.create(participant)` | Create participant |
+| `e.destroy(participant)` | Destroy participant |
+| `e.return_(label=)` | Explicit return |
+| `e.if_(label, events, *branches)` | Inline alt/else |
+| `e.optional(label, events)` | Inline opt |
+| `e.loop(label, events)` | Inline loop |
+| `e.parallel(events, *branches)` | Inline par |
+| `e.break_(label, events)` | Inline break |
+| `e.critical(label, events)` | Inline critical |

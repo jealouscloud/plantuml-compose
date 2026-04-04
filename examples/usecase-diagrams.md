@@ -23,6 +23,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIh9BCb9LGZEp2q0KPN59QcvN8d99Vb52g75gKLSfSMfoOd5gGeQFldfcNcQ2BvJKNvvSQec5qYLWgwkdG9O0O8BaUToICrB0Le30000)
+
+
 
 The pattern: create a diagram, get the `el` (elements) and `r` (relationships) namespaces, build elements, `d.add()` them, then `d.connect()` relationships.
 
@@ -31,6 +34,8 @@ The pattern: create a diagram, get the `el` (elements) and `r` (relationships) n
 ### Actors
 
 ```python
+from plantuml_compose import usecase_diagram
+
 d = usecase_diagram()
 el = d.elements
 
@@ -57,6 +62,8 @@ Parameters: `name`, `ref=`, `stereotype=`, `style=`, `business=`
 ### Use Cases
 
 ```python
+from plantuml_compose import usecase_diagram
+
 d = usecase_diagram()
 el = d.elements
 
@@ -82,6 +89,8 @@ Parameters: `name`, `ref=`, `stereotype=`, `style=`, `business=`
 Containers group use cases inside a system boundary. Children are passed as positional args and accessed by `ref` or name.
 
 ```python
+from plantuml_compose import usecase_diagram, render
+
 d = usecase_diagram(title="E-Commerce")
 el = d.elements
 r = d.relationships
@@ -107,10 +116,13 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LP313i8W38RlF4N3IGzx1JDTF7WmCV49QbUtnG4958qnlhi4cMwtzliB7wKEWbwY6PKCCZBigyOPmvvO8OdpqCGWBe7IRbipMEMP16sNvlN_09n6bAlpHiDB0SJ0X85XfNVUFL9nygwD946l0GDSCfpFdHazzJaCkPo7JSzqSr5oJALPM8veiMCus3lRzDBdLsCoLMyrxG5LjPda2rQS2_OJvRKpAXVMRDlqQny0)
+
+
 
 Packages work the same way:
 
-```python
+```text
 shopping = el.package("Shopping",
     el.usecase("Browse", ref="browse"),
     el.usecase("Search", ref="search"),
@@ -130,7 +142,7 @@ Both `package()` and `rectangle()` accept `stereotype=` and `style=`.
 
 A directed association between two elements. The most common relationship type.
 
-```python
+```text
 r.arrow(customer, login)
 r.arrow(customer, login, "authenticates")  # with label
 r.arrow(customer, login, direction="right")  # layout hint
@@ -145,7 +157,7 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `length=`, `le
 
 Inheritance: child is-a parent. Renders as a triangle-headed arrow.
 
-```python
+```text
 # Admin inherits from User
 r.generalizes(admin, user)
 r.generalizes(admin, user, direction="up")
@@ -157,7 +169,7 @@ Parameters: `child`, `parent`, `style=`, `direction=`, `length=`
 
 The base use case always invokes the required use case. Renders with `<<include>>` label.
 
-```python
+```text
 # Checkout always validates the cart
 r.include(checkout, validate_cart)
 ```
@@ -168,7 +180,7 @@ Parameters: `base`, `required`, `style=`, `direction=`, `length=`
 
 The extension optionally extends the base use case. Renders with `<<extends>>` label.
 
-```python
+```text
 # Apply Coupon optionally extends Checkout
 r.extends(apply_coupon, checkout)
 ```
@@ -179,7 +191,7 @@ Parameters: `extension`, `base`, `style=`, `direction=`, `length=`
 
 An undirected line between two elements (no arrowhead by default).
 
-```python
+```text
 r.link(actor_a, actor_b)
 r.link(actor_a, actor_b, "collaborates")  # with label
 r.link(actor_a, actor_b, left_head="|>", right_head="*")  # custom heads
@@ -191,7 +203,7 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `length=`, `le
 
 Both `arrow()` and `link()` support `left_head=` and `right_head=` for custom arrowhead shapes. Common PlantUML head values include `|>`, `*`, `o`, `#`, `x`, `+`, `^`, `>>`.
 
-```python
+```text
 r.arrow(a, b, left_head="|>", right_head="*")
 r.link(a, b, left_head="o", right_head="#")
 ```
@@ -202,7 +214,7 @@ r.link(a, b, left_head="o", right_head="#")
 
 Multiple independent arrows from `(source, target)` or `(source, target, label)` tuples:
 
-```python
+```text
 d.connect(r.arrows(
     (customer, browse),
     (customer, search),
@@ -215,7 +227,7 @@ d.connect(r.arrows(
 
 Fan-out from one source to many targets. Targets can be bare refs or `(target, label)` tuples:
 
-```python
+```text
 d.connect(r.arrows_from(customer,
     browse,
     search,
@@ -232,7 +244,7 @@ Parameters: `source`, `*targets`, `style=`, `direction=`, `length=`
 
 Multiple children inherit from one parent:
 
-```python
+```text
 d.connect(r.generalizes_from(
     [oncall_eng, platform_eng, network_eng],
     engineer,
@@ -245,6 +257,8 @@ Parameters: `children`, `parent`, `style=`, `direction=`, `length=`
 ## Notes
 
 ```python
+from plantuml_compose import usecase_diagram, render
+
 d = usecase_diagram()
 el = d.elements
 r = d.relationships
@@ -268,6 +282,9 @@ d.note("System v2.1")
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NO-n3e9044Jx-uerDbfWeYM58Q6r85fORs21YtUtkBU7uU_LA8ROldcPoHHHKJHvPx1M5YXJLFOa9aMgCH9iofxg6oVTcZc3B3l2Z4rW9H3RzPh3POfA7iR3Rh_WmErFp-5CzsI58epeR0C3Jfx2jyPH-sTNOZtA1AtZnyTH7fOAh4_lZP85NGvNb613jp85XURrwWa0)
+
+
 
 Parameters: `content`, `target=`, `position=` (left/right/top/bottom), `color=`
 
@@ -278,6 +295,8 @@ Parameters: `content`, `target=`, `position=` (left/right/top/bottom), `color=`
 Set the overall diagram flow direction:
 
 ```python
+from plantuml_compose import usecase_diagram
+
 # Default is top to bottom
 d = usecase_diagram(layout="left_to_right")
 ```
@@ -288,7 +307,7 @@ Valid values: `"left_to_right"`, `"top_to_bottom"`
 
 Fine-tune individual connection placement:
 
-```python
+```text
 d.connect(
     r.arrow(user, top_uc, direction="up"),
     r.arrow(user, bottom_uc, direction="down"),
@@ -301,7 +320,7 @@ d.connect(
 
 Increase arrow length to push elements apart:
 
-```python
+```text
 r.arrow(a, b, length=2)   # longer than default
 r.arrow(a, b, length=3)   # even longer
 ```
@@ -313,6 +332,8 @@ r.arrow(a, b, length=3)   # even longer
 Change the visual representation of all actors:
 
 ```python
+from plantuml_compose import usecase_diagram
+
 # Stick figure (default)
 d = usecase_diagram(actor_style="default")
 
@@ -327,7 +348,7 @@ d = usecase_diagram(actor_style="hollow")
 
 Use `style={"background": "..."}` on individual elements:
 
-```python
+```text
 el.actor("VIP", style={"background": "Gold"})
 el.usecase("Critical Path", style={"background": "#FFCDD2"})
 el.package("Core", el.usecase("X", ref="x"), style={"background": "LightCyan"})
@@ -335,7 +356,7 @@ el.package("Core", el.usecase("X", ref="x"), style={"background": "LightCyan"})
 
 ### Line Styles on Relationships
 
-```python
+```text
 # String shorthand
 r.arrow(a, b, style="dashed")
 r.arrow(a, b, style="dotted")
@@ -349,6 +370,8 @@ r.arrow(a, b, style={"color": "red", "pattern": "dashed", "bold": True})
 Theme the entire diagram with a `<style>` block. Pass a dict with element selectors:
 
 ```python
+from plantuml_compose import usecase_diagram
+
 d = usecase_diagram(
     title="Styled Diagram",
     diagram_style={
@@ -460,6 +483,9 @@ d.note("MFA required for transfers > $1000",
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/TLJ1Qjmm4BtxAmQdX_RWTjD22y6ORBBhquQMD2taL1Hxx8Z8qbOQuuOs_vwHB6yZmc8CcdbFRqPlP9yx4fR6GMMbeqU5LJOwR8J3ZHIz5GFypG14GyQ65S25Q1vwQqRTNXh5sPFjf_fZlM7iYT-u-HYthklDzala2clD59axgJ5oFf_w9t2Uil93x8eaAOIlMZ6HTVM3r7sci2CW0rRszmIjjDYGD3fpZEw5xpvq_jrBW9ZGcG6p-J2NeoEER0npBmatg1JQ78GB9NxDSQIisq7gp9SGkcUzF6qc3oTPplzsPtgfttabvLSleVodn8ctAQ4Rp0FdRWuIreqLsdLeeMR_tCoZc4k8tyGZN4Yb8kVEBryIrYFTeoRP2CB049n85DPZAmcuvJpY7AQzJAQeemsyEJRJYOIq7OHKS8qDoZtD53i72UrAQD4Z_71eOyT3oBosw1htnf9Rf4B0Ts8P7PJ_YY8Pr04fYYhwdgGMcvFamTEK6bmC6l2-2fR16PIbr8qQMwpuHYxp2R0tCCM3mZ6GlKjayGyXJvcHQ9b73nMECkOQAHpkQJX3zFL_Ol5G6yBuqPZEpn5ETZwwPHlDT0PNzPgvlqV-e5heUEXB9mugU7EwMgsoSwx6Vurd)
+
+
 
 ## Quick Reference
 

@@ -22,6 +22,9 @@ d.connect(r.has(user, order, part_label="*"))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIh9BCb9LGZEp2q0KhxvAQavNCavYSN52g75gKKArLmA2dc9kQaALWh59KL0Jd5YMQg69bSjL95_KKfg4HTOgPQkheAIbX9Ko24rBmLeF000)
+
+
 
 ## Elements
 
@@ -30,6 +33,8 @@ All element factories live on `d.elements` (aliased as `el` by convention). Ever
 ### Class Types
 
 ```python
+from plantuml_compose import class_diagram, render
+
 d = class_diagram()
 el = d.elements
 
@@ -67,11 +72,16 @@ c = el.circle("C")
 d_node = el.diamond("D")
 
 d.add(user, base, repo, proto, ann, ent, err, meta, point, c, d_node)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/9OzB2iCm34JtEeMFaYPfeOkKKkW155a5WoqPMORczZNDSZxmPgRcQDvB1ihOMdWtDi2zkI5vEBqP6syQEKCIP_iWSNXnrPPSxO1gwagQmts4k6S65557JofXvMfCw1o1nPCVOUdDjGmAVudhl_HGlscNU3LJWyAE9_WoBziGCDRqiUQfWm-KZ3A71MB2eXB32XDB71T-)
+
+
 
 All class-type factories share the same signature:
 
-```python
+```text
 el.class_(
     name,
     *,
@@ -88,6 +98,8 @@ el.class_(
 Enums accept positional value strings instead of `members=`:
 
 ```python
+from plantuml_compose import class_diagram, render
+
 d = class_diagram()
 el = d.elements
 
@@ -95,13 +107,20 @@ status = el.enum("OrderStatus", "PENDING", "SHIPPED", "DELIVERED")
 color = el.enum("Color", "RED", "GREEN", "BLUE", stereotype="flags")
 
 d.add(status, color)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhDAyrLy2zAIIqABaaiAIrMgEPIK0XmzNFnz7C7ie8zF0C2N5s0B1TN7yymro0WknQYoJa_9xz8mSOcBISnlTZE3gmn2ApKFSZLrGz8E_c4kW9LEwJcfG2j0W00)
+
+
 
 ### Generics
 
 Attach a generic type parameter to any class-type element:
 
 ```python
+from plantuml_compose import class_diagram, render
+
 d = class_diagram()
 el = d.elements
 
@@ -109,7 +128,12 @@ list_t = el.class_("List", generics="T")
 map_t = el.interface("Map", generics="K, V")
 
 d.add(list_t, map_t)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEIImkLl39B2wn2R7ZoimhIIrAIqnELV1DBB3nrb48i-DoICrB0Qe40000)
+
+
 
 ### Stereotypes with Spots
 
@@ -135,6 +159,8 @@ d.add(svc, ent)
 Members are created via `el.field()`, `el.method()`, and `el.separator()`, then passed as a tuple to `members=`:
 
 ```python
+from plantuml_compose import class_diagram, render
+
 d = class_diagram()
 el = d.elements
 
@@ -148,7 +174,12 @@ account = el.class_("Account", members=(
 ))
 
 d.add(account)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/7Ouz2iCm34Ptdq9ZIia5EYNGNg1qDugiWi0_mLQw1DyzSXSXtjCdlgKfLZrIT1InDLY9of4LJWSW0HuWMMsTDuoOYGqycIHXD7XQLeKwlDVFoymt5lmVppRkWVVIH2TCu-7D_Az8637ScbOaxU1zvRrwFmrjq7MtS0vMvm80)
+
+
 
 **Visibility values**: `"public"` (+), `"private"` (-), `"protected"` (#), `"package"` (~)
 
@@ -156,7 +187,7 @@ d.add(account)
 
 #### Separator styles
 
-```python
+```text
 el.separator()                          # solid line (default)
 el.separator(style="dotted")            # dotted line
 el.separator(style="double")            # double line
@@ -169,6 +200,8 @@ el.separator(style="solid", label="internals")  # labeled separator
 `el.fields()` and `el.methods()` create multiple members from tuples. Each tuple is `(name,)` or `(name, type)`:
 
 ```python
+from plantuml_compose import class_diagram, render
+
 d = class_diagram()
 el = d.elements
 
@@ -187,15 +220,23 @@ node = el.class_("HtmlNode", members=(
 ))
 
 d.add(node)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/FOun3i8m34NtdC8ZbUW5cDe99YvGeIXAB1h9RIJRi23kpWz35yj-t__RatbIVsqIiYGpklaczrQOFe78qvCkPAxeaxiQfbApBq1dca4UKF9QfIZl4AMQBztU-JYYW1VMqt3aA5kJD__9bNVMv4rxOBV4kE9-ZCV-Dqm8m7i_)
+
+
 
 ### Packages
 
 Packages group classes visually. Children are positional arguments. The `style=` keyword selects the container shape:
 
 ```python
+from plantuml_compose import class_diagram, render
+
 d = class_diagram()
 el = d.elements
+r = d.relationships
 
 # Default package style (tab folder)
 pkg = el.package("domain",
@@ -213,11 +254,16 @@ infra = el.package("infrastructure",
 )
 
 d.add(pkg, infra)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JOqn2eD044LxJp7W7OA5Y85egmWUu6Tt8gBkoini5N9tjvAK3nxljMeGIyTUd70R5YOV3wo1lWMHsw5AixBSC8ZFzBljDNm4QfAS9M6gwnSCRoWt3PLTrJtxnrzgZ6gBi4vynXnfEVYylW00)
+
+
 
 Access nested children via attribute or bracket notation:
 
-```python
+```text
 d.connect(r.uses(pkg.User, infra.PostgresRepo))
 # or bracket access for names with spaces/symbols:
 # d.connect(r.uses(pkg["User"], infra["PostgresRepo"]))
@@ -230,6 +276,8 @@ All relationship factories live on `d.relationships` (aliased as `r` by conventi
 ### Typed Relationships
 
 ```python
+from plantuml_compose import class_diagram, render
+
 d = class_diagram()
 el = d.elements
 r = d.relationships
@@ -278,7 +326,12 @@ d.connect(
     # Lollipop (interface provision)
     r.lollipop(dog, walkable),
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/HP0n3y8W48Nt_eeBapQ1QE9aJAFHkEZkV6tFXdY51D397oy5MWUIk_VUVGSSVK0NtYDNsFhWi0lGCNeF9wD7v2et5pjKsWHoJ-m87iWlR9cAUQUXL3SoXkQPgxLzAS-M6LsLaN3uIfc8CoSgIYKb7gYZAtOYOJCGn5PakHPBp4xzHgbe5Nm9py6qVqegrQG6za0OVDAaRCfjeyhwGnwqMPnbTBMM_zSUoVJnetu0)
+
+
 
 ### Common Parameters
 
@@ -296,7 +349,7 @@ Every relationship method supports:
 
 `source_label=` and `target_label=` add multiplicity text at each end:
 
-```python
+```text
 r.association(order, product,
     label="contains",
     source_label="1",
@@ -306,7 +359,7 @@ r.association(order, product,
 
 The `has()`, `contains()`, `aggregation()`, and `composition()` methods use semantic naming:
 
-```python
+```text
 r.has(order, item, part_label="*")
 r.contains(order, item, whole_label="1", part_label="*")
 r.aggregation(fleet, car, part_label="*")
@@ -317,6 +370,8 @@ r.aggregation(fleet, car, part_label="*")
 For ER diagrams, use Information Engineering notation. All four support `source_label=` and `target_label=`:
 
 ```python
+from plantuml_compose import class_diagram, render
+
 d = class_diagram()
 el = d.elements
 r = d.relationships
@@ -333,13 +388,20 @@ d.connect(
     r.exactly_one(item, product, label="references"),
     r.zero_or_one(customer, product, label="reviews"),
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NOz12iCm30JlUeK_a0_a5EYfK4Y_O6mL3B5K9BcbuFoz3ebJw76qEmkQrBnOoGiWMRAFknGrpYYTPua_k2N2gs7kV1UE9HXqoQrr67R5ZUwv-80AEwxSakwtC32PJwHmtkhc7ekj8FX0GTeMpldAVvLNmhV2X1JR2ry0)
+
+
 
 ### Association Classes
 
 Link a class to an existing relationship to form an association class:
 
 ```python
+from plantuml_compose import class_diagram, render
+
 d = class_diagram()
 el = d.elements
 r = d.relationships
@@ -356,13 +418,18 @@ d.connect(
     r.association(student, course, label="enrolled in"),
     r.association_class(student, course, enrollment),
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JOun2iCm34LtdUAF3JGvG8OI23r1Js3gJoZO3aZoL7htcgAXuzCJJzhCatglHPubcU7XFRDvq7vsDGRScvwbr67n5k3Gb8aLvZh8M6bEZS578eHvlaLcAFuIp7WrkSJ6DVI4PVcx8HjR7dzz0G00)
+
+
 
 ### Generic Relationship
 
 `r.relationship()` gives full control over all parameters when the convenience methods don't fit:
 
-```python
+```text
 r.relationship(a, b,
     type="composition",
     label="owns",
@@ -380,7 +447,7 @@ r.relationship(a, b,
 
 Override the default arrowheads with `left_head=` and `right_head=`:
 
-```python
+```text
 r.relationship(a, b, left_head="<|", right_head="*")
 r.relationship(a, b, left_head="o", right_head="|>")
 ```
@@ -389,7 +456,7 @@ r.relationship(a, b, left_head="o", right_head="|>")
 
 The `style=` parameter accepts a string shorthand, a dict, or a `LineStyle` object:
 
-```python
+```text
 # String shorthand
 r.extends(child, parent, style="dashed")
 
@@ -401,7 +468,7 @@ r.uses(a, b, style={"pattern": "dotted", "color": "gray", "thickness": 2})
 
 #### arrows() -- multiple arrows from tuples
 
-```python
+```text
 d.connect(r.arrows(
     (a, b),
     (b, c, "uses"),     # optional label as third element
@@ -411,7 +478,7 @@ d.connect(r.arrows(
 
 #### arrows_from() -- fan-out from one source
 
-```python
+```text
 d.connect(r.arrows_from(controller,
     model,
     (view, "renders"),   # mix bare targets and (target, label) tuples
@@ -423,13 +490,13 @@ d.connect(r.arrows_from(controller,
 
 #### extends_from() -- multiple children, one parent
 
-```python
+```text
 d.connect(r.extends_from([dog, cat, bird], animal))
 ```
 
 #### compositions_from() -- one whole, many parts
 
-```python
+```text
 d.connect(r.compositions_from(car, [engine, wheel, frame]))
 ```
 
@@ -438,6 +505,8 @@ All bulk helpers return lists that `d.connect()` flattens automatically.
 ## Notes
 
 ```python
+from plantuml_compose import class_diagram, render
+
 d = class_diagram()
 el = d.elements
 
@@ -452,7 +521,12 @@ d.note("Primary entity", target=user, position="left", color="#FFFFCC")
 
 # Note targeting a specific class member
 d.note("Must be unique", target=user, member="id")
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JOv12iCm30JlViM-mwTy8D13yW0tLcA1BLD9FkJt3Is4m1ndbftCa_feDMmrcM4rqY3T2Sf7yOYbiE722o7tbbZGUgRwbohjZhx_ieYNSajwWiJPpyVChKJE4VCmnvimX3-3maIIhmDV)
+
+
 
 **Positions**: `"right"` (default), `"left"`, `"top"`, `"bottom"`
 
@@ -462,7 +536,7 @@ d.note("Must be unique", target=user, member="id")
 
 Group elements for layout proximity (placed adjacent to each other):
 
-```python
+```text
 d.together(user, order, product)
 ```
 
@@ -470,7 +544,7 @@ d.together(user, order, product)
 
 Control element visibility at the diagram level:
 
-```python
+```text
 # Hide all empty member compartments
 d.hide("empty members")
 
@@ -490,13 +564,20 @@ d.restore("methods")
 ### Diagram-level options
 
 ```python
+from plantuml_compose import class_diagram, render
+
 d = class_diagram(
     hide_empty_members=True,      # suppress empty field/method compartments
     hide_circle=True,             # remove the (C)/(I)/(A) circle icons
     namespace_separator=".",      # control package separator (None disables)
     layout="left_to_right",       # "top_to_bottom" (default) or "left_to_right"
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/9Sox3O0m30N0tbDu0cR8AY5vWANyP3yAjWU9zefBmUoyUvE6WygfRkT5hUOej3aaG0six9dJTPFBAXHzyT6EliFZfs9U6YHXrAzx0G00)
+
+
 
 ## Styling
 
@@ -504,7 +585,7 @@ d = class_diagram(
 
 Any class-type element accepts `style=` as a `StyleLike` dict:
 
-```python
+```text
 user = el.class_("User", style={
     "background": "#E3F2FD",
     "line": {"color": "#1976D2"},
@@ -538,6 +619,8 @@ The `diagram_style=` parameter on `class_diagram()` applies styles globally. Pas
 **DiagramArrowStyleDict keys**: `line_color`, `line_thickness`, `line_pattern`, `font_color`, `font_name`, `font_size`
 
 ```python
+from plantuml_compose import class_diagram, render
+
 d = class_diagram(
     title="Styled Domain",
     diagram_style={
@@ -556,32 +639,45 @@ d = class_diagram(
         },
     },
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/ZPB1JiCm38RlVOf8t45TwKgb2KrhcnCdU0AlDIKYTL3YCWtKToSBgJO95L2KGtv__cKxtZe6o-EW4rQiKJpnKMCdQZE0ecJZJi_xfDNWNAsWjp28pqI87RIllJKZTPNHneh3YsBqUW03yPEvQZAvadM8FIZ2gAPbiQvNGNtyXYsX5RbN9dyLCTfdQ779jRfhrbKPOj8GXmQ4Oj2gZHQmTsoXvIK7AMLPtKOOQHmMmQp9vLmO41a6LeQMVPjgbqNypKUXN-n2vl9ixOtnbsBhffXhiDOS8danqY8_dVD8r0UAD8qvrqZ-guz_3kDod7kZkpdTeNrN__YEAPcIpKrSe2rIvvVi2m00)
+
+
 
 ## Advanced Features
 
 ### Diagram Metadata
 
 ```python
-from plantuml_compose import class_diagram, render, Header, Footer, Legend, Scale
+from plantuml_compose import class_diagram, render
+from plantuml_compose.primitives.common import Header, Footer, Legend, Scale
 
 d = class_diagram(
     title="Architecture",
     mainframe="System Overview",
     caption="Generated 2025-01-15",
-    header=Header(content="Draft", alignment="right"),
+    header=Header("Draft", position="right"),
     footer="Page %page%",
-    legend=Legend(content="Green = stable\nRed = experimental", position="bottom"),
-    scale=1.5,                # or Scale(width=800)
+    legend=Legend("Green = stable\nRed = experimental", position="bottom"),
+    scale=Scale(factor=1.5),  # or Scale(width=800)
     theme="plain",            # PlantUML built-in theme name
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/9KzB2i9G3Dpd577XKh52buA2u5BH4yJNQVlWVKeQVxStucQI6MP8PZ-Rg3roeYonz2ePVFlCXipd9_GPyQA5ZN1vIkwWEKW2D-kMB9fl1mrZD0HxA4ZZC1gFa0xAHvNUAA2OaxxMtxZ805vEZaiACbciXKyeK35qlDriszMcMJKj9Gme7T-hMSt4V5AWy8xztNk22rVtxnZl2Hgptv147lZ7QE_WdRu0)
+
+
 
 ### EntityRef Child Access
 
 When elements are nested inside packages, access children by ref or name:
 
 ```python
+from plantuml_compose import class_diagram, render
+
 d = class_diagram()
 el = d.elements
 r = d.relationships
@@ -597,13 +693,18 @@ d.connect(r.uses(domain.u, domain.order))
 
 # By raw name (bracket access)
 d.connect(r.uses(domain["User"], domain["Big Order"]))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIf8JCvEJ4zLICdFJSpCKwZcKb18paaiBbPG2YrEBL9II2nMA4M8EMMcA_WNfK0bya4ihbgkKWKzFJie3vdja9gN0hG30000)
+
+
 
 ### String References
 
 You can use raw strings instead of `EntityRef` objects for relationships when referring to elements defined elsewhere:
 
-```python
+```text
 d.connect(r.extends("Child", "Parent"))
 ```
 

@@ -30,9 +30,6 @@ d = json_diagram('''{
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgoIhEp-Egvb9GKCfBp4rLib9GSip9J4vLqW499QQ3H8mD89paaimo4B-ag3ILgvRB8JKl1QGR0000)
-
-
 
 This renders the JSON structure as a visual tree with keys and values displayed in a table-like layout.
 
@@ -49,9 +46,6 @@ active: true
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImggKpCpU7YoalCJRLISCp9J4xbIam7CeqDk1AJIpBBWCoIej9KBYw7rBmKa5e0)
-
-
 
 The output is visually the same as the JSON version -- PlantUML renders both formats identically.
 
@@ -78,9 +72,6 @@ d = json_diagram('''{
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/FOxB2i8m44Nt-OgGTSW3AmHN_GyHITk1AcaICgCkfFzkOgsBMPnpXvdR8_b2TqoHlHdd0g4yeOWJRrHvJaZHBr2DUC5Wh91RSCjDMQECikgusvmAOGtEpaZUTGV9dN7cyaifuFzoHOX-231LHUK1SjSZ5BfcJtDxe856ZHZqLanbMCHtSMLjLjP3d5hz3m00)
-
-
 
 ### Nested YAML
 
@@ -102,9 +93,6 @@ server:
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/FOxB2i8m44Nt-Ohv0VF02f9L_qJIzaA590qpeyM_jwt5tRs7ipYzQ6Bzf9AD4V0R70tHl8ZML11fnU33HfujKl3Mss1lssqBg-mcqONk_XnTT_sZ0se-9TGqP4oHb5yuo0ZMHqiwHtBGqObazmkm3SMO7dNQixu0)
-
-
 
 ## Highlighting Paths
 
@@ -125,9 +113,6 @@ d = json_diagram('''{
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/9Oqn3e0W34NtdgAfgoTmqi6346cW1eg1RiQx2phyvRta_RMPgtQseZ152J7r6L8jYGbkG2HrcMb1sf8SJFD0d-t8-Ipw8yzNxsHM6sBN8CfSHGF10okh7nSl)
-
-
 
 This highlights the `"role"` key and its value.
 
@@ -153,9 +138,6 @@ d = json_diagram('''{
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/TP3F2i8m3CRlVOeGRo8A_hdij3UHR2rsCjkIH3t8tjrsTh2BWHoItvSl8QqeiTub1hFnmysFEHNGab97uX0EW3wAud_SixCkw42Zp7KYaNTaY-PZOALjeDHG_PfCklqGr76W4NS_b28NT3cVZhKJw556aLAw9evsKQwtBiwv_HJ7YrnUVLN3wgeCjpLmXfCfEPdM1LiUyGK0)
-
-
 
 Each tuple traces the key path from root. Here, `("database", "host")` highlights the `host` field inside `database`, and `("database", "credentials", "password")` highlights the nested `password` field.
 
@@ -179,9 +161,6 @@ app:
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/ROwx2iCm34LtVuLmvpfzR9xoAo8LZi1sZMG2_ligj2LBXZleY7EvitQKFh1aTravhTdImMDh7YRm6udok_hJfr3BlA1wvmn51r2nK8GohagoyKA6VWqH7k4URWR-LeIdNLmmcIAKMBkCmBMJLCpJKHA_ffkfllQX7m00)
-
-
 
 ## Title and Mainframe
 
@@ -200,9 +179,6 @@ d = json_diagram('''{
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/9Oqn2e0m40JxUyLnjPOsLW6Vu0k2EL09YUGsXOX_rsYvExEiC_Y2tN8YR8ZAKwm6BJp3enfTn2pBtyd8SfGS-cgzUeDq3QOSr5uqVCc-MJDNzH7hANIJqnJQnGC0)
-
-
 
 ### Mainframe
 
@@ -221,9 +197,6 @@ upstream:
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/FSqx2e0m303GFQV81OJw6QIJwEebeaOfs5JI-hkzYE3ufjV4H9fkyYjuSZ8hUSO-q8GjhIGZAtP1PhS0HDR3ZMnH5YSNR46JnQegOTzYKYPl0J73amUJszhKvcVn4HgMwQqU)
-
-
 
 ### Title and Mainframe Together
 
@@ -238,9 +211,6 @@ d = json_diagram('''{
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/BOuz2a8n48Jxd6BPMYzWzK0REtknY6GCA_bZinRoyEucJwjXPZw6MRfvjMUlnMKlvQ4-WqvegRupYZaJIw3ZcIxIaAJ0hOw8sz_nWJXizBvf3RoRvPYCwAEwylqbQQJ4XcvJVp3VDj1KOeJEaGoD8AiqNx3xk0Kbp5jV)
-
-
 
 ## Styling with diagram_style
 
@@ -263,9 +233,6 @@ d = json_diagram('''{
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/BOv12i8m44NtESKGju88hgH8gr9mKnSUGCPc3B7JZ2HfGSMxsqYPrN__yvWo9Wpf4SMh8gONqqxbS7He0_RmKG1xR3iRPF3c82m15dMLRsfgyQd1dg0A3da65_ScM6_KLnMhsPWjcloejw2VGSpG9YTUBpCsT1liLDoH8_q9YxqoZSHvVchgivvS9NcJ7_i1)
-
-
 
 ### Node Styling
 
@@ -287,9 +254,6 @@ d = json_diagram('''{
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/BOxR2i8m44JVynLBV5MCbqgH8iNM_4SqeTXBjcmYjKZ_tIJqRUOC7APqNf5l7LfME3_tviPYgT-g8JN0Zm5Or2O5WBjwTGtXn-eAUoJOF4xoAEkqIRH-fOViabKYq8KjhDYltgZWLWs6Nu5FvhaR2RyptqOy8lc0Sv6Br2Uapf0Bw1mKfR4wlle3)
-
-
 
 ### Highlight Styling
 
@@ -314,9 +278,6 @@ d = json_diagram('''{
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/LO_12i8m38RlVOgGNKLbpeD3P3ZPQqXrPQlMPZJPGMNlxZecuY67Fn_vmb-mw20t9g_sB4zd3Yg6azLDq0zuAu3MDgqRHwO4SDJNUnEeztL9ZW8aLLNjocnaWnhKVZLhajyTCZlyMtH4xipsPL15ARR4WZbWVLbQBoPuxN0HGKSXWcssIQSSJJb8wCsClvuSqlNulZ2-ZWK-)
-
-
 
 ### Combined Styling
 
@@ -352,9 +313,6 @@ cluster:
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/TP5XIyCm48Q_vrSStUUoTQ9e66Ckjk07_G-XERgoD5UIL2co_-ub5aGs2GV9yxvtUKCE8MeVPprOiGjnjhWNwV3Iwyxh0Ru4m56tvyxJv8mYInvMjQgRfcAb8HVVzO3mHex2g5jawCXWxhlHsJodnTg5wzHt9yiL_tEhn_f1FMKjtRJGwdXVRpTvnaNirales4UBeEmK8dfuTH_e8lbPh7vlATeVjO0r58vZ5q8iIARSJ2ICdao9EaGc7hkUd8GfP59Mo-k2p9bAw8tCeDnKcN0BMHxISbhUbQFL3g-ysp_UJ_9dz5UckricSK1dqlTy0m00)
-
-
 
 ## Complete Examples
 
@@ -381,9 +339,6 @@ d = json_diagram('''{
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/PP0z3u8m48Rt_ehBkPBmuSQ46kCVS3CEfpHGKoYXnqJuxrwB0uQXIP-txtDDMtccaJ_UzOeDMmstwnrI6amwUJrwTMXDqrfP35WJ4q8Ao8x9efeL08hFaySIYYnBGX1R9OH3eJX5y14HO4PJ2-O9O4-TbYsUh7bhb61qDWPKTwR79VbNYeroTg-j42xPzO-R_eMakZUYy5oztwE2j_90JQZcGejQLANxEdpJ5m00)
-
-
 
 ### Kubernetes Deployment
 
@@ -421,9 +376,6 @@ spec:
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/TL5DJm8n4BttLqoMCo9-H6Y88G9xyk39-z0TTnlwbNPGYU6_smAB66EJIJhllRutayuJO-GTMYDcYNU67aLfbXhRY1Q-183p3Hqk04-eDctqMzSilF4H1gj9VR-QPcwVgzDjPtBnV-gwhgUBkuDwBsQZKnvhDWGVj1w-HU-ON0DB2iRlB3aMWn_NAWLI5OoWYfdN2bCb10RzIZ5fxoHW26dqFXORxHfvQMA9iK56MTP1I_9Nt0bC0LLcGlJDLd4s52MlFEdZ9DpcBf4XnJxAmv8MMNNFk2QJZW2KCVu4CDbWaEcewOtBKLc3skKTUWHWU9hIjTfzdb40RR7jOJc-kdcuu8AFV65nj3cRlsHMmkHQY7aUg7pnDm00)
-
-
 
 ### Ansible Inventory
 
@@ -454,9 +406,6 @@ all:
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/XP0n3eCm34NtdC8dG0aZ4nrx2cJ0BP6SW1n3nUtRWDHIgHMJ_UNlzsNNIL5qnS0ce8ytmK1mpJMfp9tEGaQzCi4b9jzo7YuKTPJL66Ik340tUEw5Oku17jGcaeKaxHfW69E-nMQmxYC1S2StsLU1iuKjNE7irq9vlk0sHu-ABIRwbzwVXvV7S83ftiZ8LC4aFk3hxWEgF4UvNoYXYNs7njGK-_pz9m00)
-
-
 
 ## Embedding in Other Diagrams
 

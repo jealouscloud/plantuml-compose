@@ -19,6 +19,9 @@ d.connect(c.arrow(api, db, "queries"))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIh9BCb9LGXFJL88BabCpkPApiyjoCzBpIjHK78Cy5HmJon9BK-iL598B5O0ykEXVAwKn9B4fCJYL8M0_EAIzABKu40VXMgkMYuaDGgwkdR8qbOAXQMfHPcfnLmEgNafGBi1)
+
+
 
 ## Elements
 
@@ -29,6 +32,8 @@ All element factories live on `d.elements` (aliased as `el` by convention). Ever
 Components are the primary building blocks. They accept nested children as positional arguments:
 
 ```python
+from plantuml_compose import component_diagram, render
+
 d = component_diagram()
 el = d.elements
 
@@ -52,11 +57,16 @@ app = el.component("Application",
 )
 
 d.add(api, auth, cache, app)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LO_12i8m44Jl-Ogb_e4WA9JI8XK5GS6hK4AwfOLq4pORHSH_rvOUud4UipEpPH3D4aUhZ1kz8oI1wdfAL5P5wU66_1WCtkcegRKOu3BXDNJMFKC6Ei2acyMMdE-rwH7oVA2ETH2EHY9ZKS2gtXuszIxjzTuEHilWQ0hKtiDR0IHPZeITjSX_E5jQuQnVoFEOXJGpKHzL8hM_9xy0)
+
+
 
 Component factory signature:
 
-```python
+```text
 el.component(
     name,
     *children,             # nested EntityRef elements
@@ -72,6 +82,8 @@ el.component(
 Interfaces represent contracts exposed or consumed by components. They render as the small circle (lollipop) or socket notation:
 
 ```python
+from plantuml_compose import component_diagram, render
+
 d = component_diagram()
 el = d.elements
 
@@ -79,13 +91,20 @@ rest = el.interface("REST")
 graphql = el.interface("GraphQL", stereotype="api")
 
 d.add(rest, graphql)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuShCAqajIajCJbK8SWqEGUAw5oKMP0JwADZO91PasjbnEQJcfG0r0000)
+
+
 
 ### Ports
 
 Ports appear as small squares on component boundaries. Add them as children of a component:
 
 ```python
+from plantuml_compose import component_diagram, render
+
 d = component_diagram()
 el = d.elements
 
@@ -96,13 +115,20 @@ server = el.component("Server",
 )
 
 d.add(server)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr48JYqgIorIgEPIK2Z8Boh9p5F8A2afYC_CWmhabvOevEIdnmDfg8X2Rdfk2LSjbqDgNWhGB000)
+
+
 
 ### Containers
 
 Containers group components visually. All container types accept nested children as positional arguments:
 
 ```python
+from plantuml_compose import component_diagram, render
+
 d = component_diagram()
 el = d.elements
 
@@ -116,11 +142,16 @@ frm    = el.frame("Subsystem", el.component("Core"))
 rect   = el.rectangle("Group", el.component("Worker"))
 
 d.add(pkg, db, sky, hw, dir_, frm, rect)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NT0x2iCm30RWtQVGKPA6KWeT0XaoAxPYGcpBo4wXbDwzIhTwqg2FNu-kL9Hwn60osXqzmKKh9GTl0s0vPawKAlJZtNoCmueB5eAfifpu7rsJtnAfiu4F1_qyDU21SN6e8B7J498dIJieP-sl79os1axhvXineXII4mb6JJcMyYgLOiC6bdCL8Lin-K1m4pvoWsQM_PVLwSdwXIy0)
+
+
 
 All containers share this signature:
 
-```python
+```text
 el.package(  # or database, cloud, node, folder, frame, rectangle
     name,
     *children,
@@ -135,7 +166,7 @@ el.package(  # or database, cloud, node, folder, frame, rectangle
 
 #### components() -- multiple components at once
 
-```python
+```text
 api, db, cache = el.components("API", "Database", "Cache")
 
 # With shared stereotype/style
@@ -147,7 +178,7 @@ svcs = el.components("Auth", "Billing", "Notify",
 
 #### interfaces() -- multiple interfaces at once
 
-```python
+```text
 rest, graphql, grpc = el.interfaces("REST", "GraphQL", "gRPC")
 ```
 
@@ -156,6 +187,8 @@ rest, graphql, grpc = el.interfaces("REST", "GraphQL", "gRPC")
 `el.service()` creates a component with auto-connected provided/required interfaces in one call:
 
 ```python
+from plantuml_compose import component_diagram, render
+
 d = component_diagram()
 el = d.elements
 
@@ -173,7 +206,12 @@ d.add(
     *gateway._data["_required_interfaces"],
 )
 d.connect(*gateway._data["_service_relationships"])
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr5GSWpmL71FB4ajJwnKKaWiLW3ouw5y1HkRT0ZBpav1sTd2rSpPaYiphoIrA2qnELKXo3Ku18aRdfeKd9-SdLg29EPOMfA1nFN9Jq_Fp4ldGhP3LrS3OXAw8C8yP1bDNLs8gUY2CBCTKlDIW5u40000)
+
+
 
 ## Connections
 
@@ -182,6 +220,8 @@ All connection factories live on `d.connections` (aliased as `c` by convention).
 ### Connection Types
 
 ```python
+from plantuml_compose import component_diagram, render
+
 d = component_diagram()
 el = d.elements
 c = d.connections
@@ -209,7 +249,12 @@ d.connect(
     # Requires (socket notation)
     c.requires(cache, iface),
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JSyn3i8m30NGFQVm24Dx08Qg21YGg8I02vZ6j95e0hPxVwm6KCR_RJ_9hIYopjFJzMbwfKXHONi-5ccFYdSKAgeTzcEPJsaOY8kYIp5eOXUY4Z-m9xWShZTdC5HLyoTX0--PE90iexfkCcqz4tfn6RQRdsWJ6P59m9ln1LTPpwThMrvYIz7RNny0)
+
+
 
 ### Common Parameters
 
@@ -228,7 +273,7 @@ Every connection method supports:
 
 Override the default arrowheads on `arrow()` with `left_head=` and `right_head=`:
 
-```python
+```text
 c.arrow(a, b, left_head="<|", right_head="*")
 c.arrow(a, b, left_head="o", right_head="|>")
 ```
@@ -237,7 +282,7 @@ c.arrow(a, b, left_head="o", right_head="|>")
 
 #### arrows() -- multiple arrows from tuples
 
-```python
+```text
 d.connect(c.arrows(
     (api, db),
     (api, cache, "reads"),     # optional label as third element
@@ -247,7 +292,7 @@ d.connect(c.arrows(
 
 #### arrows_from() -- fan-out from one source
 
-```python
+```text
 d.connect(c.arrows_from(api,
     db,
     (cache, "reads"),          # mix bare targets and (target, label) tuples
@@ -260,7 +305,7 @@ d.connect(c.arrows_from(api,
 
 #### lines() -- multiple undirected links from tuples
 
-```python
+```text
 d.connect(c.lines(
     (logger, monitor),
     (monitor, dashboard),
@@ -269,7 +314,7 @@ d.connect(c.lines(
 
 #### lines_from() -- fan-out undirected links from one source
 
-```python
+```text
 d.connect(c.lines_from(bus, worker1, worker2, worker3))
 ```
 
@@ -277,7 +322,7 @@ d.connect(c.lines_from(bus, worker1, worker2, worker3))
 
 Creates arrows between consecutive components. Strings between `EntityRef` objects become labels:
 
-```python
+```text
 d.connect(c.chain(ui, "HTTP", api, "SQL", db))
 # Creates: ui --HTTP--> api --SQL--> db
 
@@ -297,6 +342,8 @@ All bulk helpers return lists that `d.connect()` flattens automatically.
 ## Notes
 
 ```python
+from plantuml_compose import component_diagram, render
+
 d = component_diagram()
 el = d.elements
 
@@ -311,7 +358,12 @@ d.note("Entry point", target=api, position="left")
 
 # Colored note
 d.note("Deprecated", target=api, position="top", color="#FFCDD2")
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/BOr13e9040Jl-uf9_877FK5OIRpv1R8qiWdCRCO6u--LuBcgKisBWtDRbv1jhQPGIlku1pL2l3ndHcazpuN8t1nYEtmlU9_6WebYqv54kIdz8zMAygIq-eTowVikfMkKXEh80p661Zh-pby0)
+
+
 
 **Positions**: `"right"` (default), `"left"`, `"top"`, `"bottom"`
 
@@ -320,13 +372,20 @@ d.note("Deprecated", target=api, position="top", color="#FFCDD2")
 ### Diagram-level options
 
 ```python
+from plantuml_compose import component_diagram, render
+
 d = component_diagram(
     layout="left_to_right",    # "top_to_bottom" (default) or "left_to_right"
     hide_unlinked=True,        # hide components with no connections
     hide_stereotype=True,      # suppress <<stereotype>> text display
     style="uml2",              # overall component style: "uml1", "uml2", "rectangle"
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/9Sl13O0m30J1Vwfm3LIG7gWW8WTO97Ra70-w1uddIhDviWJltbB3Jg5Bw75IgWOsgbkQbzeeKRfiteSRZ2kV1lcc9PrQ8PC8E9-1l_DjJUr2JHbMF_S2)
+
+
 
 ## Styling
 
@@ -334,7 +393,7 @@ d = component_diagram(
 
 Components and containers accept `style=` as a `StyleLike` dict:
 
-```python
+```text
 api = el.component("API", style={
     "background": "#E3F2FD",
     "line": {"color": "#1976D2"},
@@ -370,6 +429,8 @@ The `diagram_style=` parameter on `component_diagram()` applies styles globally.
 **DiagramArrowStyleDict keys**: `line_color`, `line_thickness`, `line_pattern`, `font_color`, `font_name`, `font_size`
 
 ```python
+from plantuml_compose import component_diagram, render
+
 d = component_diagram(
     title="Styled Architecture",
     diagram_style={
@@ -385,32 +446,45 @@ d = component_diagram(
         },
     },
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/VP5DQiCm48NtFeMW-xIEITn0A6biQTLTJZ2HL5TKbi9edD2MtBsIK7-Wk0opUVEz6Q6t2mH8qsWhCcGrEz2RrOezedmnf2LDgAjjIE939VruyauxwWqC22Fxg1ZRWtmTq4zETTvwP9VaY_etdAc_t0rln5BqUVPad2vglMdN_JAgrzZEavwp2o5wtXRm5ASmpBEhL8LLG724yD_YXjyL613zfP2_NjckKcLLU4S7ywvPNHVFmhXdX40uvU-RlyExVVFb2HhFHix2tJrVTvkVWoaGTlHMPV-rsjwMZ7RQgPZc9m00)
+
+
 
 ## Advanced Features
 
 ### Diagram Metadata
 
 ```python
-from plantuml_compose import component_diagram, render, Header, Footer, Legend, Scale
+from plantuml_compose import component_diagram, render
+from plantuml_compose.primitives.common import Header, Footer, Legend, Scale
 
 d = component_diagram(
     title="Microservices",
     mainframe="Production Environment",
     caption="As of 2025-01-15",
-    header=Header(content="Confidential", alignment="right"),
+    header=Header("Confidential", position="right"),
     footer="Page %page%",
-    legend=Legend(content="Blue = service\nGray = infrastructure", position="bottom"),
-    scale=1.5,
+    legend=Legend("Blue = service\nGray = infrastructure", position="bottom"),
+    scale=Scale(factor=1.5),
     theme="vibrant",
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/BKz1QiD03Bph5UeXnuGuu6CXJIaz1V85PItRWjsLqSg6_3vAsikCD68qqhavcQybGo6fer5Xl9aEQtBHYZzr4zDQk3fy-CmntUHk56rBb1cxGmyk7jLLacbZsoHn0vDfTfoP1ZRyrZhA43k4CgJWq4RL5zreOjmjWJj8jBn3lnhgYAVZgTyVkttNG-Q9wu1tTTS2Y9UyCdxYVrW8lqQF4DuFDBSuVZM6yFmvuHmGFpu1)
+
+
 
 ### Deep Nesting
 
 Containers can nest arbitrarily deep. Access children through chained attribute/bracket access:
 
 ```python
+from plantuml_compose import component_diagram, render
+
 d = component_diagram()
 el = d.elements
 c = d.connections
@@ -428,13 +502,18 @@ d.connect(
     c.arrow(system.Server.api, system.pg, "queries"),
     c.arrow(system.Server.worker, system.pg, "writes"),
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NOwz3i8m38JtF8LVe2_0WCg8n53KWTaqLXIL_E2uhH3Ak-E60Od1ak-xq-dw8iYoX8V9ECte2CPN4GhmDW0nMTN4At7J05CAEKMA0gVX35W0i_ypRebdpQktjK_jgcTHy8w5O4X57DDulUoPx5fpDTLe5NJTSKS7U2x4dehvTlpunbuKznIjZlu0)
+
+
 
 ### String References
 
 You can use raw strings instead of `EntityRef` objects for connections:
 
-```python
+```text
 d.connect(c.arrow("API", "Database", "queries"))
 ```
 

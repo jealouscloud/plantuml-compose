@@ -1,372 +1,542 @@
 # Component Diagrams
 
-Component diagrams show how software pieces connect through interfaces. They're ideal for:
+Component diagrams show the structural organization of a system: modular units, the interfaces they expose, and how they connect. Use them for service architectures, plugin systems, and dependency mapping between subsystems.
 
-- **System architecture**: How modules connect at a high level
-- **Service dependencies**: Which services depend on which
-- **Interface contracts**: What each component provides or requires
-- **Microservice boundaries**: Service decomposition
-
-Unlike class diagrams (internal structure) or deployment diagrams (physical infrastructure), component diagrams focus on software modules and their connections.
-
-## Core Concepts
-
-**Component**: A modular unit of software (service, library, module).
-
-**Interface**: A contract a component provides or requires.
-
-**Package**: Grouping of related components.
-
-**Relationships**:
-- **Provides** (lollipop): Component exposes an interface
-- **Requires** (socket): Component needs an interface
-- **Link/Arrow**: General dependency or connection
-
-## Your First Component Diagram
+## Quick Start
 
 ```python
-from plantuml_compose import component_diagram
+from plantuml_compose import component_diagram, render
 
-with component_diagram(title="Simple System") as d:
-    api = d.component("API Server")
-    db = d.component("Database")
+d = component_diagram(title="Web Stack")
+el = d.elements
+c = d.connections
 
-    d.arrow(api, db, label="queries")
+api = el.component("API Gateway")
+db = el.database("PostgreSQL")
 
-print(d.render())
+d.add(api, db)
+d.connect(c.arrow(api, db, "queries"))
+
+print(render(d))
 ```
 
-## Components
+## Elements
 
-### Basic Components
+All element factories live on `d.elements` (aliased as `el` by convention). Every factory returns an `EntityRef` that you pass to `d.add()`.
+
+### Components
+
+Components are the primary building blocks. They accept nested children as positional arguments:
 
 ```python
-from plantuml_compose import component_diagram
+from plantuml_compose import component_diagram, render
 
-with component_diagram() as d:
-    # Simple component
-    api = d.component("API Gateway")
+d = component_diagram()
+el = d.elements
 
-    # With stereotype
-    db = d.component("PostgreSQL", stereotype="database")
+# Simple component
+api = el.component("API")
 
-    # With styling
-    cache = d.component("Redis", style={"background": "LightYellow"})
+# Component with description
+auth = el.component("Auth Service", description="Handles OAuth2 flows")
 
-    # With attached note
-    auth = d.component("Auth Service", note="Handles OAuth2")
+# Component with stereotype and inline style
+cache = el.component("Cache",
+    stereotype="infrastructure",
+    style={"background": "#E8F5E9"},
+)
 
-print(d.render())
+# Component with nested children
+app = el.component("Application",
+    el.component("Controller"),
+    el.component("Service Layer"),
+    ref="app",
+)
+
+d.add(api, auth, cache, app)
+
+print(render(d))
 ```
 
-### Bulk Component Creation
+Component factory signature:
 
-```python
-from plantuml_compose import component_diagram
-
-with component_diagram() as d:
-    # Create multiple at once
-    api, worker, scheduler = d.components("API", "Worker", "Scheduler")
-
-    d.arrow(api, worker)
-    d.arrow(scheduler, worker)
-
-print(d.render())
+```text
+el.component(
+    name,
+    *children,             # nested EntityRef elements
+    ref=None,              # short alias for connections
+    stereotype=None,       # str or Stereotype object
+    style=None,            # StyleLike dict for inline visual override
+    description=None,      # text shown below the component name
+)
 ```
 
-## Interfaces
+### Interfaces
 
-### Provided Interfaces (Lollipop)
-
-A component provides an interface it exposes:
+Interfaces represent contracts exposed or consumed by components. They render as the small circle (lollipop) or socket notation:
 
 ```python
-from plantuml_compose import component_diagram
+from plantuml_compose import component_diagram, render
 
-with component_diagram(title="REST API") as d:
-    api = d.component("API Server")
-    rest = d.interface("REST")
+d = component_diagram()
+el = d.elements
 
-    # API provides REST interface (lollipop notation)
-    d.provides(api, rest)
+rest = el.interface("REST")
+graphql = el.interface("GraphQL", stereotype="api")
 
-print(d.render())
+d.add(rest, graphql)
+
+print(render(d))
 ```
 
-### Required Interfaces (Socket)
+### Ports
 
-A component requires an interface it depends on:
+Ports appear as small squares on component boundaries. Add them as children of a component:
 
 ```python
-from plantuml_compose import component_diagram
+from plantuml_compose import component_diagram, render
 
-with component_diagram(title="Service Dependencies") as d:
-    web = d.component("Web Frontend")
-    rest = d.interface("REST")
+d = component_diagram()
+el = d.elements
 
-    # Web requires REST interface (socket notation)
-    d.requires(web, rest)
+server = el.component("Server",
+    el.portin("http_in"),      # input port (inward arrow)
+    el.portout("log_out"),     # output port (outward arrow)
+    el.port("mgmt"),           # bidirectional port
+)
 
-print(d.render())
+d.add(server)
+
+print(render(d))
 ```
 
-### Connected Interfaces
+### Containers
+
+Containers group components visually. All container types accept nested children as positional arguments:
 
 ```python
-from plantuml_compose import component_diagram
+from plantuml_compose import component_diagram, render
 
-with component_diagram(title="Full Integration") as d:
-    api = d.component("API Server")
-    web = d.component("Web App")
-    rest = d.interface("REST")
+d = component_diagram()
+el = d.elements
 
-    # API provides, Web requires
-    d.provides(api, rest)
-    d.requires(web, rest)
+# Available container types:
+pkg    = el.package("Backend", el.component("API"))
+db     = el.database("Storage", el.component("Engine"))
+sky    = el.cloud("AWS", el.component("Lambda"))
+hw     = el.node("Server", el.component("App"))
+dir_   = el.folder("Config", el.component("Parser"))
+frm    = el.frame("Subsystem", el.component("Core"))
+rect   = el.rectangle("Group", el.component("Worker"))
 
-print(d.render())
+d.add(pkg, db, sky, hw, dir_, frm, rect)
+
+print(render(d))
 ```
 
-### Service Shortcut
+All containers share this signature:
 
-Create a component with its interfaces in one call:
-
-```python
-from plantuml_compose import component_diagram
-
-with component_diagram(title="Service Interfaces") as d:
-    # Creates component + interfaces + relationships
-    api = d.service(
-        "API Gateway",
-        provides=("REST", "GraphQL"),
-        requires=("Auth", "Cache"),
-    )
-
-print(d.render())
+```text
+el.package(  # or database, cloud, node, folder, frame, rectangle
+    name,
+    *children,
+    ref=None,
+    stereotype=None,
+    style=None,
+    description=None,     # text shown below the container name
+)
 ```
 
-## Packages
+### Bulk Element Creation
 
-Group related components:
+#### components() -- multiple components at once
 
-```python
-from plantuml_compose import component_diagram
+```text
+api, db, cache = el.components("API", "Database", "Cache")
 
-with component_diagram(title="Layered Architecture") as d:
-    with d.package("Frontend") as frontend:
-        frontend.component("Web App")
-        frontend.component("Mobile App")
-
-    with d.package("Backend") as backend:
-        api = backend.component("API")
-        worker = backend.component("Worker")
-
-    with d.package("Data") as data:
-        data.component("PostgreSQL")
-        data.component("Redis")
-
-    d.arrow(api, "PostgreSQL")
-    d.arrow(api, "Redis")
-
-print(d.render())
+# With shared stereotype/style
+svcs = el.components("Auth", "Billing", "Notify",
+    stereotype="service",
+    style={"background": "#E3F2FD"},
+)
 ```
 
-### Nested Packages
+#### interfaces() -- multiple interfaces at once
+
+```text
+rest, graphql, grpc = el.interfaces("REST", "GraphQL", "gRPC")
+```
+
+### Service Helper
+
+`el.service()` creates a component with auto-connected provided/required interfaces in one call:
 
 ```python
-from plantuml_compose import component_diagram
+from plantuml_compose import component_diagram, render
 
-with component_diagram() as d:
-    with d.package("Services") as services:
-        with services.package("Core") as core:
-            core.component("Auth")
-            core.component("Users")
+d = component_diagram()
+el = d.elements
 
-        with services.package("Features") as features:
-            features.component("Orders")
-            features.component("Payments")
+gateway = el.service("API Gateway",
+    provides=("REST", "WebSocket"),
+    requires=("Auth", "Logging"),
+    stereotype="gateway",
+    color="#C8E6C9",
+)
 
-print(d.render())
+# Add the component, its generated interfaces, and their relationships
+d.add(
+    gateway,
+    *gateway._data["_provided_interfaces"],
+    *gateway._data["_required_interfaces"],
+)
+d.connect(*gateway._data["_service_relationships"])
+
+print(render(d))
 ```
 
 ## Connections
 
-### Arrows
+All connection factories live on `d.connections` (aliased as `c` by convention). Pass results to `d.connect()`.
+
+### Connection Types
 
 ```python
-from plantuml_compose import component_diagram
+from plantuml_compose import component_diagram, render
 
-with component_diagram() as d:
-    api, db, cache = d.components("API", "Database", "Cache")
+d = component_diagram()
+el = d.elements
+c = d.connections
 
-    # Simple arrow
-    d.arrow(api, db)
+api, db, cache, logger, monitor = el.components(
+    "API", "Database", "Cache", "Logger", "Monitor"
+)
+iface = el.interface("REST")
 
-    # With label
-    d.arrow(api, cache, label="reads")
+d.add(api, db, cache, logger, monitor, iface)
 
-    # With style
-    d.arrow(api, db, style={"color": "blue"})
+d.connect(
+    # Arrow (directed, solid line with arrowhead)
+    c.arrow(api, db, "queries"),
 
-print(d.render())
+    # Dependency (dotted arrow)
+    c.dependency(api, cache, "reads"),
+
+    # Link (undirected solid line, no arrowhead)
+    c.link(logger, monitor, "shares data"),
+
+    # Provides (lollipop notation)
+    c.provides(api, iface),
+
+    # Requires (socket notation)
+    c.requires(cache, iface),
+)
+
+print(render(d))
 ```
 
-### Links (No Arrow)
+### Common Parameters
 
-```python
-from plantuml_compose import component_diagram
+Every connection method supports:
 
-with component_diagram() as d:
-    server_a = d.component("Server A")
-    server_b = d.component("Server B")
+| Parameter | Description |
+|---|---|
+| `label` | Text on the connection (positional for arrow/dependency/link) |
+| `source_label=` | Text at source end (arrow, dependency, link) |
+| `target_label=` | Text at target end (arrow, dependency, link) |
+| `style=` | `LineStyleLike` -- string (`"dashed"`), dict, or `LineStyle` |
+| `direction=` | `"up"`, `"down"`, `"left"`, `"right"` -- layout hint |
+| `length=` | Connection length (number of dashes) |
 
-    # Bidirectional link (no arrowhead)
-    d.link(server_a, server_b, label="sync")
+### Custom Arrow Heads
 
-print(d.render())
+Override the default arrowheads on `arrow()` with `left_head=` and `right_head=`:
+
+```text
+c.arrow(a, b, left_head="<|", right_head="*")
+c.arrow(a, b, left_head="o", right_head="|>")
 ```
 
-### Direction Hints
+### Bulk Connection Helpers
 
-```python
-from plantuml_compose import component_diagram
+#### arrows() -- multiple arrows from tuples
 
-with component_diagram() as d:
-    center = d.component("Center")
-    left = d.component("Left")
-    right = d.component("Right")
-    top = d.component("Top")
-    bottom = d.component("Bottom")
-
-    d.arrow(center, left, direction="left")
-    d.arrow(center, right, direction="right")
-    d.arrow(center, top, direction="up")
-    d.arrow(center, bottom, direction="down")
-
-print(d.render())
+```text
+d.connect(c.arrows(
+    (api, db),
+    (api, cache, "reads"),     # optional label as third element
+    (db, logger),
+))
 ```
+
+#### arrows_from() -- fan-out from one source
+
+```text
+d.connect(c.arrows_from(api,
+    db,
+    (cache, "reads"),          # mix bare targets and (target, label) tuples
+    (queue, "publishes"),
+    style="dashed",
+    direction="down",
+    length=3,
+))
+```
+
+#### lines() -- multiple undirected links from tuples
+
+```text
+d.connect(c.lines(
+    (logger, monitor),
+    (monitor, dashboard),
+))
+```
+
+#### lines_from() -- fan-out undirected links from one source
+
+```text
+d.connect(c.lines_from(bus, worker1, worker2, worker3))
+```
+
+#### chain() -- sequential connection pipeline
+
+Creates arrows between consecutive components. Strings between `EntityRef` objects become labels:
+
+```text
+d.connect(c.chain(ui, "HTTP", api, "SQL", db))
+# Creates: ui --HTTP--> api --SQL--> db
+
+# Unlabeled chain
+d.connect(c.chain(a, b, c, d))
+# Creates: a --> b --> c --> d
+
+# Mixed labeled and unlabeled
+d.connect(c.chain(a, "call", b, c, "store", d))
+# Creates: a --call--> b --> c --store--> d
+```
+
+`chain()` accepts `style=`, `direction=`, and `length=` applied to all arrows.
+
+All bulk helpers return lists that `d.connect()` flattens automatically.
 
 ## Notes
 
 ```python
-from plantuml_compose import component_diagram
+from plantuml_compose import component_diagram, render
 
-with component_diagram() as d:
-    api = d.component("API")
+d = component_diagram()
+el = d.elements
 
-    # Note on component
-    d.note("Main entry point", target=api)
+api = el.component("API")
+d.add(api)
 
-    # Note with position
-    d.note("Critical service", position="left", target=api)
+# Floating note
+d.note("Architecture overview")
 
-print(d.render())
+# Targeted note with position
+d.note("Entry point", target=api, position="left")
+
+# Colored note
+d.note("Deprecated", target=api, position="top", color="#FFCDD2")
+
+print(render(d))
 ```
 
-## Diagram Styling
+**Positions**: `"right"` (default), `"left"`, `"top"`, `"bottom"`
 
-Style all elements of a type using `diagram_style`:
+## Layout and Organization
+
+### Diagram-level options
 
 ```python
-from plantuml_compose import component_diagram
+from plantuml_compose import component_diagram, render
 
-with component_diagram(
+d = component_diagram(
+    layout="left_to_right",    # "top_to_bottom" (default) or "left_to_right"
+    hide_unlinked=True,        # hide components with no connections
+    hide_stereotype=True,      # suppress <<stereotype>> text display
+    style="uml2",              # overall component style: "uml1", "uml2", "rectangle"
+)
+
+print(render(d))
+```
+
+## Styling
+
+### Inline Element Style
+
+Components and containers accept `style=` as a `StyleLike` dict:
+
+```text
+api = el.component("API", style={
+    "background": "#E3F2FD",
+    "line": {"color": "#1976D2"},
+    "text_color": "navy",
+})
+```
+
+### Diagram-Wide Styling with diagram_style=
+
+The `diagram_style=` parameter on `component_diagram()` applies styles globally. Pass a dict with any of these top-level keys:
+
+| Key | Type | Description |
+|---|---|---|
+| `background` | color | Diagram background |
+| `font_name` | str | Default font family |
+| `font_size` | int | Default font size |
+| `font_color` | color | Default text color |
+| `component` | ElementStyleDict | Style for all components |
+| `interface` | ElementStyleDict | Style for all interfaces |
+| `package` | ElementStyleDict | Style for all packages |
+| `node` | ElementStyleDict | Style for all nodes |
+| `folder` | ElementStyleDict | Style for all folders |
+| `frame` | ElementStyleDict | Style for all frames |
+| `cloud` | ElementStyleDict | Style for all clouds |
+| `database` | ElementStyleDict | Style for all databases |
+| `arrow` | DiagramArrowStyleDict | Style for all connection arrows |
+| `note` | ElementStyleDict | Style for all notes |
+| `title` | ElementStyleDict | Style for the title |
+| `stereotypes` | dict | Style by stereotype name |
+
+**ElementStyleDict keys**: `background`, `line_color`, `font_color`, `font_name`, `font_size`, `font_style`, `round_corner`, `line_thickness`, `line_style`, `padding`, `margin`, `horizontal_alignment`, `max_width`, `shadowing`, `diagonal_corner`, `word_wrap`, `hyperlink_color`
+
+**DiagramArrowStyleDict keys**: `line_color`, `line_thickness`, `line_pattern`, `font_color`, `font_name`, `font_size`
+
+```python
+from plantuml_compose import component_diagram, render
+
+d = component_diagram(
+    title="Styled Architecture",
     diagram_style={
-        "component": {"background": "#E3F2FD"},
-        "package": {"background": "#E8F5E9"},
-        "node": {"background": "#FFF3E0"},
-        "database": {"background": "#FCE4EC"},
-        "cloud": {"background": "#F3E5F5"},
-        "arrow": {"line_color": "#757575"},
-    }
-) as d:
-    with d.package("Backend") as backend:
-        api = backend.component("API")
+        "background": "white",
+        "component": {"background": "#E3F2FD", "line_color": "#1976D2"},
+        "package": {"background": "#F5F5F5"},
+        "database": {"background": "#FFF3E0"},
+        "arrow": {"line_color": "#757575", "font_size": 11},
+        "note": {"background": "#FFFDE7"},
+        "stereotypes": {
+            "service": {"background": "#C8E6C9", "font_style": "bold"},
+            "infrastructure": {"background": "#FFECB3"},
+        },
+    },
+)
 
-    with d.node("Server") as server:
-        app = server.component("App")
-
-    with d.database("PostgreSQL") as db:
-        db.component("Tables")
-
-    with d.cloud("AWS") as aws:
-        aws.component("Lambda")
-
-    d.depends(api, app)
-
-print(d.render())
+print(render(d))
 ```
 
-Available style targets: `component`, `interface`, `package`, `node`, `folder`, `frame`, `cloud`, `database`, `arrow`, `note`, `title`.
+## Advanced Features
 
-## Complete Example: Microservices Architecture
+### Diagram Metadata
 
 ```python
-from plantuml_compose import component_diagram
+from plantuml_compose import component_diagram, render
+from plantuml_compose.primitives.common import Header, Footer, Legend, Scale
 
-with component_diagram(title="E-Commerce Microservices") as d:
-    # API Gateway
-    gateway = d.component("API Gateway", stereotype="gateway")
+d = component_diagram(
+    title="Microservices",
+    mainframe="Production Environment",
+    caption="As of 2025-01-15",
+    header=Header("Confidential", position="right"),
+    footer="Page %page%",
+    legend=Legend("Blue = service\nGray = infrastructure", position="bottom"),
+    scale=Scale(factor=1.5),
+    theme="vibrant",
+)
 
-    # Create interfaces
-    rest = d.interface("REST")
-    grpc = d.interface("gRPC")
-    events = d.interface("Events")
+print(render(d))
+```
 
-    # Gateway provides REST
-    d.provides(gateway, rest)
+### Deep Nesting
 
-    # Core services
-    with d.package("Core Services") as core:
-        auth = core.component("Auth Service")
-        users = core.component("User Service")
+Containers can nest arbitrarily deep. Access children through chained attribute/bracket access:
 
-    # Business services
-    with d.package("Business Services") as business:
-        orders = business.component("Order Service")
-        inventory = business.component("Inventory Service")
-        payments = business.component("Payment Service")
+```python
+from plantuml_compose import component_diagram, render
 
-    # Infrastructure
-    with d.package("Infrastructure") as infra:
-        db = infra.component("PostgreSQL", stereotype="database")
-        cache = infra.component("Redis", stereotype="cache")
-        queue = infra.component("RabbitMQ", stereotype="queue")
+d = component_diagram()
+el = d.elements
+c = d.connections
 
-    # Gateway to services
-    d.arrow(gateway, auth, label="authenticate")
-    d.arrow(gateway, orders, label="order operations")
+system = el.package("System",
+    el.node("Server",
+        el.component("API", ref="api"),
+        el.component("Worker", ref="worker"),
+    ),
+    el.database("PostgreSQL", ref="pg"),
+)
 
-    # Service to service (via gRPC)
-    d.provides(users, grpc)
-    d.requires(auth, grpc)
+d.add(system)
+d.connect(
+    c.arrow(system.Server.api, system.pg, "queries"),
+    c.arrow(system.Server.worker, system.pg, "writes"),
+)
 
-    # Event-driven connections
-    d.provides(orders, events)
-    d.requires(inventory, events)
-    d.requires(payments, events)
-    d.link(queue, events, label="transports")
+print(render(d))
+```
 
-    # Data access
-    d.arrow(users, db)
-    d.arrow(orders, db)
-    d.arrow(auth, cache, label="sessions")
+### String References
 
-print(d.render())
+You can use raw strings instead of `EntityRef` objects for connections:
+
+```text
+d.connect(c.arrow("API", "Database", "queries"))
 ```
 
 ## Quick Reference
 
-| Method | Description |
-|--------|-------------|
-| `d.component(name)` | Create component |
-| `d.components(*names)` | Create multiple components |
-| `d.interface(name)` | Create interface |
-| `d.interfaces(*names)` | Create multiple interfaces |
-| `d.service(name, provides, requires)` | Component with interfaces |
-| `d.provides(component, interface)` | Lollipop connection |
-| `d.requires(component, interface)` | Socket connection |
-| `d.arrow(a, b)` | Arrow connection |
-| `d.link(a, b)` | Line connection (no arrow) |
-| `d.package(name)` | Package container |
-| `d.note(text, target)` | Add note |
+### Element Factories
+
+| Factory | Description |
+|---|---|
+| `el.component(name, *children)` | Software component |
+| `el.interface(name)` | Interface (lollipop/socket) |
+| `el.port(name)` | Bidirectional port |
+| `el.portin(name)` | Input port |
+| `el.portout(name)` | Output port |
+| `el.package(name, *children)` | Tab folder container |
+| `el.database(name, *children)` | Cylinder container |
+| `el.cloud(name, *children)` | Cloud container |
+| `el.node(name, *children)` | 3D box container |
+| `el.folder(name, *children)` | Folder container |
+| `el.frame(name, *children)` | Frame container |
+| `el.rectangle(name, *children)` | Rectangle container |
+
+### Connection Factories
+
+| Factory | Arrow | Meaning |
+|---|---|---|
+| `c.arrow(src, tgt, label)` | `-->` | Directed connection |
+| `c.dependency(src, tgt, label)` | `..>` | Dotted dependency |
+| `c.link(src, tgt, label)` | `--` | Undirected link |
+| `c.provides(src, tgt)` | `--(` | Lollipop (provides interface) |
+| `c.requires(src, tgt)` | `--)` | Socket (requires interface) |
+
+### Bulk Helpers
+
+| Helper | Purpose |
+|---|---|
+| `el.components(*names)` | Create multiple components |
+| `el.interfaces(*names)` | Create multiple interfaces |
+| `el.service(name, provides=, requires=)` | Component with auto-wired interfaces |
+| `c.arrows(*tuples)` | Multiple arrows |
+| `c.arrows_from(src, *targets)` | Fan-out from one source |
+| `c.lines(*tuples)` | Multiple undirected links |
+| `c.lines_from(src, *targets)` | Fan-out undirected links |
+| `c.chain(*items)` | Sequential pipeline |
+
+### Composer Options
+
+| Parameter | Default | Description |
+|---|---|---|
+| `title=` | None | Diagram title |
+| `mainframe=` | None | Frame around entire diagram |
+| `caption=` | None | Caption below diagram |
+| `header=` | None | Header text or Header object |
+| `footer=` | None | Footer text or Footer object |
+| `legend=` | None | Legend text or Legend object |
+| `scale=` | None | Scale factor or Scale object |
+| `theme=` | None | PlantUML theme name |
+| `layout=` | None | `"top_to_bottom"` or `"left_to_right"` |
+| `style=` | None | Overall style: `"uml1"`, `"uml2"`, `"rectangle"` |
+| `diagram_style=` | None | Global styling dict |
+| `hide_stereotype=` | False | Suppress stereotype text |
+| `hide_unlinked=` | False | Hide components with no connections |

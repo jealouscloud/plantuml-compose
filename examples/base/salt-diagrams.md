@@ -37,9 +37,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9G22rEBSfBp4q5CfKIKt8pynHGWH9G8Y2nkBWyloW5f4O12m2fYVR9Jy_CY-MgvN98pKi16Gy0)
-
-
 
 This creates a simple vertical layout with labels, text fields, and a button stacked top to bottom.
 
@@ -62,9 +59,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/7Sox3S0W34NHtbEyKHWXNMe7Z89aC097AQBidazzZswOpiCdgzD5m2eQhGhSuBk0UzSIsOkrDougF0MvgC8E_qMsKR69saat1MdfMpq0)
-
-
 
 ### Buttons
 
@@ -82,9 +76,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9GYFRtZWLHpebvoQavOAPZGK5EPInNBPT3QbuAI240)
-
-
 
 ### Checkboxes
 
@@ -104,9 +95,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9GY8w8LN3DIqpAILN8oo_9JCjCJYp9pCyh1aafn2e4f-QbAAJc9cRcA2Jcf0BrGSLT4eko5NBpKrAvQhaSW6f0vW40)
-
-
 
 ### Radio Buttons
 
@@ -126,9 +114,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9Gq53GL0ZEJSp90R4ZD1LyKrCoItEX4Zw9HUcfNBLS3gbvAI0T0000)
-
-
 
 ### Text Fields
 
@@ -147,9 +132,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9GK4f9JKiipIbHA4cjA5501aeWMGMyG8chbiiXDIy5P1e0)
-
-
 
 ### Dropdowns
 
@@ -167,9 +149,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9GYFClACdCprDmX36SO0pdEAvQBeVKl1IGMW00)
-
-
 
 ### Open Dropdowns
 
@@ -187,9 +166,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9GY8iBIas9YtClIatDYujpoYbDZOlZgkLoICrB0Qa10000)
-
-
 
 ## Separators
 
@@ -215,9 +191,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9G24vDBidCprDm1BBrz904d81iMria0MSWkwuEIS05oDRLHH9mvQhbSaZDIm4P3W00)
-
-
 
 The default style is `".."` (dotted), so `w.separator()` with no argument produces a dotted line.
 
@@ -245,9 +218,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9Gg5O64WeAVecvgGer2aeAM80IM8LhRc9c3dubGVav84FY75DoC_FYGejJY-BSIrEBI-A0ihLSjLmEgNaf88i1)
-
-
 
 ### Grid Border Styles
 
@@ -268,9 +238,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU4goIp9ILLmByfCKGWkgSn9jL9GLj18pCbHoCdCIotMvAhcKb2eLWOI2WgE2ZKAJc2MCv3b0cJLSjLoEQJcfO1C0W00)
-
-
 
 ```python
 from plantuml_compose import salt_diagram, render
@@ -287,9 +254,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU4goIp9ILLmByfCKGWkgSn9jL9GLD0eIoqgoKnEp578oSnBBLR8pykfrEIgvb9Gg5O44WeAZWer2avWbZEGvG9arNBLSZcavgM0p0G0)
-
-
 
 ```python
 from plantuml_compose import salt_diagram, render
@@ -306,9 +270,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU4goIp9ILLmByfCKGWkgSn9jLBGLT38o2_AhChFAqdCKSZ9p4ijLiZFowdKvAhcKb2erWKI2WgE2ZKAJc2MCv3b0cJLSjLoEQJcfO1C1G00)
-
-
 
 ```python
 from plantuml_compose import salt_diagram, render
@@ -325,9 +286,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/7Smx2e0m44NHVbRnIYKxiF87Bi0L1395O1WXcS8GitUZpULKTyxcasKlHXPD64UA0QSLuGaE0z_6IRr0edB6fL96gWHKrmCiUB3-shhshaQDPjRmFLy0)
-
-
 
 ### Rows with Pipe Separators
 
@@ -349,9 +307,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9Gg5O64WeA7gc9AQb52eOADJ2c4O9f35OIb5yEb7S42aDOJd2MCrpU22vl19St0ilNSjLoEQJcfO0i1W00)
-
-
 
 ### Nested Grids Inside Cells
 
@@ -383,9 +338,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9Gg5O64WeAplbv9Od99GgUUMdvO84QC0cLLL08oCZFIrMeKL0oDJNLDJ0qC009Aa4bNNCJCtD0agN5gKKEgHM9kGKvgNh9-RaG1RLWqZ6v93C_hnYRuT71YMMfiK03efqJyv9JSsBXscgvQhaSKlDIGCu50000)
-
-
 
 ## Menu Bar
 
@@ -411,9 +363,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9GgDPISClCILMeKN1DoIm1Kc6PgUL0oYCrfm0ehG2JzKijH-Rw5wJc8VE34yjImNoeAQ5vAVd8_A1KCB-MgvRB8JKl1MGz0000)
-
-
 
 ## Tab Bar
 
@@ -439,9 +388,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/FSqn2eD058JXVayn5mYvWbOvW4qWM3op3nMMVR9lD8NnxcgGTCF_5LCvfT0bCQm1MEzuQDOY2L_KSP7yrdZEpcOUZZ-xacFk7RrXqA8_V3rRr3Fjvh9S1IsQmJwWMU8u-L6ti8LASpnVTm00)
-
-
 
 ### Vertical Tabs
 
@@ -465,9 +411,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9GgDO74WeA8Ob92ePWLWsSRuJ6DmQpdFFpIbBpIXJIyeiKIZ9I5HAJIpBBKXNAKejACfCJSnHA4fF0wg8TWHBvUR50JYrNBPT3QbuAo580)
-
-
 
 ## Group Box
 
@@ -491,9 +434,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9Gg8vJyaijASylobO8JYqfoSnBBrO22YieUEGNb-GbvgQ2EKh5gKLbgKK6XWf80A8kEY9M8RGuLS75mpa0BE3Y5mmq2gGSejL23moHTTLorN8vfEQbW5m10000)
-
-
 
 ## Scrollbar
 
@@ -518,9 +458,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9Gg0u64WeAFfbvgGg62AOHWccCO9e0cRLSjLmEgNaf81C0)
-
-
 
 ### Vertical Scrollbar Only
 
@@ -538,9 +475,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9Gg0xs198A2i79HVavEOb9EQaAoVbv9Qbv9GeQPQb59Pd9YJaA-NavbPf0PRLSjLmEgNaf8Dq0)
-
-
 
 ### Horizontal Scrollbar Only
 
@@ -558,9 +492,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9Gg0xM1P8A2i79HVavEOb9EQaAoVbv9Qbv9GeQ6Vb5cLL0JcAEGdvUJgKcK64jLosNGsfU2aW_0000)
-
-
 
 ## Tree Widget
 
@@ -587,9 +518,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU6gvb9Gg0u14WeAsWf1-Vab4AQsWdD6PawAWYEKgwtWNfIObv8C4JJ4Acg4gjK9co8daDPQhbekXzIy59030000)
-
-
 
 ### Tree Styles
 
@@ -610,9 +538,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU4goIp9ILK8AKfDLIWkgSn9jL88KT18IKrBBCqfqUIgvb9Gg0u14WeAsWf1-Vab4AQsWdD6PauAbAEju9EQc0Rar7BLSZcavgM030O0)
-
-
 
 ```python
 from plantuml_compose import salt_diagram, render
@@ -629,9 +554,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU4goIp9ILK8AKfDLIWkgSn9jL88KUIgvb9Gg0RI2a2WhH2Kdry2OMehE6TavgH0ETeAFgc9QK1EBLSjbqDgNWh8G000)
-
-
 
 ```python
 from plantuml_compose import salt_diagram, render
@@ -648,9 +570,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU4goIp9ILK8AKfDLIWkgSn9jL88qUMgvb9Gg0RI2a2WhH2Kdry2OMehE6TavgH0ETeAFgc9QK1EBLSjbqDgNWh8G000)
-
-
 
 ```python
 from plantuml_compose import salt_diagram, render
@@ -667,9 +586,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU4goIp9ILK8AKfDLIWkgSn9jL88qUQgvb9Gg0RI2a2WhH2Kdry2OMehE6TavgH0ETeAFgc9QK1EBLSjbqDgNWh8G000)
-
-
 
 ```python
 from plantuml_compose import salt_diagram, render
@@ -686,9 +602,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU4goIp9ILK8AKfDLIWkgSn9jL88KUQgvb9Gg0RI2a2WhH2Kdry2OMehE6TavgH0ETeAFgc9QK1EBLSjbqDgNWh8G000)
-
-
 
 ## Title and Mainframe
 
@@ -710,9 +623,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAKxCAU4goIp9ILNmoK_Fp5Dmoo_AvQhcKb1GAYrEBSfBp4rLG09A80a5B00a4HsScPwdu9aNorNBvP2Qbm8o6m00)
-
-
 
 ### Mainframe
 
@@ -732,9 +642,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/5Smn2e0m34RXFQV8KJeuYo2281r2_Gj5sq8INCIxIyVt3I-OYxh9xLIbjAnImPj1UL5aA5g2qKlC1qUUH2-k_SJeFVBSlUIIn4jlDcoL1v4-2cZdcFu0)
-
-
 
 ## Header, Footer, Caption, and Legend
 
@@ -760,9 +667,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/HO_DQW9148JlynJr0Za4RvuqYf2JWWY1uA7ThLc7Z3tBJ8T4Wk_kZ3_ar5HrVLtqh9XaAnBDMR18R6aMT2ZOY3AwZchCE5BwEfPPlE45xyrKYTWLOgtn_CpvbDhOo42y8dbCN2UZXQHOXU4xLtUA-JZ6qCdDBS-wdv3fivpe8WTgxu35aTtN8Vso86ZV288gXyWUdcBrN74r-W3-AlBviSVgliAyQVphjwPRztdlBcvMaVRs5G00)
-
-
 
 ## Complete Examples
 
@@ -788,9 +692,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/VKux2iCm5Djz2f7ElaEWQuTGw6Gyl3OY16m7_1vqI7FtEfvB1TAatwWcrLIIELij4RTjMOlR7R1VcW0FPIsIYGy6_C3GNPEelhSw_tCTZTut2OYuCpC_MP5vRldU4lfwR2NXAkN557liS2FBV9xy0W00)
-
-
 
 ### Application Window
 
@@ -826,9 +727,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/LP3B2i8m44Nt_Oe1SUD6V7o0uWCNla1qFzgn3gH9QCP7gVrtarYXhYRdNcxkC1CdM8X39KcEhAy5vWIR4gRMAhwWiD59bG1KFLYo8dZ38cNnuyJqz6D5odeRVkwMdctSMT9jFk23shnuiKHkVftT_z7OiirxTFBDXrulJCyc9kgmOX_cw6vdWqKQgaY4TURySsqo5rDL9mw0Ww3SWxNJYZKrwj4Avs6jmHXIB5qZp_P7hmr7tSXrhAkJ2UaqtEq3)
-
-
 
 ### Server Provisioning Form
 
@@ -862,9 +760,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/RP3VQy8m4CVV-rSStSjyK5HysOEWJ451fwmC16dWsXvT84qakJgOytzVqXG6iXmXv7kV-xbmZ9OTAavOiY9ueo_8o5x99hS4u2RI-8CLCKhbKYzw-Qbx03R6iSQ6u0TI-EUaFRSzmhAgB3aNoCbu5EmHEcJUATutwnsyY8-YrTp2T3OQpyIA2eaQ9bFHevdy3ZL5rg1IOa-LR1knGrjJ9Ev9lFDv7E9mOMbqt_tvbCDQO-77ROoMRApKTVH03ikMpV22N7vsqlDf04ThghOC6Q840yWOwnZrLsOOStZwAfs7Sz_X-HLrIIhlm7ko85s5RVy2)
-
-
 
 ### File Browser with Tree and Scrollbar
 
@@ -893,9 +788,6 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/LK_B2iCm3BldAtmF-uSong2tmVO3NcDeHbuaxd8e_VScAmNlO0a98U6XC6Okw5YnPKTmjmskETP2MQqAO7sE3Hk_VWIWOOwUJg5XwSbJQRZ5QV4KkFnvDRY8HdgF73yqoPY6IczCIJgOxANrVyK4b1ap6L75v9D3fgDhK_qsDL0m_R4T)
-
-
 
 ## Quick Reference
 

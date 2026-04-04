@@ -32,6 +32,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIh9BCb9LGWfIanBoqnMyCbCpoZX0agMf2e4fQP0MUv5gQbvK7PaQavEVZbNj5QiWgwk7LWH48FPO6KALWebcRcfHLmG7aWSeWKk0UL2TSE57LBpKe0E0W00)
+
+
 
 The pattern is:
 1. Create a composer with `state_diagram()`
@@ -79,6 +82,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/RP0n2y8m48Nt_8gZRa8NnmfIi9PsSr0Sn26OgnJIYrwk-FTDqeYBI_BklSVb8xKNpJ9FLWKX2BsncEMHtHsz7-cXVX8gw3GP6oNZQqOlkLvSz2ZH7Xp3sID3JyzP2j0UtakKcmVcK5crxRvfDjkm2Yj6ayF64IfoGLaS1DoGd0fEoDD8saAggUlw1cMvMtZZaQR_o37v4kGxUOb3BJHnJa_NI2PynmS0)
+
+
 
 **Parameters for `el.state()`:**
 
@@ -113,6 +119,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8L79DBCijIkQArOXLqTUsWN0KhXQJy_18kA0ya0L9WfL2SKLgIab-Un-MGcfS2D0G0)
+
+
 
 ### Choice (Decision Points)
 
@@ -141,6 +150,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8L0ehoarEBYpFpqg42mQN9804epoqnCwUqA1NAKofBpCbCiLTII2nM03CLR6oIC_8parFjxBYYjM8LT7Nja4r4CC4oO2rS48qWFjGg1Ik5ojHY976efK3nl7mkXzIy5A1p0G00)
+
+
 
 ### Fork and Join (Parallel Execution)
 
@@ -176,6 +188,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8LWbAJKpFBKbFWtCIKIYWx834vEpCl7ShpIKnApK5mbOeBSZ9Bb1GIYnN0B0KRcxJyecmxExXyPLuoH1h80CfcvMVc0MMZjM8LT7Nj4FR2661Hi55S40D1VBWJu29mPq2b8Dg0Ld31P10YO9iXbe5y1IR1VA0Zk1nIyrA0mG00)
+
+
 
 ### History and Deep History
 
@@ -214,6 +229,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8L_DFIOAmyXMek1GK89o0diJ8pBnt1JomjJatXgkMArefLqDMr0-i3OWWxJy5AeI2_FBL88J-F2yY3Aa280XN3DC9CXj8GCR3f8EKW1XUKYwGQ90LamMsCzeW52XMb5fVcfd8vfEQb03q40000)
+
+
 
 ### Entry and Exit Points
 
@@ -250,6 +268,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/HP312i8m38RlUOgmex0Na55sy05s43s8X-AY5BeMsYYA-EwsQTTTcl__-jCa7IFhmC_5GX9CUDQ6ZNjKT_2Egfo2lr6CwGw_W5ZWILip9z70CMWNxpuiZNJac4A7Eg8e78PKmsVonh5IMywIVf7aHENSs_0Q-y5bTyM-Lst2MeMLb_Seoq1ncRVvLY5q6x8fuT8NIlViPVjyY4lzOIGtfx_w0m00)
+
+
 
 ### Composite States (Nesting)
 
@@ -280,6 +301,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8LN3ABa_FpybAJIr9Je4BECBv2DPU20aJCCoKd5SvnJ2x9B4lbgkMArefLqDMrGpK4cGEMHPXdfG2LuN96KO6YnKeX1Sw5sm2s7qI0UH0705KMfHQMfXQNS445O2h15kKMvAIMf78vfEQb0BqB0000)
+
+
 
 ### Concurrent States (Parallel Regions)
 
@@ -323,6 +347,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/RP6z2iCm38HtFON8MCWBP2Y1hA6TEfLIJECiJTGGsrFekrTn_4-tkzEdmyAjqcBLPfw0XPPue-dpUil1sTuQt03n2AgBcVSGh-DOeL3e_9Fz7uXoXXYfwyXrOb5Pcm_okeXHGH5yuNvwSEavFjqBcxeB6jmpwECWK0qQAqDHUbAYyndnth9AfI29Yks0-ERilDGKqrYUPcL3W5f90t_X3m00)
+
+
 
 ### All Pseudo-State Factories
 
@@ -362,6 +389,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8LF5DoKg5Cn-IIpB9KBf28Wgwk7OmFeS0YO2ahXPBCtDJyqX8kXzIy5A190000)
+
+
 
 ### Trigger, Guard, and Effect
 
@@ -406,6 +436,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/PO-n3i8m34JtV8L7GAhO6L0765WGUzKXj6vbAOchnE7xST9AHMA9BhRVdTqciL6oTqQ583n6XvjyHHum9GhpLhZ7o77JDmvekbCFJNDTeVBKtyx11L9-UnBeFjRH21IMB3sSeQRkWuUZ-Q6AIV5NV62_EDGyHJ2CJnQQQB127FwPkfz2aoMN8q8dv97NGCTpRIlLgf4U_0K0)
+
+
 
 ### Transition Notes
 
@@ -428,6 +461,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8L7A6q4vUZWgwkdOAJWfL2UZvNNZvGB3zF8ISpBzjA8IGZirYXf2WnhpYp91Ce2kGb5m6PoOavN0wfUIb0um00)
+
+
 
 ### Transition Styling
 
@@ -451,13 +487,16 @@ d.connect(
     t.transition(b, c, style={"color": "blue", "bold": True}),
 
     # String shorthand: just a color name
-    t.transition(c, a, style="red"),
+    t.transition(c, a, style="#red"),
 )
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8L7A6q4vHsvd9Kq8rEoIyfIKs9rRK3YZi1-Sf9EQMfEadvEM0nPovda5WHH8KZbqDgNWhGH000)
 
-**`style=` accepts:** `LineStyleDict` (`{"pattern": ..., "color": ..., "thickness": ..., "bold": ...}`), `LineStyle` object, or a plain color string.
+
+
+**`style=` accepts:** `LineStyleDict` (`{"pattern": ..., "color": ..., "thickness": ..., "bold": ...}`), `LineStyle` object, or a string shorthand (`"dashed"`, `"dotted"`, `"bold"`, `"#color"`).
 
 ### Direction and Length
 
@@ -489,6 +528,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8Ld5FpIbABe9pG0YZ39Ryy3yhqIKqhWJA3CjCpIhWWEXHqItNjG1fWt1GW5wmD9f03501hXWaK0GKWHeGMAEZgmdaEgNafG0S10000)
+
+
 
 ### Bulk Transitions: `t.transitions()`
 
@@ -517,6 +559,9 @@ d.connect(t.transitions(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8L7A6q4vHsXj8kND5QiGgwkdOAZWfM2c1DN8vWlXEOdrgWOCZb11PmXWaOSJc31LouNC0qq0GkXzIy5A1j0000)
+
+
 
 ### Fan-Out: `t.transitions_from()`
 
@@ -549,6 +594,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8L79DBCijIeHpNYeBCejGKA2yejIm_6ucNbreEv4LhnIhewjh1D48e1TrevVIYnChO5A0Cr1G5AuMG41-5r8harDGKe4OiAg4s05LwfrOg9EVd5XJbvsOMfs9N2xOVg1RCIinHAC_CIyalvt98pKi1-WS0)
+
+
 
 `transitions_from()` accepts `style=`, `direction=`, and `length=` which apply to all generated transitions.
 
@@ -591,6 +639,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/BOwn2iCm34HtVuNcG7uWGqYXI-UE9OEJoAd1iOfr2VJlwzfUnEdGkzEai0dd4KmMO7fiWKsKh9BVto1nnHhepiwU0LJFh0CdMaJGkDiAVpKoi2jWzGPwVXLya5Vw95bPrSVTlBgP-dwiXVzHjXOpSTpoJpy0)
+
+
 
 ### Floating Notes
 
@@ -615,6 +666,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/9Kwx2iD03Dlz5PeB-O4E9MldP2iTZfpJCzm3pcv2_hvEkWX95f97jT3jMp8vCSOpPgRNxOrXUFp52PTobshpJERL29WEDIve6_TDUB-xDITHH0cV7WeqjLrXYVrGWbHaMNav5g-xjfIuHfoDD3hp7tu0)
+
+
 
 ## Layout and Organization
 
@@ -644,6 +698,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSf9JIjHACbNACfCpoXHICaiIaqkoSpFum8gA4bLS8JIJb3QcIjQArP1LzSEAEC8ffsudC2qCvSpc0RASpcavgK0pGO0)
+
+
 
 `layout=` accepts `"top_to_bottom"` (default) or `"left_to_right"`.
 
@@ -670,6 +727,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSh8J4bLICqjAAbKI4ajJYxAB2Z9pC_Z0igNf2euGcadhcYjM0LTNJkWY2EOTk9o0jD0SIw7rBmKe540)
+
+
 
 ## Styling
 
@@ -708,6 +768,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8L_FABSXDp59HTZTsCt5oWWk69HNcPUUaAofMfEJdvvTOvcNcfUYc9nHcfAM2sLNvHObvwAbIrQr5HVf62ifkRiukB4KI-2AYm9BMY1CJWYjQALT3LjODQnGMr4IG2jOSBPXz836mQbqDgNWhGaG00)
+
+
 
 ### Diagram-Wide Styling (`diagram_style=`)
 
@@ -782,6 +845,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/TP9HIyCm4CVVyoaEzYPCrzPjhOonsIuWg8Zw9Zx497HXQG9fwb3PTpTDKpScRMcQ-r_kTvVaLhKbnZQLH8lQVac-H4wml12aDAI27mHmI-YkDBfHBDTI6zXlXULEnrhPHr9nM1j1P11Un3U7A0vM5p1A_ECqp_RG_zZH9i4nBhplNYWUr2YRpuhOgqT-vEtdBjWeRY2QUEc9C2PK2Qcp3kvJUZWVnZZBhy_puMoTnjCGJepH-n1_icO-RTy_zNKhw4xnkeRehCv9u5no1pB3XUH5sE99aYA9tNaSWUtjm8UMh6VM3QLjqW5gdcvcUNPEJT9qa-GUSK1CqwRYodg45LRsPtNSmMoeW0DQN8MEwIAzdxbVUyKFX6vTqgwPu8x9VhgcLdnoz7Rn3kFnilEqWxSw9zn0gL6Ojx9RZ5PSCTUblm00)
+
+
 
 **`diagram_style=` selectors:**
 
@@ -827,6 +893,9 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuL8ioKZDJLL8JYqgpKbDpDFDBot9oSnBvIh9BCb9LGW1IQOek6GcfXSbvd81TPMaAZX2QIUkQArO1LrTEw288vXsud82qq1nBeVKl1IW1G00)
+
+
 
 ```python
 from plantuml_compose import state_diagram, render
@@ -846,6 +915,9 @@ d.connect(t.transition(el.initial(), a), t.transition(a, el.final()))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuL8ioKZDJLN8hOJGQKNvkGhw1Oab6Veb-VfWiMAkaioId5G5vzBY4g1a24YC2wY_95N1aIjQArP1LzSEo784qq0-bqDgNWhGQ000)
+
+
 
 Built-in themes include: `_none_`, `amiga`, `aws-orange`, `black-knight`, `bluegray`, `blueprint`, `carbon-gray`, `cerulean`, `cerulean-outline`, `hacker`, `mars`, `materia`, `mono`, `plain`, and many more.
 
@@ -853,6 +925,7 @@ Built-in themes include: `_none_`, `amiga`, `aws-orange`, `black-knight`, `blueg
 
 ```python
 from plantuml_compose import state_diagram, render
+from plantuml_compose.primitives.common import Scale
 
 d = state_diagram(
     title="Order State Machine",
@@ -860,7 +933,7 @@ d = state_diagram(
     caption="Figure 1: Order lifecycle",
     header="ACME Corp",
     footer="Page 1",
-    scale=1.5,
+    scale=Scale(factor=1.5),
     legend="Color coding:\nBlue = normal\nRed = error",
 )
 el = d.elements
@@ -878,12 +951,15 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/FL2nQiD03Dtr5PeBANJe4cX9QvhDDBHZwI3kPET0TpAoFFJlgnWxa_JUqtiIEirEvaiLg5JQO5GPFospOQzv4OOvaJ0-FJw35vTT_7PonfxIjJI6nCs3l3BTjBUk_y1ERThvGVLMBZH642IQl6Z3SnaN2-AuHKePEFsbM2aySik04I9gc3INDXu3lyl2-89DhP84_k8SaCtK81oRRrvlkqGRjWrrMYTXP_Xv-CN3uVKkRtNbxaDxixBXW5DCnO_-0G00)
+
+
 
 ## Quick Reference
 
 ### Diagram Constructor
 
-```python
+```text
 state_diagram(
     title=,            # str | None
     mainframe=,        # str | None

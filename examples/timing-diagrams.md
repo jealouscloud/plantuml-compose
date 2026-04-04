@@ -22,6 +22,9 @@ d.at(30, e.state(source, "idle"))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/FOp12i9034Jl-OhGSmyMVs31gthn0sHrGmriav9D-lskOZqCCxmP9ZNFvh5KSFPAU5Bnp4A6Pzu8BpnRTbO1qqSqn-6cOK_2gnOQC3UyhnDquQjdBfL62n6MUIonhDs_9JVyOKZJOKVx8Xt_wFC0YQHNzGq0)
+
+
 
 The pattern: create a diagram, get `p` (participants) and `e` (events) namespaces, add participants with `d.add()`, then register state changes at time points with `d.at()`.
 
@@ -35,7 +38,7 @@ There are six participant types, each suited to a different kind of signal.
 
 Multi-state signals with full state labels and clear transition boundaries:
 
-```python
+```text
 p.robust("DataPath",
     states=("Idle", "Request", "Processing", "Response"),
     initial="Idle",
@@ -46,7 +49,7 @@ p.robust("DataPath",
 
 Simplified, compact view with inline state names:
 
-```python
+```text
 p.concise("Status",
     states=("Off", "Starting", "Running"),
     initial="Off",
@@ -57,7 +60,7 @@ p.concise("Status",
 
 Box-based rendering with state labels inside rectangles:
 
-```python
+```text
 p.rectangle("Phase",
     states=("Init", "Active", "Done"),
     initial="Init",
@@ -68,7 +71,7 @@ p.rectangle("Phase",
 
 High/low signal with only two states:
 
-```python
+```text
 p.binary("Enable")
 ```
 
@@ -78,7 +81,7 @@ Binary participants use `"high"` and `"low"` as state values in `e.state()`.
 
 Periodic square wave with configurable period, pulse width, and offset:
 
-```python
+```text
 p.clock("CLK", period=10)
 p.clock("CLK2", period=20, pulse=5, offset=3)
 ```
@@ -89,7 +92,7 @@ Parameters: `name`, `period=`, `pulse=`, `offset=`, `ref=`, `stereotype=`, `comp
 
 Continuous signal with numeric values, rendered as a waveform:
 
-```python
+```text
 p.analog("Voltage", min_value=0, max_value=5, height=100)
 ```
 
@@ -99,7 +102,7 @@ Parameters: `name`, `ref=`, `stereotype=`, `compact=`, `min_value=`, `max_value=
 
 All participant types accept: `ref=`, `stereotype=`, `compact=`
 
-```python
+```text
 # Custom ref for programmatic access
 p.robust("Data Bus", ref="dbus", states=("idle", "active"))
 
@@ -114,7 +117,7 @@ p.concise("S1", states=("A", "B"), compact=True)
 
 States can be provided as a tuple of names or a dict mapping internal names to display labels:
 
-```python
+```text
 # Tuple form: state names are used as-is
 p.robust("Bus", states=("idle", "active", "error"))
 
@@ -130,7 +133,7 @@ p.robust("Bus", states={
 
 Set the signal's value before the first `d.at()` time point:
 
-```python
+```text
 p.robust("Data", states=("idle", "active"), initial="idle")
 ```
 
@@ -140,7 +143,7 @@ p.robust("Data", states=("idle", "active"), initial="idle")
 
 All events happen inside `d.at(time, ...)` calls. The time value can be an integer, a string (for date/time), or a relative offset.
 
-```python
+```text
 # Integer times
 d.at(0,  e.state(signal, "Idle"))
 d.at(10, e.state(signal, "Active"))
@@ -164,7 +167,7 @@ d.at(20,
 
 Highlight a state transition with a background color:
 
-```python
+```text
 d.at(10, e.state(signal, "Error", color="red"))
 d.at(20, e.state(signal, "Warning", color="#FFA726"))
 ```
@@ -173,7 +176,7 @@ d.at(20, e.state(signal, "Warning", color="#FFA726"))
 
 Add a comment annotation to a state transition:
 
-```python
+```text
 d.at(10, e.state(signal, "Active", comment="triggered by IRQ"))
 ```
 
@@ -181,13 +184,13 @@ d.at(10, e.state(signal, "Active", comment="triggered by IRQ"))
 
 Show a message arrow from one participant to another:
 
-```python
+```text
 d.at(15, e.message(sender, receiver, "request"))
 ```
 
 With a time offset on the target (the message arrives at target's time + offset):
 
-```python
+```text
 d.at(15, e.message(sender, receiver, "async call",
                    target_time_offset=5))
 ```
@@ -198,7 +201,7 @@ Parameters: `source`, `target`, `label=`, `target_time_offset=`
 
 Show two states simultaneously (an ambiguous/transitioning region):
 
-```python
+```text
 d.at(25, e.intricated(signal, "state_a", "state_b"))
 d.at(25, e.intricated(signal, "state_a", "state_b", color="yellow"))
 ```
@@ -209,7 +212,7 @@ Parameters: `participant`, `state1`, `state2`, `color=`
 
 Insert a gap or hidden region in a signal:
 
-```python
+```text
 d.at(40, e.hidden(signal))               # default "-" style
 d.at(40, e.hidden(signal, style="hidden"))  # fully hidden
 ```
@@ -231,7 +234,7 @@ Time values used in `d.at()`, `d.highlight()`, `d.constraint()`, and `d.note()` 
 
 Name a time point for later reference:
 
-```python
+```text
 d.at(50, e.state(signal, "Active"), name="phase2_start")
 ```
 
@@ -241,7 +244,7 @@ The `name=` parameter on `d.at()` creates a `TimeAnchor` that can be referenced 
 
 Highlight a time region with a colored background:
 
-```python
+```text
 d.highlight(start=10, end=30)
 d.highlight(start=10, end=30, color="LightYellow")
 d.highlight(start=10, end=30, color="#E8F5E9", caption="Critical Section")
@@ -253,7 +256,7 @@ Parameters: `start=`, `end=`, `color=`, `caption=`
 
 Annotate timing requirements between two points on a participant:
 
-```python
+```text
 d.constraint(signal, start=10, end=30, label="{25 ms max}")
 d.constraint(bus, start="phase_start", end="phase_end", label="{< 100 ns}")
 ```
@@ -264,7 +267,7 @@ Parameters: `participant`, `start=`, `end=`, `label=`
 
 Set the time-to-pixel mapping:
 
-```python
+```text
 d.scale(time_units=1, pixels=50)    # 1 time unit = 50 pixels
 d.scale(time_units=10, pixels=100)  # 10 time units = 100 pixels
 ```
@@ -273,7 +276,7 @@ d.scale(time_units=10, pixels=100)  # 10 time units = 100 pixels
 
 Set tick mark intervals for analog participants:
 
-```python
+```text
 voltage = p.analog("Voltage", min_value=0, max_value=5)
 d.add(voltage)
 d.ticks(voltage, multiple=0.5)  # tick every 0.5 units
@@ -285,7 +288,7 @@ Parameters: `participant`, `multiple=`
 
 Attach notes to participants at specific times:
 
-```python
+```text
 d.note("Setup phase", participant=signal, position="top", time=0)
 d.note("Critical transition", participant=signal, position="bottom", time=25)
 ```
@@ -300,7 +303,7 @@ The `time=` parameter is required for timing diagram notes.
 
 Reduce vertical space globally or per participant:
 
-```python
+```text
 # Global compact mode
 d = timing_diagram(compact_mode=True)
 
@@ -311,7 +314,7 @@ p.concise("S2", states=("X", "Y"), compact=True)
 
 ### Hide Time Axis
 
-```python
+```text
 d = timing_diagram(hide_time_axis=True)
 ```
 
@@ -319,7 +322,7 @@ d = timing_diagram(hide_time_axis=True)
 
 Use a manually-defined time axis instead of the automatic one:
 
-```python
+```text
 d = timing_diagram(manual_time_axis=True)
 ```
 
@@ -327,7 +330,7 @@ d = timing_diagram(manual_time_axis=True)
 
 Set a custom date format for time axis labels:
 
-```python
+```text
 d = timing_diagram(date_format="yyyy-MM-dd HH:mm")
 ```
 
@@ -335,20 +338,20 @@ d = timing_diagram(date_format="yyyy-MM-dd HH:mm")
 
 ### State-Level Colors
 
-```python
+```text
 d.at(10, e.state(signal, "Error", color="red"))
 d.at(20, e.state(signal, "OK", color="#4CAF50"))
 ```
 
 ### Intricated State Colors
 
-```python
+```text
 d.at(25, e.intricated(signal, "A", "B", color="yellow"))
 ```
 
 ### Highlight Colors
 
-```python
+```text
 d.highlight(start=10, end=30, color="LightYellow")
 d.highlight(start=40, end=60, color="#E8F5E9", caption="Safe zone")
 ```
@@ -357,7 +360,7 @@ d.highlight(start=40, end=60, color="#E8F5E9", caption="Safe zone")
 
 Theme the entire diagram with CSS-like selectors:
 
-```python
+```text
 d = timing_diagram(
     title="Styled Timing",
     diagram_style={
@@ -394,7 +397,7 @@ The `arrow` selector accepts a `DiagramArrowStyleDict` with `line_color`, `line_
 
 ### Diagram Metadata
 
-```python
+```text
 from plantuml_compose.primitives.common import Header, Footer, Legend
 
 d = timing_diagram(
@@ -482,6 +485,9 @@ d.scale(time_units=10, pixels=80)
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/VLDRQzim57xNhpYahnxp9TwI4efP78-mZ9PuJtqfigqcehQKIJ9TAFdlFL9acp4wZE1SldFvFbcPDbIPlcl9Ifjpo-w8uHqNXvpJWw8Tl1409QjU6sS2VAFroq79NZHhsKe5DvkaY8iSSnSyjHGrr-mZR54Ko_LymBQoVl787HVCOvOR-tbCnGLLvtz1qVBhbppse2C_75iyvZzZ5vl8eIzazTaJxMJ3SE7kH6k3h4tBe7pOmYz5XNvc2ahsksUYPkIwwAnSxtxCW6fuEaNmoiqHJannsK0K4h_dR5rwH4oyQhEVz-NM1nE21uveFmPv6EHHaCT1Vero34urs_BUrymnE_Sr-p3OHy4-3lQ9YxgQGV9PQQZfjIzB4P2wCjwqBD3CzAV0U6f18mKZkgP8EGfjmIA44__3Maqovz-Q42tNWrzRe1rRsufDidHmM_aweDmCaaNXm2SV6mo3IHPFsMZWiCTPoHIFntX4ilaKJ-1cPs_vks9CZ9WObmb7Bq4llH9uOgAntb-BZqgFylaDdI9Pd3h4fpihFDm2gu_IxIQaOL19OsG7yjdTxxg4pbvMnQm8qFGAdyt45AU3hIBJtubI6mbfY6zcKQIR9Gx8gQ7mWDTazKrGErZXS6I4kRSvL6V3z8Las0oVw3i0)
+
+
 
 ## Quick Reference
 

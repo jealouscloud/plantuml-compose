@@ -21,6 +21,9 @@ d.connect(c.arrow(rack.Host, rack.pg, "JDBC"))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/7Oqn3i9030Hxls8_a0zGe8YaG8W221ymEUSKSObFTwP0A7_7Ih75h7QqRJKkzbaIsMn9q7TuQjQayKjJuKNmuF6D7m6h1i5Pg-q4k3TFF1euPoysJs3Z5rV1pMUno72_WYjof8rsiscEJZZWqfywQcKDVlq7)
+
+
 
 ## Elements
 
@@ -29,6 +32,8 @@ All element factories live on `d.elements` (aliased as `el` by convention). Ever
 ### Infrastructure Elements
 
 ```python
+from plantuml_compose import deployment_diagram, render
+
 d = deployment_diagram()
 el = d.elements
 
@@ -47,11 +52,18 @@ stk      = el.stack("Layers")              # Stack shape
 f        = el.file("config.yaml")          # File icon
 
 d.add(server, app, comp, db, store, sky, frm, dir_, pkg, rect, q, stk, f)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/7OzBRW8n44JtVOgM3p1d084YHG84cWLITZrsUJIAVxJj46uVasrzNgbsjOcs7WEbxC3cZeLdw0_Kq30sBxQnUMAHKgQd3DNcM792Qho_VfAJ9ejKy3NNjYhcsubgooeh-F8namsvEzxVP_8g4NmyVv7FmK7va9FVLYfYlzzfCy0JVYMM04CAsoIj0Nm8lJOeFJew-8nQHxgEaT7ZaxoWbVmM_W5luFII60pjaDouzGS0)
+
+
 
 ### Actor and Agent Elements
 
 ```python
+from plantuml_compose import deployment_diagram, render
+
 d = deployment_diagram()
 el = d.elements
 
@@ -72,13 +84,20 @@ uc       = el.usecase("Deploy App")         # Usecase ellipse
 act      = el.action("Build Step")          # Action shape
 
 d.add(user, bot, wall, card_, dot, group, ctl, ent, hex_, lbl, person_, proc, iface, uc, act)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/9L11JWCn3Bpd5POVW0Glw095ue1QTOiukudPHZLnv2I5_XwlUlFCo3EZsRHEriUF18fT3N1R4dmsDWoqSEc07rgoAxaiCAqCXfEEaiXky9QDVqaaHB84UAHsWHS_CSHiKHZSh6ekFKGLuTYpbWPVQXUsvbpffW9pF7CQmXRSFVSRx2mvEFCVBLhWeACx53gn05wV7XunLFzt2L_vkglDOvPSUErSJIEt1dWFWVqTO_0IRDyK6V2mdOymxTynZCQH6gy-LVG6Kwsuxf1Nx-UH9S7SsRaDb-GR_GC0)
+
+
 
 ### Ports
 
 Ports appear as small squares on element boundaries. Add them as children of any element:
 
 ```python
+from plantuml_compose import deployment_diagram, render
+
 d = deployment_diagram()
 el = d.elements
 
@@ -89,13 +108,18 @@ server = el.node("Server",
 )
 
 d.add(server)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuShBJqbL24ujAaijKgZcKb0eo2ygoSnJo2WfAOZFp8CAv9UMAEJafyS3QQY8GcvwRWbNBPT3QbuAq1W0)
+
+
 
 ### Common Element Signature
 
 All element factories share the same signature:
 
-```python
+```text
 el.node(  # or any element type
     name,
     *children,             # nested EntityRef elements
@@ -110,7 +134,7 @@ el.node(  # or any element type
 
 Any element can show descriptive text below its name:
 
-```python
+```text
 server = el.node("app-server-01",
     description="8 cores, 32GB RAM\nUbuntu 22.04",
 )
@@ -140,6 +164,8 @@ d.add(lb, primary)
 Elements can nest arbitrarily deep. Access children through chained attribute or bracket access:
 
 ```python
+from plantuml_compose import deployment_diagram, render
+
 d = deployment_diagram()
 el = d.elements
 c = d.connections
@@ -162,7 +188,12 @@ d.connect(
     c.arrow(dc["Rack 1"]["Host A"].api, dc.pg, "JDBC"),
     c.arrow(dc.CDN.cdn, dc["Rack 1"]["Host A"].api, "origin pull"),
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/PP3D2i8m48JlUOgXzmfUFKYrFOY8-FC4Qn9Bj4rAak91-kvk__JW8P3zTcOODWkHV6phIjmzrHf9GP6GQnkrJ_0MW7MAyONa4ykHp6pdGiHcPW07cJl9Y8GQitWG1r00___sB-UVsdybupYeEZ4-MRbM8I-EK_hFouMZaMmBEeR1BfMTN8hBtoXedBXQwVNrVEW5JIawmJsGfciUiCA-sEQ2VGFfDoiuRqfZqRHL9J9j5T_a0m00)
+
+
 
 ## Connections
 
@@ -171,6 +202,8 @@ All connection factories live on `d.connections` (aliased as `c` by convention).
 ### Connection Types
 
 ```python
+from plantuml_compose import deployment_diagram, render
+
 d = deployment_diagram()
 el = d.elements
 c = d.connections
@@ -191,7 +224,12 @@ d.connect(
     # Dependency (dotted arrow)
     c.dependency(server, db, "requires"),
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/HOr13a1040Jlyuhv00zm45bE4YSl6DaE4dPZTdY_JH3Nhkhk9fcedVj68Nhm2BsWvCLaaWJk7CcCO3p4i5fKUWGkYZephhZlNFk7dvR1WhmxGUoZPVbM5CUvAX8r23u_tm00)
+
+
 
 ### Common Parameters
 
@@ -208,7 +246,7 @@ Every connection method supports:
 
 Override the default arrowheads on `arrow()` and `line()` with `left_head=` and `right_head=`:
 
-```python
+```text
 c.arrow(a, b, left_head="<|", right_head="*")
 c.arrow(a, b, left_head="o", right_head="|>")
 c.line(a, b, left_head="0", right_head="0")
@@ -218,7 +256,7 @@ c.line(a, b, left_head="0", right_head="0")
 
 The `style=` parameter accepts a string shorthand, a dict, or a `LineStyle` object:
 
-```python
+```text
 # String shorthand
 c.arrow(server, db, style="dashed")
 
@@ -230,7 +268,7 @@ c.arrow(server, db, style={"pattern": "dotted", "color": "gray", "thickness": 2}
 
 #### arrows() -- multiple arrows from tuples
 
-```python
+```text
 d.connect(c.arrows(
     (server, db),
     (server, cache, "reads"),     # optional label
@@ -240,7 +278,7 @@ d.connect(c.arrows(
 
 #### arrows_from() -- fan-out from one source
 
-```python
+```text
 d.connect(c.arrows_from(switch,
     server1,
     server2,
@@ -253,7 +291,7 @@ d.connect(c.arrows_from(switch,
 
 #### lines() -- multiple undirected links from tuples
 
-```python
+```text
 d.connect(c.lines(
     (switch_a, switch_b),
     (switch_b, switch_c),
@@ -262,7 +300,7 @@ d.connect(c.lines(
 
 #### lines_from() -- fan-out undirected links from one source
 
-```python
+```text
 d.connect(c.lines_from(tor_switch, host1, host2, host3))
 ```
 
@@ -271,6 +309,8 @@ All bulk helpers return lists that `d.connect()` flattens automatically.
 ## Notes
 
 ```python
+from plantuml_compose import deployment_diagram, render
+
 d = deployment_diagram()
 el = d.elements
 
@@ -285,7 +325,12 @@ d.note("Primary node", target=server, position="left")
 
 # Colored note
 d.note("Needs upgrade", target=server, position="top", color="#FFCDD2")
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/HSun2eD050JGFgSOo0qihOI8fGHoWYKxcWNtV_d-5N9xLmoac-BDCDtcmRpavIOQYHTjfzNiXANvuosUfh6yFQc0iYTJoHI_oCB9eTElTjgKWtrnRbt2TVq3t8VXqVTDYv6C6yewMwYoeyHwuG00)
+
+
 
 **Positions**: `"right"` (default), `"left"`, `"top"`, `"bottom"`
 
@@ -294,10 +339,17 @@ d.note("Needs upgrade", target=server, position="top", color="#FFCDD2")
 ### Layout Direction
 
 ```python
+from plantuml_compose import deployment_diagram, render
+
 d = deployment_diagram(
     layout="left_to_right",    # "top_to_bottom" (default) or "left_to_right"
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSf9JIjHACbNACfCpoXHICaiIaqkoSpFut98pKi1oWC0)
+
+
 
 ## Styling
 
@@ -305,7 +357,7 @@ d = deployment_diagram(
 
 Any element accepts `style=` as a `StyleLike` dict:
 
-```python
+```text
 server = el.node("Server", style={
     "background": "#E3F2FD",
     "line": {"color": "#1976D2"},
@@ -345,6 +397,8 @@ The `diagram_style=` parameter on `deployment_diagram()` applies styles globally
 **DiagramArrowStyleDict keys**: `line_color`, `line_thickness`, `line_pattern`, `font_color`, `font_name`, `font_size`
 
 ```python
+from plantuml_compose import deployment_diagram, render
+
 d = deployment_diagram(
     title="Styled Topology",
     diagram_style={
@@ -364,32 +418,43 @@ d = deployment_diagram(
         },
     },
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/VPBBJiCm44Nt-GfBx25fcgIHAbJgs2jsy0Dkx0OBnrESYQg0-kyuaNa8v6hapVZCdOVkRa3XSEnDiXrmCke-aUfaOEgLnKQBpecUV2I4x4NxsZaOhQHWm97pYqRbynQaMe3_o0tB-Oetoz-ZjYfaixegcvNFNlpplVLHj1YJu9pNT1rWAL0SnA2km3bB__PZPP6bQP1e3OmoEk-65wmEvD5l7kzKp1780S69BivIjcOqi6-Z6kFtsh07NWRI0bvRj67LzmaTd0FvQ-sgc6F9Sh3ufDyLoR9GSzkB0PMBwTCDAsdzKpiRWnp0oAzovpsYMn6VZz5zli2NP7iNZ8KQlSmY9iapd3pRJSbEMUdjzma0)
+
+
 
 ## Advanced Features
 
 ### Diagram Metadata
 
 ```python
-from plantuml_compose import deployment_diagram, render, Header, Footer, Legend, Scale
+from plantuml_compose import deployment_diagram, render
+from plantuml_compose.primitives.common import Header, Footer, Legend, Scale
 
 d = deployment_diagram(
     title="Production DC",
     mainframe="US-East-1",
     caption="Generated 2025-01-15",
-    header=Header(content="Confidential", alignment="right"),
+    header=Header("Confidential", position="right"),
     footer="Page %page%",
-    legend=Legend(content="Blue = compute\nOrange = storage", position="bottom"),
-    scale=1.5,
+    legend=Legend("Blue = compute\nOrange = storage", position="bottom"),
+    scale=Scale(factor=1.5),
     theme="plain",
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/9O_12i9034Jl-Ofuy5Xf2pqAOXMF2k87nDsqNTZTb6ts_urwcGalcO6SDgMYDKL85F9KA36-disLDcqwsEd21jPeEzWSHSRkC806jUbHn5UdGJ9UHYXXNXGN9iy5HybJy9mrK0HdRcmI-Tg3PiRzQhe7H-ilVkFCXPGzzcq_D6tNT0D4dZbxV8kg940ynyfuH2TfhSe6xeNo_4MRIh4-iFD_24uczjC7)
+
+
 
 ### String References
 
 You can use raw strings instead of `EntityRef` objects for connections:
 
-```python
+```text
 d.connect(c.arrow("Server", "Database", "JDBC"))
 ```
 

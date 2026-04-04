@@ -24,6 +24,9 @@ d.connect(r.composition(node, ct))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/FOx12i8m44Jl-OgXHo5YG4K4eTg3ftgm_a1i5rj9av9i2oh-ksaLRyjZviscWRNdlZM26pQ4Wln07eNLNQWT2tUzKyb8XgUqhYAvKDZY5Ay4Ei0gl0J0ZhKvxtFii5xYU8Ye3rJbr4Qosepa_JTb5wacI-OiwyQIdrGbZtIqTVKZTFf6OMvY_TUEIpCflocHagtYony0)
+
+
 
 The pattern: create a diagram, get `el` (elements) and `r` (relationships) namespaces, build elements with `d.add()`, then wire them with `d.connect()`.
 
@@ -32,6 +35,8 @@ The pattern: create a diagram, get `el` (elements) and `r` (relationships) names
 ### Objects
 
 ```python
+from plantuml_compose import object_diagram, render
+
 d = object_diagram()
 el = d.elements
 
@@ -62,7 +67,12 @@ critical = el.object("alert1 : Alert",
 )
 
 d.add(user, config, admin, order, server, critical)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JP11Ry8m38Nl_HKMx3OnjHaSEdKLYEka7IREKTO4oDGsaMEGqCH_dzr2n-tvytlHYzU93DAfQxFm_UCQWfbfVUFW3NR9uGnCWW5eBVFTP6BSXdxl3_yfs_bUB9pSY1wZeYPFGEkmOCEdYC4m8gq70hyPWBVm3eLwNQvuu79qIWogtNEUArL7u-rTyvu2cPRNJsNvKfOC6dI6d3oXShLSvCMYM6NNgK74OAN0byFphS60j1u9L5L4tncyrFN3GHoIf3OYRYSHfFL0OFxX3qVQ1kGkyeNa-2bFbuVUHtPClQ_PslMMR_u7)
+
+
 
 Parameters: `name`, `ref=`, `fields=`, `stereotype=`, `style=`
 
@@ -71,6 +81,8 @@ Parameters: `name`, `ref=`, `fields=`, `stereotype=`, `style=`
 Maps are associative arrays displayed as key-value tables.
 
 ```python
+from plantuml_compose import object_diagram, render
+
 d = object_diagram(title="Configuration")
 el = d.elements
 
@@ -89,7 +101,12 @@ secrets = el.map("vault", entries={
 }, style={"background": "LightYellow"})
 
 d.add(config, secrets)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JOv12i8m44NtESLGTqB1ubefkFK2hihKJcCmJK8oKn7ftKtYnjdzn_-ywHDZP5ciOiEMuEBTRBH4PEETMZ00Xl23y540v5OudQ49qKzoBwKcqub6qONFQ1Dbm6OXBrpGyP1p99shTIcf9KpSTetQgc15iGoxgz4Flf6r_bLD6Cpmf7VTxFDLppW4JEcFRQedD-N_lm00)
+
+
 
 Parameters: `name`, `ref=`, `entries=`, `links=`, `style=`
 
@@ -98,6 +115,8 @@ Parameters: `name`, `ref=`, `entries=`, `links=`, `style=`
 Map entries can link to other objects, rendering as arrows from the map key to the target.
 
 ```python
+from plantuml_compose import object_diagram, render
+
 d = object_diagram(title="User Sessions")
 el = d.elements
 
@@ -115,6 +134,9 @@ sessions = el.map("activeSessions",
 d.add(alice, bob, sessions)
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NOz12eCm44NtESN7PQ6WBWkAToXTXoJE8XAJuenkIk_Ua5AnBcVUc_dyWSKiiiv1YPT0U30jk1EpJv5LiXCvGMM2TuHReHKCeooqBlPB0Nv4XqQzzmkRxD7FuzbkipsR9umJlz4lid2NrYZe-km0_2MwhXjShlqn-e-sXUv1-Vj0SSpDFW00)
+
+
 
 ## Relationships / Connections
 
@@ -122,7 +144,7 @@ print(render(d))
 
 A directed association.
 
-```python
+```text
 r.arrow(user, order, "placed")
 r.arrow(user, order, direction="down")
 r.arrow(user, order, length=2)
@@ -137,7 +159,7 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `leng
 
 Strong ownership -- the child cannot exist without the parent. Renders with a filled diamond.
 
-```python
+```text
 r.composition(order, line_item, "contains")
 ```
 
@@ -147,7 +169,7 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `leng
 
 Weak ownership -- the child can exist independently. Renders with an open diamond.
 
-```python
+```text
 r.aggregation(department, employee, "has")
 ```
 
@@ -157,7 +179,7 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `leng
 
 A plain directed connection (single arrowhead).
 
-```python
+```text
 r.association(user, config, "reads")
 ```
 
@@ -167,7 +189,7 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `leng
 
 An undirected line (no arrowheads by default).
 
-```python
+```text
 r.link(a, b, "collaborates")
 r.link(a, b, left_head="|>", right_head="*")  # custom heads
 ```
@@ -178,7 +200,7 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `leng
 
 Inheritance arrow (triangle head).
 
-```python
+```text
 r.extension(child_obj, parent_obj, "extends")
 ```
 
@@ -188,7 +210,7 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `leng
 
 Implementation arrow (dashed line, triangle head).
 
-```python
+```text
 r.implementation(concrete, interface_obj, "implements")
 ```
 
@@ -198,7 +220,7 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `leng
 
 Both `arrow()` and `link()` support `left_head=` and `right_head=` for custom arrowhead shapes. Common values: `|>`, `*`, `o`, `#`, `x`, `+`, `^`, `>>`.
 
-```python
+```text
 r.arrow(a, b, left_head="o", right_head="|>")
 ```
 
@@ -206,7 +228,7 @@ r.arrow(a, b, left_head="o", right_head="|>")
 
 Every relationship type supports a `note=` parameter that renders a note attached to the connection line.
 
-```python
+```text
 d.connect(
     r.composition(order, item, note="1..*"),
     r.arrow(item, product, "refs", note="by product ID"),
@@ -219,7 +241,7 @@ d.connect(
 
 Multiple arrows from `(source, target)` or `(source, target, label)` tuples:
 
-```python
+```text
 d.connect(r.arrows(
     (user, order),
     (user, cart, "owns"),
@@ -231,7 +253,7 @@ d.connect(r.arrows(
 
 Fan-out from one source to many targets. Targets can be bare refs or `(target, label)` tuples:
 
-```python
+```text
 d.connect(r.arrows_from(user,
     order,
     cart,
@@ -248,7 +270,7 @@ Parameters: `source`, `*targets`, `style=`, `direction=`, `length=`
 
 One parent composes many children:
 
-```python
+```text
 d.connect(r.compositions_from(
     node, [ct101, ct102, ct103],
     label="hosts",
@@ -263,6 +285,8 @@ Parameters: `parent`, `children`, `label=`, `style=`, `direction=`, `length=`
 The `hub()` method on the composer creates a hub-and-spoke pattern, connecting one central object to many spokes. Unlike bulk methods, this is called directly on the diagram, not on the relationships namespace.
 
 ```python
+from plantuml_compose import object_diagram, render
+
 d = object_diagram()
 el = d.elements
 r = d.relationships
@@ -277,13 +301,20 @@ d.hub(router, [switch1, switch2, switch3],
       label="connects",
       style="dashed",
       direction="down")
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSfFoafDBb5GIYytLB1I2CelBKajKb98B5O02iJ7G_WArLmA2fa52hOAXWPw86Z8LGlNM0pM65oUMPAS0TPO3D88uICfCa9NP8H5aJ6w8cEu8cJdw4Qd91PdfAR4fkZQ8Li7r9sSdvS7DAmOdteZ4jKROrFla9gN0Wm_0000)
+
+
 
 Parameters: `hub`, `spokes`, `label=`, `style=`, `direction=`
 
 ## Notes
 
 ```python
+from plantuml_compose import object_diagram, render
+
 d = object_diagram()
 el = d.elements
 
@@ -301,7 +332,12 @@ d.note("Overdue!", target=order, position="top", color="LightCoral")
 
 # Floating note (no target)
 d.note("Snapshot taken at 14:30 UTC")
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/RP2z2i9048JxUufHIvluKmKL9QrWeQd3wcrYDDw5oqO9uhjxCGYAThl3jplCB2iX9_MbK7P_ueEWRvrcDqA8JJlqGHKwAKbU2kuAy5TILvXZ5W-3O3nUb6nqRhBtgXxAM66uF3jAYAsXiZfQWT2P3KWmceQJ0F4k-k1Wqs-h4AiRvUB_egJcmaOwkk3q7nmv9c4DiPgQZXHR_e0Oh5kto3egVCehErrpJorz0j_34m00)
+
+
 
 Parameters: `content`, `target=`, `position=` (left/right/top/bottom), `color=`
 
@@ -310,14 +346,21 @@ Parameters: `content`, `target=`, `position=` (left/right/top/bottom), `color=`
 ### Layout Direction
 
 ```python
+from plantuml_compose import object_diagram, render
+
 d = object_diagram(layout="left_to_right")
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSf9JIjHACbNACfCpoXHICaiIaqkoSpFut98pKi1oWC0)
+
+
 
 Valid values: `"left_to_right"`, `"top_to_bottom"`
 
 ### Direction Hints on Relationships
 
-```python
+```text
 d.connect(
     r.arrow(center, top_node, direction="up"),
     r.arrow(center, bottom_node, direction="down"),
@@ -328,7 +371,7 @@ d.connect(
 
 ### Arrow Length
 
-```python
+```text
 r.arrow(a, b, length=2)   # longer than default
 r.arrow(a, b, length=3)   # even longer
 ```
@@ -337,7 +380,7 @@ r.arrow(a, b, length=3)   # even longer
 
 ### Element-Level Styles
 
-```python
+```text
 el.object("active : Order",
     fields={"status": '"processing"'},
     style={"background": "LightGreen"},
@@ -353,7 +396,7 @@ el.map("config", entries={"k": "v"}, style={"background": "#E8F5E9"})
 
 ### Line Styles on Relationships
 
-```python
+```text
 # String shorthand
 r.arrow(a, b, style="dashed")
 r.arrow(a, b, style="dotted")
@@ -367,6 +410,8 @@ r.composition(a, b, style={"color": "red", "pattern": "dashed", "bold": True})
 Theme the entire diagram with CSS-like selectors:
 
 ```python
+from plantuml_compose import object_diagram, render
+
 d = object_diagram(
     title="Styled Diagram",
     diagram_style={
@@ -383,7 +428,12 @@ d = object_diagram(
         },
     },
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/TP7TIWCn48NlynG3lLVQbBeBHMgpcolnfa-G9d4TpO-aiuYMlhjfDYWe6yZ5V9bpo9pPdKWb6hrZXEGi7EZJMGCTgY4fpxQdQttFul7LQgeKpWnWh_JRaE8OZ8Wk9lXuGRAPonZeINaB3mcLg-20NnQMl5QJOC7BoMmoBwx_VHSzbolPbRT73BRIPNktwLQPNlBrwdrEBPf-8zg_QjuqFHTLVQDZUCPXpa5AsOhrJsz2GgtSVBVeoh_guDVuu1YTAGONPg8UlGtJj5Favz_k4bCphzxUrdtiR31vQTy0)
+
+
 
 Available selectors: `object`, `map`, `title`, `stereotypes`
 
@@ -396,19 +446,25 @@ Note: PlantUML ignores `arrow` and `note` CSS selectors for object diagrams. Use
 ### Diagram Metadata
 
 ```python
-from plantuml_compose.primitives.common import Header, Footer, Legend
+from plantuml_compose import object_diagram, render
+from plantuml_compose.primitives.common import Header, Footer, Legend, Scale
 
 d = object_diagram(
     title="Production Snapshot",
     mainframe="Infrastructure State",
     caption="Figure 3: Node allocation at 14:30 UTC",
     header="Internal - Do Not Distribute",
-    footer=Footer(content="Generated by plantuml-compose"),
+    footer=Footer("Generated by plantuml-compose"),
     legend="Diamond = composition",
-    scale=1.5,
+    scale=Scale(factor=1.5),
     theme="plain",
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/BOv12W8n34NtFKKyWAACRWH1K1Gt8gW7Y6rq2cqoj9c5jpTLD_qD_v6NRLKiEkRaCaP-5im4fvPLo-XrB0HNHIKtqPwi6v9XhdfC18lPocbK-rsA1AEZC5mPXzgBEa-iLA0d31QdDZ0ccC9Uu2mA-sYA-1XjznzzYhGu4bCnPO37k_cudJVraWUfnkBmzHpYgntNhMrP8C2KnEEtGON5SjtDuNxRkKGluk30T9Y50spWjoasrbdt9xRscES3)
+
+
 
 ### Complete Example
 
@@ -476,6 +532,9 @@ d.note("Awaiting fulfillment", target=order, color="LightYellow")
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/VPHHRzem4CVVyobERPysfKlIqWr4gmBRf6gjDWdrOK-HIGxmwjYPVLc7fdxtNHmoGWeJgd3_Fljtzxypjuw4fQfG0KbI25zjZXRc6qTOm5oBqgqD1MHA80CBGsGAoAN5ZAJHmTZHHk5DO1O_MFaenSgA0lu408tYbm1JaJsjhAbqFZFAM3ZzFAa_lFV2V-U2B_k5ns9d7pvTpOO-zYKOlziZmebGCaCOmQnod1hQ4n0El9YchUPlbZbSmsN2Aoo4LFpF-F5j52N9ZO--nT-YA1MUPwPeDpYsm6A1TYurGwuXYP8eZ2x2UC2fj1cOsh71rNjEmfldCsZ5D6qCFRsNgpLDLOMxP7YRb-m_LQwJJcbDXiv9lUhaGOP4dVDPCXoU3uSTlEH6nSo-bnhlUEtnNapJLlDClZUlChghqN4Ki_Ap4fgxlgahym7ILtbsUG2H748a_q4aqM0V4NSHSRyCaOkIsAWHV6ikQHhPg6cw5NVcDHLeKM37kiVvD9p1f3dqpxqTv0at2oDitgEqyW5CKqKFyu3PMcYPSKU-R8yUW8ayjtLZ9lpD_TpMmrgQRYMFSMGHgNDxd5p0Wv0QvjGPWAmniLNcxAHUBIMgBhe_zs5uyseIHr0gaM4Uz3VUX65_Rex6T1eVz6UjXhxgsmWiBj4YloCNz4UdFl6w1tj7-eaqa3qpH-3MidJyL09j2C7MBmxCyiXR_8vAcMTkpxEGn5x2ib9BgLI1ce9Rr3d_9lu5)
+
+
 
 ## Quick Reference
 
@@ -542,7 +601,7 @@ print(render(d))
 
 Fields are passed as dicts where keys are field names and values are string representations:
 
-```python
+```text
 fields={
     "id": "123",           # Number
     "name": '"Alice"',     # String (include quotes)

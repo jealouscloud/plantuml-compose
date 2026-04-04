@@ -1,341 +1,577 @@
 # Object Diagrams
 
-Object diagrams show specific instances at a point in time. They're ideal for:
+Object diagrams show specific instances and their relationships at a point in time. They capture concrete data snapshots, making them useful for debugging, test scenarios, and documentation with real values.
 
-- **Concrete examples**: Showing real data in class relationships
-- **Debugging**: Visualizing data state
-- **Test scenarios**: Illustrating expected data structures
-- **Documentation**: Sample data for tutorials or specs
-
-Unlike class diagrams (which show types), object diagrams show INSTANCES with actual values.
-
-## Core Concepts
-
-**Object**: An instance of a class with concrete values.
-
-**Field**: An attribute with a specific value.
-
-**Map**: A key-value collection (associative array).
-
-**Link**: A relationship between specific instances.
-
-The key difference from class diagrams:
-
-| Class Diagram (types) | Object Diagram (instances) |
-|-----------------------|---------------------------|
-| `Order` | `order1 : Order` |
-| `id: int` | `id = 12345` |
-| `status: str` | `status = "paid"` |
-
-## Your First Object Diagram
+## Quick Start
 
 ```python
-from plantuml_compose import object_diagram
+from plantuml_compose import object_diagram, render
 
-with object_diagram(title="Simple Example") as d:
-    alice = d.object("alice : User")
-    order = d.object("order1 : Order")
+d = object_diagram(title="Server Snapshot")
+el = d.elements
+r = d.relationships
 
-    d.arrow(alice, order, label="placed")
+node = el.object("vz-node-01 : Node", ref="n1", fields={
+    "totalRAM": "64 GB",
+    "usedMem": "58 GB",
+})
+ct = el.object("CT-101 : Container", ref="ct101", fields={
+    "physpages.l": "8 GB",
+})
 
-print(d.render())
+d.add(node, ct)
+d.connect(r.composition(node, ct))
+
+print(render(d))
 ```
 
-## Objects
+The pattern: create a diagram, get `el` (elements) and `r` (relationships) namespaces, build elements with `d.add()`, then wire them with `d.connect()`.
 
-### Simple Objects
+## Elements
+
+### Objects
 
 ```python
-from plantuml_compose import object_diagram
+from plantuml_compose import object_diagram, render
 
-with object_diagram() as d:
-    # Object with type annotation
-    user = d.object("alice : User")
+d = object_diagram()
+el = d.elements
 
-    # Object without type
-    config = d.object("appConfig")
+# Object with type annotation (instance : Type)
+user = el.object("alice : User")
 
-    # With alias for relationships
-    admin = d.object("adminUser : Admin", alias="admin")
+# Object without type
+config = el.object("appConfig")
 
-print(d.render())
+# With an explicit ref for relationships
+admin = el.object("adminUser : Admin", ref="admin")
+
+# With field values
+order = el.object("order1 : Order", fields={
+    "id": "12345",
+    "status": '"paid"',       # include quotes for string values
+    "total": "$99.99",
+    "created": "2024-01-15",
+})
+
+# With stereotype
+server = el.object("prod1 : Server", stereotype="primary")
+
+# With background color
+critical = el.object("alert1 : Alert",
+    fields={"severity": '"high"'},
+    style={"background": "LightCoral"},
+)
+
+d.add(user, config, admin, order, server, critical)
+
+print(render(d))
 ```
 
-### Objects with Fields
+Parameters: `name`, `ref=`, `fields=`, `stereotype=`, `style=`
+
+### Maps
+
+Maps are associative arrays displayed as key-value tables.
 
 ```python
-from plantuml_compose import object_diagram
+from plantuml_compose import object_diagram, render
 
-with object_diagram(title="Order Details") as d:
-    order = d.object_with_fields(
-        "order1 : Order",
-        fields={
-            "id": "12345",
-            "status": '"paid"',
-            "total": "$99.99",
-            "created": "2024-01-15",
-        }
-    )
+d = object_diagram(title="Configuration")
+el = d.elements
 
-    customer = d.object_with_fields(
-        "alice : Customer",
-        fields={
-            "id": "42",
-            "email": '"alice@example.com"',
-            "tier": '"gold"',
-        }
-    )
+# Map with plain entries
+config = el.map("appConfig", entries={
+    "env": '"production"',
+    "debug": "false",
+    "timeout": "30",
+    "region": '"us-east-1"',
+})
 
-    d.arrow(customer, order, label="placed")
+# Map with style
+secrets = el.map("vault", entries={
+    "api_key": '"****"',
+    "db_pass": '"****"',
+}, style={"background": "LightYellow"})
 
-print(d.render())
+d.add(config, secrets)
+
+print(render(d))
 ```
 
-### Styled Objects
-
-```python
-from plantuml_compose import object_diagram
-
-with object_diagram() as d:
-    active = d.object_with_fields(
-        "activeOrder : Order",
-        fields={"status": '"processing"'},
-        style={"background": "LightGreen"}
-    )
-
-    error = d.object_with_fields(
-        "failedOrder : Order",
-        fields={"status": '"failed"'},
-        style={"background": "LightCoral"}
-    )
-
-print(d.render())
-```
-
-## Maps (Key-Value Collections)
-
-```python
-from plantuml_compose import object_diagram
-
-with object_diagram(title="Configuration") as d:
-    config = d.map(
-        "appConfig",
-        entries={
-            "env": '"production"',
-            "debug": "false",
-            "timeout": "30",
-            "region": '"us-east-1"',
-        }
-    )
-
-print(d.render())
-```
+Parameters: `name`, `ref=`, `entries=`, `links=`, `style=`
 
 ### Maps with Linked Entries
 
-```python
-from plantuml_compose import object_diagram
-
-with object_diagram(title="User Sessions") as d:
-    alice = d.object_with_fields("alice : User", fields={"id": "1"})
-    bob = d.object_with_fields("bob : User", fields={"id": "2"})
-
-    # Map with links to other objects
-    sessions = d.map(
-        "activeSessions",
-        entries={"count": "2"},
-        links={
-            "session_001": alice,
-            "session_002": bob,
-        }
-    )
-
-print(d.render())
-```
-
-## Relationships
-
-### Simple Links
+Map entries can link to other objects, rendering as arrows from the map key to the target.
 
 ```python
-from plantuml_compose import object_diagram
+from plantuml_compose import object_diagram, render
 
-with object_diagram() as d:
-    user = d.object("alice : User")
-    cart = d.object("cart1 : Cart")
-    order = d.object("order1 : Order")
+d = object_diagram(title="User Sessions")
+el = d.elements
 
-    # Arrow (directed)
-    d.arrow(user, cart, label="owns")
-    d.arrow(user, order, label="placed")
+alice = el.object("alice : User", fields={"id": "1"})
+bob = el.object("bob : User", fields={"id": "2"})
 
-    # Link (undirected)
-    d.link(cart, order)
+sessions = el.map("activeSessions",
+    entries={"count": "2"},
+    links={
+        "session_001": alice,
+        "session_002": bob,
+    },
+)
 
-print(d.render())
+d.add(alice, bob, sessions)
+print(render(d))
 ```
 
-### Relationship Types
+## Relationships / Connections
+
+### arrow
+
+A directed association.
+
+```text
+r.arrow(user, order, "placed")
+r.arrow(user, order, direction="down")
+r.arrow(user, order, length=2)
+r.arrow(user, order, style="dashed")
+r.arrow(user, order, style={"color": "red", "pattern": "dashed"})
+r.arrow(user, order, note="see ticket #42")  # inline note on the arrow
+```
+
+Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `length=`, `left_head=`, `right_head=`
+
+### composition
+
+Strong ownership -- the child cannot exist without the parent. Renders with a filled diamond.
+
+```text
+r.composition(order, line_item, "contains")
+```
+
+Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `length=`
+
+### aggregation
+
+Weak ownership -- the child can exist independently. Renders with an open diamond.
+
+```text
+r.aggregation(department, employee, "has")
+```
+
+Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `length=`
+
+### association
+
+A plain directed connection (single arrowhead).
+
+```text
+r.association(user, config, "reads")
+```
+
+Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `length=`
+
+### link
+
+An undirected line (no arrowheads by default).
+
+```text
+r.link(a, b, "collaborates")
+r.link(a, b, left_head="|>", right_head="*")  # custom heads
+```
+
+Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `length=`, `left_head=`, `right_head=`
+
+### extension
+
+Inheritance arrow (triangle head).
+
+```text
+r.extension(child_obj, parent_obj, "extends")
+```
+
+Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `length=`
+
+### implementation
+
+Implementation arrow (dashed line, triangle head).
+
+```text
+r.implementation(concrete, interface_obj, "implements")
+```
+
+Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `length=`
+
+### Custom Arrow Heads
+
+Both `arrow()` and `link()` support `left_head=` and `right_head=` for custom arrowhead shapes. Common values: `|>`, `*`, `o`, `#`, `x`, `+`, `^`, `>>`.
+
+```text
+r.arrow(a, b, left_head="o", right_head="|>")
+```
+
+### Inline Notes on Relationships
+
+Every relationship type supports a `note=` parameter that renders a note attached to the connection line.
+
+```text
+d.connect(
+    r.composition(order, item, note="1..*"),
+    r.arrow(item, product, "refs", note="by product ID"),
+)
+```
+
+### Bulk Methods
+
+#### arrows()
+
+Multiple arrows from `(source, target)` or `(source, target, label)` tuples:
+
+```text
+d.connect(r.arrows(
+    (user, order),
+    (user, cart, "owns"),
+    (order, address),
+))
+```
+
+#### arrows_from()
+
+Fan-out from one source to many targets. Targets can be bare refs or `(target, label)` tuples:
+
+```text
+d.connect(r.arrows_from(user,
+    order,
+    cart,
+    (address, "lives at"),
+    style="dashed",
+    direction="down",
+    length=2,
+))
+```
+
+Parameters: `source`, `*targets`, `style=`, `direction=`, `length=`
+
+#### compositions_from()
+
+One parent composes many children:
+
+```text
+d.connect(r.compositions_from(
+    node, [ct101, ct102, ct103],
+    label="hosts",
+    direction="down",
+))
+```
+
+Parameters: `parent`, `children`, `label=`, `style=`, `direction=`, `length=`
+
+### hub()
+
+The `hub()` method on the composer creates a hub-and-spoke pattern, connecting one central object to many spokes. Unlike bulk methods, this is called directly on the diagram, not on the relationships namespace.
 
 ```python
-from plantuml_compose import object_diagram
+from plantuml_compose import object_diagram, render
 
-with object_diagram(title="Relationships") as d:
-    a = d.object("objA : A")
-    b = d.object("objB : B")
-    c = d.object("objC : C")
-    d_obj = d.object("objD : D")
+d = object_diagram()
+el = d.elements
+r = d.relationships
 
-    # Different relationship types
-    d.relationship(a, b, type="composition", label="contains")
-    d.relationship(a, c, type="aggregation", label="has")
-    d.relationship(a, d_obj, type="dependency", label="uses")
+router = el.object("gw1 : Router", fields={"ip": "10.0.0.1"})
+switch1 = el.object("sw1 : Switch")
+switch2 = el.object("sw2 : Switch")
+switch3 = el.object("sw3 : Switch")
+d.add(router, switch1, switch2, switch3)
 
-print(d.render())
+d.hub(router, [switch1, switch2, switch3],
+      label="connects",
+      style="dashed",
+      direction="down")
+
+print(render(d))
 ```
 
-### Direction Hints
-
-```python
-from plantuml_compose import object_diagram
-
-with object_diagram() as d:
-    center = d.object("center : Node")
-    top = d.object("top : Node")
-    bottom = d.object("bottom : Node")
-    left = d.object("left : Node")
-    right = d.object("right : Node")
-
-    d.arrow(center, top, direction="up")
-    d.arrow(center, bottom, direction="down")
-    d.arrow(center, left, direction="left")
-    d.arrow(center, right, direction="right")
-
-print(d.render())
-```
+Parameters: `hub`, `spokes`, `label=`, `style=`, `direction=`
 
 ## Notes
 
 ```python
-from plantuml_compose import object_diagram
+from plantuml_compose import object_diagram, render
 
-with object_diagram() as d:
-    order = d.object_with_fields(
-        "order1 : Order",
-        fields={"status": '"pending"', "total": "$150.00"}
-    )
+d = object_diagram()
+el = d.elements
 
-    # Note attached to object
-    d.note("Awaiting payment confirmation", target=order)
+order = el.object("order1 : Order", fields={"status": '"pending"'})
+d.add(order)
 
-    # Note with position
-    d.note("Created today", position="left", target=order)
+# Note attached to an object (default position is "right")
+d.note("Awaiting payment", target=order)
 
-print(d.render())
+# With explicit position
+d.note("Created today", target=order, position="left")
+
+# With color
+d.note("Overdue!", target=order, position="top", color="LightCoral")
+
+# Floating note (no target)
+d.note("Snapshot taken at 14:30 UTC")
+
+print(render(d))
 ```
 
-## Complete Example: E-Commerce Snapshot
+Parameters: `content`, `target=`, `position=` (left/right/top/bottom), `color=`
+
+## Layout & Organization
+
+### Layout Direction
 
 ```python
-from plantuml_compose import object_diagram
+from plantuml_compose import object_diagram, render
 
-with object_diagram(title="Order System Snapshot") as d:
-    # Customer instance
-    customer = d.object_with_fields(
-        "alice : Customer",
-        fields={
-            "id": "42",
-            "email": '"alice@example.com"',
-            "memberSince": "2020-03-15",
-        }
-    )
+d = object_diagram(layout="left_to_right")
 
-    # Active order
-    order = d.object_with_fields(
-        "order567 : Order",
-        fields={
-            "id": "567",
-            "status": '"processing"',
-            "total": "$299.99",
-            "created": "2024-01-20",
+print(render(d))
+```
+
+Valid values: `"left_to_right"`, `"top_to_bottom"`
+
+### Direction Hints on Relationships
+
+```text
+d.connect(
+    r.arrow(center, top_node, direction="up"),
+    r.arrow(center, bottom_node, direction="down"),
+    r.arrow(center, left_node, direction="left"),
+    r.arrow(center, right_node, direction="right"),
+)
+```
+
+### Arrow Length
+
+```text
+r.arrow(a, b, length=2)   # longer than default
+r.arrow(a, b, length=3)   # even longer
+```
+
+## Styling
+
+### Element-Level Styles
+
+```text
+el.object("active : Order",
+    fields={"status": '"processing"'},
+    style={"background": "LightGreen"},
+)
+
+el.object("failed : Order",
+    fields={"status": '"failed"'},
+    style={"background": "LightCoral"},
+)
+
+el.map("config", entries={"k": "v"}, style={"background": "#E8F5E9"})
+```
+
+### Line Styles on Relationships
+
+```text
+# String shorthand
+r.arrow(a, b, style="dashed")
+r.arrow(a, b, style="dotted")
+
+# Dict form
+r.composition(a, b, style={"color": "red", "pattern": "dashed", "bold": True})
+```
+
+### diagram_style
+
+Theme the entire diagram with CSS-like selectors:
+
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram(
+    title="Styled Diagram",
+    diagram_style={
+        "background": "white",
+        "font_name": "Arial",
+        "font_size": 13,
+        "font_color": "#333333",
+        "object": {"background": "#E3F2FD", "line_color": "#1976D2"},
+        "map": {"background": "#C8E6C9", "line_color": "#388E3C"},
+        "title": {"font_size": 18, "font_style": "bold"},
+        "stereotypes": {
+            "config": {"background": "#FFF9C4"},
+            "critical": {"background": "#FFCDD2", "font_style": "bold"},
         },
-        style={"background": "LightBlue"}
-    )
+    },
+)
 
-    # Line items
-    item1 = d.object_with_fields(
-        "item1 : LineItem",
-        fields={
-            "productId": "101",
-            "quantity": "2",
-            "price": "$49.99",
-        }
-    )
+print(render(d))
+```
 
-    item2 = d.object_with_fields(
-        "item2 : LineItem",
-        fields={
-            "productId": "205",
-            "quantity": "1",
-            "price": "$199.99",
-        }
-    )
+Available selectors: `object`, `map`, `title`, `stereotypes`
 
-    # Product references
-    product1 = d.object_with_fields(
-        "laptop : Product",
-        fields={
-            "id": "101",
-            "name": '"USB-C Adapter"',
-        }
-    )
+Root-level properties: `background`, `font_name`, `font_size`, `font_color`
 
-    product2 = d.object_with_fields(
-        "keyboard : Product",
-        fields={
-            "id": "205",
-            "name": '"Mechanical Keyboard"',
-        }
-    )
+Note: PlantUML ignores `arrow` and `note` CSS selectors for object diagrams. Use inline `style=` and `note=` on individual relationships instead.
 
-    # Shipping address
-    address = d.object_with_fields(
-        "addr1 : Address",
-        fields={
-            "street": '"123 Main St"',
-            "city": '"Springfield"',
-            "zip": '"12345"',
-        }
-    )
+## Advanced Features
 
-    # Relationships
-    d.arrow(customer, order, label="placed")
-    d.relationship(order, item1, type="composition")
-    d.relationship(order, item2, type="composition")
-    d.arrow(item1, product1, label="references")
-    d.arrow(item2, product2, label="references")
-    d.arrow(order, address, label="ships to")
+### Diagram Metadata
 
-print(d.render())
+```python
+from plantuml_compose import object_diagram, render
+from plantuml_compose.primitives.common import Header, Footer, Legend, Scale
+
+d = object_diagram(
+    title="Production Snapshot",
+    mainframe="Infrastructure State",
+    caption="Figure 3: Node allocation at 14:30 UTC",
+    header="Internal - Do Not Distribute",
+    footer=Footer("Generated by plantuml-compose"),
+    legend="Diamond = composition",
+    scale=Scale(factor=1.5),
+    theme="plain",
+)
+
+print(render(d))
+```
+
+### Complete Example
+
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram(
+    title="Order System Snapshot",
+    layout="top_to_bottom",
+    diagram_style={
+        "object": {"background": "#FAFAFA"},
+        "stereotypes": {
+            "active": {"background": "#C8E6C9"},
+        },
+    },
+)
+el = d.elements
+r = d.relationships
+
+customer = el.object("alice : Customer", fields={
+    "id": "42",
+    "email": '"alice@example.com"',
+    "memberSince": "2020-03-15",
+})
+
+order = el.object("order567 : Order",
+    fields={
+        "id": "567",
+        "status": '"processing"',
+        "total": "$299.99",
+    },
+    style={"background": "LightBlue"},
+)
+
+item1 = el.object("item1 : LineItem", fields={
+    "productId": "101", "quantity": "2", "price": "$49.99",
+})
+item2 = el.object("item2 : LineItem", fields={
+    "productId": "205", "quantity": "1", "price": "$199.99",
+})
+
+product1 = el.object("adapter : Product", fields={
+    "id": "101", "name": '"USB-C Adapter"',
+})
+product2 = el.object("keyboard : Product", fields={
+    "id": "205", "name": '"Mechanical Keyboard"',
+})
+
+address = el.object("addr1 : Address", fields={
+    "street": '"123 Main St"',
+    "city": '"Springfield"',
+})
+
+d.add(customer, order, item1, item2, product1, product2, address)
+
+d.connect(
+    r.arrow(customer, order, "placed"),
+    r.compositions_from(order, [item1, item2]),
+    r.arrow(item1, product1, "references"),
+    r.arrow(item2, product2, "references"),
+    r.arrow(order, address, "ships to"),
+)
+
+d.note("Awaiting fulfillment", target=order, color="LightYellow")
+
+print(render(d))
 ```
 
 ## Quick Reference
 
 | Method | Description |
 |--------|-------------|
-| `d.object(name)` | Simple object |
-| `d.object_with_fields(name, fields)` | Object with field values |
-| `d.map(name, entries)` | Key-value map |
-| `d.arrow(a, b)` | Directed link |
-| `d.link(a, b)` | Undirected link |
-| `d.relationship(a, b, type)` | Typed relationship |
-| `d.note(text, target)` | Add note |
+| `el.object(name)` | Create an object |
+| `el.object(name, fields={...})` | Object with field values |
+| `el.map(name, entries={...})` | Key-value map |
+| `el.map(name, links={...})` | Map with linked entries |
+| `r.arrow(a, b)` | Directed link |
+| `r.link(a, b)` | Undirected line |
+| `r.composition(a, b)` | Filled diamond (strong ownership) |
+| `r.aggregation(a, b)` | Open diamond (weak ownership) |
+| `r.association(a, b)` | Plain directed connection |
+| `r.extension(a, b)` | Inheritance triangle |
+| `r.implementation(a, b)` | Dashed inheritance |
+| `r.arrows(*(src, tgt), ...)` | Bulk arrows from tuples |
+| `r.arrows_from(src, *targets)` | Fan-out from one source |
+| `r.compositions_from(parent, children)` | Bulk compositions |
+| `d.hub(hub, spokes)` | Hub-and-spoke pattern |
+| `d.add(*elements)` | Register elements |
+| `d.connect(*relationships)` | Register connections |
+| `d.note(text, target=, position=, color=)` | Attach a note |
+
+### Element Parameters
+
+| Parameter | Applies to | Description |
+|-----------|-----------|-------------|
+| `ref=` | object, map | Short name for programmatic access |
+| `fields=` | object | `{"field": "value"}` dict |
+| `entries=` | map | `{"key": "value"}` dict |
+| `links=` | map | `{"key": entity_ref}` dict with arrows |
+| `stereotype=` | object | UML `<<name>>` marker |
+| `style=` | object, map | `{"background": "..."}` |
+
+### Relationship Parameters
+
+| Parameter | Applies to | Description |
+|-----------|-----------|-------------|
+| `label` | All relationships | Text on the connection |
+| `style=` | All relationships | `"dashed"` or `{"color": "red", ...}` |
+| `direction=` | All relationships | `"up"`, `"down"`, `"left"`, `"right"` |
+| `length=` | All relationships | Arrow length (int) |
+| `note=` | All relationships | Inline note on the connection |
+| `left_head=` | arrow, link | Custom left arrowhead |
+| `right_head=` | arrow, link | Custom right arrowhead |
+
+### Diagram Options
+
+| Parameter | Description |
+|-----------|-------------|
+| `title=` | Diagram title |
+| `mainframe=` | Mainframe label |
+| `caption=` | Caption text below diagram |
+| `header=` | Header text |
+| `footer=` | Footer text |
+| `legend=` | Legend text |
+| `scale=` | Scale factor (float) |
+| `theme=` | PlantUML theme name |
+| `layout=` | `"left_to_right"` or `"top_to_bottom"` |
+| `diagram_style=` | Dict of CSS-like style selectors |
 
 ### Field Format
 
-Fields are passed as a dictionary where keys are field names and values are the string representation:
+Fields are passed as dicts where keys are field names and values are string representations:
 
-```python
+```text
 fields={
     "id": "123",           # Number
     "name": '"Alice"',     # String (include quotes)

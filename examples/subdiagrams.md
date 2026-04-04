@@ -46,6 +46,9 @@ d.phase("Flow", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NL0n3i8m3Dpx2eymLEm8LOKY93O4BmYjXIBIE2Gk25NzEqwQ0SYGM7U-ypbrOELvw4t1cWt26Hy31eQ3eLVXXDAjTieoD4QZvH_eWlw9lhXv6jmiWDm6PPLPM8EVBHTBeIqn0aKyYq7EEAPd4_Xji4gr9s8OOQVQUxItNKE6FB1NDaY4E6AQHQilLKkz8nl9xUduX-mLgwiAc62XeIn_iIaQekrIHYbpVjaaxnGt2U8c_T9Mr7B9ltq0)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/LL3D2i8m3BxtANBKm_0kCgOJmPle4zGjQh4sCyqK6NjtKpP5BwNz_lAbHHJBqjwy4ISUOO_t5gF0njFJD4gvoZKs29JUOP0_w83yG3O30ra-0Z077b8cKnD84DYTBm9q-ZW0kawFHPINnrnlJ2JGmSfMrpDJ6-gIF348sn1rOehlas7sTLHqQoWaOhdR_htNLkpHHbHGASYoNwJl3OOQKYipjjNUumQfTzGKLHQgqazv0m00)
 
 
@@ -95,6 +98,9 @@ d.phase("Auth", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NP71RiCW38RlF8MFso7QlPggfgaqxJPfcdP6hjMWKXo1wLP5VVSPcgvjE83vpM_3nog9ZP8FteWJJ_3jf8SsOk-4K78aw3W8_OgnA1pXAr4qWreSki46WVRZ_M6_jhYdi3Mxo7c0DajleBgWMPR3i03FEnUUdbKFB0Hyr6Gf0ph6iIwlIKwUbZMEp09ZBLoAXct7NcyYqOQadKcRdY-cbpiNyc7WK99lLkZ7dcRg9yMZGvgfdSL-hctMLPZAGDCyUAUuo3VpdJYvp-MAogK-MSD2Ge5Cj1IALLBQpQ6sgMokgNzimhg_MIlJ1QICI2cPmdobatxb7m00)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/LP71QiCm38RlVWeTrqFOlOpIDeFHss2KdOsgnMQk5MnvMmbvzyaXASt5IB_qIVpoFejDKgx1Y9T0yEd5mI6Xyq8e9H6q78N-n5WKJd3Eb4olY4VVsoXmU3-jygF5RueNKnkXsTKwR25mv-FJnaGMWkGx9y1V4mim3FgyPBa5sccKc0M6QKwNkCHBoq4NIx8nwoBI7MC5dky4yhNdM0jlLkZNtbRQ1wKVZxJIMejkhRmUDPrnQ9e7Qewgk60FqiIDer7BKCsPwbTjpsTGwxQ8qmqUTRXUO2dSJoEi-O9DLzj2BeYKizbhf_xDFm00)
 
 
@@ -137,6 +143,9 @@ d.note(states.embed(), target=processor, position="right")
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JL3BQWCn3BpxAqIEXT1xAI7fuv1RwEOMIZ1UTMFgM47M1iAo_rufPBU-s9hnp5ZIkeXdwS_9IPI4q21VOq3OS3X5mI0zemjqlb36BB3u-cpsiDbj5-0B63Wgg0Gxfe2b45TS8yI-GpV9ORciT7Dbz2JD90WSkvC0_LHYW67GuxN8BU5AAoOI6E3DXz-EgS_jEoMD4lQvN3pRzwCPdcU73gpPspRX31xvCNSpzQ6jApWyVMjRgqbkrnt_E-05xYlKrueqZKNeg-qXePXz71tc5cmujzPAr_u7)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/JP31YW8n38RlVOhWNRplog8kUzYREE9LGYUEPJlDaAOBCioxcmueSscIlz-VjDbbHT7IHwT18q53yXyymLxyFIXvBKBESpzmegImElqqPzWVVrU06MfnjM8178KzvSooq1fbmOxS2uVrUi6ziog_qCHA8A6xA_1j0GECentRh8z8NvO9iy881_H_dN19xJT7QwM2AGyeTVnK3PktO_wmnOyBnj2YpGbfAFfPfNErtLXwi0kSfHFP2X88vH9dA2iF5gR9KMgXFjJjBBCLFW40)
 
 
@@ -180,6 +189,9 @@ d.note(flow.embed(), target=processor, position="right")
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JP71QiCm44Jl-eebnqBe3vIGfFJGMuX3Bw448MySKLaRLkj0CVxth1miT15lnpCZBzeciIn37unu2GWDyiCxX1sxcnTqCZ0QH_sT8aQ1rV6hES7kyBq2co0F5nqgmu79OKh4bTO8iUtGB7POhojVeImlraY2mBwx2T2rCWECenuVIVu3RfIOI624lNL_7TCGsqyAMYLiOxfRpjTFEV1U4hgmTl_Ou5k58fnouahS5-M8kdpKyVpsg_-sgJCBpdeTBJn_AHKlc3LjKs6Q3COMyfvcgwGly0G0)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/JP31YW8n38RlVOhWNRplog8kUzYREE9LGYUEPJlDaAOBCioxcmueSscIlz-VjDbbHT7IHwT18q53yXyymLxyFIXvBKBESpzmegImElqqPzWVVrU06MfnjM8178KzvSooq1fbmOxS2uVrUi6ziog_qCHA8A6xA_1j0GECentRh8z8NvO9iy881_H_dN19xJT7QwM2AGyeTVnK3PktO_wmnOyBnj2YpGbfAFfPfNErtLXwi0kSfHFP2X88vH9dA2iF5gR9KMgXFjJjBBCLFW40)
 
 
@@ -218,12 +230,15 @@ d.connect(
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LKz12i903BplAt8MnBk8QFKYU10zYeTb6-lYcaYQ2gNqxsQrAbx2p6GcJ1QrUj7cbfn6JGW7b4SC2Djunj26XCuCQdgsHQeSiJ69rKM1ppyPeEjip6fj4yuD2RD21uKFrqgueNB5YGLKFDLtBqWAVGvCled0jpjJNYntcp--BeoQ2EFn6_UzGoeXTndwxHkYtECuEfbh_Yls0IzrSC4K17tPkeLTiT-V)
+
+
 
 ## Embedding in Messages
 
 Sequence message labels use **inline mode** - the embedded diagram appears on a single line using PlantUML's `%breakline()` syntax. This works but produces more compact output.
 
-```python
+```text
 from plantuml_compose import component_diagram, sequence_diagram, render
 
 # Simple diagram for inline embedding
@@ -292,6 +307,9 @@ diagram = replace(d.build(), legend=Legend(
 
 print(render(diagram))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LP11YiCm34NtFeKkC7HVGaZRR6Oti-W1D8uePXmhbUL22Rdxo6bQEXiX_y_J_xZBYg9bZ4w3HeB3roVqxCj8IL439nVfGcbm0FDieybwZzJQ9imACnpH_rw4InfE75b01LEUK8o7fGAx5-5vd3XLewOqJIQv1K_jVwy_cZMWuW_cXxSipXfiFT2hfPoDTPQYmOS97nVT4u9-MrmjDi5t8RdRdGh1Hxkcxq7eMYYhwVLjyfCoxxeHB-cDoYM-GUlDLRRwbbWhTZRiH_y0)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/LP0nRiCm34Ltde8NAB8NXf6aNhfrwG5OcGY4og9BKG42mtSlvIH6kmZK_thy7peM8xKw9R1eYV7qyOw3X3fnDh8e6H9VE8-0k2n-TCLkYNkVLCHmmJE5xujApUER954qfLncKkTnRS1X9u9Ci-Hcj9IkAwpN6BZ_xmrdjqOo-g9ozzOLlC6Z1mNpb4zdmLCiXZZJVICy8HmU0xHd-D9lUQ-e_5Ev6BIRYyzNxhYkDzY5FqIfQGUsRPleLNtxqVlup_q2)
 
 
@@ -323,6 +341,9 @@ d.phase("Show", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JOz12W8n34NtFKMO2tW1aK6zWUwbT88EjabfCugKkRjfPp7D8ldmyn_9cCKcMO8tKUVivcX9u8g1pJFn4k7sugy181O4_c3QFD0gfOrZbf_7KzE9MQ30sRftJTDqOSy995dAoaT5hrleqAKSXyXKpU7URUwK0Mo6pdhiLWEi5OeqjIkD2ZDgqwV-)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/JOv12iCm30JlVeN81_A1KaBJ9_HUZEEcfhPaPELGZFyUcKAJYxHejSDEHIpBbgB9keCBsQB0tISoIEA1m_eMeDVl152hZakHR_HNLKmaKE5ctMTbsd2PAHA3iCMYGA-irWFZF-4ePS9k38_Jrq4Om1OuMS_3qdXhnkC2lPkPL6dp7G00)
 
 
@@ -350,6 +371,9 @@ d.phase("Show", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/HOun3eCm34Ltd-ABaw2A6tJeM4N1WeZ6Ze8f0-BkDM6e1p_hMyzolrgejkKF5MUAgGGn39oLfgfRmNFMdG1HO-YNwxs3rt4qHCr5XTtgNibcF49SBbN63c75bRt_MLFEqy4ojgla0_NU_8aV)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/HOt13e0W34FlV4NZbnZZFtWq1568iX4S9-A_E-B1IzkyTEjuYorIqsMoUdGnMnBCFh4X5eyIZo3W_KD0QogEKsRoMXoMA06JTUTHkD8smDxeRFsP7ZoFyRIXVpIZ9jrx0G00)
 
 
@@ -383,6 +407,9 @@ d.phase("Context", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JOv13W8n24NtFGKty0B6ZCxAbMuyGDCICx520upHD7DtcUfYMF3_3td0e1R5vcS9rNLAKuraSBoUmrruhZ0o6Ruj010R0hzG-XIyMkkoL_iKF7Glp0ODJZ4zLfxoo8K5J2Af7q3VlVoWtOPA9Qh2JL4syIBvdvSLGShzXU0c3Dxyvoy0)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/FKux3i8m3Drp2j-02o1KO6A2XGD4YOigZ5tPxe2YtBrkXoxlO-czvy4ygoy_IdFmLAOviyFrzKWiZa0uEiYu7m1Q2pYR_maleLJ4eS4jb-z7PU5w5n85rymMRHX5VGkSZaIXR0PlGptCK-lkUa_85RRLD8IAbrO0)
 
 
@@ -409,6 +436,9 @@ d.note(machine.embed(), target=svc, position="bottom")
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JOxH2SCm34J_FOKM25sWXD1kq4xWsce8jQKWAuLWl7lbVgJz4NSFxdHJKI-wvUG2vvK9IU6Eybu2Ec95UB0gP-3dWG5gjNCkkYSSJGcpGeMB3wzPUADuvSG2AfxAwgLNjXuu7GbxQjKtz77_kOreeTdybyCmZ7-iDOSKeKzoaobR_040)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/JOxH2SCm34J_FOKM25sWXD1kq4xWsce8jQKWAuLWl7lbVgJz4NSFxdHJKI-wvUG2vvK9IU6Eybu2Ec95UB0gP-3dWG5gjNCkkYSSJGcpGeMB3wzPUADuvSG2AfxAwgLNjXuu7GbxQjKtz77_kOreeTdybyCmZ7-iDOSKeKzoaobR_040)
 
 
@@ -441,6 +471,9 @@ d.phase("Kickoff", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIe0qfd9cGM9UIKA0RueN9VKCgxqelpI0WNlpEJi_BGqBWMW4WLTEv2CWfL2DbmqBxyaLI6_BBK8P8G245HNvsRcfUGc5e1vMWe1HVbPgSab41wGcv5OdAfWYCerGkKQWxcrjK0gDIy5R0KNaC7b02I03WS0)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/LO_12i8m38RlVOgS1H7r9ZA6UXti5KgNQbtNZ3OJPEpTJJmClIJ_H_Z_97LXctaQeXcb1nT6cnZQvWzl-39j0zjA5PoW3wudxqqYHeZe6SYh1s2UfPmBloDMeZ8HmmmNw_fxfYbrLugKWRDDHHQWP2zgsAsE-dlF458ts55u0ssc9pfMBV2m1M7_2uTVE6e4YdaDM1OZ37ggqOcy-W40)
 
 
@@ -478,6 +511,9 @@ d.phase("Planning", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/RP2n2i8m48RtFiLjJeAjk3X84LV1eLifShGXHD8qvAw2bBwxPqgW1JFaBdy-ld0fYJ7msDlCIpMjyUWOxkXGgx39AeLzfiCmUdXOTCuudK4YON-909p1X-6bMWOla01kO0N3Mv0a1LdJfCN9iQzlYens3I11_UIy0Ol412Vey4CBSXsDxH9H928_h92Onsa8a1VJZa2vRhcl574o7F-z4UEDe5WBvbcA7E94sIyjPPEV-m80)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/PL2nJiCm4Dtz5MzZgg15NH2geiBArgsgq2annjIr8zzbgAByEsT3WYeMdzzxzzwThc6XBCCbc5whRtrFKV16aPpDDzp1qiNy2bZjAiOJ-fo-R2le0qKJarXaxpu5wMD90SPHdsUMQx0x_UMK12Fsr9vTJaFiNb986P8fiewqEcqgXll5qTGrdUuXYewlbhsB9n3Z-2xh4mAnCBRewCgbOJ_uqCtwPjRN3qj3PMieW-GdvOvXOrVKWsMPtO__qojvOzxycHijywBJP1IXdCKKNk_y3G00)
 
 
@@ -559,6 +595,9 @@ d.phase("Registration", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/hLHDJm8n4BtlhvXuDDaW78qXA7eW8OeBUZ66r7R4ngLTsox64FwxizrTs1OE7kG0dJUlRpxBo3fcNBdE4oTTZl1aqK26AscTOKvg1TUpISAuqmR6kKJbae8kI2uBfXoSJJKJSCDofZYQCs0MAcJP8Y6Pf62EPjCmoLpMPaGhtOVdIOuraO1b0oI2EVR6BC9jSqXMHfT5a7G2eBH3qAGT9GJqsMxzpvLrFpaE_TbexM1BbV3FIaw9iSwfPD9JbfAZkc5NN-frRd6zBhJ2lpGYebFjQR_jGl-KTz1w1v4tGo5jXCsqTIk3yyUfTmIX8KqFGKvvwW0LfG8EyfNh2F6SA5nBZE1TrJ5Kmi-2ZlN-G3gCihY4sSDy0JtZ9-Xx5QKvxEmAqT-r-MP6WC6l4gqBfjrPgdyTDRqJ2f4XHxb1qO6UMIvf9mDiPZH7QmCiGql34WtsSlvA7Hk6WgtXFQ7ktlA-K7zlDOhTEF4CEdsikjfvMDJNJHC4k451VP0ih-OUiE9P-3j7mktR9CBaVdwNBQ2qVY9xHwn38PjYGwLuLGONVHZlkKTxqknOoAFwan5zqT_SBm00)
+
+
 ![Diagram](https://www.plantuml.com/plantuml/svg/hLHDQnin4BthLmmv5anY7qinITmU0g5rraakfHXL6ZkYYkH8iox5-BzdLjxTI4eFFVIoZDwyUQFvM5r6ae7QPol8a4LuY1YWmQs952GPx-1gUIEa8XzWOGqw4ZiECChif2Cuk_LImxMqqYaCPo0ZTCXwG4eoIy4Amxvdyd5zEbQqbfuIpoWy4HbOzu3GakHF6H4-zuPmdX22sJuH-4sL7-1muC-dI7yipjaAtXCS-ChgrpRurkc5jrmRL-iYtu8BX6CNS3v6AF-yymx_fTg2pELDfaEXq_U-sU2R5Ru6jOa5ilIHjW5NTxSC5mbXCXd4_uPtmfsxEmwo7LoTaxz8Cf0Ay7WKw3HqtHQdLO39lChx4PRVLlTm7j86SKUgQyspeJDvuyDl6JG4V6anqccI5ZTfaDbw_8SfyfwpTeCApHxr23nAQtYZCcGPlC8OCwJ1o9FG2Vd-uGStPfuB3MR2SxtHJfvSTxHxhJVzlCbPgxh6PJy1jsxVYuCAgBbU8sqK1QTkTegeH8T_YDqtNrTVcdje-G4G8rnhSB9KNAbIxy3iOWgBdlbk0VhLALcNN3G_Ggy0)
 
 
@@ -599,6 +638,9 @@ d.phase("Context", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/9Oun2iCm34LtdK9uxWaw9NJgrYi8HnGNMpAA70eXTw_jQj3_l8y-MdOdyrOorAuffahYkBwUy3Pj5Hygpby7H55dr8DjfjZdF3-xojy6eSBXZc7DANAuOJ3D4z1MaWn0qTCna5lZQvvTGrYsMGxTmD9N_-O7)
+
+
 
 The same pattern works for YAML diagrams with `embed_type="yaml"`.
 

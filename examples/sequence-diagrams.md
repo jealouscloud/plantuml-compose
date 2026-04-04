@@ -29,6 +29,9 @@ d.phase("Request", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIh9BCb9LGZEp2q0Ka6fXQMfnILS1K39pEJCWiIy4WNddCpKF5IXuDIYijGYhlIY_D82k1u5g4e5NJke0WKh1NVN40NzbCIIHA0qL50NA0zLQQLWP62WuE_DbPgNmkK0980E0W00)
+
+
 
 The pattern is:
 1. Create a composer with `sequence_diagram()`
@@ -74,6 +77,9 @@ d.phase("Request Flow", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JP7DReCm48JlVeeLzxv03rNIYFv8I4q2LOze0Ij2SMtNNWlnzXsSfd21dVrc5u_PHU4WwTie6SLeEaAD_UZP2ZMprr5nBoxGPzH1-GqildH7U-yBuaYeMzIgTrQ2CtIulGrcEfVim66cOdzyfrSMFV6SXw3RFwsqnUTd-WW3HWOMxZZYC2xA9UZwL64pjlKoEXkfgDo5QfnAvprGRLRg9-cagMWuNkcqr9aliirINO9BdiuQnYZqOjoaA4UZXwTx27gav-2cg87kBT0r4WnlR0Up63PTU3Q9O3gx98jdsuKfPmJ6YS8CVDC0QrhGkgpAGmEywSBpdnKMrE1h1tYD2bxQV1-usq7jyC1F_WK0)
+
+
 
 | Factory | Shape | Use For |
 |---------|-------|---------|
@@ -116,6 +122,9 @@ d.phase("Lookup", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JK_B2i8m4BpdAmRlXQgt7gHIGGG57r-mfeiDhKtCG-dVcrfRlImxCypiREuyMH_kZI3fjKNHA6uzj2tPOfwAaZnToJ4AaXL_-SKVlncNGLgcmiH09PMXc3DR7tVOakSNTRYmVIh9Cv036ILkLWU3lTPrC0BZwMJLYyXmvaTWvwFIuqWF5J8K5SiQiaUzxSCca-sWdFjvfdePJe5j9xWjHHv7VFaD)
+
+
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -149,6 +158,9 @@ d.phase("Messages", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LSsn3S0W30J0tbFy0YoG8WBw3868XP28GHYAR1-tQVxrrxpNbURQJwDXNNCTIHR2RqKgi--1YrLJOIKWm9s8EA2lPEJKcc64CmscatLqKIQMcxo57Nm0)
+
+
 
 ### Message Line Styles and Arrow Heads
 
@@ -175,6 +187,9 @@ d.phase("Arrow Styles", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LSyn3iCW30NGdLFylSe5EaGXL-ZQ1O7L83aOWQEsjoyfxS1YotxwahrKTKMFdKrkFVgONLBOOLhDeyYHOKkH9sxwPge6i9XchBYY2iU02vAKtN6NQUuMH9LEr2scN-Wrf5YgThWFUydq3yW0FXRFrEaBIU3EqpPomL0APccblVG1)
+
+
 
 | `line_style` | PlantUML | Meaning |
 |--------------|----------|---------|
@@ -209,6 +224,9 @@ d.phase("Bidirectional", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LOn12i0W30JlUSL-eFHUIb5_8YeIq1Xi_7-zzZB3NCQz5gUjtaYtER56CVXV1QfpB4NWpBCauo6n4U1n7my2BYXBFNL8fIAPtCO-VW00)
+
+
 
 ### Incoming and Outgoing Messages
 
@@ -234,6 +252,9 @@ d.phase("Boundary Messages", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/BSqn3eCm30NGtQVm1RW00qAL63jrOAWwc61HH4XIsq5m-tfW-NzuN_gz6edLFKBnNiDQA1c-M0uMM2JNWezSqqnouPDLQM45n7VJtIDiSJYD9L54uLzbDVVRckxZFlBqpNd3G35E53RWD4FluRT_)
+
+
 
 ### Message Styling
 
@@ -251,11 +272,14 @@ d.add(a, b)
 d.phase("Styled", [
     # style= accepts LineStyleDict for per-message coloring
     e.message(a, b, "important", style={"color": "red", "bold": True}),
-    e.message(b, a, "normal", style="blue"),
+    e.message(b, a, "normal", style="#blue"),
 ])
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LOqx2e0m44JxFSM2hLx0Gf9SmL8ieWaIs7nODuMtTorjPXZUWp6tU9QU2PfsEbFpHT3-beEBQs-uoaCn0AB5QHiuXl6e5FPfGOSpfjmgY_egk4yugCSFMeMbSlO4iGGm6lht0W00)
+
+
 
 ### Activation Shorthand on Messages
 
@@ -284,6 +308,9 @@ d.phase("With Activation", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LSun3i8m343HtQVmNkK23AY4t821sQGMH0f9S9nAlJsXBK8i7lpqBOzLIRGz8v3NB7YEWPD2wSlWGw6aU66PMM0YfHjLHcVXBhaLl0PzuCbhc4b3Je1xZUQuHyE01nH-DQxQULj-sDcLEiZImTbVOypQr1R_a-tsLqjEbO7J16CV_Vyt)
+
+
 
 `activation=` values: `"activate"` (++), `"deactivate"` (--), `"create"` (**), `"destroy"` (!!).
 
@@ -339,6 +366,9 @@ d.phase("Lifecycle", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NP2n3i8m34JtV8KbPdw00LMgr8cDWJbAJ1KHaiXrA_NlUq0ABHaivUxvRBaPr8gEpsYiqopKni19JO4ON2WsALrP9fQTTCloWDHB7WjTmftTx28RgkrqFDSkEj5x02paXyaghtcq8e0_UO0zH-u1RVbg7hgknOFZX7yw_XNO3lKvlJ8y_wNijUycdWULFAyG9syQ59nb0G00)
+
+
 
 ### Return
 
@@ -362,6 +392,9 @@ d.phase("With Return", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NOun3i9030Hxls9BAFX02XI97q2HshfOYILpEJc-l1yBXOPcBQzdhHttO8_-Dk8Ic-DXAZMefQb56zV0I_mGfyMttZ1fh7XATA-4ayRjVa8OKDZiSirR_jE3GtvvmB-n77kto7sMVqRgJ6DAzla0)
+
+
 
 ### Notes Inside Phases
 
@@ -397,6 +430,9 @@ d.phase("With Notes", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LK-x3i8m3Dpp5SSEOk-0caomi31qZXhJHkH5ulBzk224klXqzfrzxXlRoaiCgWZwqHUR67h3Z9fgNWe6ppEkcQaf80aYlwX2TxYjItoQK6eUgQrpZSC91XqgFHTglBNiOJgSRN9jjW_2c6C9n2IY-QyIoIMMN5b2x7x-G7UMWzxHXqlxkCsYWvyIkU-KabEz57dm3G00)
+
+
 
 ### Interaction Frames Inside Events
 
@@ -455,6 +491,9 @@ d.phase("Nested Blocks", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/XP9DJiGm38NtFSMx059d63QpG2DO8i42E819JSTg6aU9EnASdlI72YGg5l4YxtqliPDJDaeszBuYPvfmxuM3LR5iYfD8mV3CwSAfQfCE4O-SZHlSUNLThh3uSNMxs724rrP2aSWRBkIbWKlS59UG7n5yMmkqu4ViwnfF3qLbdnaI9d3BVAXtU0qqs5cJVFBeup1MhngHsD87hc7IytpU7vUC4jfVyJ_peqxYdAdH8EzmvCwyUQDPBKVdmcPUuJB7BQGXer4tx9Qs_tVkr-2tnDHDBUfWM-1DVS3BQfb1bwIyB7cGQIzkQpvE-rviSqBakYLnNATIoXVw0W00)
+
+
 
 ## Interaction Frames (Top-Level)
 
@@ -484,6 +523,9 @@ d.if_("authenticated", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/ROwz2W8n48JxFCMyW11_AWiv4GIvGl4DrkpABSRaIFR4npUYvJLJp7mpJ5UDYatFw2XOBZX4bMHkRAO67IaPzfUJesYWoOQMQI0JTlZwMEp-3MonyXxdtaci0dcFMeHX-I5fXjtu9QvoBrA7Nq7JYwBoBBh6CPURChSfIUow9ktn1m00)
+
+
 
 ### Loop: `d.loop()`
 
@@ -505,6 +547,9 @@ d.loop("every 5 seconds", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LOun2iD030HxlM8_u3ADYs384_82SIV2aRDqwEH0VXyLBfnc5vOPs6q6Unnxfv7TIXkiWQVeDF-R7gRXrhiuTRC1-OX_SSEKObeduPImt2yiLeJiGvpZS84BrwQlX2_8aiRfhk3o9j5AMqQ--W40)
+
+
 
 ### Optional: `d.optional()`
 
@@ -525,6 +570,9 @@ d.optional("cache hit", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKfCBialKd3EoKpDA-5AIIn9J4eiJbLmJapEIENABoXHI0Qn538oIxWK8A8AkdPGvGfM4DaK1P0-hjIy52u7804q5G00)
+
+
 
 ### Parallel: `d.parallel()`
 
@@ -551,6 +599,9 @@ d.parallel([
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LKx93S903Fox2ZUG1l904T015PXa95OiI_1w8z4z4uY4yl4nbptKC8_so3Apfp7DLa8ly0KkauLThKBFn_zyil66LIswwRGxKA6zlXhyJPXBHsnZUtNKbaEGAtQcRnJvL1RBYHTM-WVk_C-xe4moiF3J3m00)
+
+
 
 ### Break: `d.break_()`
 
@@ -575,6 +626,9 @@ d.break_("error occurred", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LOun3iCm30DtlO8Vw0Sw1B5_uZeQZ2QM82b0dbyrdRgG47a2k7eqY_FOITD77zfceFnTbNOHXPfqTiS8Ffo0WiU2YYScNt6dn7EZbt5xWyt48BsVPhmbNRzqIVhN6BlATBvVrfISy040)
+
+
 
 ### Critical: `d.critical()`
 
@@ -598,6 +652,9 @@ d.critical("transaction", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NOux3e0m34Ftd28Nu08CY5-5AWH8m0L2or09IjM6-vEkBBRyxC5rOehytXS4SMTS8C_OX02Mc0vA9_OjcEYaemivaazas3qUCC-mg6I09RPgqFEFwNbJw_w3tJ9DEaD9XS3SbRYCS7eBjOYS-G00)
+
+
 
 ## Phase Grouping
 
@@ -631,6 +688,9 @@ d.phase("Data Access", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/RP1DZi8m38NtEOKlKB5dWIYqCnh4JwLo0PCQi0X9bRWWRe-3oYmG6o_ytlFxv7aIZ39SdH4MHx0Pd73Hd34H_BXmDsWbH5Ww9Y-cLozRxj4BbCsVwL3maAtLmfnY67ee1pchaoqA1szWJ48nom6OGhDhzp1nuSHPpJkLgeKgDufyV82DrEKBw98QL2d-ipTqtBrJkXrlJq72XRmXtuqKbN91QIsbz0NXjrQ2ZFu1qDRhUhd_B8tXdhvrhjhT5YAbFlX4h-wv3lta4m00)
+
+
 
 ## Box Grouping
 
@@ -661,6 +721,9 @@ d.phase("Request", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NOz12i8m44NtESLGrrx0XTHG1C65AE8wdOvji3OrcOZUtXy45su6vl7V7wPEwgBc-sZQyABAEhx9rD59ujEpf8eMUzyFQiSiXcX6rhEVtQIqEUn0EgUkTKceiQQ8QFasRMEO5AJwqoxI_eAEDKGw9uccZo7FT9H7bgHG2gJbkiHfHJnwle6M3H2d0Q-YF02M3R2nOD3Zk_IR6WDlVG00)
+
+
 
 Participants inside a `d.box()` are removed from the top-level participant list and placed within the box.
 
@@ -695,6 +758,9 @@ d.phase("Flow", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NO_12eCm44Jl-Ohv0NyWXw8U2eMUsYyGNJKGis6pAlvz4uL2UzfPtWpCr4axqNNn9kRhUXUxe6X-ljPCmcl4tVDkW0RL3IqiPlAU3ON115O2RoHeB1vBPD4IJ2IRw-d2daO5ZyNnB3AvWL38XSLDyybRYzUf_mnTBvoInVj8IakrVscT6-G17m00)
+
+
 
 ### Event-Level Notes
 
@@ -720,6 +786,9 @@ d.phase("Note Shapes", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LOun3e0m30FtlYBlO8ADYO6-8A9HGIf95LB4yoa8XYwsx9CbzuUXMjcJozMtPSl81eEBAYN394RWLynqE01-afoaC7JW3JcWXhUjS6teI1T6OKm_rWRFKZZGjoKEhgzIJzm0)
+
+
 
 ## Divider, Delay, and Space
 
@@ -750,6 +819,9 @@ d.phase("Phase 2", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LSun3i8m40J0_bwn7w204iaeDXKTNx321KvopiO-5-7r6Beqkzfcj5EpMAslYSfecQL4DVZT2lIikHVSNx4nZWHu72u8EAFoktCpOdsGSxYfcCGadsYI5TUybiJ6S6v7d0OHVeGVX6QJPViBquXnvGi0)
+
+
 
 ### Delay
 
@@ -779,6 +851,9 @@ d.phase("Resume", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LOun2iGm30HxlM8_47TfhWYndv1xWRc888WTOyj5VdzokEOQBJliWDQciMfF9nLB-KY9MU7_Mg2ZNhtWFQO4U4mB0bwGB2fHcJZlv9oRaIHtvORJQ3KowC_UkFN4feUXUzChn_r-tDME_V05)
+
+
 
 ### Space
 
@@ -808,6 +883,9 @@ d.phase("After Space", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LSqn3e0W30NGlQVe1TnqSJ305Jm10JGa2WJAriDReejBVtxoNweQsKhzlg18HXUBJOJwrmoSDVU2Ux4kU43KE6reSCKZraOGaWVcUM6Mu6-i3mhr9IBC45f42oxBV10bHnu_)
+
+
 
 ## Newpage and Ref
 
@@ -838,6 +916,9 @@ d.phase("Page 2", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIe0qfd9cGM9UIKAZYWy9wxqelpI0eM0nFHK1KCk1GL71Lqx1IS5AuMCr9oSVAxKl1IklDJo0f0qM8sHGaXcIKugiZOZe3Oda3P7eBRo_AAS5B0s1o01j1m0)
+
+
 
 ### Reference
 
@@ -868,6 +949,9 @@ d.phase("After Auth", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LOzD2W8n34RtFKKEe1UOXSoW22u4mHE4cXa3dRQcgLxVjCx6JSdV-nuTYw9eNOD3hqdW69YYkcn3zfmnAaototzVzUaMIJN35Jd2EQIFWus4_Q41C83Ggr9HH_7XX6P8RvAsslK0ExWJ3RqsZ3qgfryMd1WNmNLpJBCsi4cXHvjXSpL9oIaMwfRH7ll95m00)
+
+
 
 ## Autonumber
 
@@ -893,6 +977,9 @@ d.phase("Numbered", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LStB3O0W40JG-rQn3TY01mCKO0y8gvB89ylIlwitBfFCooHZkdYMaH_mGseP-I26ffH2Qhu8sgavkBYEXli_f0Y85fSD7Qvu9kwYu3wm2fr2BTD4xiGHID5ewEiB)
+
+
 
 ### Custom Autonumber
 
@@ -918,6 +1005,9 @@ d.phase("Custom Numbers", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKeiBSdFAyrDIYrIC3HGC5LGiacoYpOmC8XLuYe0AibCpYn8p2jHS4JXEN6b5-MN5YWubnQNvESg-87r5tCfA3WgwDefE2bOAQHb5XMN00MSG0AEG87YrEJyl1IkL21s0190gm40)
+
+
 
 ### Runtime Autonumber Control
 
@@ -958,6 +1048,9 @@ d.phase("Numbered Again", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/ROyn3i8m34NtdE9VW86L0JKv01i72AqfaOWJESxzCPIXhJhOrd-I_xU7fb6qvxUhDjEOQcI5twZWOjV2FJz8S7Qpb5vn-qcQ7E1nkYBWWcUIfWR25tW3ZSR2aoEhbKNJKlykT-O37ovOy7vJgFLCkmlWvvXu7Qkl94lgOCsU-m00)
+
+
 
 `d.autonumber()` accepts: `start=`, `increment=`, `format=`.
 
@@ -992,6 +1085,9 @@ d.destroy(server)
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NSz12WCn20NGlQSGkku5kYW3mgmBFK58f0JI95KpqDlNAHaeNUhN9ovgGMmy2uHeJP1AvchGlPbZxg4Qtbas5dX86nqfb08un_1ydIbUKFWrM0sufjtAMp0-qXFHkX9DuoOjigepCtPcWZkZlLNbhvFuJu8e_5CbFoZjVPIBx_Wh7m00)
+
+
 
 ## Layout and Organization
 
@@ -1017,6 +1113,9 @@ d.phase("Only Active", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSh8J4bLACtBoSpBJatXAW2APYPd5YJcbIWu9fTabgMY22avvXJdGoMK51AB5K3yU2mAG_DAYu76fHVbbnOe-EVbLC9CKu0o57Jja3KhM2bafERav7EbvgLmEG09eDC0)
+
+
 
 ### Actor Style
 
@@ -1042,6 +1141,9 @@ d.phase("Interaction", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/HOv13i9024Ntd88BU04NfbrsPs8y06c98NQO4PWORozED6u8_FV_3vC7MVIoWzz56naLf3MgNUArCzAJlHQ68U7LsRxhl1LHI7_8AeqqS3ulSBFQ6ouQR6cJge0ZX8VJX-CHZH-TFL8V3Nz0u_nXrWsc7FdO6m00)
+
+
 
 ## Styling
 
@@ -1146,6 +1248,9 @@ d.phase("Request", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/XLJRRjmW47tdAv3wd6PjnnixYg9iCFIXLIjbymC4Jn8K5ZQ0Sscq_rwmsSrDR8LioJDdpendpd3kFBT-M2dafLU0b_v5GO-Ny3205e1ENJIS8PSCdUItbg_mAyBuWelxMsi6tHEZZCLFTz93i3EZ_M--0homagjaMCg_W8ioVAr3GYdacci_qdmb-aOhLh9kzFsI6fArQ8_dNJbQBoUmrM1n7IoRy73X0oh3o1XhoL52NaS7jozPS4LhjgKLeNXhr1xYYiuI5dJeOfQMpi9V5GdQSy-lkOCik64rRJ-te6eQMf5TPKg1yD9ebwsEq2EwnOS93jbyh63Dc2yYbRo1c3M1tnLmqSMJODfu-6_3FuIpTj6KzMuCpzdecaqJ-13TqdXITCIlizqZbErQxI18ZkyH1s5Tqv7HDqerIZvKf_f4OE46R5H_VbXqmUPR7LfhdhvsxhYEPsUzkfFYNeDpk7XBFEx8LapVuTc3rNoFz4YNzk6jREcvacAasA3UY645QS-c1N_zb6sU--qDEZrCopzj5b4oKA7twxi4-mWMJQEuZ5U4yo5uGkA3imJ09_W7lSA7KVF1dOm7mP-G9xYSpV2VdmXqZyx3Arn8_m00)
+
+
 
 **`diagram_style=` selectors:**
 
@@ -1195,6 +1300,9 @@ d.phase("Request", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/7Ox12i8m68Fl_rF41oWEZpl8F8Xu4vqFKBgWXQwTxT_tjzqba7mXP2fgizOro46_N0d7N0DjDAbgy96YNWCnTxZWnLzbT1JhD6My2xDiRS0xlzcek3pkyicfRdZsPb71Ne8vTuOHj-kCOqkxCotTwOZJC0ZZ8bEJzkOF)
+
+
 
 ### Combining Features
 
@@ -1243,12 +1351,15 @@ d.if_("user found", [
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/dPDFImCn4CNl-HJ3UccHOfKAseFKqbOGKQ4j7cLsTrf3iqb9ijtMJ-yazg-r85wMtPStyvjvOJlEe_LbeOINNX7Sb_w3j9SPUcaq39IfX9j9FKUB1M3cZHtw5Hkn8cSA4bXweyiY9IjIiuIaYzcCT9x0MVzcSDs_5G2fANMETWKFwAd25KkPqTuQ1KdWmP3iGcQK0BeumFjQO6EE7bDq1CdOaOLUDvh2-tklAnZ4tPSYpXLLCRMcdCEJcKhDvR6eSRSXGnjUNuOZk53hyutEbdqm-t0N1DKoItduGENgNCKukM3zvx07BRZbUapkDf4w3ryrAb2g-dgoSDOuHfTXQ4kPiNdOKA3otzea11duBCpHkOeTi40bWtYCtotz-3O2R_XUeY-dKmiS11ApQyDLimddssfIV1TI_mKQ4eG9hqlvFx2jvYMCTUXXhFoCBK8MaQ-DtsPncXyZsxUU7k0tV0kUkNOGQmEvmm_-Jxu0)
+
+
 
 ## Quick Reference
 
 ### Diagram Constructor
 
-```python
+```text
 sequence_diagram(
     title=,            # str | None
     mainframe=,        # str | None

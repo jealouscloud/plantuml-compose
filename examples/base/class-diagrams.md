@@ -1,628 +1,734 @@
 # Class Diagrams
 
-Class diagrams show static structure: types, their attributes, methods, and relationships. They're ideal for:
+Class diagrams show static structure: types, their attributes, methods, and relationships. Use them for domain modeling, API contracts, inheritance hierarchies, and entity-relationship schemas.
 
-- **Domain modeling**: User, Order, Product entities
-- **API documentation**: Service interfaces and data types
-- **Database schemas**: Entity relationships
-- **Inheritance hierarchies**: Base classes and specializations
-
-Unlike sequence diagrams (runtime behavior) or object diagrams (specific instances), class diagrams show the TYPES themselves.
-
-## Core Concepts
-
-**Class**: A type with optional attributes (fields) and operations (methods).
-
-**Interface**: A contract defining required operations, no implementation.
-
-**Enum**: A fixed set of named values.
-
-**Relationships**:
-- **Extension** (inheritance): Child extends Parent
-- **Implementation**: Class implements Interface
-- **Aggregation**: Whole "has" Part (part can exist alone)
-- **Composition**: Whole "contains" Part (part dies with whole)
-- **Dependency**: A "uses" B
-
-## Your First Class Diagram
+## Quick Start
 
 ```python
-from plantuml_compose import class_diagram
+from plantuml_compose import class_diagram, render
 
-with class_diagram(title="Simple Model") as d:
-    user = d.class_("User")
-    order = d.class_("Order")
+d = class_diagram(title="Simple Model")
+el = d.elements
+r = d.relationships
 
-    d.has(user, order, whole_label="1", part_label="*")
+user = el.class_("User", members=(
+    el.field("name", "str"),
+    el.method("save()"),
+))
+order = el.class_("Order")
 
-print(d.render())
+d.add(user, order)
+d.connect(r.has(user, order, part_label="*"))
+
+print(render(d))
 ```
 
-## Creating Classes
+## Elements
 
-### Basic Classes
+All element factories live on `d.elements` (aliased as `el` by convention). Every factory returns an `EntityRef` that you pass to `d.add()`.
+
+### Class Types
 
 ```python
-from plantuml_compose import class_diagram
+from plantuml_compose import class_diagram, render
 
-with class_diagram() as d:
-    # Simple class
-    user = d.class_("User")
+d = class_diagram()
+el = d.elements
 
-    # Abstract class
-    shape = d.abstract("Shape")
+# Standard class
+user = el.class_("User")
 
-    # Interface
-    serializable = d.interface("Serializable")
+# Abstract class (italicized name)
+base = el.abstract("BaseModel")
 
-    # Enum with values
-    status = d.enum("Status", "PENDING", "ACTIVE", "CLOSED")
+# Interface (<<interface>> stereotype)
+repo = el.interface("Repository")
 
-    # Annotation
-    deprecated = d.annotation("Deprecated")
+# Python protocol (typing.Protocol)
+proto = el.protocol("Iterable")
 
-print(d.render())
+# Java-style annotation (@interface)
+ann = el.annotation("Deprecated")
+
+# JPA/database entity
+ent = el.entity("Customer")
+
+# Exception class
+err = el.exception("NotFoundError")
+
+# Python metaclass
+meta = el.metaclass("ABCMeta")
+
+# C-style struct
+point = el.struct("Point")
+
+# Shorthand circle notation
+c = el.circle("C")
+
+# Shorthand diamond notation
+d_node = el.diamond("D")
+
+d.add(user, base, repo, proto, ann, ent, err, meta, point, c, d_node)
+
+print(render(d))
 ```
 
-### Additional Class Types
+All class-type factories share the same signature:
+
+```text
+el.class_(
+    name,
+    *,
+    ref=None,          # short alias for connections (default: sanitized name)
+    stereotype=None,   # str or Stereotype object
+    style=None,        # StyleLike dict for inline visual override
+    generics=None,     # generic type parameter, e.g. "T"
+    members=(),        # tuple of field/method/separator data
+)
+```
+
+### Enums
+
+Enums accept positional value strings instead of `members=`:
 
 ```python
-from plantuml_compose import class_diagram
+from plantuml_compose import class_diagram, render
 
-with class_diagram() as d:
-    # Entity (database/domain entity)
-    entity = d.entity("Customer")
+d = class_diagram()
+el = d.elements
 
-    # Exception
-    error = d.exception("ValidationError")
+status = el.enum("OrderStatus", "PENDING", "SHIPPED", "DELIVERED")
+color = el.enum("Color", "RED", "GREEN", "BLUE", stereotype="flags")
 
-    # Metaclass
-    meta = d.metaclass("Type")
+d.add(status, color)
 
-    # Protocol (Python-style interface)
-    proto = d.protocol("Iterable")
-
-    # Struct (value type)
-    point = d.struct("Point")
-
-    # Circle/Diamond (shorthand notations)
-    c = d.circle("C")
-    d_ = d.diamond("D")
-
-print(d.render())
+print(render(d))
 ```
 
-### Generic Classes
+### Generics
+
+Attach a generic type parameter to any class-type element:
 
 ```python
-from plantuml_compose import class_diagram
+from plantuml_compose import class_diagram, render
 
-with class_diagram() as d:
-    # Generic class
-    collection = d.class_("Collection", generics="T")
+d = class_diagram()
+el = d.elements
 
-    # Bounded generic
-    comparable = d.class_("Comparable", generics="T extends Number")
+list_t = el.class_("List", generics="T")
+map_t = el.interface("Map", generics="K, V")
 
-print(d.render())
+d.add(list_t, map_t)
+
+print(render(d))
 ```
 
-### Classes with Members
+### Stereotypes with Spots
+
+Pass a string for a simple stereotype, or a `Stereotype` with a `Spot` for a colored indicator circle:
 
 ```python
-from plantuml_compose import class_diagram
+from plantuml_compose import class_diagram, render, Stereotype, Spot
 
-with class_diagram(title="User Model") as d:
-    with d.class_with_members("User") as user:
-        # Fields
-        user.field("id", "int", visibility="private")
-        user.field("email", "str", visibility="private")
-        user.field("created_at", "datetime", visibility="protected")
+d = class_diagram()
+el = d.elements
 
-        # Separator
-        user.separator()
+# Simple string stereotype
+svc = el.class_("OrderService", stereotype="service")
 
-        # Methods
-        user.method("login(password: str)", "bool", visibility="public")
-        user.method("validate()", visibility="private")
+# Stereotype with colored spot (character, color)
+ent = el.class_("User", stereotype=Stereotype("entity", Spot("E", "DodgerBlue")))
 
-print(d.render())
+d.add(svc, ent)
 ```
 
-### Visibility Modifiers
+### Members: Fields, Methods, Separators
+
+Members are created via `el.field()`, `el.method()`, and `el.separator()`, then passed as a tuple to `members=`:
 
 ```python
-from plantuml_compose import class_diagram
+from plantuml_compose import class_diagram, render
 
-with class_diagram() as d:
-    with d.class_with_members("Example") as ex:
-        # Public: + (accessible everywhere)
-        ex.field("public_field", "str", visibility="public")
+d = class_diagram()
+el = d.elements
 
-        # Private: - (only in this class)
-        ex.field("private_field", "int", visibility="private")
+account = el.class_("Account", members=(
+    el.field("id", "int"),
+    el.field("balance", "Decimal", visibility="private"),
+    el.field("RATE", "float", modifier="static"),
+    el.separator(),
+    el.method("deposit(amount)", "void", visibility="public"),
+    el.method("__repr__()", "str", modifier="abstract"),
+))
 
-        # Protected: # (class and subclasses)
-        ex.field("protected_field", "bool", visibility="protected")
+d.add(account)
 
-        # Package: ~ (same package only)
-        ex.field("package_field", "float", visibility="package")
-
-print(d.render())
+print(render(d))
 ```
 
-### Static and Abstract Members
+**Visibility values**: `"public"` (+), `"private"` (-), `"protected"` (#), `"package"` (~)
+
+**Modifier values**: `"static"` (underlined), `"abstract"` (italicized)
+
+#### Separator styles
+
+```text
+el.separator()                          # solid line (default)
+el.separator(style="dotted")            # dotted line
+el.separator(style="double")            # double line
+el.separator(style="underline")         # underline
+el.separator(style="solid", label="internals")  # labeled separator
+```
+
+### Bulk Member Creation
+
+`el.fields()` and `el.methods()` create multiple members from tuples. Each tuple is `(name,)` or `(name, type)`:
 
 ```python
-from plantuml_compose import class_diagram
+from plantuml_compose import class_diagram, render
 
-with class_diagram() as d:
-    with d.class_with_members("Logger") as logger:
-        # Static field (underlined in UML)
-        logger.static_field("instance", "Logger", visibility="private")
+d = class_diagram()
+el = d.elements
 
-        # Static method
-        logger.static_method("getInstance()", "Logger", visibility="public")
+node = el.class_("HtmlNode", members=(
+    *el.fields(
+        ("tag", "str"),
+        ("attrs", "dict[str, Attr]"),
+        ("children", "list[Node]"),
+    ),
+    el.separator(),
+    *el.methods(
+        ("render()", "str"),
+        ("resolve()", "Generator[str]"),
+        ("__html__()", "str"),
+    ),
+))
 
-        # Abstract method (italic in UML)
-        logger.abstract_method("log(msg: str)", visibility="public")
+d.add(node)
 
-print(d.render())
+print(render(d))
 ```
 
-### Member Separators
+### Packages
+
+Packages group classes visually. Children are positional arguments. The `style=` keyword selects the container shape:
 
 ```python
-from plantuml_compose import class_diagram
+from plantuml_compose import class_diagram, render
 
-with class_diagram() as d:
-    with d.class_with_members("Service") as svc:
-        svc.field("config", "Config")
-        svc.field("logger", "Logger")
+d = class_diagram()
+el = d.elements
+r = d.relationships
 
-        svc.separator(label="lifecycle")
+# Default package style (tab folder)
+pkg = el.package("domain",
+    el.class_("User"),
+    el.class_("Order"),
+)
 
-        svc.method("start()")
-        svc.method("stop()")
+# All package styles:
+#   "package" (default), "node", "rectangle", "folder",
+#   "frame", "cloud", "database"
+infra = el.package("infrastructure",
+    el.class_("PostgresRepo"),
+    style="database",
+    color="#E8EAF6",
+)
 
-        svc.separator(style="dotted", label="internal")
+d.add(pkg, infra)
 
-        svc.method("process()", visibility="private")
-
-print(d.render())
+print(render(d))
 ```
 
-## Relationships
+Access nested children via attribute or bracket notation:
 
-### Inheritance (extends)
+```text
+d.connect(r.uses(pkg.User, infra.PostgresRepo))
+# or bracket access for names with spaces/symbols:
+# d.connect(r.uses(pkg["User"], infra["PostgresRepo"]))
+```
+
+## Relationships / Connections
+
+All relationship factories live on `d.relationships` (aliased as `r` by convention). Pass results to `d.connect()`.
+
+### Typed Relationships
 
 ```python
-from plantuml_compose import class_diagram
+from plantuml_compose import class_diagram, render
 
-with class_diagram(title="Inheritance") as d:
-    animal = d.class_("Animal")
-    dog = d.class_("Dog")
-    cat = d.class_("Cat")
+d = class_diagram()
+el = d.elements
+r = d.relationships
 
-    # Dog extends Animal
-    d.extends(dog, animal)
-    d.extends(cat, animal)
+parent = el.abstract("Animal")
+dog = el.class_("Dog")
+walkable = el.interface("Walkable")
+leg = el.class_("Leg")
+kennel = el.class_("Kennel")
+food = el.class_("Food")
+collar = el.class_("Collar")
 
-print(d.render())
+d.add(parent, dog, walkable, leg, kennel, food, collar)
+
+d.connect(
+    # Extension (inheritance): child extends parent
+    # Renders as: Animal <|-- Dog
+    r.extends(dog, parent),
+
+    # Implementation: class implements interface
+    # Renders as: Walkable <|.. Dog
+    r.implements(dog, walkable),
+
+    # Composition (strong ownership, filled diamond)
+    # has() for simple cases
+    r.has(dog, leg, part_label="4"),
+
+    # contains() when you need both whole_label and part_label
+    r.contains(kennel, dog, whole_label="1", part_label="*"),
+
+    # Aggregation (weak ownership, hollow diamond)
+    r.aggregation(dog, collar, part_label="0..1"),
+
+    # Composition (alias for has, same arrow)
+    r.composition(kennel, food, part_label="*"),
+
+    # Dependency (dotted arrow)
+    r.uses(dog, food, label="eats"),
+
+    # Association (solid arrow, generic link)
+    r.association(dog, kennel, label="lives in"),
+
+    # Arrow (same as association, simpler name)
+    r.arrow(dog, food),
+
+    # Lollipop (interface provision)
+    r.lollipop(dog, walkable),
+)
+
+print(render(d))
 ```
 
-### Implementation (implements)
+### Common Parameters
+
+Every relationship method supports:
+
+| Parameter | Description |
+|---|---|
+| `label=` | Text on the arrow |
+| `style=` | `LineStyleLike` -- string (`"dashed"`), dict, or `LineStyle` |
+| `direction=` | `"up"`, `"down"`, `"left"`, `"right"` -- layout hint |
+| `note=` | Inline note text on the relationship |
+| `length=` | Arrow length (number of dashes, e.g. `length=3`) |
+
+### Cardinality Labels
+
+`source_label=` and `target_label=` add multiplicity text at each end:
+
+```text
+r.association(order, product,
+    label="contains",
+    source_label="1",
+    target_label="*",
+)
+```
+
+The `has()`, `contains()`, `aggregation()`, and `composition()` methods use semantic naming:
+
+```text
+r.has(order, item, part_label="*")
+r.contains(order, item, whole_label="1", part_label="*")
+r.aggregation(fleet, car, part_label="*")
+```
+
+### IE (Crow's Foot) Notation
+
+For ER diagrams, use Information Engineering notation. All four support `source_label=` and `target_label=`:
 
 ```python
-from plantuml_compose import class_diagram
+from plantuml_compose import class_diagram, render
 
-with class_diagram(title="Interface Implementation") as d:
-    comparable = d.interface("Comparable")
-    serializable = d.interface("Serializable")
-    user = d.class_("User")
+d = class_diagram()
+el = d.elements
+r = d.relationships
 
-    d.implements(user, comparable)
-    d.implements(user, serializable)
+customer = el.entity("Customer")
+order = el.entity("Order")
+item = el.entity("LineItem")
+product = el.entity("Product")
 
-print(d.render())
+d.add(customer, order, item, product)
+d.connect(
+    r.one_or_many(customer, order, label="places"),
+    r.zero_or_many(order, item, label="contains"),
+    r.exactly_one(item, product, label="references"),
+    r.zero_or_one(customer, product, label="reviews"),
+)
+
+print(render(d))
 ```
 
-### Aggregation (has)
+### Association Classes
 
-Aggregation means the part can exist independently. A Team has Players, but Players can exist without the Team.
+Link a class to an existing relationship to form an association class:
 
 ```python
-from plantuml_compose import class_diagram
+from plantuml_compose import class_diagram, render
 
-with class_diagram(title="Aggregation") as d:
-    team = d.class_("Team")
-    player = d.class_("Player")
+d = class_diagram()
+el = d.elements
+r = d.relationships
 
-    # One team has many players
-    d.has(team, player, whole_label="1", part_label="*")
+student = el.class_("Student")
+course = el.class_("Course")
+enrollment = el.class_("Enrollment", members=(
+    el.field("grade", "str"),
+    el.field("semester", "str"),
+))
 
-print(d.render())
+d.add(student, course, enrollment)
+d.connect(
+    r.association(student, course, label="enrolled in"),
+    r.association_class(student, course, enrollment),
+)
+
+print(render(d))
 ```
 
-### Composition (contains)
+### Generic Relationship
 
-Composition means the part cannot exist without the whole. A House contains Rooms; if the House is destroyed, so are the Rooms.
+`r.relationship()` gives full control over all parameters when the convenience methods don't fit:
 
-```python
-from plantuml_compose import class_diagram
-
-with class_diagram(title="Composition") as d:
-    order = d.class_("Order")
-    line_item = d.class_("LineItem")
-
-    # One order contains one or more line items
-    d.contains(order, line_item, whole_label="1", part_label="1..*")
-
-print(d.render())
+```text
+r.relationship(a, b,
+    type="composition",
+    label="owns",
+    source_label="1",
+    target_label="*",
+    style="dashed",
+    direction="down",
+    length=3,
+    left_head="<|",
+    right_head="*",
+)
 ```
 
-### Dependency (uses)
+### Custom Arrow Heads
 
-A depends on B if A uses B but doesn't own it.
+Override the default arrowheads with `left_head=` and `right_head=`:
 
-```python
-from plantuml_compose import class_diagram
-
-with class_diagram(title="Dependency") as d:
-    service = d.class_("OrderService")
-    logger = d.class_("Logger")
-    validator = d.class_("Validator")
-
-    d.uses(service, logger)
-    d.uses(service, validator)
-
-print(d.render())
+```text
+r.relationship(a, b, left_head="<|", right_head="*")
+r.relationship(a, b, left_head="o", right_head="|>")
 ```
 
-### Association
+### Line Style
 
-A general relationship between classes.
+The `style=` parameter accepts a string shorthand, a dict, or a `LineStyle` object:
 
-```python
-from plantuml_compose import class_diagram
+```text
+# String shorthand
+r.extends(child, parent, style="dashed")
 
-with class_diagram(title="Association") as d:
-    student = d.class_("Student")
-    course = d.class_("Course")
-
-    # Students enroll in courses
-    d.associates(
-        student, course,
-        source_label="*",
-        target_label="*",
-        label="enrolls in"
-    )
-
-print(d.render())
+# Dict form
+r.uses(a, b, style={"pattern": "dotted", "color": "gray", "thickness": 2})
 ```
 
-### Relationship Labels
+### Bulk Relationship Helpers
 
-```python
-from plantuml_compose import class_diagram
+#### arrows() -- multiple arrows from tuples
 
-with class_diagram() as d:
-    company = d.class_("Company")
-    employee = d.class_("Employee")
-
-    d.has(
-        company, employee,
-        whole_label="1",      # One company
-        part_label="1..*",    # One or more employees
-        label="employs"       # Relationship name
-    )
-
-print(d.render())
+```text
+d.connect(r.arrows(
+    (a, b),
+    (b, c, "uses"),     # optional label as third element
+    (c, d),
+))
 ```
 
-Common cardinality notations:
-- `1` - exactly one
-- `*` - zero or more
-- `0..1` - zero or one (optional)
-- `1..*` - one or more
-- `n..m` - between n and m
+#### arrows_from() -- fan-out from one source
 
-### Qualified Association
-
-A qualified association shows how one class uses a key to access instances of another. For example, a Bank uses an account number to look up Accounts.
-
-```python
-from plantuml_compose import class_diagram
-
-with class_diagram(title="Qualified Association") as d:
-    bank = d.class_("Bank")
-    account = d.class_("Account")
-
-    # Bank uses accountNumber as a key to look up accounts
-    d.associates(
-        bank, account,
-        target_label="*",
-        qualifier="accountNumber"
-    )
-
-print(d.render())
+```text
+d.connect(r.arrows_from(controller,
+    model,
+    (view, "renders"),   # mix bare targets and (target, label) tuples
+    service,
+    style="dashed",
+    direction="down",
+))
 ```
 
-The qualifier appears as a small box on the source side of the relationship.
+#### extends_from() -- multiple children, one parent
 
-### Association Class
-
-When a relationship itself has attributes, use an association class. For example, when a Student enrolls in a Course, the Enrollment has its own properties (grade, enrollment date).
-
-```python
-from plantuml_compose import class_diagram
-
-with class_diagram(title="Association Class") as d:
-    student = d.class_("Student")
-    course = d.class_("Course")
-
-    # Enrollment captures attributes of the relationship
-    with d.class_with_members("Enrollment") as enrollment:
-        enrollment.field("grade", "str")
-        enrollment.field("enrolled_at", "date")
-
-    # Create the many-to-many relationship
-    d.associates(student, course, source_label="*", target_label="*")
-
-    # Link Enrollment as the association class
-    d.association_class(student, course, enrollment)
-
-print(d.render())
+```text
+d.connect(r.extends_from([dog, cat, bird], animal))
 ```
 
-The association class is shown connected to the relationship line with a dashed line.
+#### compositions_from() -- one whole, many parts
 
-## Packages
-
-Group related classes:
-
-```python
-from plantuml_compose import class_diagram
-
-with class_diagram(title="Package Structure") as d:
-    with d.package("domain") as domain:
-        user = domain.class_("User")
-        order = domain.class_("Order")
-
-    with d.package("services") as services:
-        user_service = services.class_("UserService")
-        order_service = services.class_("OrderService")
-
-    d.uses(user_service, user)
-    d.uses(order_service, order)
-
-print(d.render())
+```text
+d.connect(r.compositions_from(car, [engine, wheel, frame]))
 ```
 
-### Package Styles
-
-```python
-from plantuml_compose import class_diagram
-
-with class_diagram() as d:
-    with d.package("models", style="rectangle") as models:
-        models.class_("User")
-
-    with d.package("services", style="folder") as services:
-        services.class_("UserService")
-
-    with d.package("utils", style="cloud") as utils:
-        utils.class_("Logger")
-
-print(d.render())
-```
-
-### Nested Packages
-
-```python
-from plantuml_compose import class_diagram
-
-with class_diagram() as d:
-    with d.package("com.example") as root:
-        with root.package("domain") as domain:
-            domain.class_("User")
-            domain.class_("Order")
-
-        with root.package("api") as api:
-            api.class_("UserController")
-
-print(d.render())
-```
-
-## Layout Hints
-
-### Together Block
-
-Keep related classes close:
-
-```python
-from plantuml_compose import class_diagram
-
-with class_diagram() as d:
-    with d.together() as group:
-        group.class_("ModelA")
-        group.class_("ModelB")
-        group.class_("ModelC")
-
-    d.class_("Separate")
-
-print(d.render())
-```
-
-### Direction Hints
-
-```python
-from plantuml_compose import class_diagram
-
-with class_diagram() as d:
-    center = d.class_("Center")
-    left = d.class_("Left")
-    right = d.class_("Right")
-    up = d.class_("Up")
-    down = d.class_("Down")
-
-    d.associates(center, left, direction="left")
-    d.associates(center, right, direction="right")
-    d.associates(center, up, direction="up")
-    d.associates(center, down, direction="down")
-
-print(d.render())
-```
+All bulk helpers return lists that `d.connect()` flattens automatically.
 
 ## Notes
 
 ```python
-from plantuml_compose import class_diagram
+from plantuml_compose import class_diagram, render
 
-with class_diagram() as d:
-    user = d.class_("User")
+d = class_diagram()
+el = d.elements
 
-    # Note attached to a class
-    d.note("Primary domain entity", of=user)
+user = el.class_("User")
+d.add(user)
 
-    # Note on specific position
-    d.note("Documentation here", position="left", of=user)
+# Floating note
+d.note("This is the domain model")
 
-print(d.render())
+# Targeted note with position and color
+d.note("Primary entity", target=user, position="left", color="#FFFFCC")
+
+# Note targeting a specific class member
+d.note("Must be unique", target=user, member="id")
+
+print(render(d))
 ```
 
-## Hide/Show Elements
+**Positions**: `"right"` (default), `"left"`, `"top"`, `"bottom"`
+
+## Layout and Organization
+
+### together()
+
+Group elements for layout proximity (placed adjacent to each other):
+
+```text
+d.together(user, order, product)
+```
+
+### hide() / show() / remove() / restore()
+
+Control element visibility at the diagram level:
+
+```text
+# Hide all empty member compartments
+d.hide("empty members")
+
+# Hide the circle icon on class names
+d.hide("circle")
+
+# Show methods compartment
+d.show("methods")
+
+# Remove elements entirely (reclaims space unlike hide)
+d.remove("empty members")
+
+# Restore previously removed/hidden elements
+d.restore("methods")
+```
+
+### Diagram-level options
 
 ```python
-from plantuml_compose import class_diagram
+from plantuml_compose import class_diagram, render
 
-with class_diagram() as d:
-    # Hide empty compartments
-    d.hide("empty members")
+d = class_diagram(
+    hide_empty_members=True,      # suppress empty field/method compartments
+    hide_circle=True,             # remove the (C)/(I)/(A) circle icons
+    namespace_separator=".",      # control package separator (None disables)
+    layout="left_to_right",       # "top_to_bottom" (default) or "left_to_right"
+)
 
-    # Hide interface circles
-    d.hide("circle")
-
-    with d.class_with_members("User") as user:
-        user.field("id", "int")
-
-    d.interface("Serializable")
-
-print(d.render())
+print(render(d))
 ```
 
 ## Styling
 
-### Class Styling
+### Inline Element Style
 
-```python
-from plantuml_compose import class_diagram
+Any class-type element accepts `style=` as a `StyleLike` dict:
 
-with class_diagram() as d:
-    # Styled class
-    error = d.class_("Error", style={"background": "#FFCDD2"})
-
-    success = d.class_("Success", style={"background": "#C8E6C9"})
-
-    warning = d.class_("Warning", style={
-        "background": "#FFF9C4",
-        "line": {"color": "orange"}
-    })
-
-print(d.render())
+```text
+user = el.class_("User", style={
+    "background": "#E3F2FD",
+    "line": {"color": "#1976D2"},
+    "text_color": "navy",
+})
 ```
 
-## Complete Example: E-Commerce Domain Model
+### Diagram-Wide Styling with diagram_style=
+
+The `diagram_style=` parameter on `class_diagram()` applies styles globally. Pass a dict with any of these top-level keys:
+
+| Key | Type | Description |
+|---|---|---|
+| `background` | color | Diagram background |
+| `font_name` | str | Default font family |
+| `font_size` | int | Default font size |
+| `font_color` | color | Default text color |
+| `class_` | ElementStyleDict | Style for all classes |
+| `interface` | ElementStyleDict | Style for all interfaces |
+| `abstract` | ElementStyleDict | Style for all abstract classes |
+| `enum` | ElementStyleDict | Style for all enums |
+| `annotation` | ElementStyleDict | Style for all annotations |
+| `package` | ElementStyleDict | Style for all packages |
+| `arrow` | DiagramArrowStyleDict | Style for all relationship arrows |
+| `note` | ElementStyleDict | Style for all notes |
+| `title` | ElementStyleDict | Style for the title |
+| `stereotypes` | dict | Style by stereotype name |
+
+**ElementStyleDict keys**: `background`, `line_color`, `font_color`, `font_name`, `font_size`, `font_style`, `round_corner`, `line_thickness`, `line_style`, `padding`, `margin`, `horizontal_alignment`, `max_width`, `shadowing`, `diagonal_corner`, `word_wrap`, `hyperlink_color`
+
+**DiagramArrowStyleDict keys**: `line_color`, `line_thickness`, `line_pattern`, `font_color`, `font_name`, `font_size`
 
 ```python
-from plantuml_compose import class_diagram
+from plantuml_compose import class_diagram, render
 
-with class_diagram(title="E-Commerce Domain Model") as d:
-    # Interfaces
-    auditable = d.interface("Auditable")
+d = class_diagram(
+    title="Styled Domain",
+    diagram_style={
+        "background": "white",
+        "class_": {"background": "#E3F2FD", "line_color": "#1976D2", "round_corner": 5},
+        "interface": {"background": "#C8E6C9", "font_style": "italic"},
+        "abstract": {"background": "#FFF9C4"},
+        "enum": {"background": "#F3E5F5"},
+        "annotation": {"background": "#FFECB3"},
+        "package": {"background": "#F5F5F5"},
+        "arrow": {"line_color": "#757575", "font_size": 11},
+        "note": {"background": "#FFFDE7"},
+        "stereotypes": {
+            "entity": {"background": "#FFF9C4", "font_style": "bold"},
+            "service": {"background": "#C8E6C9"},
+        },
+    },
+)
 
-    # Entities
-    with d.class_with_members("User") as user:
-        user.field("id", "UUID", visibility="private")
-        user.field("email", "str", visibility="private")
-        user.field("name", "str")
-        user.separator()
-        user.method("authenticate(password)", "bool", visibility="public")
+print(render(d))
+```
 
-    with d.class_with_members("Order") as order:
-        order.field("id", "UUID", visibility="private")
-        order.field("status", "OrderStatus")
-        order.field("total", "Decimal")
-        order.separator()
-        order.method("addItem(product, qty)", visibility="public")
-        order.method("calculateTotal()", "Decimal", visibility="private")
+## Advanced Features
 
-    with d.class_with_members("Product") as product:
-        product.field("id", "UUID", visibility="private")
-        product.field("name", "str")
-        product.field("price", "Decimal")
-        product.field("stock", "int")
+### Diagram Metadata
 
-    line_item = d.class_("LineItem")
-    status = d.enum("OrderStatus", "PENDING", "PAID", "SHIPPED", "DELIVERED")
+```python
+from plantuml_compose import class_diagram, render
+from plantuml_compose.primitives.common import Header, Footer, Legend, Scale
 
-    # Relationships
-    d.implements(user, auditable)
-    d.implements(order, auditable)
+d = class_diagram(
+    title="Architecture",
+    mainframe="System Overview",
+    caption="Generated 2025-01-15",
+    header=Header("Draft", position="right"),
+    footer="Page %page%",
+    legend=Legend("Green = stable\nRed = experimental", position="bottom"),
+    scale=Scale(factor=1.5),  # or Scale(width=800)
+    theme="plain",            # PlantUML built-in theme name
+)
 
-    # User has many orders
-    d.has(user, order, whole_label="1", part_label="*")
+print(render(d))
+```
 
-    # Order contains line items (composition)
-    d.contains(order, line_item, whole_label="1", part_label="1..*")
+### EntityRef Child Access
 
-    # Line item references product
-    d.associates(line_item, product, source_label="*", target_label="1")
+When elements are nested inside packages, access children by ref or name:
 
-    # Order uses status
-    d.uses(order, status)
+```python
+from plantuml_compose import class_diagram, render
 
-print(d.render())
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+domain = el.package("domain",
+    el.class_("User", ref="u"),
+    el.class_("Big Order", ref="order"),
+)
+d.add(domain)
+
+# By ref (attribute access)
+d.connect(r.uses(domain.u, domain.order))
+
+# By raw name (bracket access)
+d.connect(r.uses(domain["User"], domain["Big Order"]))
+
+print(render(d))
+```
+
+### String References
+
+You can use raw strings instead of `EntityRef` objects for relationships when referring to elements defined elsewhere:
+
+```text
+d.connect(r.extends("Child", "Parent"))
 ```
 
 ## Quick Reference
 
-| Method | Description |
-|--------|-------------|
-| `d.class_(name)` | Create a class |
-| `d.abstract(name)` | Create abstract class |
-| `d.interface(name)` | Create interface |
-| `d.enum(name, *values)` | Create enum |
-| `d.annotation(name)` | Create annotation |
-| `d.entity(name)` | Create entity |
-| `d.exception(name)` | Create exception |
-| `d.metaclass(name)` | Create metaclass |
-| `d.protocol(name)` | Create protocol |
-| `d.struct(name)` | Create struct |
-| `d.circle(name)` | Create circle (shorthand) |
-| `d.diamond(name)` | Create diamond (shorthand) |
-| `d.class_with_members(name)` | Class with member builder |
-| `d.extends(child, parent)` | Inheritance |
-| `d.implements(class, interface)` | Implementation |
-| `d.has(whole, part)` | Aggregation (hollow diamond) |
-| `d.contains(whole, part)` | Composition (filled diamond) |
-| `d.uses(user, used)` | Dependency |
-| `d.associates(a, b)` | Association |
-| `d.associates(a, b, qualifier=key)` | Qualified association |
-| `d.association_class(a, b, cls)` | Link class to relationship |
-| `d.package(name)` | Package container |
-| `d.together()` | Layout grouping |
-| `d.note(text, of=class)` | Add note |
-| `d.hide(target)` | Hide elements |
-| `d.show(target)` | Show elements |
+### Element Factories
 
-### Member Builder Methods
+| Factory | PlantUML | Notes |
+|---|---|---|
+| `el.class_(name)` | `class Name` | Standard class |
+| `el.abstract(name)` | `abstract class Name` | Italic name |
+| `el.interface(name)` | `interface Name` | <<interface>> |
+| `el.protocol(name)` | `protocol Name` | typing.Protocol |
+| `el.annotation(name)` | `annotation Name` | @interface |
+| `el.entity(name)` | `entity Name` | Database entity |
+| `el.exception(name)` | `exception Name` | Exception class |
+| `el.metaclass(name)` | `metaclass Name` | Python metaclass |
+| `el.struct(name)` | `struct Name` | C-style struct |
+| `el.circle(name)` | `circle Name` | Circle shorthand |
+| `el.diamond(name)` | `diamond Name` | Diamond shorthand |
+| `el.enum(name, *values)` | `enum Name` | Fixed value set |
+| `el.package(name, *children)` | `package Name {}` | Container |
 
-| Method | Description |
-|--------|-------------|
-| `field(name, type)` | Add field |
-| `method(name, return_type)` | Add method |
-| `static_field(name, type)` | Add static field |
-| `static_method(name, return_type)` | Add static method |
-| `abstract_method(name, return_type)` | Add abstract method |
-| `separator(style, label)` | Add separator line |
+### Relationship Factories
+
+| Factory | Arrow | Meaning |
+|---|---|---|
+| `r.extends(child, parent)` | `<\|--` | Inheritance |
+| `r.implements(child, iface)` | `<\|..` | Implementation |
+| `r.has(whole, part)` | `*--` | Composition (simple) |
+| `r.contains(whole, part)` | `*--` | Composition (both labels) |
+| `r.composition(whole, part)` | `*--` | Composition |
+| `r.aggregation(whole, part)` | `o--` | Aggregation |
+| `r.association(src, tgt)` | `-->` | Association |
+| `r.uses(src, tgt)` | `..>` | Dependency |
+| `r.arrow(src, tgt)` | `-->` | Generic arrow |
+| `r.lollipop(provider, consumer)` | `()-` | Interface lollipop |
+| `r.zero_or_one(src, tgt)` | `\|o--` | IE: optional single |
+| `r.exactly_one(src, tgt)` | `\|\|--` | IE: mandatory single |
+| `r.zero_or_many(src, tgt)` | `}o--` | IE: optional multiple |
+| `r.one_or_many(src, tgt)` | `}\|--` | IE: mandatory multiple |
+| `r.association_class(src, tgt, cls)` | dotted | Links class to relationship |
+| `r.relationship(src, tgt, type=)` | varies | Full control |
+
+### Bulk Helpers
+
+| Helper | Purpose |
+|---|---|
+| `el.fields(*tuples)` | Bulk field creation |
+| `el.methods(*tuples)` | Bulk method creation |
+| `r.arrows(*tuples)` | Multiple arrows |
+| `r.arrows_from(src, *targets)` | Fan-out from one source |
+| `r.extends_from([children], parent)` | Multiple children extend one parent |
+| `r.compositions_from(whole, [parts])` | One whole composes many parts |
+
+### Composer Options
+
+| Parameter | Default | Description |
+|---|---|---|
+| `title=` | None | Diagram title |
+| `mainframe=` | None | Frame around entire diagram |
+| `caption=` | None | Caption below diagram |
+| `header=` | None | Header text or Header object |
+| `footer=` | None | Footer text or Footer object |
+| `legend=` | None | Legend text or Legend object |
+| `scale=` | None | Scale factor or Scale object |
+| `theme=` | None | PlantUML theme name |
+| `layout=` | None | `"top_to_bottom"` or `"left_to_right"` |
+| `diagram_style=` | None | Global styling dict |
+| `hide_empty_members=` | False | Suppress empty compartments |
+| `hide_circle=` | False | Remove class-type icon circles |
+| `namespace_separator=` | None | Package namespace separator |

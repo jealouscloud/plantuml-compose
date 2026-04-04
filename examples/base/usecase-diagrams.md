@@ -1,398 +1,534 @@
 # Use Case Diagrams
 
-Use case diagrams show WHAT a system does from the user's perspective. They're ideal for:
+Use case diagrams show what a system does from the user's perspective. They capture functional requirements, system boundaries, and actor interactions.
 
-- **Functional requirements**: What the system must do
-- **System boundaries**: What's inside vs outside the system
-- **Actor identification**: Who interacts with the system
-- **Stakeholder communication**: High-level feature overview
+## Quick Start
 
-Unlike sequence diagrams (HOW it works) or class diagrams (data structures), use case diagrams focus on goals and actors.
+```python
+from plantuml_compose import usecase_diagram, render
 
-## Core Concepts
+d = usecase_diagram(title="Simple System")
+el = d.elements
+r = d.relationships
 
-**Actor**: Someone or something outside the system that interacts with it (User, Admin, External API).
+user = el.actor("User")
+login = el.usecase("Login")
+browse = el.usecase("Browse")
 
-**Use Case**: A goal the system helps actors achieve (Login, Checkout, Search).
+d.add(user, login, browse)
+d.connect(
+    r.arrow(user, login),
+    r.arrow(user, browse),
+)
 
-**System Boundary**: A rectangle showing what's inside the system.
+print(render(d))
+```
 
-**Relationships**:
-- **Arrow**: Actor interacts with use case
-- **Generalizes**: Inheritance (Admin is a type of User)
-- **Requires** (<<include>>): Base ALWAYS needs the included use case
-- **Optional For** (<<extends>>): Extension MAY be triggered during base
+The pattern: create a diagram, get the `el` (elements) and `r` (relationships) namespaces, build elements, `d.add()` them, then `d.connect()` relationships.
 
-## Your First Use Case Diagram
+## Elements
+
+### Actors
 
 ```python
 from plantuml_compose import usecase_diagram
 
-with usecase_diagram(title="Simple System") as d:
-    user = d.actor("User")
-    login = d.usecase("Login")
-    browse = d.usecase("Browse")
+d = usecase_diagram()
+el = d.elements
 
-    d.arrow(user, login)
-    d.arrow(user, browse)
+# Basic actor
+user = el.actor("Customer")
 
-print(d.render())
+# With a stereotype
+admin = el.actor("Admin", stereotype="privileged")
+
+# With background color
+guest = el.actor("Guest", style={"background": "LightGray"})
+
+# Business actor (rendered with a different icon)
+partner = el.actor("Partner", business=True)
+
+# With an explicit ref for programmatic access
+api = el.actor("External API", ref="ext_api")
+
+d.add(user, admin, guest, partner, api)
 ```
 
-## Actors
+Parameters: `name`, `ref=`, `stereotype=`, `style=`, `business=`
 
-### Basic Actors
+### Use Cases
 
 ```python
 from plantuml_compose import usecase_diagram
 
-with usecase_diagram() as d:
-    # Simple actor
-    user = d.actor("Customer")
+d = usecase_diagram()
+el = d.elements
 
-    # With stereotype
-    admin = d.actor("Admin", stereotype="privileged")
+# Basic use case
+login = el.usecase("Login")
 
-    # With styling
-    guest = d.actor("Guest", style={"background": "LightGray"})
+# With stereotype
+checkout = el.usecase("Checkout", stereotype="critical")
 
-print(d.render())
+# With background color
+reports = el.usecase("Admin Panel", style={"background": "LightBlue"})
+
+# Business use case
+audit = el.usecase("Audit Trail", business=True)
+
+d.add(login, checkout, reports, audit)
 ```
 
-### Actor Inheritance
+Parameters: `name`, `ref=`, `stereotype=`, `style=`, `business=`
+
+### Containers: Package and Rectangle
+
+Containers group use cases inside a system boundary. Children are passed as positional args and accessed by `ref` or name.
 
 ```python
-from plantuml_compose import usecase_diagram
+from plantuml_compose import usecase_diagram, render
 
-with usecase_diagram() as d:
-    user = d.actor("User")
-    admin = d.actor("Admin")
-    super_admin = d.actor("Super Admin")
+d = usecase_diagram(title="E-Commerce")
+el = d.elements
+r = d.relationships
 
-    browse = d.usecase("Browse")
-    manage = d.usecase("Manage Users")
-    config = d.usecase("Configure System")
+customer = el.actor("Customer")
+admin = el.actor("Admin")
 
-    # Admin is a kind of User
-    d.generalizes(admin, user)
-    # Super Admin is a kind of Admin
-    d.generalizes(super_admin, admin)
+# Rectangle as system boundary
+system = el.rectangle("E-Commerce Platform",
+    el.usecase("Browse Products", ref="browse"),
+    el.usecase("Search", ref="search"),
+    el.usecase("Checkout", ref="checkout"),
+    el.usecase("Manage Inventory", ref="manage"),
+)
 
-    d.arrow(user, browse)
-    d.arrow(admin, manage)
-    d.arrow(super_admin, config)
+d.add(customer, admin, system)
+d.connect(
+    r.arrow(customer, system.browse),       # access child by ref
+    r.arrow(customer, system.search),
+    r.arrow(customer, system.checkout),
+    r.arrow(admin, system.manage),
+)
 
-print(d.render())
+print(render(d))
 ```
 
-## Use Cases
+Packages work the same way:
 
-### Basic Use Cases
+```text
+shopping = el.package("Shopping",
+    el.usecase("Browse", ref="browse"),
+    el.usecase("Search", ref="search"),
+    stereotype="frontend",
+    style={"background": "#F5F5F5"},
+)
 
-```python
-from plantuml_compose import usecase_diagram
-
-with usecase_diagram() as d:
-    user = d.actor("User")
-
-    # Simple use case
-    login = d.usecase("Login")
-
-    # With stereotype
-    checkout = d.usecase("Checkout", stereotype="critical")
-
-    # With styling
-    admin_panel = d.usecase("Admin Panel", style={"background": "LightBlue"})
-
-    d.arrow(user, login)
-    d.arrow(user, checkout)
-
-print(d.render())
+# Access children by name with bracket syntax
+shopping["Browse"]   # equivalent to shopping.browse
 ```
 
-## Relationships
+Both `package()` and `rectangle()` accept `stereotype=` and `style=`.
 
-### Actor to Use Case
+## Relationships / Connections
 
-```python
-from plantuml_compose import usecase_diagram
+### arrow
 
-with usecase_diagram() as d:
-    customer = d.actor("Customer")
-    browse = d.usecase("Browse Products")
-    search = d.usecase("Search")
-    checkout = d.usecase("Checkout")
+A directed association between two elements. The most common relationship type.
 
-    # Simple arrows
-    d.arrow(customer, browse)
-    d.arrow(customer, search)
-    d.arrow(customer, checkout)
-
-print(d.render())
+```text
+r.arrow(customer, login)
+r.arrow(customer, login, "authenticates")  # with label
+r.arrow(customer, login, direction="right")  # layout hint
+r.arrow(customer, login, length=2)  # longer arrow
+r.arrow(customer, login, style="dashed")  # line style
+r.arrow(customer, login, style={"color": "red", "pattern": "dashed"})
 ```
 
-### Connect Multiple
+Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `length=`, `left_head=`, `right_head=`
 
-```python
-from plantuml_compose import usecase_diagram
+### generalizes
 
-with usecase_diagram() as d:
-    customer = d.actor("Customer")
-    browse = d.usecase("Browse")
-    search = d.usecase("Search")
-    cart = d.usecase("Add to Cart")
-    checkout = d.usecase("Checkout")
+Inheritance: child is-a parent. Renders as a triangle-headed arrow.
 
-    # Connect actor to multiple use cases at once
-    d.connect(customer, [browse, search, cart, checkout])
-
-print(d.render())
+```text
+# Admin inherits from User
+r.generalizes(admin, user)
+r.generalizes(admin, user, direction="up")
 ```
 
-### Include (Requires)
+Parameters: `child`, `parent`, `style=`, `direction=`, `length=`
 
-A use case that ALWAYS needs another use case. "Checkout" always requires "Validate Cart".
+### include
 
-```python
-from plantuml_compose import usecase_diagram
+The base use case always invokes the required use case. Renders with `<<include>>` label.
 
-with usecase_diagram(title="Include Relationship") as d:
-    customer = d.actor("Customer")
-
-    checkout = d.usecase("Checkout")
-    validate = d.usecase("Validate Cart")
-    process_payment = d.usecase("Process Payment")
-
-    d.arrow(customer, checkout)
-
-    # Checkout always validates cart (mandatory)
-    d.requires(checkout, validate)
-    # Checkout always processes payment (mandatory)
-    d.requires(checkout, process_payment)
-
-print(d.render())
+```text
+# Checkout always validates the cart
+r.include(checkout, validate_cart)
 ```
 
-### Extends (Optional For)
+Parameters: `base`, `required`, `style=`, `direction=`, `length=`
 
-A use case that MAY extend another use case. "Apply Coupon" optionally extends "Checkout".
+### extends
 
-```python
-from plantuml_compose import usecase_diagram
+The extension optionally extends the base use case. Renders with `<<extends>>` label.
 
-with usecase_diagram(title="Extends Relationship") as d:
-    customer = d.actor("Customer")
-
-    checkout = d.usecase("Checkout")
-    apply_coupon = d.usecase("Apply Coupon")
-    gift_wrap = d.usecase("Gift Wrap")
-
-    d.arrow(customer, checkout)
-
-    # Apply coupon is optional during checkout
-    d.optional_for(apply_coupon, checkout)
-    # Gift wrap is optional during checkout
-    d.optional_for(gift_wrap, checkout)
-
-print(d.render())
+```text
+# Apply Coupon optionally extends Checkout
+r.extends(apply_coupon, checkout)
 ```
 
-### Combined Example
+Parameters: `extension`, `base`, `style=`, `direction=`, `length=`
 
-```python
-from plantuml_compose import usecase_diagram
+### link
 
-with usecase_diagram(title="Order System") as d:
-    customer = d.actor("Customer")
+An undirected line between two elements (no arrowhead by default).
 
-    place_order = d.usecase("Place Order")
-    validate = d.usecase("Validate Order")
-    authenticate = d.usecase("Authenticate")
-    express = d.usecase("Express Shipping")
-    insurance = d.usecase("Add Insurance")
-
-    d.arrow(customer, place_order)
-
-    # Place order always validates and authenticates
-    d.requires(place_order, validate)
-    d.requires(place_order, authenticate)
-
-    # Express and insurance are optional
-    d.optional_for(express, place_order)
-    d.optional_for(insurance, place_order)
-
-print(d.render())
+```text
+r.link(actor_a, actor_b)
+r.link(actor_a, actor_b, "collaborates")  # with label
+r.link(actor_a, actor_b, left_head="|>", right_head="*")  # custom heads
 ```
 
-## System Boundaries
+Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `length=`, `left_head=`, `right_head=`
 
-Group use cases inside a system boundary:
+### Custom Arrow Heads
 
-```python
-from plantuml_compose import usecase_diagram
+Both `arrow()` and `link()` support `left_head=` and `right_head=` for custom arrowhead shapes. Common PlantUML head values include `|>`, `*`, `o`, `#`, `x`, `+`, `^`, `>>`.
 
-with usecase_diagram(title="E-Commerce System") as d:
-    customer = d.actor("Customer")
-    admin = d.actor("Admin")
-
-    with d.rectangle("E-Commerce Platform") as system:
-        browse = system.usecase("Browse Products")
-        search = system.usecase("Search")
-        checkout = system.usecase("Checkout")
-        manage = system.usecase("Manage Inventory")
-
-    d.arrow(customer, browse)
-    d.arrow(customer, search)
-    d.arrow(customer, checkout)
-    d.arrow(admin, manage)
-
-print(d.render())
+```text
+r.arrow(a, b, left_head="|>", right_head="*")
+r.link(a, b, left_head="o", right_head="#")
 ```
 
-### Packages
+### Bulk Methods
 
-```python
-from plantuml_compose import usecase_diagram
+#### arrows()
 
-with usecase_diagram() as d:
-    user = d.actor("User")
+Multiple independent arrows from `(source, target)` or `(source, target, label)` tuples:
 
-    with d.package("Shopping") as shopping:
-        shopping.usecase("Browse")
-        shopping.usecase("Search")
-
-    with d.package("Checkout") as checkout_pkg:
-        checkout_pkg.usecase("Payment")
-        checkout_pkg.usecase("Shipping")
-
-    d.arrow(user, "Browse")
-    d.arrow(user, "Payment")
-
-print(d.render())
+```text
+d.connect(r.arrows(
+    (customer, browse),
+    (customer, search),
+    (customer, checkout, "buys"),
+    (admin, manage),
+))
 ```
+
+#### arrows_from()
+
+Fan-out from one source to many targets. Targets can be bare refs or `(target, label)` tuples:
+
+```text
+d.connect(r.arrows_from(customer,
+    browse,
+    search,
+    (checkout, "buys"),
+    style="dashed",
+    direction="right",
+    length=2,
+))
+```
+
+Parameters: `source`, `*targets`, `style=`, `direction=`, `length=`
+
+#### generalizes_from()
+
+Multiple children inherit from one parent:
+
+```text
+d.connect(r.generalizes_from(
+    [oncall_eng, platform_eng, network_eng],
+    engineer,
+    direction="up",
+))
+```
+
+Parameters: `children`, `parent`, `style=`, `direction=`, `length=`
 
 ## Notes
 
 ```python
-from plantuml_compose import usecase_diagram
+from plantuml_compose import usecase_diagram, render
 
-with usecase_diagram() as d:
-    customer = d.actor("Customer")
-    checkout = d.usecase("Checkout")
+d = usecase_diagram()
+el = d.elements
+r = d.relationships
 
-    d.arrow(customer, checkout)
+customer = el.actor("Customer")
+checkout = el.usecase("Checkout")
+d.add(customer, checkout)
+d.connect(r.arrow(customer, checkout))
 
-    # Note on an element
-    d.note("Requires valid payment", target=checkout)
+# Note on an element (default position is "right")
+d.note("Requires valid payment", target=checkout)
 
-    # Note with position
-    d.note("Primary flow", position="left", target=checkout)
+# With explicit position
+d.note("Primary flow", target=checkout, position="left")
 
-print(d.render())
+# With color
+d.note("Warning!", target=checkout, position="top", color="LightCoral")
+
+# Floating note (no target)
+d.note("System v2.1")
+
+print(render(d))
 ```
 
-## Layout Options
+Parameters: `content`, `target=`, `position=` (left/right/top/bottom), `color=`
 
-### Left to Right
+## Layout & Organization
+
+### Layout Direction
+
+Set the overall diagram flow direction:
 
 ```python
 from plantuml_compose import usecase_diagram
 
-with usecase_diagram(title="Left to Right", layout="left_to_right") as d:
-    user = d.actor("User")
-    a = d.usecase("Use Case A")
-    b = d.usecase("Use Case B")
-    c = d.usecase("Use Case C")
-
-    d.connect(user, [a, b, c])
-
-print(d.render())
+# Default is top to bottom
+d = usecase_diagram(layout="left_to_right")
 ```
 
-### Direction Hints
+Valid values: `"left_to_right"`, `"top_to_bottom"`
+
+### Direction Hints on Relationships
+
+Fine-tune individual connection placement:
+
+```text
+d.connect(
+    r.arrow(user, top_uc, direction="up"),
+    r.arrow(user, bottom_uc, direction="down"),
+    r.arrow(user, left_uc, direction="left"),
+    r.arrow(user, right_uc, direction="right"),
+)
+```
+
+### Arrow Length
+
+Increase arrow length to push elements apart:
+
+```text
+r.arrow(a, b, length=2)   # longer than default
+r.arrow(a, b, length=3)   # even longer
+```
+
+## Styling
+
+### Actor Style
+
+Change the visual representation of all actors:
 
 ```python
 from plantuml_compose import usecase_diagram
 
-with usecase_diagram() as d:
-    user = d.actor("User")
-    top = d.usecase("Top")
-    bottom = d.usecase("Bottom")
-    left = d.usecase("Left")
-    right = d.usecase("Right")
+# Stick figure (default)
+d = usecase_diagram(actor_style="default")
 
-    d.arrow(user, top, direction="up")
-    d.arrow(user, bottom, direction="down")
-    d.arrow(user, left, direction="left")
-    d.arrow(user, right, direction="right")
+# Awesome (person icon)
+d = usecase_diagram(actor_style="awesome")
 
-print(d.render())
+# Hollow (outline only)
+d = usecase_diagram(actor_style="hollow")
 ```
 
-## Complete Example: Banking System
+### Element-Level Styles
+
+Use `style={"background": "..."}` on individual elements:
+
+```text
+el.actor("VIP", style={"background": "Gold"})
+el.usecase("Critical Path", style={"background": "#FFCDD2"})
+el.package("Core", el.usecase("X", ref="x"), style={"background": "LightCyan"})
+```
+
+### Line Styles on Relationships
+
+```text
+# String shorthand
+r.arrow(a, b, style="dashed")
+r.arrow(a, b, style="dotted")
+
+# Dict form with full control
+r.arrow(a, b, style={"color": "red", "pattern": "dashed", "bold": True})
+```
+
+### diagram_style
+
+Theme the entire diagram with a `<style>` block. Pass a dict with element selectors:
 
 ```python
 from plantuml_compose import usecase_diagram
 
-with usecase_diagram(title="Online Banking System") as d:
-    # Actors
-    customer = d.actor("Customer")
-    teller = d.actor("Bank Teller")
-    admin = d.actor("Admin")
+d = usecase_diagram(
+    title="Styled Diagram",
+    diagram_style={
+        "background": "white",
+        "font_name": "Arial",
+        "font_size": 13,
+        "font_color": "#333333",
+        "actor": {"background": "#E3F2FD", "line_color": "#1976D2"},
+        "usecase": {"background": "#FFF9C4", "line_color": "#F9A825"},
+        "package": {"background": "#F5F5F5"},
+        "rectangle": {"background": "#FAFAFA", "line_color": "#BDBDBD"},
+        "arrow": {"line_color": "#757575"},
+        "note": {"background": "#FFF8E1"},
+        "title": {"font_size": 18, "font_style": "bold"},
+        "stereotypes": {
+            "critical": {"background": "#FFCDD2", "font_style": "bold"},
+            "external": {"line_color": "#9E9E9E", "font_style": "italic"},
+        },
+    },
+)
+```
 
-    # Teller is a type of employee that can do customer things too
-    d.generalizes(teller, customer)
+Available selectors: `actor`, `usecase`, `package`, `rectangle`, `arrow`, `note`, `title`, `stereotypes`
 
-    with d.rectangle("Online Banking") as bank:
-        # Customer use cases
-        login = bank.usecase("Login")
-        view_balance = bank.usecase("View Balance")
-        transfer = bank.usecase("Transfer Funds")
-        pay_bills = bank.usecase("Pay Bills")
+Root-level properties: `background`, `font_name`, `font_size`, `font_color`
 
-        # Shared requirements
-        authenticate = bank.usecase("Authenticate")
-        audit_log = bank.usecase("Audit Log")
+Each element selector accepts an `ElementStyleDict` with keys like `background`, `line_color`, `font_color`, `font_name`, `font_size`, `font_style`, `round_corner`, `line_thickness`, `padding`, `margin`, `shadowing`.
 
-        # Optional extensions
-        two_factor = bank.usecase("Two-Factor Auth")
-        receipt = bank.usecase("Email Receipt")
+The `arrow` selector accepts a `DiagramArrowStyleDict` with `line_color`, `line_thickness`, `line_style`.
 
-        # Admin use cases
-        manage_users = bank.usecase("Manage Users")
-        view_reports = bank.usecase("View Reports")
+The `stereotypes` key maps stereotype names to `ElementStyleDict` values, styling all elements bearing that stereotype.
 
-    # Customer interactions
-    d.connect(customer, [login, view_balance, transfer, pay_bills])
+## Advanced Features
 
-    # All actions require authentication and logging
-    d.requires(login, authenticate)
-    d.requires(transfer, audit_log)
-    d.requires(pay_bills, audit_log)
+### Diagram Metadata
 
-    # Optional extensions
-    d.optional_for(two_factor, authenticate)
-    d.optional_for(receipt, transfer)
-    d.optional_for(receipt, pay_bills)
+```python
+from plantuml_compose import usecase_diagram, render
+from plantuml_compose.primitives.common import Header, Footer, Legend
 
-    # Admin interactions
-    d.connect(admin, [manage_users, view_reports])
+d = usecase_diagram(
+    title="My System",
+    mainframe="System Overview",
+    caption="Figure 1: Use case overview",
+    header="Draft v0.3",
+    footer="Confidential",
+    legend="Arrows = interactions",
+    scale=1.5,
+    theme="plain",
+)
+```
 
-print(d.render())
+### Complete Example
+
+```python
+from plantuml_compose import usecase_diagram, render
+
+d = usecase_diagram(
+    title="Online Banking",
+    layout="left_to_right",
+    actor_style="awesome",
+    diagram_style={
+        "actor": {"background": "#E3F2FD"},
+        "usecase": {"background": "#FFFDE7"},
+        "arrow": {"line_color": "#616161"},
+    },
+)
+el = d.elements
+r = d.relationships
+
+customer = el.actor("Customer")
+teller = el.actor("Bank Teller")
+admin = el.actor("Admin")
+
+bank = el.rectangle("Online Banking",
+    el.usecase("Login", ref="login"),
+    el.usecase("View Balance", ref="balance"),
+    el.usecase("Transfer Funds", ref="transfer"),
+    el.usecase("Pay Bills", ref="bills"),
+    el.usecase("Authenticate", ref="auth"),
+    el.usecase("Audit Log", ref="audit"),
+    el.usecase("Two-Factor Auth", ref="tfa"),
+    el.usecase("Email Receipt", ref="receipt"),
+    el.usecase("Manage Users", ref="manage"),
+    el.usecase("View Reports", ref="reports"),
+)
+
+d.add(customer, teller, admin, bank)
+
+d.connect(
+    r.generalizes(teller, customer),
+
+    r.arrows_from(customer,
+        bank.login, bank.balance, bank.transfer, bank.bills),
+
+    r.include(bank.login, bank.auth),
+    r.include(bank.transfer, bank.audit),
+    r.include(bank.bills, bank.audit),
+
+    r.extends(bank.tfa, bank.auth),
+    r.extends(bank.receipt, bank.transfer),
+    r.extends(bank.receipt, bank.bills),
+
+    r.arrows_from(admin, bank.manage, bank.reports),
+)
+
+d.note("MFA required for transfers > $1000",
+       target=bank.tfa, position="right", color="LightYellow")
+
+print(render(d))
 ```
 
 ## Quick Reference
 
 | Method | Description |
 |--------|-------------|
-| `d.actor(name)` | Create actor |
-| `d.usecase(name)` | Create use case |
-| `d.arrow(actor, usecase)` | Actor interacts with use case |
-| `d.link(a, b)` | Simple association (no arrow) |
-| `d.connect(hub, spokes)` | Connect one to many |
-| `d.generalizes(child, parent)` | Inheritance relationship |
-| `d.requires(base, required)` | <<include>> relationship |
-| `d.optional_for(ext, base)` | <<extends>> relationship |
-| `d.rectangle(name)` | System boundary |
-| `d.package(name)` | Package grouping |
-| `d.note(text, target)` | Add note |
+| `el.actor(name)` | Create an actor |
+| `el.actor(name, business=True)` | Business actor variant |
+| `el.usecase(name)` | Create a use case |
+| `el.usecase(name, business=True)` | Business use case variant |
+| `el.rectangle(name, *children)` | System boundary |
+| `el.package(name, *children)` | Package grouping |
+| `r.arrow(source, target)` | Directed association |
+| `r.link(source, target)` | Undirected line |
+| `r.generalizes(child, parent)` | Inheritance |
+| `r.include(base, required)` | `<<include>>` dependency |
+| `r.extends(extension, base)` | `<<extends>>` dependency |
+| `r.arrows(*(src, tgt), ...)` | Bulk arrows from tuples |
+| `r.arrows_from(src, *targets)` | Fan-out from one source |
+| `r.generalizes_from(children, parent)` | Multiple children inherit |
+| `d.add(*elements)` | Register elements |
+| `d.connect(*relationships)` | Register connections |
+| `d.note(text, target=, position=, color=)` | Attach a note |
+
+### Element Parameters
+
+| Parameter | Applies to | Description |
+|-----------|-----------|-------------|
+| `ref=` | All elements | Short name for programmatic access |
+| `stereotype=` | actor, usecase, package, rectangle | UML `<<name>>` marker |
+| `style=` | All elements | `{"background": "..."}` |
+| `business=` | actor, usecase | Business variant rendering |
+
+### Relationship Parameters
+
+| Parameter | Applies to | Description |
+|-----------|-----------|-------------|
+| `label` | arrow, link | Text on the connection |
+| `style=` | All relationships | `"dashed"` or `{"color": "red", ...}` |
+| `direction=` | All relationships | `"up"`, `"down"`, `"left"`, `"right"` |
+| `length=` | All relationships | Arrow length (int) |
+| `left_head=` | arrow, link | Custom left arrowhead |
+| `right_head=` | arrow, link | Custom right arrowhead |
+
+### Diagram Options
+
+| Parameter | Description |
+|-----------|-------------|
+| `title=` | Diagram title |
+| `mainframe=` | Mainframe label |
+| `caption=` | Caption text below diagram |
+| `header=` | Header text |
+| `footer=` | Footer text |
+| `legend=` | Legend text |
+| `scale=` | Scale factor (float) |
+| `theme=` | PlantUML theme name |
+| `layout=` | `"left_to_right"` or `"top_to_bottom"` |
+| `actor_style=` | `"default"`, `"awesome"`, `"hollow"` |
+| `diagram_style=` | Dict of CSS-like style selectors |

@@ -22,6 +22,9 @@ d.connect(dep.after(prep, audit))
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NOyn2y8m48Nt_8e31wT2JRLp1UqcT2z5ZkOeaP38tNNmtnjYkxY-x-CzNYUAh0j6LQDU0y73BupgKpG3fnVD2aKHiBLjg_fSrQqHr9KTVW2PO0v9o1bPuryoNbVdTG8K69zwcY2Wv9u6iYTc79ZUsTwvtVbbuoNQjb5_5KS1YcvZNc1E8J4vy14EzwQt_SrqMIX_lW00)
+
+
 
 The pattern: create a diagram with a project `start` date, get `tk` (tasks) and `dep` (dependencies) namespaces, build tasks, `d.add()` them, and wire dependencies with `d.connect()`.
 
@@ -31,7 +34,7 @@ The pattern: create a diagram with a project `start` date, get `tk` (tasks) and 
 
 #### Duration in Days
 
-```python
+```text
 tk.task("Short task", days=3)
 tk.task("Medium task", days=7)
 tk.task("Long task", days=14)
@@ -39,33 +42,33 @@ tk.task("Long task", days=14)
 
 #### Duration in Weeks
 
-```python
+```text
 tk.task("Sprint 1", weeks=2)
 tk.task("Sprint 2", weeks=2)
 ```
 
 #### Explicit Start and End Dates
 
-```python
+```text
 tk.task("Planning", start=date(2026, 4, 6), end=date(2026, 4, 10))
 ```
 
 #### Start Date with Duration
 
-```python
+```text
 tk.task("Kickoff", start=date(2026, 4, 6), days=5)
 ```
 
 #### Completion Percentage
 
-```python
+```text
 tk.task("Design", days=10, completion=60)   # 60% done
 tk.task("Review", days=3, completion=100)   # fully complete
 ```
 
 #### Colored Tasks
 
-```python
+```text
 tk.task("Critical", days=5, color="#FFCDD2")
 tk.task("Normal", days=3, color="LightBlue")
 ```
@@ -74,7 +77,7 @@ tk.task("Normal", days=3, color="LightBlue")
 
 Assign one or more people/teams to a task:
 
-```python
+```text
 tk.task("Design", days=5, resources=("Alice",))
 tk.task("Develop", days=10, resources=("Bob", "Carol"))
 tk.task("Review", days=2, resources=("Alice", "David"))
@@ -84,7 +87,7 @@ tk.task("Review", days=2, resources=("Alice", "David"))
 
 Add a clickable URL to a task:
 
-```python
+```text
 tk.task("JIRA-123", days=5, link="https://jira.example.com/JIRA-123")
 tk.task("Linked", days=3, link="https://example.com",
         link_color="blue", link_style="bold")
@@ -94,7 +97,7 @@ Parameters for link styling: `link=`, `link_color=`, `link_style=` (`"bold"`, `"
 
 #### Task Notes
 
-```python
+```text
 tk.task("Audit", days=3, note="Requires read access to prod DB")
 tk.task("Deploy", days=1, note="After hours only", note_position="right")
 ```
@@ -105,7 +108,7 @@ tk.task("Deploy", days=1, note="After hours only", note_position="right")
 
 When `working_days=True`, the duration counts only working days (excluding closed days):
 
-```python
+```text
 tk.task("Development", days=10, working_days=True)
 ```
 
@@ -113,7 +116,7 @@ tk.task("Development", days=10, working_days=True)
 
 Pause a task on specific dates or recurring days of the week:
 
-```python
+```text
 tk.task("Long task", days=20,
     pauses_on=(date(2026, 4, 15),),              # pause on a specific date
     pauses_on_days=("wednesday",),                # pause every Wednesday
@@ -124,7 +127,7 @@ tk.task("Long task", days=20,
 
 Mark a task as deleted (renders with strikethrough):
 
-```python
+```text
 tk.task("Cancelled feature", days=5, is_deleted=True)
 ```
 
@@ -132,7 +135,7 @@ tk.task("Cancelled feature", days=5, is_deleted=True)
 
 Force a task onto the same row as another task:
 
-```python
+```text
 prep = tk.task("Prep", days=3)
 followup = tk.task("Followup", days=2, on_same_row_as=prep)
 ```
@@ -145,7 +148,7 @@ followup = tk.task("Followup", days=2, on_same_row_as=prep)
 
 Zero-duration markers for significant events:
 
-```python
+```text
 tk.milestone("Phase 1 Complete")
 tk.milestone("Launch", on=date(2026, 5, 1))
 tk.milestone("Go Live", color="Gold")
@@ -161,13 +164,13 @@ Parameters: `name`, `on=`, `color=`, `link=`, `note=`, `note_position=`
 
 Task B starts after task A completes:
 
-```python
+```text
 dep.after(task_b, task_a)
 ```
 
 Multiple predecessors -- pass a list:
 
-```python
+```text
 # deploy starts after both build and test complete
 dep.after(deploy, [build, test])
 ```
@@ -176,13 +179,13 @@ dep.after(deploy, [build, test])
 
 Task B starts at the same time as task A:
 
-```python
+```text
 dep.starts_with(task_b, task_a)
 ```
 
 ### Connecting Dependencies
 
-```python
+```text
 d.connect(
     dep.after(develop, design),
     dep.after(test, develop),
@@ -197,7 +200,7 @@ Lists returned by `dep.after(..., [list])` are flattened automatically by `d.con
 
 ### Closed Days (Weekends)
 
-```python
+```text
 d.close_days("saturday", "sunday")
 ```
 
@@ -205,13 +208,13 @@ Valid day names: `"monday"`, `"tuesday"`, `"wednesday"`, `"thursday"`, `"friday"
 
 ### Closed Dates (Holidays)
 
-```python
+```text
 d.close_dates(date(2026, 12, 25), date(2026, 1, 1))
 ```
 
 ### Closed Date Range
 
-```python
+```text
 d.close_date_range(date(2026, 12, 24), date(2026, 12, 31))
 ```
 
@@ -219,7 +222,7 @@ d.close_date_range(date(2026, 12, 24), date(2026, 12, 31))
 
 Reopen a specific date that falls within a closed range:
 
-```python
+```text
 d.close_days("saturday", "sunday")
 d.open_date(date(2026, 4, 11))  # this Saturday is a working day
 ```
@@ -228,19 +231,19 @@ d.open_date(date(2026, 4, 11))  # this Saturday is a working day
 
 Highlight specific dates with a background color:
 
-```python
+```text
 d.color_date(date(2026, 4, 15), "LightYellow")
 ```
 
 ### Colored Date Ranges
 
-```python
+```text
 d.color_date_range(date(2026, 4, 20), date(2026, 4, 24), "LightGreen")
 ```
 
 ### Today Marker
 
-```python
+```text
 d.today()                                        # default marker
 d.today(date(2026, 4, 10))                       # explicit date
 d.today(date(2026, 4, 10), color="LightCoral")   # with color
@@ -252,7 +255,7 @@ d.today(date(2026, 4, 10), color="LightCoral")   # with color
 
 Visual dividers between task groups:
 
-```python
+```text
 d.add(design, develop)
 d.separator("Phase 2")        # labeled separator
 d.add(test, deploy)
@@ -266,7 +269,7 @@ Separators interleave with `d.add()` calls in order.
 
 Vertical lines after a specific task:
 
-```python
+```text
 d.add(phase1_task)
 d.vertical_separator(phase1_task)
 d.add(phase2_task)
@@ -276,21 +279,21 @@ d.add(phase2_task)
 
 ### Assigning Resources
 
-```python
+```text
 tk.task("Design", days=5, resources=("Alice",))
 tk.task("Develop", days=10, resources=("Bob", "Carol"))
 ```
 
 ### Resource Off (Unavailable Dates)
 
-```python
+```text
 d.resource_off("Alice", date(2026, 4, 15), date(2026, 4, 16))
 d.resource_off("Bob", date(2026, 5, 1))
 ```
 
 ### Hiding Resources
 
-```python
+```text
 # Hide resource names from task bars
 d = gantt_diagram(start=date(2026, 4, 6), hide_resource_names=True)
 
@@ -307,7 +310,7 @@ d = gantt_diagram(start=date(2026, 4, 6), hide_footbox=True)
 
 Control the time granularity:
 
-```python
+```text
 d = gantt_diagram(start=date(2026, 4, 6), scale="daily")
 d = gantt_diagram(start=date(2026, 4, 6), scale="weekly")
 d = gantt_diagram(start=date(2026, 4, 6), scale="monthly")
@@ -319,7 +322,7 @@ d = gantt_diagram(start=date(2026, 4, 6), scale="yearly")
 
 Zoom the time axis:
 
-```python
+```text
 d = gantt_diagram(start=date(2026, 4, 6), scale="weekly", scale_zoom=2)
 ```
 
@@ -327,7 +330,7 @@ d = gantt_diagram(start=date(2026, 4, 6), scale="weekly", scale_zoom=2)
 
 Display ISO week numbers:
 
-```python
+```text
 d = gantt_diagram(start=date(2026, 4, 6), week_numbering=True)
 
 # Or start from a specific week number
@@ -338,13 +341,13 @@ d = gantt_diagram(start=date(2026, 4, 6), week_numbering=14)
 
 Show calendar dates on the header:
 
-```python
+```text
 d = gantt_diagram(start=date(2026, 4, 6), show_calendar_date=True)
 ```
 
 ### Week Starts On
 
-```python
+```text
 d = gantt_diagram(start=date(2026, 4, 6), week_starts_on="monday")
 ```
 
@@ -352,7 +355,7 @@ d = gantt_diagram(start=date(2026, 4, 6), week_starts_on="monday")
 
 Change day/month names to a different locale:
 
-```python
+```text
 d = gantt_diagram(start=date(2026, 4, 6), language="de")
 d = gantt_diagram(start=date(2026, 4, 6), language="fr")
 ```
@@ -361,7 +364,7 @@ d = gantt_diagram(start=date(2026, 4, 6), language="fr")
 
 Limit the rendered date range:
 
-```python
+```text
 d = gantt_diagram(
     start=date(2026, 4, 6),
     print_range=(date(2026, 4, 6), date(2026, 5, 31)),
@@ -372,7 +375,7 @@ d = gantt_diagram(
 
 ### Task-Level Coloring
 
-```python
+```text
 tk.task("Critical", days=5, color="#FFCDD2")
 tk.task("Normal", days=3, color="LightBlue")
 tk.milestone("Done", color="Gold")
@@ -383,6 +386,9 @@ tk.milestone("Done", color="Gold")
 Theme the entire chart with CSS-like selectors:
 
 ```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
 d = gantt_diagram(
     start=date(2026, 4, 6),
     diagram_style={
@@ -403,7 +409,12 @@ d = gantt_diagram(
         },
     },
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/VPB1RiCW38RlUGgadhibj4aRgPhQad2Qfabx0ZT16Gk12JnLtTHtNyBeDArDi3ZmOt_Onbk7OB41ZHXj79wKU8ZygP3GMEZ8LqJ87ggsiUP3rymeOydnLQBeTMuqFa4doCvAK45uaP-293ISVW9c2xzw3S6rddbDdPKBJddXxnwb5a5DybLM3BXplpkfX4EZnHY3SvwpvNy6ptThcWQ64-zW0NjzB0zMSfxuEr_Gq1LoCAeE06rmwlrrcGJ7Nfv8jVGhkAAfuJGEPMpFhehYwOfU6WFMccE8_-EpIWSBFdS7PQfMrAFFf8FzrXtKl1piWgYiH5c1caYryBzritVdQ7CVXkpPcZTH8V7pvmYDQJQFb_CuYxP2rtu4lm40)
+
+
 
 Available selectors: `task`, `milestone`, `separator`, `note`, `arrow`, `undone`, `today`, `stereotypes`
 
@@ -494,6 +505,9 @@ d.color_date_range(date(2026, 6, 1), date(2026, 6, 5), "LightGreen")
 
 print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/VPHjQo8n4CVVvrCC7CUzshgkhjfIIgssHUY1z_X6v4XtHyqPaxrajbQat_sopxfS3nGqC_d__ZF9vDOIDxJcYeYH88dm9O2vvBJIPWUVnTfm4bgnQqi7YJSipvmAxjPtS6G0nEqs_m5mnwFjskXKnHCjjO4Fzxs7u67gOc_kknCIBMc5xsG_QXcNgHOJxhXkiKXzq8g-PNnuhfBUs7Mdj9GOeSX6t8NtY5jvO7EZVsD4aDTc8V23WUVtFN_0BAVKnFm0t214KbkCcNKMpbUA3Q4NX23i-QBxT84qrF_2OcDM0iOW53o9zOOU3Q9Yf3DXqJZezfkrzfQ9DbooZOWH35gTcWWjhBIcP_tA5ZErCjoIIIDN0C8uZGKjWLjO_ABk4hI2urYA2Dz0kZGB8JYCPKNKqRg-_z4XTub4GhOOcsWZ20knALgnLfLQSAPslDFFbUQerdGvPMyv5Gu-MK0Lbp776uQdk880uoGn-eNB2jLRmeOd2QfA9wXqF0_c6suHWYkOPIexL9JVHF0yjhXBXOnXF9_14p-WgVJwXVNSyd72ZPQLzMxJZtxBU-_4Ut_PEfaFaz7zO79P4N_CAbHOeARyHSGr9AWXOGlIpo3vIXbz1pFbn9kfgs230dPMKLFGe6RviDTcAzGwZm5V4PgQdfMeD6KpHAHtx2l-IOMxQR3ZRdvGSHMv0H8grdlcSY7BPSr1zAxW9vSYRWvXvdQLHk6x6st7hGmFp-_GUPVysldmNrqgZyBroBifjCeYcxzpDDdpb3jkaKSdLw3Tg54BDpp1kLZ2K-lQuRQlZAlpm1QFsetc2rRQb-thEZeHk6oVQVwU5G4frDPchyPYiI5Ax5MdinTRSO6lFBlR5svGEcljoOorP5NRd9nUhJ8_rNlaX_yB3jYjyv8_q7y1)
+
+
 
 ## Quick Reference
 
