@@ -30,7 +30,7 @@ from .common import (
 
 def render_network_diagram(diagram: NetworkDiagram) -> str:
     """Render a complete network diagram to PlantUML text."""
-    lines: list[str] = ["@startuml"]
+    lines: list[str] = ["@startnwdiag"]
 
     if diagram.mainframe:
         lines.append(render_mainframe(diagram.mainframe))
@@ -77,7 +77,7 @@ def render_network_diagram(diagram: NetworkDiagram) -> str:
         lines.extend(_render_element(elem))
 
     lines.append("}")
-    lines.append("@enduml")
+    lines.append("@endnwdiag")
     return "\n".join(lines)
 
 

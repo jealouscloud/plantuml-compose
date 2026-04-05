@@ -128,9 +128,9 @@ class TestNetworkComposer:
             ),
         )
         result = render(d)
-        assert "@startuml" in result
+        assert "@startnwdiag" in result
         assert "Internet" in result
-        assert "@enduml" in result
+        assert "@endnwdiag" in result
 
 class TestNetworkComposerExtended:
 

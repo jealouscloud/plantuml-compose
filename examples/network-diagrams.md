@@ -39,7 +39,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIh9BCb9LGZEp2q0Kdwf9UNvHTbSUUKfcOdf2jLS2Wfv4265_BIqpEHKi922Gc9AIb5gSR62hOAIeQMHdg6PXPwXde6-aOcIDLY-EBMeBBL88HghEaC3fLY8Cf31G8UKPERduLGBLLpBLSlba9gN0dGo0000)
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgoIjFoKnCvoh9BCb9LGZEp2q0Kdwf9UNvHTbS43c5QYu5XJo8a49-MbfcSYfOI44XCIMbABMuMC5MGSdGqaZFqCn2pr3FGD_8HCaQB5-SMbIMMgGGZLMTeO5IB4GPo62WMqeoy_DmgeKghkMgvN98pKk1k0m0)
 
 
 
@@ -69,7 +69,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSehJybCJ5Uevb9Go4ijASylobR8ISm3ynKK4bDIYbABYnLi5PGC3VJ0KD_8HCaQB5cKNrgIMgGGZQd8K2aMegGujQWijSWGgne3L4L6M1N1JIeeoip3OPifrAHQhbekXzIy5A2l0000)
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgoIjFoKnCvu9G2jLS2WfvgINb-KNP2Zc9UM2-Wa9YIafHQd6nWgs2ag617XZg6vaeMOCbY_9BIrAB5A8n5HagnKAK5ASMbQKM6M9LOu2go0Yh8hX91KMPUJXiCuMQLCjLo-MGcfS2yH40)
 
 
 
@@ -99,7 +99,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/ZP2n2i9038RtUuhGtNgfRY9qT75o58Uq5-JmUfKqRGVfkrkhGi4E4iYG_oDVIDueYRPLCEerC1pRe7vrg2jsS6BfM4pidQShF0n0PErhkS6zBO8lfn40EIVSDB279BERrAQ8OrzdssGtvQ4cLr2WMBB0UP56crnUy31tYEz8-LU2Dftg3yC7nVTsW9uBN0JiZCWM2VnUE9YSeni_zWG0)
+![Diagram](https://www.plantuml.com/plantuml/svg/ZP2n2i9038RtUuhGtNgfRY9qT75o58Uq5-Jml9OqRGVfkwkjGi4E4iYG_oDVIDueYSRUUReQzHeOZcrGlpfKTtPmOkbOp9J3mm14rhwI6zHj4NmvZW38EU6cWJqacTsaDaLyzNMsJNPZ7Yfo1GMA9GkS5scqoUKD3tE7-8wKVoLeqx7-C7nGdBO3z5pW8c1dHBP8uFV2mUGStVIK9m00)
 
 
 
@@ -128,7 +128,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/TP1H2i8m38RVUugm0yok-2R2Jg07a3raDfDYLqSQBIYxkxB26BWz9lduy_7NKP3bsNibJZp1kUlSbU14aXvyLo5PXpVuA82GLs3xzpG3eBLCCS8HYagNkgnAlJFxuZ0TEyUKq7ku_6DLqMGeKHk9NyIhbCxOk7ZkWX07z1i6Pcc0mx0LRkPm08k2BKPQeyoiCAgQWltrz0K0)
+![Diagram](https://www.plantuml.com/plantuml/svg/TP1H2i8m38RVUugm0yos-2R2Jg0741yocqgnrf462yhkBgmm1cwFoV_nvoDT5cH9nGMyAmaI2SxUXnl1YQIy-A5g1by5aEeAtFCppG3e75FES8J6w5QtfjKxksyEK-W3Ky4OuVAFcUPQeK9z9duJhrAwOkFYU4X2d31k6DYb0Gx3LhcTom4S2lQOQOsoiyAeEagklkC7)
 
 
 
@@ -155,7 +155,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/RO-n2i8m68JtFCNHMMeYRaNewkPUEgJzVpMOfYL92IXzTsFhfjjnzzt1rI5g7-V12fV8w1jU0Z0kidSSqOIxdXWdz7QSQGVYq7ipHJEwR1QNkREcn_cB5ssLorcaqJz0mtCT0pIHvn0-3ILBMQfIxW_7ebh3g_6SjBLeVZ6rBGA9kx-vt815BA9cH_d66m00)
+![Diagram](https://www.plantuml.com/plantuml/svg/ROyn2y8m58Jt_8eZizHKt8hGrSszEAHzJmt6f2Gf0QN_tTguwNIFk-yENXkJ3ibbClegYk0b0ECI1yS9NRpfaN70OFr46n378PWn6UyMKvwctfe1noykpyrINeximntqUAvZW2OA7EEdKQjALNMbjhkzRDRmOW9dRIswNwmkYq3c_c-k2Z2BMRJigBpm1W00)
 
 
 
@@ -184,7 +184,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/PT2n3e9030RW_PwYOVODZ0c3STF4C3WOXy8Ll8W7jZqP3E_k0H9C6Dl__peq5KNMyAoDEgq9JeqboExOaXZVMOSLV0o09-qQVe3p9QCeXq83qnW1T9J3LGO3E_3nm0OiIS6kLTVuk4ikiP4HlucJstOqzezOLCnHrcp_2sPKkffaSQ8DOxLcXrY3R0fd-WeKQA7Zk8974ea6paCwoTxq9YLluuU-)
+![Diagram](https://www.plantuml.com/plantuml/svg/PT2n3e90383X_PwYOVODZ0c3STF4C3WOXy8Ll4WER7io6DxTWzDWmdZz-tMuN1HP_M0TDaQTjWIdpX8KT-n9J0hmDW2UTEZu0SxNZA8SAWrCSm8Og8IhJ0PsuEE13LYIYbslhlDnbbtYHa7y8ivkszdOFs9HiKHPi_qt_53jMfB5YNQCpPeTuXeKAVxeCr2WXSxF5JoII3HmdcgIenbDJjwcl_W0)
 
 
 
@@ -223,7 +223,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/RT2n2i8m40RWFKznP1PjYfi8rRc3qb4SOkyeeJO9bzGYqdUtj893mstt7ny_LuIeEVRTKzW1ZMxW8m0inS5n2vuTzdKqpivh08t8508SGQfiEyyktyl34dgVARYjRrGcDu0KQZP-ngRemgRJ_8QJzr0HluZb_S_aIKQjcREkszud57oak-IfBYx4Xgcwbl2hjIYZ64L15gVlV040)
+![Diagram](https://www.plantuml.com/plantuml/svg/RP2n2i8m48RtFCMHMRGfRY9KPmUbepZ4vYYXc1oNr2BITrSImQ7XXeFxZu-FlmbHStIJiReNUS5R03YCa-S1YBqPksYzIsS0RGnZ2B07gQfrcaszbRiS4bKAhiiVLSaL60mTMqgmRtHc-z3yWWCHjCXFP7dxO-eYHYqnHzqD8nKevbvsgKikFiIUiRsSuAULAREOHOFEv6O-)
 
 
 
@@ -248,7 +248,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/RP312e9054NtynKFsqQfMH0HcA7R5YwZXJbZ34qpCVDK8lptHeSMfRpTlOV3vSK62utrGn3aA1ZaJ3TCGuu5reR8blBY1cy281csIj-X5BL1I_GPG46fPiR07hp0Nmot32DlvyeIUSFWF8O2RmwKcLBp9t8b--Omm3OlbL2wJsPRFqstldTnDZjKqkjhIXUETRcZVtnPbaR9-kjJLIMud9ot6ljEZlxp9PjZu7mTwKZC9BMV_000)
+![Diagram](https://www.plantuml.com/plantuml/svg/RP312e9054NtynMFQHkbPe54O8PkMxYC5ZOpnf3CnCnJYV3VKuSMfRpTlOV3vSKM2uEgvRAu4vHO2SY5QOI170kiBN4Ll0c04jXgym1MrHPxOiW02iwDi1OEG7rlDTuw2EdUbGnb8-0oXNow12uiC_A9KgkXEOvmdpDTQJCaYyXBqyYZLsVhjof-UytfWgakT_IFBylICDb-VReiAwbcvssclhEZ_tp9xkGxNqSw4Wl5tSS-)
 
 
 
@@ -282,7 +282,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/TP2x3e8m58RtFiL9NGbIKD0O4n8O7RoCnk506o0W9MqDW-7TBR1erFM_d2_dZxL1PHxtXhGzhx209m5eXUcbgY73l1OjdpG0v5m9hM4Fb4M-oqBNSxsblwAxoUwaDeKDmFLNa7dK0LrY9wpCqM26MZZ0XSvLrPbAjcFyED-ud0x0rhQGoqQgqLW4GHXj6RtDB2LuzGValuEqaGgBRyvvwYUOb-A3aYR1nazdoa064jllxJOl)
+![Diagram](https://www.plantuml.com/plantuml/svg/TP0z3u8m48PtViK5Lu8K53N6X0H61pz6ut2q3JIObhHD60p_tK8NZJfTydxSaxl2MDHM3anW4_W1pm10SZietK6DjEEIpHe0CgQvCN20a6pIcEHn4YVBT1NkPxjNnZOk0BTVGPA44PWMU-vaXXPhD3m2nWtLehT2oIb-yZkkvoEGjIjGzL1wCXPPbczs9BnxbkPC_06bxo1ZbSRcctEP-oNIbdzGgZBRffMdZC4O5Evw_vSN)
 
 
 
@@ -320,7 +320,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/VP8nRy8m48Nt_8fJvYgD0nkgH2dg14nCHGoNtBLODOvb6ra2yTyRnwX2JSfuzdldxzrvxZnQVpggp4kl69Re4TvOUxQP3YJn2ouPW6OVMliDT3ptDG0IMNOENY0NPL4MeYYVgsa-wo-9NMEbyRBLKR1SVy0cTRW9FWFiXXr4_lJN-Yuj1rGgtoUZgaUDvT2vQf5WWGfrmpRPhtT9q9X_abGFahmQesI3VRcLNT-a2boB8LSLkVQ_YcfK8OPe57SmpZPvDELekuEYCQP9cfKxeE7kC3vLe-CRmpMRiwRkD_m0)
+![Diagram](https://www.plantuml.com/plantuml/svg/VP51Ry8m38Nl_HLMpwXhsjscIGmG9-2qqoOERksDY916IQH8eFxtaGPDQEquEdxF-PuzTnwjru4aVcTUUiMmGe-mPEtPPga1bmn0im-TFGATpaCDW4IMdODNo4LPb8KeogVgENyPciIkjT9usUaeM6q_O9Sct0HV0Jx74qG--sjTIyi1bShtoQYQIMCvTcuw95YWGjsoJVR-BWaQyq-Iwa6IDsEKR74et-LrRb85RiIOgufS-rz5DQaGOpIADvXcgnzjEThke6YAgKwxSWSqV7sCNpNe-CRGPtFMbEx-0m00)
 
 
 
@@ -358,7 +358,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/VP5DQyCm38Rl-HKYkuurCMMib44WMMxRQRkqzE16OZDBRMChT1_qlyy9Rcb9EdpJ8yaFhmhFqd6tQnDMt1Ay4E-D-uILqUGJlKSbt-4t0T0HT9fTvvbmg08qfZKE7Y6zgUkogaIw7CeIqP7tFSZkXZVB8aBoZLEMbT4zVZikZ5Xf9XT-WxN_a9P2IzEQ3ZSzFPo9uEvdGg5UbFEnGjuRvC51pASbgkTL1DQPhszOZuVpB1qvN8kYV7YwBnTNFCG_7gyNKKXhnoRYP1AcjrDSPEaj7CD3oN8hFKNtGrAGnd3lFm00)
+![Diagram](https://www.plantuml.com/plantuml/svg/VP71Qi9048RlUOeXNejD5X6b58IakRMdUb5wM3D3NOoxo-u4suhlRXBNqf8eUvjlPlRZduLdwLWVKCdFY1LN16_41-Dsi3AQV7H1S8m0T02rPbTx9kog0AMfZ8DdY4T5aUMvY9-wiaHqv7qBad7t7fE0a7pfb6LbT8kNruK1AytacjzWxRVIKjDILgR6ZvQU_eZW_cT0ePXdaxv2sXgaZOEO34lahwi0h3DVtx3k3wT9t7Eu5KKsUvbcyniUuex7-xyefBLz4_5hqanlXhX8uWUuXeUIvKPw2kwdQ44QBtSz0m00)
 
 
 
@@ -395,7 +395,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/XP4n2y8m48Nt_egZxjfa4444KLnT78j8J4uDZOaaQJk8_zscQKMn8hUzzvBt7RTqdbbVNbNYfLS8AyQBez48M_IriKMYQo7P6Uu9W8uI7FjC406uKSR20jBH9WkJpbkP2M7HkM2GRDpEPDPvjHJ-4fnJgLIdSMFnu6hf-GLoWOvRUVFIw11RDnxiMY_TX_ZZ3QTIJ9EiW_biZSKJCltkY893Mw4ba0-y8rdiwbDqE4M6YUWm4Vr753veRX8s_yAY4Ul5zPQbFx8lkaUoH2sQGpy1)
+![Diagram](https://www.plantuml.com/plantuml/svg/XP4n2y8m48Nt_egZxjfa4444KLnT74Ka9gU6XaIIQ0VfVzSqRQaOaTlUUydxZbiwpwpNbP3iaddf5SAAyV9aDC8MVMLicKKNdXc0ZXASkamG0RXHni82yj6c29FF6va9OT6vO91YtCnardgL5FuQdFDTgLRZnkBHLTBpA-m5EcxbpKkZGspzzc3NUFaXnEi1paCnJOeMvhCr5a_8zBiZ2Wxj0os1VU8TAM9NbwBf54aJqJGH_KSKFdYV9Mp-XKKZLiyroD8VsPwkpfQeHRpc2m00)
 
 
 
@@ -428,7 +428,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/TO_12i8m44Jl-Ogb7n3Juas4_eTusB2h1jCODf60fVzkR3q4mTiEC_k66LD6oS_9gr38uHLc1H0ubuVSWQRNgW6GI3WbE4BN6srqhyrks7U7rRmuuOBURwgm_HnBmvbRey9Y_4sua5a2-ZzrGrltVGSW2wTqmyWrHvZHOkBpHbxKo87gh3S0)
+![Diagram](https://www.plantuml.com/plantuml/svg/TO_12i8m44Jl-OgX7n3Juas4_eTusB2h1cCiII1WwRzR6mz1yBGxpEmRTaoPOWw57LrL7PWL42INPxo37wzD0yGS9IKSqVL66zrhinlstM4pBovA8U-hAc8_oz9mvjPOOTFqct0XImpa_zGDRTtt762BKxhH96kEAPEb9ETANjGeWUjBRm00)
 
 
 
@@ -459,7 +459,7 @@ d.link("internet", "router")
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/TP0z2y8m48Rt_8eZiwrjTIj2GHHSNOj3QCuQZ9UIf7IG_dVJBn2got7SlUzp7uNpmlhsfPbNNYDSoACbz70qH5XvPOXH9vMeuSq0rD8ktKCq20Uej6db1YIwogfcq8SYNp3ybWTNI3fZdu2onX438AIqwDoWpP9TdCHf6k8ss_Dyx5lJ1WAKFtKfNmqy3UZhQ9fc0joLnKve_GUIhI7dsJ4H-kzxesXUAMSzAv1aUDa7)
+![Diagram](https://www.plantuml.com/plantuml/svg/TP1D2y8m38Rl_HMXPpUtwMq8WYXuzJeyb3NEOcb7cx63xB_RhHi8qqi8oVi--JXw4evCBvLe62dI25T3w0mIdAmnM9EoXaK1l1c0MjgLVueMuG2rjftSW4HVEzME-b3a2uRVo-0AIM_T2r0sE640X9GElH-rHRPBipJFGzmMUrvEVMUxG83gfoxdgu7d4NsRJ74cm4Cvx8NMVo356dAP7P4mVD-R9FDA9HlO4OsCJ_a0)
 
 
 
@@ -489,7 +489,7 @@ d.link("ISP_B", "router2")
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/ZL1D2u904BtlhnWyzwLqaw3ir4ti616BCzYYxihkB1BHVy-iZB13pEtD-vXvQyVIigyhmOehWepGQvIQOMkqffoLqKxe5fKiu2e0Tllqj863Eyk6O0LvPJnE0CdbLZKFTWS67GasLNEMmJ5-QP9_D0dnIwA9MsDB82oepmMGY9QSUt33nQoVURGCudvfZMUo8Hp6h30OPQLMrT9U8EjLpyItH_JB8nfx938lVVDbSHlwcKxV5tt-7x0e5ZUn9erTxNS0)
+![Diagram](https://www.plantuml.com/plantuml/svg/ZP3B2i9034NtynMXQryjxegWTUMkrAM834tGeNLcc4aH4V_TFXMf2yakEVVU96lFqh6-eP9dmOfBWeomqYWrmzPeJJahexte47W8WDq-FMtWu2_I4gmWBqs54q3okLEseUjcK4EmAUr51iUuroJ_Q1BYNgA9RyOLG7YcDXT08Zholc73nQojURGCudReJCNaGZYCgJ0OPQLENQMxGzQgkiJ18_hb4Oqz4faNbVsoUBx_CvqE6ttkV_UYM3p5cZHsRtq1)
 
 
 
@@ -520,7 +520,7 @@ d.add(n.group("web1", "web2", "web3", description="Web Tier"))
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/RP1D2y8m38Rl-nMXPz6rUXDXFqBm81woDSpYx4hIiOFilplhnmQEaCkRvyrN8H4vTlScyxrrMCCZ0_0K-vPlK3MTHEAa0Q2rJ29m0ANpTOgDsQbzAlPKQZZ_8pfNbnzX5Waz8xQBXFaITdc8oTKAv8g1Hj5Yn1A5acKOi-Qs2vyRB4d5BaJN-fV_H2KS7V7iY6dPQQbtfo4hoDlnLKy0)
+![Diagram](https://www.plantuml.com/plantuml/svg/RP312i8m38RlUuhGi-XQlOdWGmWUn4EsX5cKRYGTEyZUtTcf6pX222HVaZyvQaI9eIEFLJO6U6O0WMDNontAHwkH9UK0a4XO5GvWRBvEjd4xiq_5ZWiBbt_4vkRw8zmYOMV4Tf5mNuAMbxZSh41lsF2G98nOe79gwGUlf6wRpmt4Mefleg_3k__C1Pmyo-o8IUmaQfpKPqSEDBxf1G00)
 
 
 
@@ -552,7 +552,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/XP91JyGW48Nl_HKJl1e5ged6cApPBLwyUJGUM9Zi4h4Ge6wCsVzkswrO8wiX79XvynxvO16J3AbxjLKooI8yOdWp2k4-kCx7gjrf8pVmKG6qc7Okl80FJdSg6TUEPG2fTS0OuHO8esVZEkSNvERGz9x1qsy9e-GvAtXHmRuKIgej5bqu_Q4f-l3iezT5avgIKuXRwR4lQfdaMaRC8qNFcXqRsVTxCx2Ru2XdNHWcJvfQSB6Qi6YCAXW_KkoRTzvRe-Hu75u0Gvpn--RqTu8GecveEM4vy847-Ow1pAdEwVrp_ojnsLoNtLSJ0bZQBgOSqGFF60_c-sg1hUw_soS0)
+![Diagram](https://www.plantuml.com/plantuml/svg/XP9FIyGm4CNl_HH3lOecgO8YmifkuyMRH_4mcmoxmTA497KHsUzk_nahHYNaa9atxuLViWeHVMmFsk2kY2Os18_aNuqYkFUsSw6OUl1U0BGK3zQ_WFDMToeQsuvb0DJQKmXm2oLdP-Cw5nVbpTHqZiFJJmbdvNDIYAo2VoeKgZrbNGJxfidwYEIZjrcJYfMd4FReg2zgZBZ5G6aawrdntqQE_TuDx6OuoZRM3vCdTIM5tCnOD0NbZHifziqxvngZS3mEBq0-BFXzSVexGKfPrIoVi1xum0E-aI-NL9Vq_hd_bRoih_Fkcna1h9ikn1JH0qyO9_DZiQ9MJx_g0m00)
 
 
 
@@ -583,7 +583,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/PP31Qy9G3CRlxwy8lQjjjvr4KDIDWgXikxaTihxObRLvafSgO_Y_BotpD788uVlb-qBcKL6qQnlNOir7mPPWjHojCQhJMXk2lGJVbLe7Xg87eegDdP0hYPK4FWczjULk-rYirjlNOh6vISSG-hR7YY1p9Pu6curvG7VogEGXJ_E7KNhd6gg8lGDu4YA66Imiyqnl_6pG35uKsNzyEsF-IBxu6YluiHKclGJvWWPvc07GUw4ORJ79ql5Ga_m-cGvY93dRLOV_K9OcxprpTLStjn3xooy0)
+![Diagram](https://www.plantuml.com/plantuml/svg/POxDRi9038Jl-nHMxhH9MauL4eYVAX82rFPMUd2p9eq8NkHrG5N5kzS9vLJvCBBc6u_7KL6Kpxx6oXsmvftWWM0s7SmngjDQ6uAD1D-MMWU6eWEYYgsja2k9bGI-2Bt9TBrQ5BFvwgsOB6_MBeHEDbWHPAx4OtzcQJUWFNfKyf2d-N2GFhY6AcBl09w5Y6444-iyqPPV31h1goBxpszdp1zvVHj-BCAavo1xQ93x7G2z5uhHWacMtlLpdpycJxqPIKxsrVj_A4kJZuwvk8iRMycrunS0)
 
 
 
@@ -622,7 +622,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/RO_D3e9038Jl-nGD3o1Wl8a6V-AHYqVZeM4RtB3i9jqYCOPt5nTkcgQ7cNwPJCiWoD9tLXL1NfRsoWtQO7EUbh63jm8uOjqsx7kdJzvwXk5XX2R_ufrKs14SsA1LeohI9KECM8BhLsYeI0RFxH8S4zriWKKNDG1gpHG2x239irMSTBr9jl4OY9_4SFk5yYovpqnj3JdvpopGE5KioUdfsmy0)
+![Diagram](https://www.plantuml.com/plantuml/svg/ROxD2i8m48JlUOgb3s2hUBDA_S5ZBnx5mz8iDJHDOBDQHFhkrgGtPTd3p7mCKmL15ZTeWwqgWxmixLIIf-aPUtWhW0CsNSl-uVJHMyymt8tGv9-zanfxWZqRj6fKPJvtY15BSFaA3JN9uBcRYsEZInPOT543eDPC8S0MicMnY9UlrjacXe7uIGpNNsXPPBV4DDQGa__C38tJn8gSJaC-)
 
 
 
@@ -656,7 +656,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/TP312i8m44Jl-Of5xxQfnIAjectjIVo7q2mbs2QoIHMH_hib14H4beNb3SmCUx1Ea1k7dXNMFNlSC_sGIdJrl2G6U340ZUvXwEflW5AqruxCg6LbUaEmFAsRfAczTbOQ0-NRR5CddZP6kq3ZEisEVAOJcrWHXKYdN8zGZTQP0IuXhHHaGvcl5ZTIWw1dQ2Ea9BGMTh3WySfFbAIBt8iMwOx4Sv_tSR3O6Yt_U_1VZoGFdG-evVojDm00)
+![Diagram](https://www.plantuml.com/plantuml/svg/TOx12i8m44Jl-OgbthM9eaXLQbjx4lyXcAK4sqGsgIBYlrlIW8Z8ih0x0pClTrwIDtUbPSCspZzQtB7nhOObsS6J0HZqTqkNS0CKydnfoFP6bRQr19F3l1Pr5RoZDXXLlbujAn7KsXeVrRHQhFPyK5_inJQpMEcrRn7AtddRmIcs5P9SXFcYk9Bk93qYZLIAq3dOGiBJQPYPM2HPC1tI3ObdeU-JuF1iZVgVmNypH1QPSpHgX7e3)
 
 
 
@@ -688,7 +688,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/VP0z2m8n38Rt_egWgw2dwE87vzTDuk8e3j66izXhIvjJHFplrhCk3Ww1a3plcuyyC7gkAoqcWU-QPiBSfC9o5SDZ1Gy14CXVoJSfm09FbzBRsiYbrTP3koYAmRhNz3RAKAgkHyEizwu-nLDCkicR5Mk2PHtOLh2raa8QrvWRuflr5z1eqZ1qBeDzn4vUELRMm1HQS-TWzrafQnt6Nx3_3-n_GNc4VJYZemX8P3nYe0xy25UfyH6zByZ9oFYa5m00)
+![Diagram](https://www.plantuml.com/plantuml/svg/VO-x3i8m34NtV8K5AnAq21OUAgzEY8KHCHXYbQXj4YM62g7-EwKD2mE39J_ElROJp-XOLr9X9kQUdmKjHLTkct1Omai0U78FScqAiCPhdZbprt9Z2kEWdwRfU3TgPtkbANHtqqaq-dHhKOlvC7Ypue9WS_TiIZWOIJwiQyqrSMLS3WNgi0ojZU3KO5UdB2kZOG6zbRLmx4wAUkVP5up_WV4Nb1Su-HjQQW29Z1VqD80VuJOCEj7dWuIqx2vz0m00)
 
 
 
@@ -721,7 +721,7 @@ d.add(n.group("node1", "node2", description="Group A"))
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/VP312e9048Rl-nI3tJErgD32IklIhITOt44MrrtPNP48tprt4QHB30F_pC3t_qnkBDMsRmN9Z7qBF1CvC4xhOcfDM_WGW5ghllCAu4ghnisItPHG6bRbuRuhZ_xsv1BdRLpkYoIUjYCPIHREQCkjG7YvWS73KSriv-aIxQ1q0vNeZKKzErB6D1e39mYYpTfN66-3r1-bOXWjCbvaadhtt_GCJQLvPxcIZkSZmEKFoyNFKRBfGLy0)
+![Diagram](https://www.plantuml.com/plantuml/svg/VOvH2u8m58NVzoikzPwfHOKMLbellVKBXhl8S6soJIJ2_vwRWlGIbmldt0lVEPcnL5lPCKuhaXhx5dWYeys7rVG57m9GQTKsNW5SQ5axBzbL2QLXMUnls-BWVmykSRf6nIwFe-7QavwamOIst0g4fpCCxevgfZXFbsWxfMieHMiiwYcHCgRH63Z28bol_0JHPf7ufrGCmrb6iumJd_xRdg4fDMyiLzBnV0Ku_s6v-XbADhRy0W00)
 
 
 
@@ -761,7 +761,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/TL8zJyCm5DppAvx2YjBKvIE8WWfDCtK0CZ0W1gT-JQswTcIxH0Nbl-EwYLGrYYKFlZlVFPqzCvPgkz-9O6hiGU1p86l6QPcwhUaE_WA0LxhQbbhj9PiheJJK6sxHuH9jhVJMQ_gggyKa8rdgkCPjW_e7zP0qywkLHenQMb23WyP9ThjuyDoIIsnHihXF9wJpM7EDDHLYE76UfkJIOtv74f9uZoQOZjf6BBS28JyU61G7-502svgyVTS3s_ssSPGnZSR04uJZE8gZSHIFo4tuwCbr3LyCpKhpod8bZwAidJRyFabgB7gQJuVbliMJgZbBvjAYbbGCn9FpU5fLFUyNXvrx0p0tWDdG2XtTlSSrN5nxKyQM6lFtPJTI4ynGClUT_W40)
+![Diagram](https://www.plantuml.com/plantuml/svg/TL7BJiCm4BpdArRXYjBKvL54GOKyJZr0U-20E3ZrDhNgsf5jY0hAl-CwYLIrYgKzU6OyinhFZQNQoffnMWOpOmy2duFschhHT0z_0S0hNUzAhRubIvHG6kejj-XmYRPMUkSrbwghR9AJF7LSuyQW_a4z9CtzwQGHevOMrE2WyJI_pHuyj-0IEvHaz-c4z1uRhh6cGWmd9cbApZsIEp8bK-_H1BDHruZbLY2iZXS6nG6MIc1NaxVlUs3xtowECgRH67Y2S1n7SJIEuX6v2HyzkQdXaw5PQrvPhkHHb7VRXb-jfCRYGlFXi9LliLKr9ybSMjIIYe5uSXfFg-h2-yLXfzu0p2rWjhH2H_V_SGrdpzwKiQN6rVkYNwa9vYXPsyq_)
 
 
 
@@ -803,7 +803,7 @@ d.add(n.group("web1", "web2", description="Web Tier"))
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/TLBBJiCm4BpdArRXYcYSDd1egVhqYHj871079rwrLbqxiXsY2lNVSOmBAAHUxMLsPXyZBwnZnZL7cSoiEqcS9whbWkqsFWqxmcS2i6BLOMTqe_XQIstWXYwxy1M5hjNc45W3lEsOvdGJQaz2OKH9SL-iCu-UVLeq7sYkDQ3XzHjCyYvYWuvVNzMFjmKj-lg75Q7BR_qvcOtYtKuuYK0RAK_mt44SeWdHaZ3aSd5jD6yg9xIAindd1gs5HqX9TXTYb4_IQIYsM19u-qyXMVh-myW76UJ2uELGFS_IMx1xLgC7ENEiP1Q3ecyEHriPKOULlVuLItWHQFvi-Bl9D9gpGCNzt_W2)
+![Diagram](https://www.plantuml.com/plantuml/svg/TL0xJyCm4DxpAqvXHJHs6nXQK9-Us41YG0nEV2fMWntP3b65-jzn71TGI7swmT_ZNalhk76g5PBlauLrnmeValwxzMdu1tmb06jU7lP6DqfiTAKDNB5L5vvHw5fj3a4rejjD6MNRm3rAXH4b-Ms-oJnwycdHVAAvL825Dommert40fs-lkYVxdAM3_rtQy9MlV-KB2PnRoTTXS2QgZh2KmS9Y4U89mbDpXlNHekcT5Ahs9iBOT1Qk8UKP3SX9dIMpWFPOa7WzR-4PEdRZuAEAiXP8OendcRfDTXtNgC71NUyu1Q3OtWSWROqiWuZU_yB5l0iqVoPy7UIUJpE4fNeb_y6)
 
 
 
@@ -855,7 +855,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/ZPHTIyCm58Rl-oiEzTRLDb7P6CBi5mWAeWF18IDjmbRCsf2c3XN_kytMkTellIl9UT_pdYT9PxaYKXKRRgX4SGRpjMHiD4-OX2SMmRKGF8c9IhBKIBSq8IluD02IL36PCWMBV4q4Wok8ULRGKw0iZsKYT7svQDvKTURBj5IL7zjClWBTVEnS0EACPr8NdeHXuBdOdEwM2QMIvRdUS6pBjXpBFaFdrMQZXN_tN6tm21PjfMERhLYt6Q7W4axIcCbzjgzQFYB4Kca2pP3UEBZq9ZqXqK386aRGR0SI8ylP9mATm-aiw1Yfx02FJBwLgUjwrAbt1lMefiUTUZIenssYb2ZIZTHr_I1qUv3YeNClBUiiks5X3MiG1zOu1WV6Uk2gWaPB8PCDaUzTTKWVpE55w9aZahCMgllAm7ThhfBjRaYdg_CVruVAuE2gyQzaLeWMyc0SNWIJteiA7YzozOlhaT-HqnyzS8X2l__az0YDHaUqJIY7LZz_dT6eV3fJuykOiPIM_wvl)
+![Diagram](https://www.plantuml.com/plantuml/svg/ZPHVIyCm5CNV-oakzTNLDb7P6CBiFn0KH0U2GqRQX2tOjIND72f-TvkrSxLDgsybkUVSStz9EYia4JBTKKvMXkGoOJ1V2yP6Syu4FB48hlCyuJ6HF4kDgWu-3G2UIYPI9c5Hh4dEu0hY9DlIKw2iY0NFLNsvQDxKTURBj5IL7xjCl0BTVEnT0E8ioOGgF0d3m7EnETql4qe5AmgruTYMRJcMVOREwyrM2__kkTv88bXqbOvjTcBTPeI2InAInanKsRuQ-KYUBwKYq0xfZODBRz8J4Ws4R604nNOWCRASAX6e78wsG3DIsG4UcNWhKpVrIAjt1lMeeSTQFHhKuovHIYJH8tLTFmZT7gHuwDnBooPBFIoiO0tYm0h7uC1O3LnNq6YP2xuXubrNXzJ175w4cZaY1UkWkgyDVBVXAjZ-XcXTdV-uFjG61rU5VoMoRTv17ep3Ys3IUr71IxQ5_CNroE_8wOyUE4IXttzoQeHMeoFQDfH3gv-_pcXKFfsfyMNCM4ghtz8t)
 
 
 
@@ -899,7 +899,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/VPHTQy8m68Nl-ok2tevfKX67RcXhPJ0slDl562CsBwuOcvAaap7yxqlJR3CpjIMbRSvptd3oCLUQIbtlUJHJ-fF3NLGUM46tIzCatQEl2A4Iz478dNr7AA7vRYj5NR9KS25HFvjaYzNOz1rDKo0_G7P9L_QoqcCq6xYAkj0Sq4Ez0MbAWK8fhvK6wORYZI4NfPQ2lrMSbk3AKCOaA8LkKGyFh-qz8AFUr7OoKBaiAbs8iX6aBO_M3UyaUzfKm-Zbt0WFUrV_BHwj7E7UwobEWZZkn8cFnq6STEBn3muwPo6MD2DNxxG2yvDHJJTKmPbRGxTEnvEGcmV8D_FPaJ2-aF2pXT5Jw-KqhMCWOXoCs7dyHjpY98ZZJfpuU1p4IISU-_WeYCUT-EWlrsOFL2xAtEu48-kdasoSteH3l5-WTgALlqQz5UUjdykracIPhPAB4xOMWlkpvMNl9UdbCdNxUGubCmV9Dm00)
+![Diagram](https://www.plantuml.com/plantuml/svg/VPDHQy8m58NV-oj2VHtJf28EtT3Moc1i-BQ7CKPiBgvOcvB4oHZ-zxL9jfcPsDBIDESxDvpapgIYGjK7Lj9DD9NgiuAxo0mNxIFe3dr52DMW3bnizJT2AIss6y7tDSjunGNgvUDylXorSyVsaI0-G8IaItrfwJ6Qzcr5LQeAqCD-3Q8j1H9brLug47OfpXeANYl1gxUceZNOCfGn0LAYMnJZmRM--sGOJ_Ga0rc8ib4bhpj1PdYqwdWhsT6k6aOlvqPu45_zjtZKSeJZrrESU74Sn8cB9rwS1F7a1mTLC1zBkfNBTzf0-vDHHTTKmfbRHnkduqd8tGl4MpiC98ml9FoiOVHalAp6E7eYnjw8hSTln0OdNXm7SUBYYHSdGJnnyQ4NJuBuy2_NhWSQ6sMXEw6LzR9nFifk_27Upv7PQEcUKUV4EUVdSgqqNUJBzEA6hJYltDroidUIT7APs7wUGSrCntu3)
 
 
 
@@ -935,7 +935,7 @@ d.add(n.group("desktop", "laptop", color="#E3F2FD", description="Computers"))
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/VP91Jy9048Nl_HMJUXMarHWDCO4KYIJODFR0WNXOkvEweTtPx2vmCFntjotL2iNRPdVUDs_UxCHOfkssB3mhR87mGYL2Z7PFUkF9FHSiXoyFO94ci3QVJ24yGLRGbby3HvDfeQmWwIxzXRIe9Lf8KUz4Xf1esWcEsdyVEu9ieB1diYR2gNurZI4YAJ6hRlnnNLCInnBM9wKH-t1UNwkt1dxeD2X-6Z3EDHfJAOB7S1ZSFmo3uUWcl3l2JwZrxCjft6tT73LjtMomxWK6_baKAp4Ny5QB6d_E7JENz2C7QACrbZJByOmOJzEMv5usbjH5skZSp-meIQ8MKZ3r7wDdfcMjQFLA2tavah3FHD98VXUMkrZLSLKP5QIhggldstaud_LlAA9ILQ4Q_qyKtP5QUFLX1uDsYGTlWfAxR_uD)
+![Diagram](https://www.plantuml.com/plantuml/svg/VPB1Ri8m38RlVGghkmv6ksdQX2Q1oj2GM5Mj1mveXwonM4GRHqc0myIxBsteng3i5jd-Fzk_CpAMQIjtNB1LO8Kj4LweGaZHxaYl0v-1hm1WbcUmD9zC8Jn1KTA6NmD7KsYXh23fWk5CMjGIBUIejw90o3Hj1KSTlWyTGNeex9XiY72gNunJI4XABEf8E6ngAk9OmVAaD64VRjRNEkVX-wC6vKy3nhb6Osf5z1Zte_k7VjGVtCHt1_W9jTbzFawFM_kdfetR3PQTm2Wyis8XfWBU6f6Vpqt7p2Nzm05QQuqbpLPuHap7UKjocRKbTP4sE9zdSf1aIGifcVgFqR7Jl56qUgM5l6n9t3L4vYM_1rivMzNXL0MLfEkgg-VRQJoTT5yeeKhLffhmZnN7AxNm-iFsUkqHzy489VV_-Hi0)
 
 
 

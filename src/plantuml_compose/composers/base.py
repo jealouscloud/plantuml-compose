@@ -185,7 +185,7 @@ class BaseComposer:
         # Determine embed type from the rendered output
         embed_type: str | None = None
         for marker in ("@startjson", "@startyaml", "@startmindmap", "@startwbs",
-                        "@startgantt", "@startsalt"):
+                        "@startgantt", "@startsalt", "@startnwdiag"):
             if marker in full:
                 embed_type = marker.replace("@start", "")
                 break
