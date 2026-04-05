@@ -525,7 +525,9 @@ def _render_class_note(note: ClassNote) -> list[str]:
     else:
         prefix = f"note {note.position}"
 
-    if "\n" in content:
+    # Member notes require multi-line form — PlantUML rejects
+    # the inline "note right of X::member: text" syntax
+    if "\n" in content or note.member:
         lines = [prefix]
         for line in content.split("\n"):
             lines.append(f"  {line}")

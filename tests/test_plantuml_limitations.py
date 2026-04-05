@@ -853,3 +853,63 @@ end note
             "Gantt 'note bottom' stopped working! "
             "PlantUML may have changed behavior."
         )
+
+
+class TestActivityInlineGradientLimitation:
+    """Verify that activity diagrams don't support inline gradient colors.
+
+    PlantUML activity diagrams accept inline solid colors (#color:action;)
+    but reject gradient colors (#color1|color2:action;). The | character
+    is interpreted as a swimlane separator.
+
+    Gradients work in <style> blocks but not in inline action color syntax.
+    If this test fails, PlantUML has added gradient support for inline
+    activity colors and we can remove the limitation note.
+    """
+
+    def test_inline_gradient_is_invalid(self, validate_plantuml):
+        """Inline gradient on activity action should fail."""
+        puml = """
+@startuml
+start
+#4CAF50|#81C784:Action;
+stop
+@enduml
+"""
+        assert not validate_plantuml(puml), (
+            "PlantUML now accepts inline gradient colors on activity actions! "
+            "The Gradient class can now be used with activity action styles."
+        )
+
+    def test_inline_solid_color_works(self, validate_plantuml):
+        """Inline solid color on activity action should work (positive control)."""
+        puml = """
+@startuml
+start
+#4CAF50:Action;
+stop
+@enduml
+"""
+        assert validate_plantuml(puml), (
+            "Inline solid colors on activity actions stopped working!"
+        )
+
+    def test_gradient_in_style_block_works(self, validate_plantuml):
+        """Gradient in <style> block should work (positive control)."""
+        puml = """
+@startuml
+<style>
+activityDiagram {
+  activity {
+    BackgroundColor #4CAF50/#81C784
+  }
+}
+</style>
+start
+:Action;
+stop
+@enduml
+"""
+        assert validate_plantuml(puml), (
+            "Gradient in activity <style> block stopped working!"
+        )
