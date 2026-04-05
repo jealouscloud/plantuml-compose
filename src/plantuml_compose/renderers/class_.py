@@ -26,6 +26,7 @@ from ..primitives.common import (
     Style,
     coerce_line_style,
     coerce_style,
+    mirror_arrow_head,
 )
 from ..primitives.styles import ClassDiagramStyle
 from .common import (
@@ -428,7 +429,7 @@ def _build_relationship_arrow(rel: Relationship) -> str:
         # Determine line character from base type (solid vs dotted)
         line_char = "." if ".." in base_arrow else "-"
         has_arrow = ">" in base_arrow
-        left = rel.left_head or ""
+        left = mirror_arrow_head(rel.left_head) if rel.left_head else ""
         right = rel.right_head or (">" if has_arrow else "")
         if style_mod or dir_mod:
             middle = f"{line_char}{style_mod}{dir_mod}{line_char * (dashes - 1)}"

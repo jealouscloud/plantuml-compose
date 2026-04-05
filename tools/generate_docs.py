@@ -151,33 +151,30 @@ def batch_verify_plantuml(diagrams: list[DiagramInfo]) -> dict[int, str]:
             puml_file = tmp_path / f"diagram_{i:04d}.puml"
             puml_file.write_text(diagram.output)
 
-        # Run plantuml once on the entire directory
+        # Run plantuml once on all files (pass file list, not glob)
+        puml_files = sorted(tmp_path.glob("diagram_*.puml"))
         try:
             result = subprocess.run(
-                ["plantuml", "-checkonly", str(tmp_path / "*.puml")],
+                ["plantuml", "-checkonly"] + [str(f) for f in puml_files],
                 capture_output=True,
                 text=True,
-                timeout=60,
-                shell=False,
+                timeout=120,
             )
 
-            # If there are errors, we need to identify which files failed
-            # PlantUML returns non-zero and prints error info to stderr
             if result.returncode != 0:
-                # Re-check each file individually to identify failures
-                # This is still faster than checking each one separately from the start
-                # because most diagrams will pass
+                # Parse stderr to find which files failed.
+                # PlantUML prints "Error line N in file: /path/to/file.puml"
+                failed_files: set[str] = set()
+                for line in result.stderr.split("\n"):
+                    for pf in puml_files:
+                        if pf.name in line:
+                            failed_files.add(pf.name)
+
                 for i, diagram in enumerate(diagrams):
-                    puml_file = tmp_path / f"diagram_{i:04d}.puml"
-                    check_result = subprocess.run(
-                        ["plantuml", "-checkonly", str(puml_file)],
-                        capture_output=True,
-                        text=True,
-                        timeout=10,
-                    )
-                    if check_result.returncode != 0:
+                    fname = f"diagram_{i:04d}.puml"
+                    if fname in failed_files:
                         errors[i] = (
-                            check_result.stderr.strip()
+                            result.stderr.strip()[:200]
                             or "Unknown PlantUML error"
                         )
 

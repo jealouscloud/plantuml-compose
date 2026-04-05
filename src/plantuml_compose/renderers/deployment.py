@@ -5,6 +5,7 @@ Pure functions that transform deployment diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
+from ..primitives.common import mirror_arrow_head
 from ..primitives.styles import DeploymentDiagramStyle
 from ..primitives.deployment import (
     DeploymentDiagram,
@@ -280,7 +281,7 @@ def _build_custom_arrow(
 
     line_char = "." if ".." in base_arrow else "-"
     has_arrow = ">" in base_arrow
-    left = left_head or ""
+    left = mirror_arrow_head(left_head) if left_head else ""
     right = right_head or (">" if has_arrow else "")
     if style_mod or dir_mod:
         middle = f"{line_char}{style_mod}{dir_mod}{line_char * (dashes - 1)}"

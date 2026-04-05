@@ -139,10 +139,10 @@ print(render(d))
 
 ### Stereotypes
 
-Pass a string for simple stereotypes, or a `Stereotype` with a `Spot` for a colored indicator:
+Pass a string for simple stereotypes:
 
 ```python
-from plantuml_compose import deployment_diagram, render, Stereotype, Spot
+from plantuml_compose import deployment_diagram, render
 
 d = deployment_diagram()
 el = d.elements
@@ -150,8 +150,8 @@ el = d.elements
 # Simple string stereotype
 lb = el.node("Load Balancer", stereotype="nginx")
 
-# Stereotype with colored spot
-primary = el.database("Primary", stereotype=Stereotype("master", Spot("M", "DodgerBlue")))
+# Another stereotype
+primary = el.database("Primary", stereotype="master")
 
 d.add(lb, primary)
 
@@ -251,7 +251,7 @@ b = el.node("Server B")
 d.add(a, b)
 
 d.connect(
-    c.arrow(a, b, "custom", left_head="closed_triangle", right_head="diamond"),
+    c.arrow(a, b, "custom", left_head="hollow_diamond", right_head="arrow"),
 )
 
 print(render(d))
@@ -408,9 +408,16 @@ print(render(d))
 ```python
 from plantuml_compose import deployment_diagram, render
 
-d = deployment_diagram(
-    layout="left_to_right",    # "top_to_bottom" (default) or "left_to_right"
-)
+d = deployment_diagram(layout="left_to_right")
+el = d.elements
+c = d.connections
+
+web = el.node("Web")
+app = el.node("App")
+db = el.database("DB")
+
+d.add(web, app, db)
+d.connect(c.arrow(web, app), c.arrow(app, db))
 
 print(render(d))
 ```
@@ -491,6 +498,17 @@ d = deployment_diagram(
         },
     },
 )
+el = d.elements
+c = d.connections
+
+primary = el.database("Primary", stereotype="master")
+replica = el.database("Replica", stereotype="replica")
+app = el.node("App Server",
+    el.artifact("api.war"),
+)
+
+d.add(primary, replica, app)
+d.connect(c.arrow(app, primary, "writes"), c.arrow(primary, replica, "replication"))
 
 print(render(d))
 ```

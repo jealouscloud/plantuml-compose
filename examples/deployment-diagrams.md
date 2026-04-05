@@ -154,10 +154,10 @@ print(render(d))
 
 ### Stereotypes
 
-Pass a string for simple stereotypes, or a `Stereotype` with a `Spot` for a colored indicator:
+Pass a string for simple stereotypes:
 
 ```python
-from plantuml_compose import deployment_diagram, render, Stereotype, Spot
+from plantuml_compose import deployment_diagram, render
 
 d = deployment_diagram()
 el = d.elements
@@ -165,14 +165,14 @@ el = d.elements
 # Simple string stereotype
 lb = el.node("Load Balancer", stereotype="nginx")
 
-# Stereotype with colored spot
-primary = el.database("Primary", stereotype=Stereotype("master", Spot("M", "DodgerBlue")))
+# Another stereotype
+primary = el.database("Primary", stereotype="master")
 
 d.add(lb, primary)
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/3Sn12e0m30NHlQS8kb7m2295N2fuXQy9HMXJI2lexUrw7kDoWPKdXaOJ2xLR0jE20Bt4MfeczRU-yzmm2avaeSFk2FjgeduVkpMn5rl28mD5v296LJjHhjCV)
+![Diagram](https://www.plantuml.com/plantuml/svg/3Sp12S0W30NGkrC4vn2Hddle2hzDA896Y2cqszVpWrUcm_pfBUXWeRWFC6req4iiKafwLtrp3Wp7YIbqMEsmRr77TB5bHPHNyGC0)
 
 
 
@@ -275,12 +275,12 @@ b = el.node("Server B")
 d.add(a, b)
 
 d.connect(
-    c.arrow(a, b, "custom", left_head="closed_triangle", right_head="diamond"),
+    c.arrow(a, b, "custom", left_head="hollow_diamond", right_head="arrow"),
 )
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuShBJqbLK0fEBIfBBL9mL4BbEobnGLZnZWerThgwMWfGhfE2bK9oQN59VYwNGsfU2j0W0000)
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuShBJqbLK0fEBIfBBL9mL4BbEobnGLZnZWhvkhfs2b2UauALGd9fSKb-BfT3QbuAq1m0)
 
 
 
@@ -453,13 +453,20 @@ print(render(d))
 ```python
 from plantuml_compose import deployment_diagram, render
 
-d = deployment_diagram(
-    layout="left_to_right",    # "top_to_bottom" (default) or "left_to_right"
-)
+d = deployment_diagram(layout="left_to_right")
+el = d.elements
+c = d.connections
+
+web = el.node("Web")
+app = el.node("App")
+db = el.database("DB")
+
+d.add(web, app, db)
+d.connect(c.arrow(web, app), c.arrow(app, db))
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSf9JIjHACbNACfCpoXHICaiIaqkoSpFut98pKi1oWC0)
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSf9JIjHACbNACfCpoXHICaiIaqkoSpFuyhBJqbL24zDWZ0S2mguKX9B4fCIYrCLN9ouW18AkhfsO74W1hE1mWwfUIb0Gm40)
 
 
 
@@ -542,10 +549,21 @@ d = deployment_diagram(
         },
     },
 )
+el = d.elements
+c = d.connections
+
+primary = el.database("Primary", stereotype="master")
+replica = el.database("Replica", stereotype="replica")
+app = el.node("App Server",
+    el.artifact("api.war"),
+)
+
+d.add(primary, replica, app)
+d.connect(c.arrow(app, primary, "writes"), c.arrow(primary, replica, "replication"))
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/VPBBJiCm44Nt-GfBx25fcgIHAbJgs2jsy0Dkx0OBnrESYQg0-kyuaNa8v6hapVZCdOVkRa3XSEnDiXrmCke-aUfaOEgLnKQBpecUV2I4x4NxsZaOhQHWm97pYqRbynQaMe3_o0tB-Oetoz-ZjYfaixegcvNFNlpplVLHj1YJu9pNT1rWAL0SnA2km3bB__PZPP6bQP1e3OmoEk-65wmEvD5l7kzKp1780S69BivIjcOqi6-Z6kFtsh07NWRI0bvRj67LzmaTd0FvQ-sgc6F9Sh3ufDyLoR9GSzkB0PMBwTCDAsdzKpiRWnp0oAzovpsYMn6VZz5zli2NP7iNZ8KQlSmY9iapd3pRJSbEMUdjzma0)
+![Diagram](https://www.plantuml.com/plantuml/svg/VPDHRu8m4CVV-oaQzgmJ5HH3Y0hjqnwMRUzBfPKrWvQLCi8Ml_iALbosO9g-tFtk_dVbpxRIHEcwo45OwJPd4Q2ip6LRCA4JJZ952lWD8DoJz3rJiXOqbhbKi7dZcfcua9Jrm7_a3Ytm72Tzxe4BPgDkiFAJkOcUp3NQ_4XIFTO2Onp4ImjJeic1LEm6l42plth8zzpPpBP8SrdJqNdNs4E19Ozcyt4bhpkMhBHK91jdOxH4iMK_QbQFlzSQxR1lII7rhKKJj1gUKCd6ah_MNddTwQDO2ltClnXqNLipBKYbcHhh7w-H7mVNsiuOy21pUYbNnYCy9UFpeNY_wE4J2E-jiJJNfatVZC8NMHesQy7mKHyLBuXgOHYUXukYQ-x9weMXLJR9tddEhYpXCrEVJ3dzD8EX75BoQKEKOqOmqEiPWfD9D2XjOAECYojm2NJ9YzG6MYdDfG1R9gZvINu0)
 
 
 

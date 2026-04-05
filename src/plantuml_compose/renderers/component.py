@@ -5,7 +5,7 @@ Pure functions that transform component diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
-from ..primitives.common import sanitize_ref
+from ..primitives.common import mirror_arrow_head, sanitize_ref
 from ..primitives.styles import ComponentDiagramStyle
 from ..primitives.component import (
     Component,
@@ -471,7 +471,7 @@ def _get_arrow_for_type(
             base = "--"
             has_arrow = ">" in arrow
 
-        left = left_head or ""
+        left = mirror_arrow_head(left_head) if left_head else ""
         right = right_head or (">" if has_arrow else "")
         arrow = f"{left}{base}{right}"
 

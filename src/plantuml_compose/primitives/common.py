@@ -384,6 +384,27 @@ def coerce_arrow_head(value: ArrowHeadLike | None) -> str | None:
     return value
 
 
+_MIRROR_ARROW_HEAD: dict[str, str] = {
+    ">": "<",
+    ">>": "<<",
+    "|>": "<|",
+    "}": "{",
+    "}o": "o{",
+    "}|": "|{",
+    "0)": "(0",
+}
+
+
+def mirror_arrow_head(symbol: str) -> str:
+    """Mirror an arrow head symbol for use on the left side.
+
+    Some PlantUML arrow heads are directional (|> vs <|).
+    When used as left_head, the symbol must be mirrored.
+    Symmetric symbols (*, o, #, +, ^, x, 0, |) pass through unchanged.
+    """
+    return _MIRROR_ARROW_HEAD.get(symbol, symbol)
+
+
 def _validate_color_component(value: int, name: str) -> int:
     """Validate that a color component is an integer in the range 0-255."""
     if not isinstance(value, int) or isinstance(value, bool):
