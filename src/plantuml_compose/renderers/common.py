@@ -419,9 +419,14 @@ def render_element_style(style: StyleLike) -> str:
 
 
 def render_stereotype(stereotype: Stereotype) -> str:
-    """Render Stereotype as PlantUML format: <<name>> or << (C,#color) name >>"""
+    """Render Stereotype as PlantUML format: <<name>> or << (C,color) name >>
+
+    Spot colors use render_color() (not render_color_hash) because
+    PlantUML spots accept bare named colors (DodgerBlue) or #hex (#0088FF)
+    but NOT #namedColor (#DodgerBlue).
+    """
     if stereotype.spot:
-        color = render_color_hash(stereotype.spot.color)
+        color = render_color(stereotype.spot.color)
         return f"<< ({stereotype.spot.char},{color}) {stereotype.name} >>"
     return f"<<{stereotype.name}>>"
 

@@ -676,9 +676,15 @@ from plantuml_compose import class_diagram, render
 d = class_diagram(
     hide_empty_members=True,      # suppress empty field/method compartments
     hide_circle=True,             # remove the (C)/(I)/(A) circle icons
-    namespace_separator=".",      # control package separator (None disables)
     layout="left_to_right",       # "top_to_bottom" (default) or "left_to_right"
 )
+el = d.elements
+r = d.relationships
+
+user = el.class_("User", members=(el.field("name", "str"),))
+order = el.class_("Order")  # empty members hidden
+d.add(user, order)
+d.connect(r.arrow(user, order))
 
 print(render(d))
 ```
@@ -737,20 +743,29 @@ d = class_diagram(
     title="Styled Domain",
     diagram_style={
         "background": "white",
-        "class_": {"background": "#E3F2FD", "line_color": "#1976D2", "round_corner": 5},
+        "class_": {"background": "#E3F2FD", "round_corner": 5},
         "interface": {"background": "#C8E6C9", "font_style": "italic"},
         "abstract": {"background": "#FFF9C4"},
-        "enum": {"background": "#F3E5F5"},
-        "annotation": {"background": "#FFECB3"},
-        "package": {"background": "#F5F5F5"},
-        "arrow": {"line_color": "#757575", "font_size": 11},
+        "arrow": {"line_color": "#757575"},
         "note": {"background": "#FFFDE7"},
         "stereotypes": {
             "entity": {"background": "#FFF9C4", "font_style": "bold"},
-            "service": {"background": "#C8E6C9"},
         },
     },
 )
+el = d.elements
+r = d.relationships
+
+user = el.class_("User", stereotype="entity", members=(
+    el.field("name", "str"),
+))
+repo = el.interface("Repository", members=(
+    el.method("find()"),
+))
+base = el.abstract("BaseModel")
+d.add(user, repo, base)
+d.connect(r.implements(user, repo))
+d.connect(r.extends(user, base))
 
 print(render(d))
 ```

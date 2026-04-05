@@ -155,7 +155,7 @@ d.add(svc, ent)
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEIImkLl0lIaaj2aujAijCJbMmiIc6iEpieDAXG06Wi8A6guwoItvAUcgHKqvfggP2Qbv9Pacb0b2TGsfU2j0u0000)
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEIImkLl0lIaaj2aujAijCJbMmiIc6iEpieDAXG06Wi8A6guvBVafwQf5JJccgfa9gNabcIQK2K9b3QbuAq3G0)
 
 
 
@@ -748,13 +748,19 @@ from plantuml_compose import class_diagram, render
 d = class_diagram(
     hide_empty_members=True,      # suppress empty field/method compartments
     hide_circle=True,             # remove the (C)/(I)/(A) circle icons
-    namespace_separator=".",      # control package separator (None disables)
     layout="left_to_right",       # "top_to_bottom" (default) or "left_to_right"
 )
+el = d.elements
+r = d.relationships
+
+user = el.class_("User", members=(el.field("name", "str"),))
+order = el.class_("Order")  # empty members hidden
+d.add(user, order)
+d.connect(r.arrow(user, order))
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/9Sox3O0m30N0tbDu0cR8AY5vWANyP3yAjWU9zefBmUoyUvE6WygfRkT5hUOej3aaG0six9dJTPFBAXHzyT6EliFZfs9U6YHXrAzx0G00)
+![Diagram](https://www.plantuml.com/plantuml/svg/BOt13S9030J_hc8RI0CyedJ0YmAEkuLOEbyYspmGedSGvBap8-qIMJmVrgNpbiWDhlSrqTHPKxSXgpQ2jkSJHhlIuu-gUksKsai4Ba77Iu1HZ3WXqkLzkBCtkloAQPgFkN2qx-i7)
 
 
 
@@ -815,24 +821,33 @@ d = class_diagram(
     title="Styled Domain",
     diagram_style={
         "background": "white",
-        "class_": {"background": "#E3F2FD", "line_color": "#1976D2", "round_corner": 5},
+        "class_": {"background": "#E3F2FD", "round_corner": 5},
         "interface": {"background": "#C8E6C9", "font_style": "italic"},
         "abstract": {"background": "#FFF9C4"},
-        "enum": {"background": "#F3E5F5"},
-        "annotation": {"background": "#FFECB3"},
-        "package": {"background": "#F5F5F5"},
-        "arrow": {"line_color": "#757575", "font_size": 11},
+        "arrow": {"line_color": "#757575"},
         "note": {"background": "#FFFDE7"},
         "stereotypes": {
             "entity": {"background": "#FFF9C4", "font_style": "bold"},
-            "service": {"background": "#C8E6C9"},
         },
     },
 )
+el = d.elements
+r = d.relationships
+
+user = el.class_("User", stereotype="entity", members=(
+    el.field("name", "str"),
+))
+repo = el.interface("Repository", members=(
+    el.method("find()"),
+))
+base = el.abstract("BaseModel")
+d.add(user, repo, base)
+d.connect(r.implements(user, repo))
+d.connect(r.extends(user, base))
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/ZPB1JiCm38RlVOf8t45TwKgb2KrhcnCdU0AlDIKYTL3YCWtKToSBgJO95L2KGtv__cKxtZe6o-EW4rQiKJpnKMCdQZE0ecJZJi_xfDNWNAsWjp28pqI87RIllJKZTPNHneh3YsBqUW03yPEvQZAvadM8FIZ2gAPbiQvNGNtyXYsX5RbN9dyLCTfdQ779jRfhrbKPOj8GXmQ4Oj2gZHQmTsoXvIK7AMLPtKOOQHmMmQp9vLmO41a6LeQMVPjgbqNypKUXN-n2vl9ixOtnbsBhffXhiDOS8danqY8_dVD8r0UAD8qvrqZ-guz_3kDod7kZkpdTeNrN__YEAPcIpKrSe2rIvvVi2m00)
+![Diagram](https://www.plantuml.com/plantuml/svg/XPB1IWCn48RlUOg05prq1RNMohAKxcvEUgdu0DFDj0Qp6KccbA9zTzFiMXTAbP13_ldcd-Gdiy3WUTDQmOOjoXVUMTIoeXQC4tau70lHM0YXCh3sqCfF8UKSclUrfutJ9LdoSljc6AEUm4ISCXVrhRfHLQejEjaxz78SbNtSnZ7w5JHuhhzygE_BQQefSfokAWs3DKrl0Sl07Xe-vw2KcfPtFUo8yG-mgYS_hjxJjYUVZCEUcOmFgsSoT370tR-3XrTVajMfVI_ows7IyZN4NFAyyooAvEgWHVaeumCZ_vlL0Zye62RVpLuPfo-l8d6CedESGy1dqcZ5e27_oh8qInpBKHkDEcs6JiUFyGq0)
 
 
 
