@@ -167,17 +167,92 @@ def render_state_diagram(diagram: StateDiagram) -> str:
     if diagram.hide_empty_description:
         lines.append("hide empty description")
 
+    # PlantUML requires transitions targeting states inside multi-region
+    # concurrent blocks to be rendered INSIDE those blocks. Two-pass:
+    # first collect inner transitions, then render everything.
+    concurrent_region_refs = _build_concurrent_region_map(diagram.elements)
+    inner_transitions: dict[str, list[Transition]] = {
+        conc_ref: [] for conc_ref in concurrent_region_refs
+    }
+    inner_transition_ids: set[int] = set()
+
+    # Pass 1: partition transitions
+    if concurrent_region_refs:
+        for elem in diagram.elements:
+            if isinstance(elem, Transition):
+                src = _state_ref_to_plantuml(elem.source)
+                tgt = _state_ref_to_plantuml(elem.target)
+                for conc_ref, region_map in concurrent_region_refs.items():
+                    all_refs = set()
+                    for refs in region_map.values():
+                        all_refs.update(refs)
+                    if src in all_refs or tgt in all_refs:
+                        inner_transitions[conc_ref].append(elem)
+                        inner_transition_ids.add(id(elem))
+                        break
+
+    # Pass 2: render
     floating_note_id = 0
     for elem in diagram.elements:
         if isinstance(elem, Note):
             lines.extend(_render_floating_note(elem, floating_note_id))
             if elem.position == "floating":
                 floating_note_id += 1
+        elif isinstance(elem, Transition) and id(elem) in inner_transition_ids:
+            pass  # rendered inside concurrent block
+        elif isinstance(elem, ConcurrentState) and elem._ref in inner_transitions:
+            lines.extend(_render_concurrent_state(
+                elem, inner_transitions=inner_transitions[elem._ref],
+            ))
         else:
             lines.extend(_render_element(elem))
 
     lines.append("@enduml")
     return "\n".join(lines)
+
+
+def _collect_state_refs(elem: StateNode | PseudoState | CompositeState | ConcurrentState) -> set[str]:
+    """Collect all state refs defined by an element (recursively)."""
+    refs: set[str] = set()
+    if isinstance(elem, StateNode):
+        refs.add(elem._ref)
+    elif isinstance(elem, PseudoState):
+        if elem.name:
+            refs.add(sanitize_ref(elem.name))
+    elif isinstance(elem, CompositeState):
+        refs.add(elem._ref)
+        for child in elem.elements:
+            if not isinstance(child, Transition):
+                refs.update(_collect_state_refs(child))
+    elif isinstance(elem, ConcurrentState):
+        refs.add(elem._ref)
+        for region in elem.regions:
+            for child in region.elements:
+                if not isinstance(child, Transition):
+                    refs.update(_collect_state_refs(child))
+    return refs
+
+
+def _build_concurrent_region_map(
+    elements: tuple,
+) -> dict[str, dict[int, set[str]]]:
+    """Build a map of concurrent state ref -> {region_index: {state refs}}.
+
+    Only includes concurrent states with 2+ regions (single-region states
+    don't have the PlantUML transition placement restriction).
+    """
+    result: dict[str, dict[int, set[str]]] = {}
+    for elem in elements:
+        if isinstance(elem, ConcurrentState) and len(elem.regions) >= 2:
+            region_map: dict[int, set[str]] = {}
+            for i, region in enumerate(elem.regions):
+                refs: set[str] = set()
+                for child in region.elements:
+                    if not isinstance(child, Transition):
+                        refs.update(_collect_state_refs(child))
+                region_map[i] = refs
+            result[elem._ref] = region_map
+    return result
 
 
 def _render_state_diagram_style(style: StateDiagramStyle) -> list[str]:
@@ -418,8 +493,18 @@ def _render_composite_state(comp: CompositeState) -> list[str]:
     return lines
 
 
-def _render_concurrent_state(conc: ConcurrentState) -> list[str]:
-    """Render a concurrent state with parallel regions."""
+def _render_concurrent_state(
+    conc: ConcurrentState,
+    inner_transitions: list[Transition] | None = None,
+) -> list[str]:
+    """Render a concurrent state with parallel regions.
+
+    Args:
+        conc: The concurrent state to render.
+        inner_transitions: Transitions that target states inside this
+            concurrent block. PlantUML requires these to be rendered
+            inside the block when there are 2+ regions.
+    """
     lines: list[str] = []
     ref = conc._ref
     style_obj = conc.style if isinstance(conc.style, Style) else None
@@ -439,13 +524,45 @@ def _render_concurrent_state(conc: ConcurrentState) -> list[str]:
 
     lines.append(f"{opening} {{")
 
+    # Build region ref sets for partitioning inner transitions
+    region_refs: list[set[str]] = []
+    for region in conc.regions:
+        refs: set[str] = set()
+        for child in region.elements:
+            if not isinstance(child, Transition):
+                refs.update(_collect_state_refs(child))
+        region_refs.append(refs)
+
+    # Partition inner transitions by region
+    region_transitions: list[list[Transition]] = [[] for _ in conc.regions]
+    unplaced: list[Transition] = []
+    for trans in (inner_transitions or []):
+        src = _state_ref_to_plantuml(trans.source)
+        tgt = _state_ref_to_plantuml(trans.target)
+        placed = False
+        for i, refs in enumerate(region_refs):
+            if src in refs or tgt in refs:
+                region_transitions[i].append(trans)
+                placed = True
+                break
+        if not placed:
+            unplaced.append(trans)
+
     # Regions (separated by -- or ||)
-    # Convert user-friendly names to PlantUML syntax
     separator = "--" if conc.separator == "horizontal" else "||"
     for i, region in enumerate(conc.regions):
         if i > 0:
             lines.append(f"  {separator}")
         lines.extend(_render_region(region))
+        # Render transitions belonging to this region
+        for trans in region_transitions[i]:
+            for line in _render_transition(trans):
+                lines.append(f"  {line}")
+
+    # Any transitions that couldn't be placed in a specific region
+    for trans in unplaced:
+        for line in _render_transition(trans):
+            lines.append(f"  {line}")
 
     # Closing
     lines.append("}")
