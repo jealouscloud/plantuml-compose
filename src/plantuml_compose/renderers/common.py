@@ -213,7 +213,9 @@ def render_color(color: Color | Gradient | str) -> str:
             "diagonal_down": "/",
             "diagonal_up": "\\",
         }[color.direction]
-        return f"{render_color(color.start)}{sep}{render_color(color.end)}"
+        # End color must NOT have # prefix — PlantUML rejects #color1|#color2
+        # but accepts #color1|color2 (or color1|color2)
+        return f"{render_color(color.start)}{sep}{render_color_bare(color.end)}"
     raise TypeError(f"Unknown color type: {type(color)}")
 
 

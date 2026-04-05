@@ -135,5 +135,6 @@ class TestColorRendering:
         grad = Gradient(start="red", end="blue", direction="horizontal")
         assert render_color(grad) == "red|blue"
 
+        # End color must not have # prefix (PlantUML rejects #color1|#color2)
         grad_hex = Gradient(start="#FF0000", end="#0000FF", direction="vertical")
-        assert render_color(grad_hex) == "#FF0000-#0000FF"
+        assert render_color(grad_hex) == "#FF0000-0000FF"

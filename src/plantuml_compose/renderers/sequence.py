@@ -289,9 +289,9 @@ def _build_message_arrow(msg: Message) -> str:
         "normal": ">",
         "thin": ">>",
         "lost": ">x",
-        "open": "\\",  # Upper half arrow
+        "open": "\\\\",  # Upper half arrow (needs escaped backslash)
         "circle": ">o",
-        "none": "",
+        "none": ">",  # PlantUML sequence has no headless arrow; use normal
     }
     head = head_map[msg.arrow_head]
 

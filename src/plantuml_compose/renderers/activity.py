@@ -30,7 +30,7 @@ from ..primitives.activity import (
     While,
 )
 from ..primitives.activity import GotoLabel as ActivityLabel
-from ..primitives.common import Note
+from ..primitives.common import Gradient, Note
 from ..primitives.styles import ActivityDiagramStyle
 from .common import (
     escape_quotes,
