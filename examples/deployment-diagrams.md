@@ -193,11 +193,13 @@ dc = el.frame("Data Center",
             el.artifact("api.jar", ref="api"),
             el.artifact("worker.jar", ref="worker"),
         ),
+        el.node("Host B",
+            el.database("PostgreSQL", ref="pg"),
+        )
     ),
     el.cloud("CDN",
         el.artifact("static assets", ref="cdn"),
     ),
-    el.database("PostgreSQL", ref="pg"),
 )
 
 d.add(dc)
@@ -208,7 +210,7 @@ d.connect(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/PP3D2i8m48JlUOgXzmfUFKYrFOY8-FC4Qn9Bj4rAak91-kvk__JW8P3zTcOODWkHV6phIjmzrHf9GP6GQnkrJ_0MW7MAyONa4ykHp6pdGiHcPW07cJl9Y8GQitWG1r00___sB-UVsdybupYeEZ4-MRbM8I-EK_hFouMZaMmBEeR1BfMTN8hBtoXedBXQwVNrVEW5JIawmJsGfciUiCA-sEQ2VGFfDoiuRqfZqRHL9J9j5T_a0m00)
+![Diagram](https://www.plantuml.com/plantuml/svg/PP3D2i8m48JlUOgXTmMlFKXjUn0HyUS9rYIMs9gK9CM3zDtTjlw07WB9pCwtkyb291-xMoCkdcuQIKcHK6WRjK_m481rYkKZoHgBINbhQnSYLcyDO92va8n8g3NpAp600lZ-vz-ThxN_b4pFiQh_vUTVlkBHpXGqzcnKNfyEso7TLf_aS6JZEeMYtBrotwwyQZII8q77C3QMoewfNl2KcCsM34EAJPaNWhrH6PmKpflAMBHTquXCMyK_zWG0)
 
 
 

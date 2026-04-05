@@ -175,11 +175,13 @@ dc = el.frame("Data Center",
             el.artifact("api.jar", ref="api"),
             el.artifact("worker.jar", ref="worker"),
         ),
+        el.node("Host B",
+            el.database("PostgreSQL", ref="pg"),
+        )
     ),
     el.cloud("CDN",
         el.artifact("static assets", ref="cdn"),
     ),
-    el.database("PostgreSQL", ref="pg"),
 )
 
 d.add(dc)
