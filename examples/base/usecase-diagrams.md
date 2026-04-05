@@ -290,7 +290,7 @@ b = el.usecase("Service")
 d.add(a, b)
 
 d.connect(
-    r.arrow(a, b, right_head="|>"),
+    r.arrow(a, b, right_head="closed_triangle"),
 )
 
 print(render(d))

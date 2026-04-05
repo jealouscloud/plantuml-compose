@@ -100,25 +100,36 @@ print(render(d))
 
 ### Ports
 
-Ports appear as small squares on component boundaries. Add them as children of a component:
+Ports appear as small squares on component boundaries. Add them as children of a component, then connect other elements to the ports:
 
 ```python
 from plantuml_compose import component_diagram, render
 
 d = component_diagram()
 el = d.elements
+c = d.connections
 
 server = el.component("Server",
     el.portin("http_in"),      # input port (inward arrow)
     el.portout("log_out"),     # output port (outward arrow)
     el.port("mgmt"),           # bidirectional port
 )
+client = el.component("Client")
+logger = el.component("Logger")
+admin = el.component("Admin Console")
 
-d.add(server)
+d.add(server, client, logger, admin)
+
+# Connect through ports
+d.connect(
+    c.arrow(client, server.http_in, "request"),
+    c.arrow(server.log_out, logger, "events"),
+    c.arrow(admin, server.mgmt, "configure"),
+)
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr48JYqgIorIgEPIK2Z8Boh9p5F8A2afYC_CWmhabvOevEIdnmDfg8X2Rdfk2LSjbqDgNWhGB000)
+![Diagram](https://www.plantuml.com/plantuml/svg/LOyn3i8m34LtdyBgtWimeAAkR1oWgbeJ8YLsIPmkYBjZsY2LoTBxzhFTPHsJbXXWahW84olUAAsKy0M8YoJrZ0_LPV1SWHJ586wmMWb65nNU1qSVl9K3k8fpb0wWkSpHrBrmba0DZXatCbG2kmBRzlpRZoTCz2oK5Uh-BTtL5j9g0nd-D5l7zppB9-6xToKHTCIpFVq1)
 
 
 
@@ -202,7 +213,7 @@ print(render(d))
 
 ### Service Helper
 
-`el.service()` creates a component with auto-connected provided/required interfaces in one call:
+`el.service()` creates a component with auto-connected provided/required interfaces in one call. It returns a `ServiceResult` with `elements` and `connections` you pass directly to `d.add()` and `d.connect()`:
 
 ```python
 from plantuml_compose import component_diagram, render
@@ -210,20 +221,16 @@ from plantuml_compose import component_diagram, render
 d = component_diagram()
 el = d.elements
 
-gateway = el.service("API Gateway",
+svc = el.service("API Gateway",
     provides=("REST", "WebSocket"),
     requires=("Auth", "Logging"),
     stereotype="gateway",
     color="#C8E6C9",
 )
 
-# Add the component, its generated interfaces, and their relationships
-d.add(
-    gateway,
-    *gateway._data["_provided_interfaces"],
-    *gateway._data["_required_interfaces"],
-)
-d.connect(*gateway._data["_service_relationships"])
+# ServiceResult has .elements and .connections — spread them directly
+d.add(*svc.elements)
+d.connect(*svc.connections)
 
 print(render(d))
 ```
@@ -289,25 +296,28 @@ Every connection method supports:
 
 ### Custom Arrow Heads
 
-Override the default arrowheads on `arrow()` with `left_head=` and `right_head=`:
+Override the default arrowheads on `arrow()` with `left_head=` and `right_head=`. Use `ArrowHead` enum values or friendly string names:
 
 ```python
-from plantuml_compose import component_diagram, render
+from plantuml_compose import component_diagram, render, ArrowHead
 
 d = component_diagram()
 el = d.elements
 c = d.connections
 
-a, b = el.components("A", "B")
-d.add(a, b)
+a, b, cx = el.components("Source", "Target", "Other")
+d.add(a, b, cx)
 
 d.connect(
-    c.arrow(a, b, "custom", left_head="<|", right_head="*"),
+    # Enum values
+    c.arrow(a, b, "composition", left_head=ArrowHead.DIAMOND),
+    # Friendly string names
+    c.arrow(a, cx, "inheritance", right_head="closed_triangle"),
 )
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr5mH68xSJagsDJewcefE2bOAIIN5fVavt8vfEQb0BK00000)
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr48pYyjIav54WX9B4fFBK4Iy2_9I2tYWgXJqDBLjOCgKR1I02igpYp9pC-3AT3LhR63Q07AP-O1wSoIn3oW3GwfUIb0gm40)
 
 
 
@@ -476,12 +486,19 @@ d = component_diagram(
     layout="left_to_right",    # "top_to_bottom" (default) or "left_to_right"
     hide_unlinked=True,        # hide components with no connections
     hide_stereotype=True,      # suppress <<stereotype>> text display
-    style="uml2",              # overall component style: "uml1", "uml2", "rectangle"
 )
+el = d.elements
+c = d.connections
+
+api = el.component("API")
+db = el.component("Database")
+orphan = el.component("Unused")  # hidden by hide_unlinked
+d.add(api, db, orphan)
+d.connect(c.arrow(api, db, "queries"))
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/9Sl13O0m30J1Vwfm3LIG7gWW8WTO97Ra70-w1uddIhDviWJltbB3Jg5Bw75IgWOsgbkQbzeeKRfiteSRZ2kV1lcc9PrQ8PC8E9-1l_DjJUr2JHbMF_S2)
+![Diagram](https://www.plantuml.com/plantuml/svg/JOun3W8n30JxlC8Vk0zGe23HqD7mW71PE8kSVTXEmU-9X8IkdDMCjDcZMFIrfOP7K2WPFvUWoeOvM2KjN44UC6XyDlmuTsaiBzGqwxgfG89ErykEpYNAlJXsqqswZs9uD4t7lq47UdSOmrE6rF7b2m00)
 
 
 
@@ -552,14 +569,23 @@ d = component_diagram(
         "note": {"background": "#FFFDE7"},
         "stereotypes": {
             "service": {"background": "#C8E6C9", "font_style": "bold"},
-            "infrastructure": {"background": "#FFECB3"},
         },
     },
 )
+el = d.elements
+c = d.connections
+
+pkg = el.package("Backend",
+    el.component("API", stereotype="service"),
+    el.component("Worker", stereotype="service"),
+)
+db = el.database("PostgreSQL")
+d.add(pkg, db)
+d.connect(c.arrow(pkg["API"], db, "queries"))
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/VP5DQiCm48NtFeMW-xIEITn0A6biQTLTJZ2HL5TKbi9edD2MtBsIK7-Wk0opUVEz6Q6t2mH8qsWhCcGrEz2RrOezedmnf2LDgAjjIE939VruyauxwWqC22Fxg1ZRWtmTq4zETTvwP9VaY_etdAc_t0rln5BqUVPad2vglMdN_JAgrzZEavwp2o5wtXRm5ASmpBEhL8LLG724yD_YXjyL613zfP2_NjckKcLLU4S7ywvPNHVFmhXdX40uvU-RlyExVVFb2HhFHix2tJrVTvkVWoaGTlHMPV-rsjwMZ7RQgPZc9m00)
+![Diagram](https://www.plantuml.com/plantuml/svg/VPBDQiCm48JlUWf1psdhXCHDCIQfRK4XXnGVUbRinHMnfNIzRcYBtxsIKVD3SH6wp7upgrsqQaaYTKtDI54DFAVF6ag-nk9D4HJK8R2eTMBC2jCSZ0PDgP8LoeP_CywVPB6lq7IwJ4nja1-Tp-edUA3-SZVPJ4n5EjGsIeDNWsMuIATMxUtLXc3CBeH8iz231rkLrJWxTyUpfIIva-r_mRFitiCIqHmzUV7ASExEe0gZALTVm8F0UsvRm0zLZ3P87h95iZoRtNBvpjJbuEzPTEVt_JkLIm1T3dddjQwtppoAVAyulggz6jm3NfLxTXfyQrgg4FANZOticGkQJE9B-P6_Tu0AMhQoZUtl-040)
 
 
 
@@ -569,22 +595,27 @@ print(render(d))
 
 ```python
 from plantuml_compose import component_diagram, render
-from plantuml_compose.primitives.common import Header, Footer, Legend, Scale
+from plantuml_compose.primitives.common import Header, Footer, Legend
 
 d = component_diagram(
     title="Microservices",
     mainframe="Production Environment",
     caption="As of 2025-01-15",
     header=Header("Confidential", position="right"),
-    footer="Page %page%",
+    footer="Architecture v2.1",
     legend=Legend("Blue = service\nGray = infrastructure", position="bottom"),
-    scale=Scale(factor=1.5),
-    theme="vibrant",
 )
+el = d.elements
+c = d.connections
+
+api = el.component("API")
+db = el.database("DB")
+d.add(api, db)
+d.connect(c.arrow(api, db))
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/BKz1QiD03Bph5UeXnuGuu6CXJIaz1V85PItRWjsLqSg6_3vAsikCD68qqhavcQybGo6fer5Xl9aEQtBHYZzr4zDQk3fy-CmntUHk56rBb1cxGmyk7jLLacbZsoHn0vDfTfoP1ZRyrZhA43k4CgJWq4RL5zreOjmjWJj8jBn3lnhgYAVZgTyVkttNG-Q9wu1tTTS2Y9UyCdxYVrW8lqQF4DuFDBSuVZM6yFmvuHmGFpu1)
+![Diagram](https://www.plantuml.com/plantuml/svg/BOz1QiGm34NtEeKka389pB9bCcqfNHJc2XfRcHXiQv3bG2czUzMqguyU_-jBfsQarak6GgakIeNneX9xi2GLN-kML6hXQc39CkD72YgDTKk16sYwhOOhKsJ5PwbBYcvDb26uEbj4VcNMi2RZO5qPj-bXX43tlM5kA0jEX-au7CPXF4Bc6zU8Lp6J0eZdt1aVyR_ImPlIfuFzscRQzwNWcRya12btgLwFy-KT8XbTgJ6-dF4Bli4P3iEJZt1ojt_-0m00)
 
 
 
@@ -619,9 +650,44 @@ print(render(d))
 
 
 
-### String References
+### Refs and Child Access
 
-You can use raw strings instead of `EntityRef` objects for connections:
+Every element gets a **ref** — a short identifier for referencing in connections. By default, it's the sanitized name (spaces become underscores, special chars removed). Set `ref=` to override:
+
+```python
+from plantuml_compose import component_diagram, render
+
+d = component_diagram()
+el = d.elements
+c = d.connections
+
+# Default ref: "Auth_Service" (sanitized from name)
+auth = el.component("Auth Service")
+
+# Explicit ref
+api = el.component("API Gateway", ref="api")
+
+# Access children by ref (attribute) or name (bracket)
+pkg = el.package("Backend",
+    el.component("Users"),
+    el.component("Orders"),
+)
+
+d.add(auth, api, pkg)
+
+d.connect(
+    c.arrow(api, pkg.Users, "REST"),       # child by ref
+    c.arrow(api, pkg["Orders"], "gRPC"),   # child by name
+    c.arrow(pkg.Users, auth, "validate"),
+)
+
+print(render(d))
+```
+![Diagram](https://www.plantuml.com/plantuml/svg/LOzD2y8m38Rl-HLXz_q13p8L4K-EJSyIsZ2B-oXjDn7nlvjQKNSAF7bUygRmWLmOknRKqDcXvpvWjXh31Mjsar6S8NcCuFm1Cx7Suuu2t-Z-ziWQiAIkr32kPNAlyG68lyZ9i_CpSd0weYT86FDycHHSOBMjZr-OBA5DLMuWAP7_DvFjHAtHKWWAEIrVlG00)
+
+
+
+You can also use raw strings instead of `EntityRef` objects:
 
 ```python
 from plantuml_compose import component_diagram, render
@@ -634,6 +700,7 @@ api = el.component("API")
 db = el.database("PostgreSQL")
 d.add(api, db)
 
+# String refs work if you know the sanitized name
 d.connect(c.arrow("API", "PostgreSQL", "queries"))
 
 print(render(d))

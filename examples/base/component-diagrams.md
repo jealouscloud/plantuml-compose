@@ -91,21 +91,32 @@ print(render(d))
 
 ### Ports
 
-Ports appear as small squares on component boundaries. Add them as children of a component:
+Ports appear as small squares on component boundaries. Add them as children of a component, then connect other elements to the ports:
 
 ```python
 from plantuml_compose import component_diagram, render
 
 d = component_diagram()
 el = d.elements
+c = d.connections
 
 server = el.component("Server",
     el.portin("http_in"),      # input port (inward arrow)
     el.portout("log_out"),     # output port (outward arrow)
     el.port("mgmt"),           # bidirectional port
 )
+client = el.component("Client")
+logger = el.component("Logger")
+admin = el.component("Admin Console")
 
-d.add(server)
+d.add(server, client, logger, admin)
+
+# Connect through ports
+d.connect(
+    c.arrow(client, server.http_in, "request"),
+    c.arrow(server.log_out, logger, "events"),
+    c.arrow(admin, server.mgmt, "configure"),
+)
 
 print(render(d))
 ```
@@ -181,7 +192,7 @@ print(render(d))
 
 ### Service Helper
 
-`el.service()` creates a component with auto-connected provided/required interfaces in one call:
+`el.service()` creates a component with auto-connected provided/required interfaces in one call. It returns a `ServiceResult` with `elements` and `connections` you pass directly to `d.add()` and `d.connect()`:
 
 ```python
 from plantuml_compose import component_diagram, render
@@ -189,20 +200,16 @@ from plantuml_compose import component_diagram, render
 d = component_diagram()
 el = d.elements
 
-gateway = el.service("API Gateway",
+svc = el.service("API Gateway",
     provides=("REST", "WebSocket"),
     requires=("Auth", "Logging"),
     stereotype="gateway",
     color="#C8E6C9",
 )
 
-# Add the component, its generated interfaces, and their relationships
-d.add(
-    gateway,
-    *gateway._data["_provided_interfaces"],
-    *gateway._data["_required_interfaces"],
-)
-d.connect(*gateway._data["_service_relationships"])
+# ServiceResult has .elements and .connections — spread them directly
+d.add(*svc.elements)
+d.connect(*svc.connections)
 
 print(render(d))
 ```
@@ -262,20 +269,23 @@ Every connection method supports:
 
 ### Custom Arrow Heads
 
-Override the default arrowheads on `arrow()` with `left_head=` and `right_head=`:
+Override the default arrowheads on `arrow()` with `left_head=` and `right_head=`. Use `ArrowHead` enum values or friendly string names:
 
 ```python
-from plantuml_compose import component_diagram, render
+from plantuml_compose import component_diagram, render, ArrowHead
 
 d = component_diagram()
 el = d.elements
 c = d.connections
 
-a, b = el.components("A", "B")
-d.add(a, b)
+a, b, cx = el.components("Source", "Target", "Other")
+d.add(a, b, cx)
 
 d.connect(
-    c.arrow(a, b, "custom", left_head="<|", right_head="*"),
+    # Enum values
+    c.arrow(a, b, "composition", left_head=ArrowHead.DIAMOND),
+    # Friendly string names
+    c.arrow(a, cx, "inheritance", right_head="closed_triangle"),
 )
 
 print(render(d))
@@ -428,8 +438,15 @@ d = component_diagram(
     layout="left_to_right",    # "top_to_bottom" (default) or "left_to_right"
     hide_unlinked=True,        # hide components with no connections
     hide_stereotype=True,      # suppress <<stereotype>> text display
-    style="uml2",              # overall component style: "uml1", "uml2", "rectangle"
 )
+el = d.elements
+c = d.connections
+
+api = el.component("API")
+db = el.component("Database")
+orphan = el.component("Unused")  # hidden by hide_unlinked
+d.add(api, db, orphan)
+d.connect(c.arrow(api, db, "queries"))
 
 print(render(d))
 ```
@@ -498,10 +515,19 @@ d = component_diagram(
         "note": {"background": "#FFFDE7"},
         "stereotypes": {
             "service": {"background": "#C8E6C9", "font_style": "bold"},
-            "infrastructure": {"background": "#FFECB3"},
         },
     },
 )
+el = d.elements
+c = d.connections
+
+pkg = el.package("Backend",
+    el.component("API", stereotype="service"),
+    el.component("Worker", stereotype="service"),
+)
+db = el.database("PostgreSQL")
+d.add(pkg, db)
+d.connect(c.arrow(pkg["API"], db, "queries"))
 
 print(render(d))
 ```
@@ -512,18 +538,23 @@ print(render(d))
 
 ```python
 from plantuml_compose import component_diagram, render
-from plantuml_compose.primitives.common import Header, Footer, Legend, Scale
+from plantuml_compose.primitives.common import Header, Footer, Legend
 
 d = component_diagram(
     title="Microservices",
     mainframe="Production Environment",
     caption="As of 2025-01-15",
     header=Header("Confidential", position="right"),
-    footer="Page %page%",
+    footer="Architecture v2.1",
     legend=Legend("Blue = service\nGray = infrastructure", position="bottom"),
-    scale=Scale(factor=1.5),
-    theme="vibrant",
 )
+el = d.elements
+c = d.connections
+
+api = el.component("API")
+db = el.database("DB")
+d.add(api, db)
+d.connect(c.arrow(api, db))
 
 print(render(d))
 ```
@@ -556,9 +587,41 @@ d.connect(
 print(render(d))
 ```
 
-### String References
+### Refs and Child Access
 
-You can use raw strings instead of `EntityRef` objects for connections:
+Every element gets a **ref** — a short identifier for referencing in connections. By default, it's the sanitized name (spaces become underscores, special chars removed). Set `ref=` to override:
+
+```python
+from plantuml_compose import component_diagram, render
+
+d = component_diagram()
+el = d.elements
+c = d.connections
+
+# Default ref: "Auth_Service" (sanitized from name)
+auth = el.component("Auth Service")
+
+# Explicit ref
+api = el.component("API Gateway", ref="api")
+
+# Access children by ref (attribute) or name (bracket)
+pkg = el.package("Backend",
+    el.component("Users"),
+    el.component("Orders"),
+)
+
+d.add(auth, api, pkg)
+
+d.connect(
+    c.arrow(api, pkg.Users, "REST"),       # child by ref
+    c.arrow(api, pkg["Orders"], "gRPC"),   # child by name
+    c.arrow(pkg.Users, auth, "validate"),
+)
+
+print(render(d))
+```
+
+You can also use raw strings instead of `EntityRef` objects:
 
 ```python
 from plantuml_compose import component_diagram, render
@@ -571,6 +634,7 @@ api = el.component("API")
 db = el.database("PostgreSQL")
 d.add(api, db)
 
+# String refs work if you know the sanitized name
 d.connect(c.arrow("API", "PostgreSQL", "queries"))
 
 print(render(d))

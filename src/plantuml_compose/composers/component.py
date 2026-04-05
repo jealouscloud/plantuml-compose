@@ -101,6 +101,34 @@ class _RelationshipData:
     right_head: ArrowHeadLike | None = None
 
 
+class ServiceResult:
+    """Result from el.service() — a component with auto-connected interfaces.
+
+    Use directly with d.add() and d.connect():
+
+        svc = el.service("API", provides=("REST",), requires=("Auth",))
+        d.add(*svc.elements)
+        d.connect(*svc.connections)
+
+    Attributes:
+        component:   The service component EntityRef
+        elements:    All elements to register (component + interfaces)
+        connections: All provides/requires relationships
+    """
+
+    __slots__ = ("component", "elements", "connections")
+
+    def __init__(
+        self,
+        component: EntityRef,
+        elements: tuple,
+        connections: tuple,
+    ) -> None:
+        self.component = component
+        self.elements = elements
+        self.connections = connections
+
+
 class ComponentElementNamespace:
     """Factory namespace for component diagram elements."""
 
@@ -349,13 +377,15 @@ class ComponentElementNamespace:
         requires: tuple[str, ...] | list[str] | None = None,
         stereotype: str | Stereotype | None = None,
         color: ColorLike | None = None,
-    ) -> EntityRef:
+    ) -> "ServiceResult":
         """Create a service component with auto-connected interfaces.
 
-        Convenience method that creates a component, its interfaces, and
-        provides/requires relationships in one call. The caller must still
-        d.add() the returned EntityRef and d.connect() the relationships
-        stored in its data.
+        Returns a ServiceResult with three fields you pass directly
+        to d.add() and d.connect():
+
+            svc = el.service("API", provides=("REST",), requires=("Auth",))
+            d.add(*svc.elements)
+            d.connect(*svc.connections)
 
         Args:
             name: Service component name
@@ -364,19 +394,6 @@ class ComponentElementNamespace:
             requires: Interface names this service requires (socket)
             stereotype: Stereotype label
             color: Background color for the component
-
-        Returns:
-            EntityRef for the component. Access auto-generated interfaces
-            and relationships via _data["_provided_interfaces"],
-            _data["_required_interfaces"], and _data["_service_relationships"].
-
-        Example:
-            api = el.service("API Gateway",
-                provides=("REST",),
-                requires=("Auth",))
-            d.add(api, *api._data["_provided_interfaces"],
-                  *api._data["_required_interfaces"])
-            d.connect(*api._data["_service_relationships"])
         """
         style_val: StyleLike | None = {"background": color} if color else None
         comp = self.component(
@@ -395,6 +412,7 @@ class ComponentElementNamespace:
                     source=comp, target=iface, type="provides",
                     label=None, source_label=None, target_label=None,
                     style=None, direction=None,
+                    length=None, left_head=None, right_head=None,
                 ))
 
         if requires:
@@ -405,14 +423,14 @@ class ComponentElementNamespace:
                     source=comp, target=iface, type="requires",
                     label=None, source_label=None, target_label=None,
                     style=None, direction=None,
+                    length=None, left_head=None, right_head=None,
                 ))
 
-        # Stash generated entities on the component's data for the caller
-        comp._data["_provided_interfaces"] = provided_ifaces
-        comp._data["_required_interfaces"] = required_ifaces
-        comp._data["_service_relationships"] = relationships
-
-        return comp
+        return ServiceResult(
+            component=comp,
+            elements=(comp, *provided_ifaces, *required_ifaces),
+            connections=tuple(relationships),
+        )
 
     def _container(
         self,

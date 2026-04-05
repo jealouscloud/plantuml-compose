@@ -330,7 +330,7 @@ a = el.object("nodeA : Node")
 b = el.object("nodeB : Node")
 d.add(a, b)
 
-d.connect(r.arrow(a, b, left_head="o", right_head="|>"))
+d.connect(r.arrow(a, b, left_head="hollow_diamond", right_head="closed_triangle"))
 
 print(render(d))
 ```

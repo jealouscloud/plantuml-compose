@@ -251,7 +251,7 @@ b = el.node("Server B")
 d.add(a, b)
 
 d.connect(
-    c.arrow(a, b, "custom", left_head="<|", right_head="*"),
+    c.arrow(a, b, "custom", left_head="closed_triangle", right_head="diamond"),
 )
 
 print(render(d))

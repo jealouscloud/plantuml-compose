@@ -275,12 +275,12 @@ b = el.node("Server B")
 d.add(a, b)
 
 d.connect(
-    c.arrow(a, b, "custom", left_head="<|", right_head="*"),
+    c.arrow(a, b, "custom", left_head="closed_triangle", right_head="diamond"),
 )
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuShBJqbLK0fEBIfBBL9mL4BbEobnGLZnZWesDRgwMWfGhfE2bK9oQN59VYwNGsfU2j0W0000)
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuShBJqbLK0fEBIfBBL9mL4BbEobnGLZnZWerThgwMWfGhfE2bK9oQN59VYwNGsfU2j0W0000)
 
 
 

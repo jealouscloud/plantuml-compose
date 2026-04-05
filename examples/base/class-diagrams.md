@@ -471,7 +471,7 @@ print(render(d))
 Override the default arrowheads with `left_head=` and `right_head=`:
 
 ```python
-from plantuml_compose import class_diagram, render
+from plantuml_compose import class_diagram, render, ArrowHead
 
 d = class_diagram()
 el = d.elements
@@ -481,7 +481,7 @@ a = el.class_("Source")
 b = el.class_("Target")
 d.add(a, b)
 
-d.connect(r.relationship(a, b, left_head="o", right_head="|>"))
+d.connect(r.relationship(a, b, left_head=ArrowHead.HOLLOW_DIAMOND, right_head=ArrowHead.CLOSED_TRIANGLE))
 
 print(render(d))
 ```
