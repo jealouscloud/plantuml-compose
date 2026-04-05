@@ -899,12 +899,11 @@ print(render(d))
 
 ```python
 from plantuml_compose import state_diagram, render
-from plantuml_compose.primitives.common import ExternalTheme
 
-# External theme from a local file
+# Another built-in theme
 d = state_diagram(
-    title="Custom Theme",
-    theme=ExternalTheme("mytheme", source="/path/to/themes"),
+    title="Blueprint Theme",
+    theme="blueprint",
 )
 el = d.elements
 t = d.transitions
@@ -915,7 +914,7 @@ d.connect(t.transition(el.initial(), a), t.transition(a, el.final()))
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuL8ioKZDJLN8hOJGQKNvkGhw1Oab6Veb-VfWiMAkaioId5G5vzBY4g1a24YC2wY_95N1aIjQArP1LzSEo784qq0-bqDgNWhGQ000)
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuL8ioKZDJLL8oYbDBIZAp2lXAiaioKbLS8Bn5K90ybn0zIMf2evSqLgn2hgwTa2M8vW6yhaSKlDIW4O10000)
 
 
 

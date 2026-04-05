@@ -187,7 +187,7 @@ d.phase("Arrow Styles", [
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/LSyn3iCW30NGdLFylSe5EaGXL-ZQ1O7L83aOWQEsjoyfxS1YotxwahrKTKMFdKrkFVgONLBOOLhDeyYHOKkH9sxwPge6i9XchBYY2iU02vAKtN6NQUuMH9LEr2scN-Wrf5YgThWFUydq3yW0FXRFrEaBIU3EqpPomL0APccblVG1)
+![Diagram](https://www.plantuml.com/plantuml/svg/LSyn2iCm30NGtQVuUya5EeGuL-YQnTWYCJYMaHNQthu9Rg5U9CJZmzTKrOaUUpBbtD77uhB2TjTiLk6Zm8hm4mzz9we6i1X6pBYZSee1DsIMtQKcmzWii2fTg5lCtz2hIoMksc1PEk12lmHtuAFuHFyDCiDTvJPomL0EPZh7-TG7)
 
 
 
@@ -350,11 +350,11 @@ d.phase("Lifecycle", [
 
     # Explicit activate/deactivate
     e.activate(server),
-    e.message(server, worker, "delegate"),
-    e.activate(worker, color="#FFCCCC"),  # colored activation bar
 
     # Create a participant mid-flow
     e.create(worker),
+    e.message(server, worker, "delegate"),
+    e.activate(worker, color="#FFCCCC"),  # colored activation bar
 
     e.message(worker, server, "done"),
     e.deactivate(worker),
@@ -366,7 +366,7 @@ d.phase("Lifecycle", [
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/NP2n3i8m34JtV8KbPdw00LMgr8cDWJbAJ1KHaiXrA_NlUq0ABHaivUxvRBaPr8gEpsYiqopKni19JO4ON2WsALrP9fQTTCloWDHB7WjTmftTx28RgkrqFDSkEj5x02paXyaghtcq8e0_UO0zH-u1RVbg7hgknOFZX7yw_XNO3lKvlJ8y_wNijUycdWULFAyG9syQ59nb0G00)
+![Diagram](https://www.plantuml.com/plantuml/svg/NP0n2iCm34LtdqBGkHVeK0A1JDqwT3RsRp1rxQ0eWTm-IckNf1uCVjBx4cv6iIpJEnhh93ErCI296HG65mQRXExW6Nn0ZymlHJtdQQ1RUC8jBi9GqUbyBHPTw3D0IveVPYkeUKIEiRrB65L5vIzIsIEYrwQzNugdhclrQAM0_L2Vq-Pu_5b7zjl4OnJEIsr2ygRHIxzb1G00)
 
 
 

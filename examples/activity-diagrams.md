@@ -70,7 +70,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkAm2YlAJKukB5O9I2qjJYqkikPJTt9nTN8oid8ioIpAJ4tCKWajI2u329iwERgO6DSeMXixc5YPMxaM9APcfUILGQQkWrCGK1S-yWj8IQnkRJ11jPmUq8x-0oo4rBmLe8G00)
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkAm2YlAJKukB5O9I2qjJYqkikPJTt9nTN8oid8ioIpAJ4tCKWajI2u329iwERgO6DHQ6pkOM9bRkHOafcQbv9L1Pgw3Kn1G5pxo2qX9h6vjC46rd1xGYlu3B8JKl1MWV0000)
 
 
 
@@ -543,10 +543,9 @@ d = activity_diagram(title="Order Process")
 el = d.elements
 
 d.add(
-    el.start(),
-
-    # Switch to a swimlane (creates header)
+    # Swimlane declarations must come before start in PlantUML
     el.swimlane("Customer"),
+    el.start(),
     el.action("Place Order"),
 
     # display_name= shows a different label in the header
@@ -566,7 +565,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/LOx12i8m44Jl-nKBVeEWxQKW5JnPgk0vf4CRJDgIJVIIZpUL5l7sXdd3RYL1-H2TfM221Lzz1y-DdpH4w5jIEaK9auDFL3HMwTKgARsLnp15GUB7Xdo7Sbaq-icN02Tb3Yg7RRIh3-TzVKmoc7asOv_ujX8L2_5Ygnxbt-4M6kQ5NvcRcIgCNNx-0m00)
+![Diagram](https://www.plantuml.com/plantuml/svg/JOx12i8m44Jl-nKBVeEWwQKW5JnPgk0vf4CRR9gIJVMIZpUL5hszOTwmMqhK8Svke6ZZ0Bw65e7hu0r4A9rcYTuX9FfwfEf1czKgABrrGEzdGUB7Xdo7TbcqvicN22T53Zg7RRIh3kTzTKpIsscoOvVujXAfXNYnTOVY_xngO61V-9MvcQZ4sERdFm00)
 
 
 
@@ -899,7 +898,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pk9HTZTsCt5oi_FABSXDphBcKArDpSlBBhS8JY_8oyzA10YREZcwc1ZNA5eREvXOcLkv5YIcPgNabG1atDrDp8wCQ86tXQ6OAbr5moKm6IXUNv1TmEQJcfG0j0m00)
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pk9HTZTsCt5oi_FABSXDphBcKArDpSlBBhS8JY_8oyzA10YREZcwc1ZKMXixc5YPMxaM9APcfUIL02JStKtCZenetDmj7CrEuX89BPZ9GjhWalu3B8JKl1MWL0000)
 
 
 
@@ -1158,9 +1157,8 @@ d = activity_diagram(
 el = d.elements
 
 d.add(
-    el.start(),
-
     el.swimlane("Developer"),
+    el.start(),
     el.action("Push to Git"),
 
     el.swimlane("CI Server", color="#F5F5F5"),
@@ -1206,7 +1204,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/TL9XQzim4FskNt7GB_6dZBRPsYHaRUnu6CO8IVS3jFXY7v4b8vsJcQN_VMSrePGnX44-lNTwx-cU0clFNMCK4nk4j1Yd6QofHKCMrJnmRt2Xz8xfIDndf2kl6_YZ0Awr-0EmrBj3vLrdozGPv-5cTPVVvbaysxoLlKKF3r9vbQyatJXR_e-Tv_bZUd_1Qk_TwOByBhekcCdzvzMNvuXvLVFnHMjqfCuP7j6u5lrPJTTTg84TV2EUgVDDFXdMEIrWY_uO4Qbn5c63hGl4plSpjNV-8Asdcyx2JqiCBnWupAwbmZ9A54pENay61kXAanr0efCXTIL6IbhZxW0lVOl_09STcH8ojpj8EaMZAs6W11C5q1v6pyR0MeU0vTS4k4OBenv38aPM3_bazNYM5xiQaNuPjiRrWzqjwufiDGZmsABc662KlstS0Tyj_PBuJzgNC3rfiNhtARoJu5IJJCOeWg4L8IA30emyikyJi8vXD9IJZxUllIkxtH3Gq4jG29wgcgUmD1sEAu_Yf8pm1YqhD45kiIxvy7RICgVVK8JGuLlwFnpJlXVjkfdDvq6Ysb9bjLaiXjXeBmFWMlKaUndhlm00)
+![Diagram](https://www.plantuml.com/plantuml/svg/TLBHRjf047o_hrWfB_14bOGs0KGJR5nPgYe4wGTSyM9Md6-jkpNKAldthXrG55NLoT9vRsPlPlQUejWWJUMCa3Y491ybAQoeHaSUpInAwt1kx5ReIDAcPCjWA_XZ0Awr_WTWORU7Cd3ZYuGT1xXPtcMtMTgVhT_AmME01wsywbUGhTWN_sDdMVQOt5-mDWG-NP3VLTS5Cxx_lFpot6DUpMnqqNfEyOYEQmndqxiparKJzo0CtqYcvdoJZRjrJdBOO3Xsk4dYs2EiiUP8mg6TcXs7WxQUh1iFFpq9l62KEBsMSY-eKGYnlvvq3B2b9T-1LAT0mWNsb6IFsmEyj3N-0rmqv0f8UNlGTFBAbif03QONG3iOF3i7AniZ5b-787lqC6Wn3jN8yY4RBn_FEh6h4UsNOksuxUnkn9Raoqv0m1gjz07syZSL7_3TqY-D_sH30PEJLQjtd-8x2KvxqfSnwC5Ggn2LGH460IMqG_0iCEZAmu-thm8NpROBgEkbA8H0vLuci70DZig0wgJeuHLwCUYYtk9v-662sZAZtv37sE1R-ZzOQDUgTbjDPxEeKMsezDRDvrrijDEXSssUTA_F-Yy0)
 
 
 
