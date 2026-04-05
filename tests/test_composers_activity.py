@@ -953,9 +953,10 @@ class TestActivityRendering:
         )
         result = render(d)
         assert ":Default;" in result
-        assert ":Send>" in result
-        assert ":Receive<" in result
-        assert ":DB}" in result
+        # SDL shapes use modern stereotype syntax, not deprecated suffixes
+        assert ":Send;<<output>>" in result
+        assert ":Receive;<<input>>" in result
+        assert ":DB;<<continuous>>" in result
 
     def test_render_action_colored(self):
         d = activity_diagram()
@@ -1466,7 +1467,8 @@ class TestActivityStereotype:
         el = d.elements
         d.add(el.action("Data", shape="database", stereotype="output"))
         result = render(d)
-        assert ":Data}<<output>>" in result
+        # shape="database" -> <<continuous>>, stereotype="output" -> <<output>>
+        assert ":Data;<<continuous>><<output>>" in result
 
     def test_action_stereotype_with_style(self):
         """Stereotype works alongside colored actions."""

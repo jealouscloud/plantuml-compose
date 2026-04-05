@@ -173,25 +173,32 @@ def _render_action(action: Action) -> str:
     """Render an action."""
     label = render_label(action.label, inline=True)
 
-    # Shape suffix
-    shape_suffix = {
-        "default": ";",
-        "start_end": "|",
-        "receive": "<",
-        "send": ">",
-        "slant": "/",
-        "document": "]",
-        "database": "}",
-    }[action.shape]
+    # SDL shapes use stereotype form (modern PlantUML syntax).
+    # The suffix form (:text|, :text<, etc.) is deprecated.
+    _shape_to_stereotype = {
+        "start_end": "procedure",
+        "receive": "input",
+        "send": "output",
+        "slant": "save",
+        "document": "task",
+        "database": "continuous",
+    }
 
     # Color prefix (from style.background)
     color_prefix = ""
     if action.style and action.style.background:
         color_prefix = render_color_hash(action.style.background)
 
-    result = f"{color_prefix}:{label}{shape_suffix}"
+    # All actions use ; terminator; shapes are expressed via stereotypes
+    result = f"{color_prefix}:{label};"
 
-    # UML/SDL stereotype (e.g. <<input>>, <<sendSignal>>, <<timeEvent>>)
+    # Shape stereotype (from shape= parameter)
+    shape_stereotype = _shape_to_stereotype.get(action.shape)
+    if shape_stereotype:
+        result += f"<<{shape_stereotype}>>"
+
+    # User-specified stereotype (e.g. <<sendSignal>>, <<timeEvent>>)
+    # Appended after shape stereotype if both are set
     if action.stereotype:
         result += f"<<{action.stereotype}>>"
 
