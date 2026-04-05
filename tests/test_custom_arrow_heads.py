@@ -8,6 +8,7 @@ import subprocess
 import pytest
 
 from plantuml_compose import (
+    ArrowHead,
     class_diagram,
     component_diagram,
     deployment_diagram,
@@ -457,3 +458,131 @@ class TestCustomHeadsPlantUMLValidation:
         )
         assert result.returncode == 0, f"PlantUML error: {result.stderr}"
         assert (tmp_path / "object_heads.png").exists()
+
+
+class TestArrowHeadEnum:
+    """Tests for ArrowHead enum and ArrowHeadLike coercion through composers."""
+
+    def test_enum_value_class_diagram(self):
+        d = class_diagram()
+        el = d.elements
+        r = d.relationships
+        a, b = el.class_("A"), el.class_("B")
+        d.add(a, b)
+        d.connect(r.relationship(a, b, type="association",
+                                  left_head=ArrowHead.DIAMOND,
+                                  right_head=ArrowHead.THIN_ARROW))
+        output = render(d)
+        assert "*-->>" in output
+
+    def test_string_name_class_diagram(self):
+        d = class_diagram()
+        el = d.elements
+        r = d.relationships
+        a, b = el.class_("A"), el.class_("B")
+        d.add(a, b)
+        d.connect(r.relationship(a, b, type="association",
+                                  left_head="diamond",
+                                  right_head="thin_arrow"))
+        output = render(d)
+        assert "*-->>" in output
+
+    def test_raw_symbol_backward_compat(self):
+        """Raw PlantUML symbols still work (backward compatibility)."""
+        d = class_diagram()
+        el = d.elements
+        r = d.relationships
+        a, b = el.class_("A"), el.class_("B")
+        d.add(a, b)
+        d.connect(r.relationship(a, b, type="association",
+                                  left_head="*", right_head=">>"))
+        output = render(d)
+        assert "*-->>" in output
+
+    def test_enum_deployment_diagram(self):
+        d = deployment_diagram()
+        el = d.elements
+        c = d.connections
+        a, b = el.node("A"), el.node("B")
+        d.add(a, b)
+        d.connect(c.arrow(a, b, left_head=ArrowHead.HOLLOW_DIAMOND,
+                          right_head=ArrowHead.DIAMOND))
+        output = render(d)
+        assert "o--*" in output
+
+    def test_string_name_component_diagram(self):
+        d = component_diagram()
+        el = d.elements
+        c = d.connections
+        a, b = el.component("A"), el.component("B")
+        d.add(a, b)
+        d.connect(c.arrow(a, b, left_head="square",
+                          right_head="hollow_diamond"))
+        output = render(d)
+        assert "#--o" in output
+
+    def test_enum_usecase_diagram(self):
+        d = usecase_diagram()
+        el = d.elements
+        r = d.relationships
+        actor = el.actor("User")
+        uc = el.usecase("Login")
+        d.add(actor, uc)
+        d.connect(r.arrow(actor, uc,
+                          left_head=ArrowHead.HOLLOW_DIAMOND,
+                          right_head=ArrowHead.THIN_ARROW))
+        output = render(d)
+        assert "o-->>" in output
+
+    def test_enum_object_diagram(self):
+        d = object_diagram()
+        el = d.elements
+        r = d.relationships
+        a = el.object("obj1")
+        b = el.object("obj2")
+        d.add(a, b)
+        d.connect(r.arrow(a, b,
+                          left_head=ArrowHead.SQUARE,
+                          right_head=ArrowHead.DIAMOND))
+        output = render(d)
+        assert "#--*" in output
+
+    def test_mixed_enum_and_string_name(self):
+        """Mixing enum members and string names in the same relationship."""
+        d = class_diagram()
+        el = d.elements
+        r = d.relationships
+        a, b = el.class_("A"), el.class_("B")
+        d.add(a, b)
+        d.connect(r.relationship(a, b, type="association",
+                                  left_head=ArrowHead.HOLLOW_DIAMOND,
+                                  right_head="diamond"))
+        output = render(d)
+        assert "o--*" in output
+
+    def test_primitive_roundtrip_with_enum(self):
+        """Enum values are coerced to raw symbols in the built primitive."""
+        d = class_diagram()
+        el = d.elements
+        r = d.relationships
+        a, b = el.class_("A"), el.class_("B")
+        d.add(a, b)
+        d.connect(r.relationship(a, b,
+                                  left_head=ArrowHead.DIAMOND,
+                                  right_head="thin_arrow"))
+        result = d.build()
+        rels = [e for e in result.elements if hasattr(e, "left_head")]
+        assert len(rels) == 1
+        assert rels[0].left_head == "*"
+        assert rels[0].right_head == ">>"
+
+    def test_deployment_line_with_string_names(self):
+        d = deployment_diagram()
+        el = d.elements
+        c = d.connections
+        a, b = el.node("A"), el.node("B")
+        d.add(a, b)
+        d.connect(c.line(a, b, left_head="hollow_diamond",
+                         right_head="hollow_diamond"))
+        output = render(d)
+        assert "o--o" in output

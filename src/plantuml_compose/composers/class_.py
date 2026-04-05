@@ -27,6 +27,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from ..primitives.common import (
+    ArrowHeadLike,
     ColorLike,
     Direction,
     Footer,
@@ -43,6 +44,7 @@ from ..primitives.common import (
     Stereotype,
     StyleLike,
     ThemeLike,
+    coerce_arrow_head,
     coerce_line_style,
     sanitize_ref,
 )
@@ -119,8 +121,8 @@ class _RelationshipData:
     note: str | None = None
     qualifier: str | None = None
     length: int | None = None
-    left_head: str | None = None
-    right_head: str | None = None
+    left_head: ArrowHeadLike | None = None
+    right_head: ArrowHeadLike | None = None
 
 
 class ClassElementNamespace:
@@ -451,8 +453,8 @@ class ClassRelationshipNamespace:
                      note: str | None = None,
                      qualifier: str | None = None,
                      length: int | None = None,
-                     left_head: str | None = None,
-                     right_head: str | None = None) -> _RelationshipData:
+                     left_head: ArrowHeadLike | None = None,
+                     right_head: ArrowHeadLike | None = None) -> _RelationshipData:
         """Create a relationship with explicit type.
 
         For when the convenience methods don't fit your needs.
@@ -962,8 +964,8 @@ class ClassComposer(BaseComposer):
                     style=conn.style,
                     direction=conn.direction,
                     note=note,
-                    left_head=conn.left_head,
-                    right_head=conn.right_head,
+                    left_head=coerce_arrow_head(conn.left_head),
+                    right_head=coerce_arrow_head(conn.right_head),
                     qualifier=conn.qualifier,
                     length=conn.length,
                 ))

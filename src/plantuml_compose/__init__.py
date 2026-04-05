@@ -74,6 +74,8 @@ from .composers import (
 )
 from .composers.base import EntityRef
 from .primitives import (
+    ArrowHead,
+    ArrowHeadLike,
     Color,
     ColorLike,
     CompositeState,
@@ -191,6 +193,8 @@ __all__ = [
     "link",
     "render",
     # Common primitives
+    "ArrowHead",
+    "ArrowHeadLike",
     "Color",
     "ColorLike",
     "DiagramArrowStyle",

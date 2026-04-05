@@ -27,6 +27,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from ..primitives.common import (
+    ArrowHeadLike,
     ColorLike,
     Direction,
     Footer,
@@ -43,6 +44,7 @@ from ..primitives.common import (
     Style,
     StyleLike,
     ThemeLike,
+    coerce_arrow_head,
     coerce_line_style,
     coerce_style,
     sanitize_ref,
@@ -95,8 +97,8 @@ class _RelationshipData:
     style: LineStyleLike | None
     direction: Direction | None
     length: int | None = None
-    left_head: str | None = None
-    right_head: str | None = None
+    left_head: ArrowHeadLike | None = None
+    right_head: ArrowHeadLike | None = None
 
 
 class ComponentElementNamespace:
@@ -449,8 +451,8 @@ class ComponentConnectionNamespace:
         style: LineStyleLike | None = None,
         direction: Direction | None = None,
         length: int | None = None,
-        left_head: str | None = None,
-        right_head: str | None = None,
+        left_head: ArrowHeadLike | None = None,
+        right_head: ArrowHeadLike | None = None,
     ) -> _RelationshipData:
         return _RelationshipData(
             source=source, target=target, type="arrow",
@@ -796,8 +798,8 @@ class ComponentComposer(BaseComposer):
                     style=coerce_line_style(conn.style) if conn.style else None,
                     direction=conn.direction,
                     length=conn.length,
-                    left_head=conn.left_head,
-                    right_head=conn.right_head,
+                    left_head=coerce_arrow_head(conn.left_head),
+                    right_head=coerce_arrow_head(conn.right_head),
                 ))
 
         # Build notes

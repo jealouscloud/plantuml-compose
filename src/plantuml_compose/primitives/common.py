@@ -25,6 +25,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import Any, Literal, TypeAlias, TypedDict, get_args
 
 
@@ -297,6 +298,90 @@ RegionSeparator = Literal["horizontal", "vertical"]
 
 # Font style options
 FontStyle = Literal["normal", "bold", "italic", "bold italic"]
+
+
+class ArrowHead(StrEnum):
+    """PlantUML arrow head/tail symbols.
+
+    Use these to customize arrow endpoints on relationships and connections.
+    The enum value is the PlantUML symbol rendered in the output.
+
+    Example:
+        r.arrow(a, b, left_head=ArrowHead.DIAMOND, right_head=ArrowHead.THIN_ARROW)
+        # renders: *-->>
+
+    Or use the string name form:
+        r.arrow(a, b, left_head="diamond", right_head="thin_arrow")
+    """
+
+    ARROW = ">"
+    THIN_ARROW = ">>"
+    DIAMOND = "*"
+    HOLLOW_DIAMOND = "o"
+    SQUARE = "#"
+    PLUS = "+"
+    TRIANGLE = "^"
+    CROSS = "x"
+    CIRCLE = "0"
+    CLOSED_TRIANGLE = "|>"
+    BAR = "|"
+    CROW_FOOT = "}"
+    CROW_FOOT_OPTIONAL_MANY = "}o"
+    CROW_FOOT_MANDATORY_MANY = "}|"
+    CROW_FOOT_MANDATORY_ONE = "||"
+    CROW_FOOT_OPTIONAL_ONE = "|o"
+    HALF_CIRCLE_LEFT = "(0"
+    HALF_CIRCLE_RIGHT = "0)"
+
+
+# Friendly string names for arrow heads — used with Literal type
+ArrowHeadLike: TypeAlias = ArrowHead | Literal[
+    "arrow", "thin_arrow", "diamond", "hollow_diamond",
+    "square", "plus", "triangle", "cross", "circle",
+    "closed_triangle", "bar",
+    "crow_foot", "crow_foot_optional_many", "crow_foot_mandatory_many",
+    "crow_foot_mandatory_one", "crow_foot_optional_one",
+    "half_circle_left", "half_circle_right",
+]
+
+# Map friendly names to PlantUML symbols
+_ARROW_HEAD_NAMES: dict[str, str] = {
+    "arrow": ">",
+    "thin_arrow": ">>",
+    "diamond": "*",
+    "hollow_diamond": "o",
+    "square": "#",
+    "plus": "+",
+    "triangle": "^",
+    "cross": "x",
+    "circle": "0",
+    "closed_triangle": "|>",
+    "bar": "|",
+    "crow_foot": "}",
+    "crow_foot_optional_many": "}o",
+    "crow_foot_mandatory_many": "}|",
+    "crow_foot_mandatory_one": "||",
+    "crow_foot_optional_one": "|o",
+    "half_circle_left": "(0",
+    "half_circle_right": "0)",
+}
+
+
+def coerce_arrow_head(value: ArrowHeadLike | None) -> str | None:
+    """Convert an ArrowHeadLike value to a PlantUML arrow head symbol.
+
+    Accepts ArrowHead enum members (already the symbol), friendly string
+    names ("diamond", "thin_arrow"), or raw PlantUML symbols (">", "*").
+    """
+    if value is None:
+        return None
+    if isinstance(value, ArrowHead):
+        return value.value
+    # Try friendly name mapping
+    if value in _ARROW_HEAD_NAMES:
+        return _ARROW_HEAD_NAMES[value]
+    # Pass through raw symbols for backward compat
+    return value
 
 
 def _validate_color_component(value: int, name: str) -> int:

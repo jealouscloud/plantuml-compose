@@ -4,6 +4,8 @@ All types are frozen dataclasses - immutable data with no behavior.
 """
 
 from .common import (
+    ArrowHead,
+    ArrowHeadLike,
     Color,
     ColorLike,
     DiagramArrowStyle,
@@ -272,6 +274,8 @@ from .timing import (
 
 __all__ = [
     # Common
+    "ArrowHead",
+    "ArrowHeadLike",
     "ActivityDiagramStyle",
     "ActivityDiagramStyleLike",
     "ClassDiagramStyle",
