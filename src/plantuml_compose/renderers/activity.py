@@ -184,17 +184,14 @@ def _render_action(action: Action) -> str:
         "database": "continuous",
     }
 
-    # Color prefix (from style.background)
-    # Note: the PlantUML server (newer than 1.2025.10) shows deprecation
-    # warnings for the #color:text; prefix form, preferring :text;<<#color>>
-    # suffix. However the suffix form doesn't work in PlantUML <= 1.2025.10.
-    # Using prefix for now; switch to suffix when the stable release supports it.
-    color_prefix = ""
-    if action.style and action.style.background:
-        color_prefix = render_color_hash(action.style.background)
-
     # All actions use ; terminator
-    result = f"{color_prefix}:{label};"
+    result = f":{label};"
+
+    # Color suffix (from style.background)
+    # Modern PlantUML syntax: :text;<<#color>> (suffix after semicolon)
+    # The old prefix form (#color:text;) is deprecated.
+    if action.style and action.style.background:
+        result += f"<<{render_color_hash(action.style.background)}>>"
 
     # Shape stereotype (from shape= parameter)
     shape_stereotype = _shape_to_stereotype.get(action.shape)
