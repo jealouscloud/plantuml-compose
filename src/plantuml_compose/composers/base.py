@@ -53,24 +53,55 @@ class EntityRef:
             self._children[child._ref] = child
             self._children_by_name[child._name] = child
 
+    def _find_recursive(self, ref: str) -> EntityRef | None:
+        """Search descendants recursively by ref.
+
+        PlantUML uses a flat namespace — all element refs are global.
+        This mirrors that by letting any ancestor find any descendant.
+        """
+        if ref in self._children:
+            return self._children[ref]
+        for child in self._children.values():
+            found = child._find_recursive(ref)
+            if found is not None:
+                return found
+        return None
+
+    def _find_recursive_by_name(self, name: str) -> EntityRef | None:
+        """Search descendants recursively by display name."""
+        if name in self._children_by_name:
+            return self._children_by_name[name]
+        for child in self._children.values():
+            found = child._find_recursive_by_name(name)
+            if found is not None:
+                return found
+        return None
+
     def __getattr__(self, name: str) -> EntityRef:
         # Only intercept attribute access for children, not internals
         if name.startswith("_"):
             raise AttributeError(name)
+        # Direct children first, then recursive search
         children = object.__getattribute__(self, "_children")
         if name in children:
             return children[name]
+        found = self._find_recursive(name)
+        if found is not None:
+            return found
         raise AttributeError(
             f"Entity {self._name!r} has no child with ref {name!r}. "
             f"Available: {list(children.keys())}"
         )
 
     def __getitem__(self, key: str) -> EntityRef:
+        # Direct children first, then recursive search
         if key in self._children_by_name:
             return self._children_by_name[key]
-        # Also try by ref
         if key in self._children:
             return self._children[key]
+        found = self._find_recursive_by_name(key) or self._find_recursive(key)
+        if found is not None:
+            return found
         raise KeyError(
             f"Entity {self._name!r} has no child {key!r}. "
             f"Available: {list(self._children_by_name.keys())}"
