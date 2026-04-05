@@ -495,10 +495,9 @@ d = activity_diagram(title="Order Process")
 el = d.elements
 
 d.add(
-    el.start(),
-
-    # Switch to a swimlane (creates header)
+    # Swimlane declarations must come before start in PlantUML
     el.swimlane("Customer"),
+    el.start(),
     el.action("Place Order"),
 
     # display_name= shows a different label in the header
@@ -1059,9 +1058,8 @@ d = activity_diagram(
 el = d.elements
 
 d.add(
-    el.start(),
-
     el.swimlane("Developer"),
+    el.start(),
     el.action("Push to Git"),
 
     el.swimlane("CI Server", color="#F5F5F5"),

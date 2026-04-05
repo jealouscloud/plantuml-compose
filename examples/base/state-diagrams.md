@@ -830,12 +830,11 @@ print(render(d))
 
 ```python
 from plantuml_compose import state_diagram, render
-from plantuml_compose.primitives.common import ExternalTheme
 
-# External theme from a local file
+# Another built-in theme
 d = state_diagram(
-    title="Custom Theme",
-    theme=ExternalTheme("mytheme", source="/path/to/themes"),
+    title="Blueprint Theme",
+    theme="blueprint",
 )
 el = d.elements
 t = d.transitions

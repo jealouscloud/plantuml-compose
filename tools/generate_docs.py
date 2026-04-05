@@ -177,7 +177,8 @@ def batch_verify_plantuml(diagrams: list[DiagramInfo]) -> dict[int, str]:
                     )
                     if check_result.returncode != 0:
                         errors[i] = (
-                            check_result.stderr.strip() or "Unknown PlantUML error"
+                            check_result.stderr.strip()
+                            or "Unknown PlantUML error"
                         )
 
         except subprocess.TimeoutExpired:
@@ -243,7 +244,9 @@ def encode_plantuml(text: str) -> str:
     compressed = zlib.compress(data, 9)[2:-4]  # strip zlib header/checksum
 
     # 3. PlantUML's custom base64 encoding
-    alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
+    alphabet = (
+        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
+    )
     result = []
 
     for i in range(0, len(compressed), 3):
@@ -387,7 +390,11 @@ def generate_markdown_with_diagrams(
             encoded = encode_plantuml(diagram.output)
             url = f"https://www.plantuml.com/plantuml/svg/{encoded}"
             plantuml_block = f"\n![Diagram]({url})\n\n"
-            content = content[: diagram.end_pos] + plantuml_block + content[diagram.end_pos :]
+            content = (
+                content[: diagram.end_pos]
+                + plantuml_block
+                + content[diagram.end_pos :]
+            )
 
         processed_contents[filename] = content
 
@@ -397,6 +404,7 @@ def generate_markdown_with_diagrams(
 def generate_docs(
     base_dir: Path | None = None,
     output_dir: Path | None = None,
+    targets: list[str] | None = None,
 ) -> tuple[list[Path], list[str]]:
     """
     Generate documentation from base markdown files.
@@ -406,6 +414,8 @@ def generate_docs(
                   Defaults to examples/base/
         output_dir: Destination directory for generated files.
                     Defaults to examples/
+        targets: Optional list of filename substrings to filter.
+                 e.g., ["activity", "state"] processes only matching files.
 
     Returns:
         Tuple of (list of generated file paths, list of errors).
@@ -424,10 +434,15 @@ def generate_docs(
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Collect all markdown files
+    # Collect markdown files, optionally filtered
     md_files = sorted(base_dir.glob("*.md"))
+    if targets:
+        md_files = [
+            f for f in md_files
+            if any(t in f.stem for t in targets)
+        ]
     if not md_files:
-        print("No markdown files found in examples/base/")
+        print("No matching markdown files found in examples/base/")
         return [], []
 
     print(f"Processing {len(md_files)} markdown files...")
@@ -458,10 +473,15 @@ def generate_docs(
 
 
 if __name__ == "__main__":
-    paths, errors = generate_docs()
+    # Support targeting specific files: uv run python tools/generate_docs.py activity state
+    targets = sys.argv[1:] if len(sys.argv) > 1 else None
+    paths, errors = generate_docs(targets=targets)
 
     if errors:
-        print(f"\n{len(errors)} PlantUML syntax error(s) detected:", file=sys.stderr)
+        print(
+            f"\n{len(errors)} PlantUML syntax error(s) detected:",
+            file=sys.stderr,
+        )
         for error in errors:
             print(f"  - {error}", file=sys.stderr)
         sys.exit(1)

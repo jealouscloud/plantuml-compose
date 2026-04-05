@@ -323,11 +323,11 @@ d.phase("Lifecycle", [
 
     # Explicit activate/deactivate
     e.activate(server),
-    e.message(server, worker, "delegate"),
-    e.activate(worker, color="#FFCCCC"),  # colored activation bar
 
     # Create a participant mid-flow
     e.create(worker),
+    e.message(server, worker, "delegate"),
+    e.activate(worker, color="#FFCCCC"),  # colored activation bar
 
     e.message(worker, server, "done"),
     e.deactivate(worker),
