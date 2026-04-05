@@ -70,7 +70,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkAm2YlAJKukB5O9I2qjJYqkikPJTt9nTN8oid8ioIpAJ4tCKWajI2u329iwERgO6DHQ6pkOM9bRkHOafcQbv9L1Pgw3Kn1G5pxo2qX9h6vjC46rd1xGYlu3B8JKl1MWV0000)
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkAm2YlAJKukB5O9I2qjJYqkikQoSYp9BCfCJSnI2Ir8Bh6ribDtSd5rSZEpikApSYn9JCbFpIk1I9iwERgO6DHQ6pkOM9Y0LGQc9AGgUUGMb9K3fJ10D52qkoI_WSaZDIm7Q2m00)
 
 
 
@@ -898,7 +898,7 @@ d.add(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pk9HTZTsCt5oi_FABSXDphBcKArDpSlBBhS8JY_8oyzA10YREZcwc1ZKMXixc5YPMxaM9APcfUIL02JStKtCZenetDmj7CrEuX89BPZ9GjhWalu3B8JKl1MWL0000)
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8pkApyyejo4tEiRMoKNOtTZDnSxEouhC8JY_8oyz91WfMfEJdvvI11zwB4bCpKl1AGg8cpevkfGOs5eREvXGcof89BPZ9OXPkRgRcHKOsRcuMZcIbGHN59VW6NGsfU2j1g0000)
 
 
 
