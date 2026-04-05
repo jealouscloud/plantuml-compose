@@ -34,73 +34,181 @@ The pattern: create a diagram with a project `start` date, get `tk` (tasks) and 
 
 #### Duration in Days
 
-```text
-tk.task("Short task", days=3)
-tk.task("Medium task", days=7)
-tk.task("Long task", days=14)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+short = tk.task("Short task", days=3)
+medium = tk.task("Medium task", days=7)
+long = tk.task("Long task", days=14)
+d.add(short, medium, long)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgIK_CAodX2YZApqfDBb402nKh61aOcUaQcEWQc7551sVa5vKeb2GMPySg91OhHCUN6COgv2GM0vKPAwGaLXPpHVkcfcIMvgAeCOAfCOUgySdFIqTHOGnJOMW2KUAGcfS2TWq0)
+
+
 
 #### Duration in Weeks
 
-```text
-tk.task("Sprint 1", weeks=2)
-tk.task("Sprint 2", weeks=2)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+sprint1 = tk.task("Sprint 1", weeks=2)
+sprint2 = tk.task("Sprint 2", weeks=2)
+d.add(sprint1, sprint2)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgIK_CAodX2YZApqfDBb402nKh61aOcUaQcEWQc7551nSKPUQLA1Z6AYGMAqJ7bm0PEOd584KAvQcfsSLm5KOm5KReAXnIyrB0zW00)
+
+
 
 #### Explicit Start and End Dates
 
-```text
-tk.task("Planning", start=date(2026, 4, 6), end=date(2026, 4, 10))
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+planning = tk.task("Planning", start=date(2026, 4, 6), end=date(2026, 4, 10))
+d.add(planning)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgIK_CAodX2YZApqfDBb402nKh61aOcUaQcEWQc7551-GavkLbvgN7AYGMAqJ7bnZ6OgfIICnBKKZDIq686HfmEG05mAO30000)
+
+
 
 #### Start Date with Duration
 
-```text
-tk.task("Kickoff", start=date(2026, 4, 6), days=5)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+kickoff = tk.task("Kickoff", start=date(2026, 4, 6), days=5)
+d.add(kickoff)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgIK_CAodX2YZApqfDBb402nKh61aOcUaQcEWQc755UsScP-UdfSKg91OhHCUN6CPYAb98p4jHA4ejBCqiIYrMC5L8IQmivd98pKi16mu0)
+
+
 
 #### Completion Percentage
 
-```text
-tk.task("Design", days=10, completion=60)   # 60% done
-tk.task("Review", days=3, completion=100)   # fully complete
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+design = tk.task("Design", days=10, completion=60)
+review = tk.task("Review", days=3, completion=100)
+d.add(design, review)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgIK_CAodX2YZApqfDBb402nKh61aOcUaQcEWQc755kwGMPwRdnIea5Yj4nvSOnYha91O3bHWQAAGaLXPpGSGoYnNC35GLalDp2t9IIrAveeDIop9Jos6wZ62wZE6QZC2Q30sGTJcavgM0tGC0)
+
+
 
 #### Colored Tasks
 
-```text
-tk.task("Critical", days=5, color="#FFCDD2")
-tk.task("Normal", days=3, color="LightBlue")
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+critical = tk.task("Critical", days=5, color="#FFCDD2")
+normal = tk.task("Normal", days=3, color="LightBlue")
+d.add(critical, normal)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NSun2y8m48RXFR_YmBaGJ-rSREaauXwA74ceaPZ0tJduxvMA2gultmDV9qgiCnLLS-9wZLvXIG9eiMtijh6jSJqdJPxo12JWphgU89EyHZi8z13pJad0rrmv1aW5LkFO3mCQTwny-r7yqCsNuZyzfFcY-toFfeibBE-U)
+
+
 
 #### Resources
 
 Assign one or more people/teams to a task:
 
-```text
-tk.task("Design", days=5, resources=("Alice",))
-tk.task("Develop", days=10, resources=("Bob", "Carol"))
-tk.task("Review", days=2, resources=("Alice", "David"))
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+design = tk.task("Design", days=5, resources=("Alice",))
+develop = tk.task("Develop", days=10, resources=("Bob", "Carol"))
+review = tk.task("Review", days=2, resources=("Alice", "David"))
+d.add(design, develop, review)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LSv12i8m48NXVKyn5oYaKRkksWE8sr9aR8SI2Kd93149lRlQceNRuVyUqx1Wa0cTI749_a63m7fYq4hNfTgNgYwwbjXChWTaw6vIzU0TfACr0orWaJ_r0KPyyRUCPFsSKxsb9tzV89qnU9j1fNxYIj7GCuFTttPgCPen4xs9XjouVlm6)
+
+
 
 #### Task Links
 
 Add a clickable URL to a task:
 
-```text
-tk.task("JIRA-123", days=5, link="https://jira.example.com/JIRA-123")
-tk.task("Linked", days=3, link="https://example.com",
-        link_color="blue", link_style="bold")
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+jira = tk.task("JIRA-123", days=5, link="https://jira.example.com/JIRA-123")
+linked = tk.task("Linked", days=3, link="https://example.com",
+                 link_color="blue", link_style="bold")
+d.add(jira, linked)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/RSwz2i8m58RXFLTnRg1Dcse7fpeg3k8QWXoQeFrBIiuPzEuDnHO7rvUFXwyXniWFzCpY6aFlMeOb4QX2rLcnoufQwFFfTinALHb00dtdqi28b4PxiFWcyKsT7mWuWDPFvfaEKlPTnDozS9f7bxTXafjaXBwalREhgLQpsaprr_pXaj8uRvV_7m00)
+
+
 
 Parameters for link styling: `link=`, `link_color=`, `link_style=` (`"bold"`, `"dashed"`, `"dotted"`)
 
 #### Task Notes
 
-```text
-tk.task("Audit", days=3, note="Requires read access to prod DB")
-tk.task("Deploy", days=1, note="After hours only", note_position="right")
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+audit = tk.task("Audit", days=3, note="Requires read access to prod DB")
+deploy = tk.task("Deploy", days=1, note="After hours only")
+d.add(audit, deploy)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LSx12e9G40NG_VkA-mE2MhZMy0EYhKYyV5CPziPcneL_dmf2xIwNo-6MQbxiuQEPEmk_g3DibI9Fyo99ZqbQkAQQGcyjlAAvMjPYyBei3WX-LXVP23SsuxUxq6VgXHH2Fi1t7Qd26ADmG7ro50FMlNDDJUF0yuxcEvgjw9zPtOq4Jvv4mN6OVv1oYTlvBm00)
+
+
 
 `note_position=` accepts `"bottom"` (default), `"left"`, `"right"`, `"top"`.
 
@@ -108,37 +216,88 @@ tk.task("Deploy", days=1, note="After hours only", note_position="right")
 
 When `working_days=True`, the duration counts only working days (excluding closed days):
 
-```text
-tk.task("Development", days=10, working_days=True)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+d.close_days("saturday", "sunday")
+dev = tk.task("Development", days=10, working_days=True)
+d.add(dev)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NOr12e0W403llc8_4AY4vmuzeBj8BBe4OHhk5lJxmcFNOPYPMB39XaL4BQtk50KwOh3Qka6FWtQAKQwMy05i135NfgJuAZ_YPxefr_EW8W6GmQzY0cJahsOqV3ghYKhgknS0)
+
+
 
 #### Pauses
 
 Pause a task on specific dates or recurring days of the week:
 
-```text
-tk.task("Long task", days=20,
-    pauses_on=(date(2026, 4, 15),),              # pause on a specific date
-    pauses_on_days=("wednesday",),                # pause every Wednesday
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+task = tk.task("Long task", days=20,
+    pauses_on=(date(2026, 4, 15),),
+    pauses_on_days=("wednesday",),
 )
+d.add(task)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgIK_CAodX2YZApqfDBb402nKh61aOcUaQcEWQc755--JdfIkK91Pdnoea5Yj4nvSOnYha91Q3LIca95OMSq742X9BYrEB5VBpuBeDJJ6aobDJybABWRgu75BpKi1s0m00)
+
+
 
 #### Deleted Tasks
 
 Mark a task as deleted (renders with strikethrough):
 
-```text
-tk.task("Cancelled feature", days=5, is_deleted=True)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+cancelled = tk.task("Cancelled feature", days=5, is_deleted=True)
+d.add(cancelled)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/9Smn2e0m34RXlQV81GfLr5dm0kvI99XVKKg59WxUNj7ru_5wDIwsSJPpOpaFB4OVATMXxdneVEZSD71Ua1A4Lh1T1P5OQPgjYfHOtxebuLlTJxkI8C4WhaUMR_y0)
+
+
 
 #### Same Row As
 
 Force a task onto the same row as another task:
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+dep = d.dependencies
+
 prep = tk.task("Prep", days=3)
 followup = tk.task("Followup", days=2, on_same_row_as=prep)
+d.add(prep, followup)
+d.connect(dep.after(followup, prep))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/FSun2y8m40NWFR_YRKw56ALp9-VkeSXXWYWnLt8dnNzlYB7hku_tRXAbedVAgcOk_8mtHOi4phfniEV1ZiRF9QuBIE2lUboGI2eu8T17ZBzmIhozT-3-m7NGejvA-kiu268E_HOUigPAmHb2huZ2sxvcfWhRXry0)
+
+
 
 #### All Task Parameters
 
@@ -148,13 +307,23 @@ followup = tk.task("Followup", days=2, on_same_row_as=prep)
 
 Zero-duration markers for significant events:
 
-```text
-tk.milestone("Phase 1 Complete")
-tk.milestone("Launch", on=date(2026, 5, 1))
-tk.milestone("Go Live", color="Gold")
-tk.milestone("Sign-off", link="https://example.com/sign-off")
-tk.milestone("Review", note="Stakeholder approval needed")
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+m1 = tk.milestone("Phase 1 Complete", on=date(2026, 4, 10))
+m2 = tk.milestone("Launch", on=date(2026, 5, 1))
+m3 = tk.milestone("Go Live", on=date(2026, 5, 15), color="Gold")
+d.add(m1, m2, m3)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/PSx12i8m40JGUxvYVo2GHDjpmKClFVGUYeHaCP6O3SdgzmiL5VGwynXcwkmQNrnX5ckZAtg6FUfWb1cbEaer2hj6rn4qdEXMCp9ku3hOC-iDegiLovTh9UpYxiN7DpA_Q91A2piJBEdncJhyAps8Lv4wUChKC40gC5CEOi8IzjjF)
+
+
 
 Parameters: `name`, `on=`, `color=`, `link=`, `note=`, `note_position=`
 
@@ -164,35 +333,100 @@ Parameters: `name`, `on=`, `color=`, `link=`, `note=`, `note_position=`
 
 Task B starts after task A completes:
 
-```text
-dep.after(task_b, task_a)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+dep = d.dependencies
+
+task_a = tk.task("Task A", days=3)
+task_b = tk.task("Task B", days=5)
+d.add(task_a, task_b)
+d.connect(dep.after(task_b, task_a))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgIK_CAodX2YZApqfDBb402nKh61aOcUaQcEWQc755XoGMPoiunYea5Yj4nvSOnYha91O3bHWhf2HM5aEbdM3IHZ1fKwWqM0XgQc89n0JrOeNKl1Gk1o01jXq0)
+
+
 
 Multiple predecessors -- pass a list:
 
-```text
-# deploy starts after both build and test complete
-dep.after(deploy, [build, test])
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+dep = d.dependencies
+
+build = tk.task("Build", days=5)
+test = tk.task("Test", days=3)
+deploy = tk.task("Deploy", days=2)
+d.add(build, test, deploy)
+d.connect(dep.after(deploy, [build, test]))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgIK_CAodX2YZApqfDBb402nKh61aOcUaQcEWQc755EvLcvgJ4AYGMAqJ7bnZ6AkGa5WDLc2ga95OMSqM7f1QNm2IDO9B6K4cNr8AS_4gOj35CsWWg3HQ2sfXO0Z5UlLWXDI-52sAQhXr47vS3K0piK000)
+
+
 
 ### starts_with
 
 Task B starts at the same time as task A:
 
-```text
-dep.starts_with(task_b, task_a)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+dep = d.dependencies
+
+task_a = tk.task("Task A", days=5)
+task_b = tk.task("Task B", days=3)
+d.add(task_a, task_b)
+d.connect(dep.starts_with(task_b, task_a))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgIK_CAodX2YZApqfDBb402nKh61aOcUaQcEWQc755XoGMPoiunYea5Yj4nvSOnYha91O3bPWgf2HM5aEbdM3IHZ1fOwWqM0XgQc89n0JrOeW8bqDgNWhOVW00)
+
+
 
 ### Connecting Dependencies
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+dep = d.dependencies
+
+design = tk.task("Design", days=5)
+develop = tk.task("Develop", days=10)
+test = tk.task("Test", days=3)
+review = tk.task("Review", days=2)
+deploy = tk.task("Deploy", days=1)
+docs = tk.task("Docs", days=8)
+d.add(design, develop, test, review, deploy, docs)
+
 d.connect(
     dep.after(develop, design),
     dep.after(test, develop),
     dep.after(deploy, [test, review]),
     dep.starts_with(docs, develop),
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/RP112eCm44NtEKLsNGanqT1LST43bDATI0awY4MCE8F5srUZ4sZfzlzvZyyKI6wYrWr4uZRv5zGaGuHIAsqJbINAYl8AsBL39HtAyabf9Nk7wqak6xVWLi_G-v5xpNsgZeEG7Lv7k-E44eP6b0z0Oj8mQI9eVa0TmJlC7RmPpHZLSTJO-uNhF6xQQh4dNs8JnK6MN7Pi5VaQMMDPSuu3xR-18H75gWk__G00)
+
+
 
 Lists returned by `dep.after(..., [list])` are flattened automatically by `d.connect()`.
 
@@ -200,54 +434,150 @@ Lists returned by `dep.after(..., [list])` are flattened automatically by `d.con
 
 ### Closed Days (Weekends)
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
 d.close_days("saturday", "sunday")
+
+task = tk.task("Weekdays only", days=10)
+d.add(task)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NSqx2e0m48JXFgUO2mWnYBL7iBEG88jP10q9P3T5Rk-ZjFr-c9b4gUX1ITNC9P-yApuIEEl6pWwT7OsGrXAeWGfZZrau6Adf9-l2V3qco2as3nAic_OUaUJPwotUQ2PEuJky0G00)
+
+
 
 Valid day names: `"monday"`, `"tuesday"`, `"wednesday"`, `"thursday"`, `"friday"`, `"saturday"`, `"sunday"`
 
 ### Closed Dates (Holidays)
 
-```text
-d.close_dates(date(2026, 12, 25), date(2026, 1, 1))
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+d.close_dates(date(2026, 4, 8), date(2026, 4, 9))
+
+task = tk.task("Work around holidays", days=7)
+d.add(task)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgIK_CAodX2YZApqfDBb402nKh61aOcUaQcEWQc771cHOAcSKAoJdvnQaf245B9C7eyFoYR8N4elpIl1I5ZFoSp9J4ok9OXSHYXUZu4iDOXPp4Og3HvWeWOIw7rBmKiDK0)
+
+
 
 ### Closed Date Range
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 12, 15))
+tk = d.tasks
+
 d.close_date_range(date(2026, 12, 24), date(2026, 12, 31))
+
+task = tk.task("Year-end project", days=14)
+d.add(task)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/FOr12e0m40FlVKK-K71hzUmJl8g8BBQ88bQwU_7tYgAta0oJHfIpphohcZQdDKwAfnAumjMMdANAVD5vQFg7ah08fYr93ARl8cSRzu3ZrGnWGJyg3TXORXzv13x5D3Vq75u0)
+
+
 
 ### Open Date (Override)
 
 Reopen a specific date that falls within a closed range:
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
 d.close_days("saturday", "sunday")
 d.open_date(date(2026, 4, 11))  # this Saturday is a working day
+
+task = tk.task("Includes a Saturday", days=7)
+d.add(task)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NSw_2i8m40Rm_PxYUu52KgIkNTq4nrBaI0vHmaLobw5lRocwkFxW-pERS_C7gpjTMtr9SXna6CCu3U4qX8cClRVC6xW9KgaccQphd_m2CU9fg6zHMYwQIizYODo-9IlOiDmzhYXi-z0PknhDelauyW40)
+
+
 
 ### Colored Dates
 
 Highlight specific dates with a background color:
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
 d.color_date(date(2026, 4, 15), "LightYellow")
+
+task = tk.task("Watch the 15th", days=14)
+d.add(task)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/DOr12iCW50Ntdk9T8A0XoJe7wAAxKa8e7vLe4GN_Wz3RjmIw6sOniogbyv1Acdjlx-Y9Iob6Eow3dGQxc3-w6LdXMsaz1kIAMpuIdx6KTfhj8VG9J15kPjeXYkr5jwE8_dfkGf2FcZNMS0s_)
+
+
 
 ### Colored Date Ranges
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
 d.color_date_range(date(2026, 4, 20), date(2026, 4, 24), "LightGreen")
+
+task = tk.task("Sprint", days=21)
+d.add(task)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/FOqn2eD044NxFSM_WB0kOcsN9aN0KaG6Tp0RP5Pcfl7s4Y7fFk_1-uCvgMyaxk6bzSEhuqQ655FVnAw9VVZD5E7rBr87KiPQzwgSKGJFihtzeSmIfl7G8Zw33DFYxOoTx5jjaUcqCB3a-_O2)
+
+
 
 ### Today Marker
 
-```text
-d.today()                                        # default marker
-d.today(date(2026, 4, 10))                       # explicit date
-d.today(date(2026, 4, 10), color="LightCoral")   # with color
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+d.today(date(2026, 4, 10), color="LightCoral")
+
+task = tk.task("Ongoing work", days=10)
+d.add(task)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/HSsn2iCm38JXtKznBn2GGyaSw5fezn2AY8thraWW2qhVlY5BrW_-kxaxcnSMz_0mVUVDSL37IECqq6MWARWc_g6U5kcqJPjQJgY2Moqllwfn2yjTYbOf-AfzLd37ylIued7VjoDXhtkOiwJZ_0y0)
+
+
 
 ## Separators
 
@@ -255,13 +585,30 @@ d.today(date(2026, 4, 10), color="LightCoral")   # with color
 
 Visual dividers between task groups:
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+design = tk.task("Design", days=5)
+develop = tk.task("Develop", days=10)
+test = tk.task("Test", days=3)
+deploy = tk.task("Deploy", days=2)
+monitor = tk.task("Monitor", days=5)
+
 d.add(design, develop)
-d.separator("Phase 2")        # labeled separator
+d.separator("Phase 2")
 d.add(test, deploy)
-d.separator()                 # unlabeled separator
+d.separator("Phase 3")
 d.add(monitor)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NOyn2iCm34Ltdq8NC3XsaZb3rqA6RYOKqPWqnTZ14e7SlgsBEcJLUpo-1c8il61YLcF9h_1Wg2S2QsolJQjDh_mbqBga2P30txcP829zb0vcFEYBzn3p9jmARynFq1h69r802rehVml4uZfntR-rnNm8RWNRKydLqZMdbNCHkpiD6qAQwszl)
+
+
 
 Separators interleave with `d.add()` calls in order.
 
@@ -269,40 +616,86 @@ Separators interleave with `d.add()` calls in order.
 
 Vertical lines after a specific task:
 
-```text
-d.add(phase1_task)
-d.vertical_separator(phase1_task)
-d.add(phase2_task)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+phase1 = tk.task("Phase 1", days=5)
+phase2 = tk.task("Phase 2", days=5)
+
+d.add(phase1)
+d.vertical_separator(phase1)
+d.add(phase2)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NOun2eD054JxFSLqLi9cIQmzWc0f4eQuA28g-oU5jy-YsAGR7k_1r2OcZLmbrwHjZX_XH8RWGrNwP-ahrpKJBUBHWuRkhJmMMdPU67YOQ-FEH6q9yzS4wf8AGro7kmvt7VxgEaldWny0)
+
+
 
 ## Resources
 
 ### Assigning Resources
 
-```text
-tk.task("Design", days=5, resources=("Alice",))
-tk.task("Develop", days=10, resources=("Bob", "Carol"))
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+design = tk.task("Design", days=5, resources=("Alice",))
+develop = tk.task("Develop", days=10, resources=("Bob", "Carol"))
+d.add(design, develop)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgIK_CAodX2YZApqfDBb402nKh61aOcUaQcEWQc755kwGMPwRdnIea5Yj4nvSOnYhavobKE-Pa9gVMAkGa5WDLcoga95OMWrIMfURa5y2K6a6KEkKdrIfKEoSMvUV0D1WQG7GufEQbWEq70000)
+
+
 
 ### Resource Off (Unavailable Dates)
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+design = tk.task("Design", days=10, resources=("Alice",))
+build = tk.task("Build", days=10, resources=("Bob",))
+d.add(design, build)
+
 d.resource_off("Alice", date(2026, 4, 15), date(2026, 4, 16))
 d.resource_off("Bob", date(2026, 5, 1))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgIK_CAodX2YZApqfDBb402nKh61aOcUaQcEWQc755kwGMPwRdnIea5Yj4nvSOnYhavobKE-Pa9gVMAkGa5WDL6neef2HM5dD5EvLcvgJ0L1f1L3hb9w6hW-dEB5R8Jqi3gOBPPsYAJzAC2s8QkfIfhe4XbqDgNWhOBm00)
+
+
 
 ### Hiding Resources
 
-```text
-# Hide resource names from task bars
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
 d = gantt_diagram(start=date(2026, 4, 6), hide_resource_names=True)
+tk = d.tasks
 
-# Hide the resource usage footbox
-d = gantt_diagram(start=date(2026, 4, 6), hide_resource_footbox=True)
+task = tk.task("Design", days=5, resources=("Alice",))
+d.add(task)
 
-# Hide the entire footbox (dates)
-d = gantt_diagram(start=date(2026, 4, 6), hide_footbox=True)
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/7Sr12i8m48NXVKxnBb28nNPTmGEuBqM6PAYHEe6ySI7IkolT_elld-ZIV1Lp3xTMdveSHoBws8zTF7Tn38-I5KrPtoqfOV9IXlcgBAij46A--sb1DNmlMqcwOnF-YG5PFWoJMZuMFm00)
+
+
 
 ## Scale & Time Options
 
@@ -310,76 +703,166 @@ d = gantt_diagram(start=date(2026, 4, 6), hide_footbox=True)
 
 Control the time granularity:
 
-```text
-d = gantt_diagram(start=date(2026, 4, 6), scale="daily")
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
 d = gantt_diagram(start=date(2026, 4, 6), scale="weekly")
-d = gantt_diagram(start=date(2026, 4, 6), scale="monthly")
-d = gantt_diagram(start=date(2026, 4, 6), scale="quarterly")
-d = gantt_diagram(start=date(2026, 4, 6), scale="yearly")
+tk = d.tasks
+
+task = tk.task("Long project", days=30)
+d.add(task)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/9Smz2e0m343XFQV81GhrXyuUmC5TYWGDHIrHce1uUqNdz_4wDIgMICpWBAkOpfGPB-Oztp2KO-FPy4EAjQ-3ywtp0SR-a8JdtoEIuZXP5J6Jlh3nkD2jqB4it_i1)
+
+
+
+Valid values: `"daily"`, `"weekly"`, `"monthly"`, `"quarterly"`, `"yearly"`
 
 ### Scale Zoom
 
 Zoom the time axis:
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
 d = gantt_diagram(start=date(2026, 4, 6), scale="weekly", scale_zoom=2)
+tk = d.tasks
+
+task = tk.task("Zoomed project", days=30)
+d.add(task)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/9Sr12eGm30NGVK_nBo3KAguzWcj59DWmZDPMce1qJgyu-mUl5wMi7uggvipVgB9IO5pCUoZufNJ0cI6dZLV5QmNEkgwoRMKxCusFO8_pBsQGO5gqdX587jfOU2fYUex-JMu0)
+
+
 
 ### Week Numbering
 
 Display ISO week numbers:
 
-```text
-d = gantt_diagram(start=date(2026, 4, 6), week_numbering=True)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
 
-# Or start from a specific week number
-d = gantt_diagram(start=date(2026, 4, 6), week_numbering=14)
+d = gantt_diagram(start=date(2026, 4, 6), week_numbering=True)
+tk = d.tasks
+
+task = tk.task("Tracked by week", days=14)
+d.add(task)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/7Sn12e0W4030kw_O3mWcuhadTEWM4fikKOc5kn3-ll0-pCY2LNOi8kgfHn6Ec0bUeYitDTNxf2ZG4OCrrclZjF5gcIl6Yn9ihUC0oB2iCWJ8oByT72Hih4OggVSV)
+
+
 
 ### Calendar Date Display
 
 Show calendar dates on the header:
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
 d = gantt_diagram(start=date(2026, 4, 6), show_calendar_date=True)
+tk = d.tasks
+
+task = tk.task("Date-labeled task", days=7)
+d.add(task)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/7Or12i8m54JtESLS812Br6qN7i1zAV9jFbhxYP8_K7fxOxSpyzuCJgbyIY73jow5FeifDjNLTcmBN_W79Kj55cgurSzRP-BW75tg-fZECVLXlBO-cZpKD8FYwmHnZ7UU9fXuMr-QO_SmDDzn-GC0)
+
+
 
 ### Week Starts On
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
 d = gantt_diagram(start=date(2026, 4, 6), week_starts_on="monday")
+tk = d.tasks
+
+task = tk.task("Monday start", days=10)
+d.add(task)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/DOt12eCm44Jl-Ohv0I4HoTaVAFGkKfPcKLhTWBjL-lU6YCTvyuRfrMYpYSJCFRVyuRUX8aNhszZuhl7H7SnVlNaMh5aI_K6IiFxKCDFE8CF2L590ATKDZykgin6a65uMHYp5KGH_MJrBglSd)
+
+
 
 ### Language
 
 Change day/month names to a different locale:
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
 d = gantt_diagram(start=date(2026, 4, 6), language="de")
-d = gantt_diagram(start=date(2026, 4, 6), language="fr")
+tk = d.tasks
+
+task = tk.task("Aufgabe", days=7)
+d.add(task)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgIK_CAodXoadCIozDJ4zLI4db2YZApqfDBb40InSh61aOcUaQcEWQc755EvQcfIScfSOg91OhHCUN6COgv2GM0zMOAwGaLXPpEQJcfO3D0m00)
+
+
 
 ### Print Range
 
 Limit the rendered date range:
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
 d = gantt_diagram(
     start=date(2026, 4, 6),
     print_range=(date(2026, 4, 6), date(2026, 5, 31)),
 )
+tk = d.tasks
+
+task = tk.task("Visible range", days=60)
+d.add(task)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JOrB2eGm40NtESMxG21-9ckFC2it8j9E6iaWBQGRnDihui9blO9NdHeLMqZCtBTiV_uPxabHXphwqFeGBvF5CBFjpF8I84aFVdnJkQ7FckULKKWM7a6AOR9gn4fwFSQ0H8UwZYNToHC0)
+
+
 
 ## Styling
 
 ### Task-Level Coloring
 
-```text
-tk.task("Critical", days=5, color="#FFCDD2")
-tk.task("Normal", days=3, color="LightBlue")
-tk.milestone("Done", color="Gold")
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+critical = tk.task("Critical", days=5, color="#FFCDD2")
+normal = tk.task("Normal", days=3, color="LightBlue")
+done = tk.milestone("Done", on=date(2026, 4, 15), color="Gold")
+d.add(critical, normal, done)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NS_12eCm30RWUvuYiBEWTNgMAUuonkv5Hh15EsehRNROssyeJhRhdtm_IHMP0W_acE4M_4FtZ4iKKQIYJD9ZafOWws3Oz6Gxf8Zopbc7bk9dgK15hmXhP2BstlgW5Hg7XxQjcqQ0lFemxLHiDFzIyKylPXZvP9yQPEETtcZUuKZphDr-N5R0ElWjE7kheD9EBP-z0G00)
+
+
 
 ### diagram_style
 

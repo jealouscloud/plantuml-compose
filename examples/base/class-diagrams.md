@@ -140,6 +140,8 @@ svc = el.class_("OrderService", stereotype="service")
 ent = el.class_("User", stereotype=Stereotype("entity", Spot("E", "DodgerBlue")))
 
 d.add(svc, ent)
+
+print(render(d))
 ```
 
 ### Members: Fields, Methods, Separators
@@ -242,10 +244,26 @@ print(render(d))
 
 Access nested children via attribute or bracket notation:
 
-```text
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+pkg = el.package("domain",
+    el.class_("User"),
+    el.class_("Order"),
+)
+infra = el.package("infrastructure",
+    el.class_("PostgresRepo"),
+    style="database",
+)
+
+d.add(pkg, infra)
 d.connect(r.uses(pkg.User, infra.PostgresRepo))
-# or bracket access for names with spaces/symbols:
-# d.connect(r.uses(pkg["User"], infra["PostgresRepo"]))
+
+print(render(d))
 ```
 
 ## Relationships / Connections
@@ -325,20 +343,47 @@ Every relationship method supports:
 
 `source_label=` and `target_label=` add multiplicity text at each end:
 
-```text
-r.association(order, product,
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+order = el.class_("Order")
+product = el.class_("Product")
+d.add(order, product)
+
+d.connect(r.association(order, product,
     label="contains",
     source_label="1",
     target_label="*",
-)
+))
+
+print(render(d))
 ```
 
 The `has()`, `contains()`, `aggregation()`, and `composition()` methods use semantic naming:
 
-```text
-r.has(order, item, part_label="*")
-r.contains(order, item, whole_label="1", part_label="*")
-r.aggregation(fleet, car, part_label="*")
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+order = el.class_("Order")
+item = el.class_("LineItem")
+fleet = el.class_("Fleet")
+car = el.class_("Car")
+d.add(order, item, fleet, car)
+
+d.connect(
+    r.contains(order, item, whole_label="1", part_label="*"),
+    r.aggregation(fleet, car, part_label="*"),
+)
+
+print(render(d))
 ```
 
 ### IE (Crow's Foot) Notation
@@ -399,75 +444,158 @@ print(render(d))
 
 `r.relationship()` gives full control over all parameters when the convenience methods don't fit:
 
-```text
-r.relationship(a, b,
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+a = el.class_("Company")
+b = el.class_("Department")
+d.add(a, b)
+
+d.connect(r.relationship(a, b,
     type="composition",
     label="owns",
     source_label="1",
     target_label="*",
-    style="dashed",
     direction="down",
-    length=3,
-    left_head="<|",
-    right_head="*",
-)
+))
+
+print(render(d))
 ```
 
 ### Custom Arrow Heads
 
 Override the default arrowheads with `left_head=` and `right_head=`:
 
-```text
-r.relationship(a, b, left_head="<|", right_head="*")
-r.relationship(a, b, left_head="o", right_head="|>")
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+a = el.class_("Source")
+b = el.class_("Target")
+d.add(a, b)
+
+d.connect(r.relationship(a, b, left_head="o", right_head="|>"))
+
+print(render(d))
 ```
 
 ### Line Style
 
 The `style=` parameter accepts a string shorthand, a dict, or a `LineStyle` object:
 
-```text
-# String shorthand
-r.extends(child, parent, style="dashed")
+```python
+from plantuml_compose import class_diagram, render
 
-# Dict form
-r.uses(a, b, style={"pattern": "dotted", "color": "gray", "thickness": 2})
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+parent = el.abstract("Animal")
+child = el.class_("Dog")
+d.add(parent, child)
+
+d.connect(r.extends(child, parent, style="dashed"))
+
+print(render(d))
 ```
 
 ### Bulk Relationship Helpers
 
 #### arrows() -- multiple arrows from tuples
 
-```text
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+a = el.class_("Controller")
+b = el.class_("Service")
+c = el.class_("Repository")
+d_cls = el.class_("Database")
+d.add(a, b, c, d_cls)
+
 d.connect(r.arrows(
     (a, b),
-    (b, c, "uses"),     # optional label as third element
-    (c, d),
+    (b, c, "uses"),
+    (c, d_cls),
 ))
+
+print(render(d))
 ```
 
 #### arrows_from() -- fan-out from one source
 
-```text
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+controller = el.class_("Controller")
+model = el.class_("Model")
+view = el.class_("View")
+service = el.class_("Service")
+d.add(controller, model, view, service)
+
 d.connect(r.arrows_from(controller,
     model,
-    (view, "renders"),   # mix bare targets and (target, label) tuples
+    (view, "renders"),
     service,
     style="dashed",
     direction="down",
 ))
+
+print(render(d))
 ```
 
 #### extends_from() -- multiple children, one parent
 
-```text
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+animal = el.abstract("Animal")
+dog = el.class_("Dog")
+cat = el.class_("Cat")
+bird = el.class_("Bird")
+d.add(animal, dog, cat, bird)
+
 d.connect(r.extends_from([dog, cat, bird], animal))
+
+print(render(d))
 ```
 
 #### compositions_from() -- one whole, many parts
 
-```text
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+car = el.class_("Car")
+engine = el.class_("Engine")
+wheel = el.class_("Wheel")
+frame = el.class_("Frame")
+d.add(car, engine, wheel, frame)
+
 d.connect(r.compositions_from(car, [engine, wheel, frame]))
+
+print(render(d))
 ```
 
 All bulk helpers return lists that `d.connect()` flattens automatically.
@@ -503,29 +631,41 @@ print(render(d))
 
 Group elements for layout proximity (placed adjacent to each other):
 
-```text
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+
+user = el.class_("User")
+order = el.class_("Order")
+product = el.class_("Product")
+d.add(user, order, product)
 d.together(user, order, product)
+
+print(render(d))
 ```
 
 ### hide() / show() / remove() / restore()
 
 Control element visibility at the diagram level:
 
-```text
-# Hide all empty member compartments
-d.hide("empty members")
+```python
+from plantuml_compose import class_diagram, render
 
-# Hide the circle icon on class names
+d = class_diagram()
+el = d.elements
+
+user = el.class_("User", members=(
+    el.field("name", "str"),
+))
+order = el.class_("Order")
+d.add(user, order)
+
+d.hide("empty members")
 d.hide("circle")
 
-# Show methods compartment
-d.show("methods")
-
-# Remove elements entirely (reclaims space unlike hide)
-d.remove("empty members")
-
-# Restore previously removed/hidden elements
-d.restore("methods")
+print(render(d))
 ```
 
 ### Diagram-level options
@@ -549,12 +689,20 @@ print(render(d))
 
 Any class-type element accepts `style=` as a `StyleLike` dict:
 
-```text
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+
 user = el.class_("User", style={
     "background": "#E3F2FD",
     "line": {"color": "#1976D2"},
-    "text_color": "navy",
 })
+
+d.add(user)
+
+print(render(d))
 ```
 
 ### Diagram-Wide Styling with diagram_style=
@@ -659,8 +807,20 @@ print(render(d))
 
 You can use raw strings instead of `EntityRef` objects for relationships when referring to elements defined elsewhere:
 
-```text
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+parent = el.class_("Parent")
+child = el.class_("Child")
+d.add(parent, child)
+
 d.connect(r.extends("Child", "Parent"))
+
+print(render(d))
 ```
 
 ## Quick Reference

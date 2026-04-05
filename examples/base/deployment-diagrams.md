@@ -122,10 +122,19 @@ el.node(  # or any element type
 
 Any element can show descriptive text below its name:
 
-```text
+```python
+from plantuml_compose import deployment_diagram, render
+
+d = deployment_diagram()
+el = d.elements
+
 server = el.node("app-server-01",
     description="8 cores, 32GB RAM\nUbuntu 22.04",
 )
+
+d.add(server)
+
+print(render(d))
 ```
 
 ### Stereotypes
@@ -145,6 +154,8 @@ lb = el.node("Load Balancer", stereotype="nginx")
 primary = el.database("Primary", stereotype=Stereotype("master", Spot("M", "DodgerBlue")))
 
 d.add(lb, primary)
+
+print(render(d))
 ```
 
 ### Deep Nesting
@@ -228,62 +239,139 @@ Every connection method supports:
 
 Override the default arrowheads on `arrow()` and `line()` with `left_head=` and `right_head=`:
 
-```text
-c.arrow(a, b, left_head="<|", right_head="*")
-c.arrow(a, b, left_head="o", right_head="|>")
-c.line(a, b, left_head="0", right_head="0")
+```python
+from plantuml_compose import deployment_diagram, render
+
+d = deployment_diagram()
+el = d.elements
+c = d.connections
+
+a = el.node("Server A")
+b = el.node("Server B")
+d.add(a, b)
+
+d.connect(
+    c.arrow(a, b, "custom", left_head="<|", right_head="*"),
+)
+
+print(render(d))
 ```
 
 ### Line Style
 
 The `style=` parameter accepts a string shorthand, a dict, or a `LineStyle` object:
 
-```text
-# String shorthand
-c.arrow(server, db, style="dashed")
+```python
+from plantuml_compose import deployment_diagram, render
 
-# Dict form
-c.arrow(server, db, style={"pattern": "dotted", "color": "gray", "thickness": 2})
+d = deployment_diagram()
+el = d.elements
+c = d.connections
+
+server = el.node("Server")
+db = el.database("DB")
+d.add(server, db)
+
+d.connect(
+    c.arrow(server, db, "dashed style", style="dashed"),
+)
+
+print(render(d))
 ```
 
 ### Bulk Connection Helpers
 
 #### arrows() -- multiple arrows from tuples
 
-```text
+```python
+from plantuml_compose import deployment_diagram, render
+
+d = deployment_diagram()
+el = d.elements
+c = d.connections
+
+server = el.node("Server")
+db = el.database("DB")
+cache = el.node("Cache")
+backup = el.database("Backup")
+d.add(server, db, cache, backup)
+
 d.connect(c.arrows(
     (server, db),
-    (server, cache, "reads"),     # optional label
+    (server, cache, "reads"),
     (db, backup),
 ))
+
+print(render(d))
 ```
 
 #### arrows_from() -- fan-out from one source
 
-```text
+```python
+from plantuml_compose import deployment_diagram, render
+
+d = deployment_diagram()
+el = d.elements
+c = d.connections
+
+switch = el.node("Switch")
+server1 = el.node("Server 1")
+server2 = el.node("Server 2")
+storage = el.storage("SAN")
+d.add(switch, server1, server2, storage)
+
 d.connect(c.arrows_from(switch,
     server1,
     server2,
-    (storage, "iSCSI"),           # mix bare targets and (target, label) tuples
+    (storage, "iSCSI"),
     style="dashed",
     direction="down",
     length=3,
 ))
+
+print(render(d))
 ```
 
 #### lines() -- multiple undirected links from tuples
 
-```text
+```python
+from plantuml_compose import deployment_diagram, render
+
+d = deployment_diagram()
+el = d.elements
+c = d.connections
+
+switch_a = el.node("Switch A")
+switch_b = el.node("Switch B")
+switch_c = el.node("Switch C")
+d.add(switch_a, switch_b, switch_c)
+
 d.connect(c.lines(
     (switch_a, switch_b),
     (switch_b, switch_c),
 ))
+
+print(render(d))
 ```
 
 #### lines_from() -- fan-out undirected links from one source
 
-```text
+```python
+from plantuml_compose import deployment_diagram, render
+
+d = deployment_diagram()
+el = d.elements
+c = d.connections
+
+tor_switch = el.node("ToR Switch")
+host1 = el.node("Host 1")
+host2 = el.node("Host 2")
+host3 = el.node("Host 3")
+d.add(tor_switch, host1, host2, host3)
+
 d.connect(c.lines_from(tor_switch, host1, host2, host3))
+
+print(render(d))
 ```
 
 All bulk helpers return lists that `d.connect()` flattens automatically.
@@ -333,12 +421,21 @@ print(render(d))
 
 Any element accepts `style=` as a `StyleLike` dict:
 
-```text
+```python
+from plantuml_compose import deployment_diagram, render
+
+d = deployment_diagram()
+el = d.elements
+
 server = el.node("Server", style={
     "background": "#E3F2FD",
     "line": {"color": "#1976D2"},
     "text_color": "navy",
 })
+
+d.add(server)
+
+print(render(d))
 ```
 
 ### Diagram-Wide Styling with diagram_style=
@@ -424,8 +521,20 @@ print(render(d))
 
 You can use raw strings instead of `EntityRef` objects for connections:
 
-```text
+```python
+from plantuml_compose import deployment_diagram, render
+
+d = deployment_diagram()
+el = d.elements
+c = d.connections
+
+server = el.node("Server")
+db = el.database("Database")
+d.add(server, db)
+
 d.connect(c.arrow("Server", "Database", "JDBC"))
+
+print(render(d))
 ```
 
 ### Full Topology Example
@@ -466,6 +575,8 @@ d.connect(
     c.arrow(cluster["Worker 2"].wrk, db, "SQL"),
     c.arrow(cluster["Control Plane"].api, cluster["Control Plane"].etcd, "state"),
 )
+
+print(render(d))
 ```
 
 ## Quick Reference

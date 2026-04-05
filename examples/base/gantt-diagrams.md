@@ -31,72 +31,153 @@ The pattern: create a diagram with a project `start` date, get `tk` (tasks) and 
 
 #### Duration in Days
 
-```text
-tk.task("Short task", days=3)
-tk.task("Medium task", days=7)
-tk.task("Long task", days=14)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+short = tk.task("Short task", days=3)
+medium = tk.task("Medium task", days=7)
+long = tk.task("Long task", days=14)
+d.add(short, medium, long)
+
+print(render(d))
 ```
 
 #### Duration in Weeks
 
-```text
-tk.task("Sprint 1", weeks=2)
-tk.task("Sprint 2", weeks=2)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+sprint1 = tk.task("Sprint 1", weeks=2)
+sprint2 = tk.task("Sprint 2", weeks=2)
+d.add(sprint1, sprint2)
+
+print(render(d))
 ```
 
 #### Explicit Start and End Dates
 
-```text
-tk.task("Planning", start=date(2026, 4, 6), end=date(2026, 4, 10))
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+planning = tk.task("Planning", start=date(2026, 4, 6), end=date(2026, 4, 10))
+d.add(planning)
+
+print(render(d))
 ```
 
 #### Start Date with Duration
 
-```text
-tk.task("Kickoff", start=date(2026, 4, 6), days=5)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+kickoff = tk.task("Kickoff", start=date(2026, 4, 6), days=5)
+d.add(kickoff)
+
+print(render(d))
 ```
 
 #### Completion Percentage
 
-```text
-tk.task("Design", days=10, completion=60)   # 60% done
-tk.task("Review", days=3, completion=100)   # fully complete
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+design = tk.task("Design", days=10, completion=60)
+review = tk.task("Review", days=3, completion=100)
+d.add(design, review)
+
+print(render(d))
 ```
 
 #### Colored Tasks
 
-```text
-tk.task("Critical", days=5, color="#FFCDD2")
-tk.task("Normal", days=3, color="LightBlue")
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+critical = tk.task("Critical", days=5, color="#FFCDD2")
+normal = tk.task("Normal", days=3, color="LightBlue")
+d.add(critical, normal)
+
+print(render(d))
 ```
 
 #### Resources
 
 Assign one or more people/teams to a task:
 
-```text
-tk.task("Design", days=5, resources=("Alice",))
-tk.task("Develop", days=10, resources=("Bob", "Carol"))
-tk.task("Review", days=2, resources=("Alice", "David"))
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+design = tk.task("Design", days=5, resources=("Alice",))
+develop = tk.task("Develop", days=10, resources=("Bob", "Carol"))
+review = tk.task("Review", days=2, resources=("Alice", "David"))
+d.add(design, develop, review)
+
+print(render(d))
 ```
 
 #### Task Links
 
 Add a clickable URL to a task:
 
-```text
-tk.task("JIRA-123", days=5, link="https://jira.example.com/JIRA-123")
-tk.task("Linked", days=3, link="https://example.com",
-        link_color="blue", link_style="bold")
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+jira = tk.task("JIRA-123", days=5, link="https://jira.example.com/JIRA-123")
+linked = tk.task("Linked", days=3, link="https://example.com",
+                 link_color="blue", link_style="bold")
+d.add(jira, linked)
+
+print(render(d))
 ```
 
 Parameters for link styling: `link=`, `link_color=`, `link_style=` (`"bold"`, `"dashed"`, `"dotted"`)
 
 #### Task Notes
 
-```text
-tk.task("Audit", days=3, note="Requires read access to prod DB")
-tk.task("Deploy", days=1, note="After hours only", note_position="right")
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+audit = tk.task("Audit", days=3, note="Requires read access to prod DB")
+deploy = tk.task("Deploy", days=1, note="After hours only")
+d.add(audit, deploy)
+
+print(render(d))
 ```
 
 `note_position=` accepts `"bottom"` (default), `"left"`, `"right"`, `"top"`.
@@ -105,36 +186,75 @@ tk.task("Deploy", days=1, note="After hours only", note_position="right")
 
 When `working_days=True`, the duration counts only working days (excluding closed days):
 
-```text
-tk.task("Development", days=10, working_days=True)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+d.close_days("saturday", "sunday")
+dev = tk.task("Development", days=10, working_days=True)
+d.add(dev)
+
+print(render(d))
 ```
 
 #### Pauses
 
 Pause a task on specific dates or recurring days of the week:
 
-```text
-tk.task("Long task", days=20,
-    pauses_on=(date(2026, 4, 15),),              # pause on a specific date
-    pauses_on_days=("wednesday",),                # pause every Wednesday
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+task = tk.task("Long task", days=20,
+    pauses_on=(date(2026, 4, 15),),
+    pauses_on_days=("wednesday",),
 )
+d.add(task)
+
+print(render(d))
 ```
 
 #### Deleted Tasks
 
 Mark a task as deleted (renders with strikethrough):
 
-```text
-tk.task("Cancelled feature", days=5, is_deleted=True)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+cancelled = tk.task("Cancelled feature", days=5, is_deleted=True)
+d.add(cancelled)
+
+print(render(d))
 ```
 
 #### Same Row As
 
 Force a task onto the same row as another task:
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+dep = d.dependencies
+
 prep = tk.task("Prep", days=3)
 followup = tk.task("Followup", days=2, on_same_row_as=prep)
+d.add(prep, followup)
+d.connect(dep.after(followup, prep))
+
+print(render(d))
 ```
 
 #### All Task Parameters
@@ -145,12 +265,19 @@ followup = tk.task("Followup", days=2, on_same_row_as=prep)
 
 Zero-duration markers for significant events:
 
-```text
-tk.milestone("Phase 1 Complete")
-tk.milestone("Launch", on=date(2026, 5, 1))
-tk.milestone("Go Live", color="Gold")
-tk.milestone("Sign-off", link="https://example.com/sign-off")
-tk.milestone("Review", note="Stakeholder approval needed")
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+m1 = tk.milestone("Phase 1 Complete", on=date(2026, 4, 10))
+m2 = tk.milestone("Launch", on=date(2026, 5, 1))
+m3 = tk.milestone("Go Live", on=date(2026, 5, 15), color="Gold")
+d.add(m1, m2, m3)
+
+print(render(d))
 ```
 
 Parameters: `name`, `on=`, `color=`, `link=`, `note=`, `note_position=`
@@ -161,34 +288,87 @@ Parameters: `name`, `on=`, `color=`, `link=`, `note=`, `note_position=`
 
 Task B starts after task A completes:
 
-```text
-dep.after(task_b, task_a)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+dep = d.dependencies
+
+task_a = tk.task("Task A", days=3)
+task_b = tk.task("Task B", days=5)
+d.add(task_a, task_b)
+d.connect(dep.after(task_b, task_a))
+
+print(render(d))
 ```
 
 Multiple predecessors -- pass a list:
 
-```text
-# deploy starts after both build and test complete
-dep.after(deploy, [build, test])
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+dep = d.dependencies
+
+build = tk.task("Build", days=5)
+test = tk.task("Test", days=3)
+deploy = tk.task("Deploy", days=2)
+d.add(build, test, deploy)
+d.connect(dep.after(deploy, [build, test]))
+
+print(render(d))
 ```
 
 ### starts_with
 
 Task B starts at the same time as task A:
 
-```text
-dep.starts_with(task_b, task_a)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+dep = d.dependencies
+
+task_a = tk.task("Task A", days=5)
+task_b = tk.task("Task B", days=3)
+d.add(task_a, task_b)
+d.connect(dep.starts_with(task_b, task_a))
+
+print(render(d))
 ```
 
 ### Connecting Dependencies
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+dep = d.dependencies
+
+design = tk.task("Design", days=5)
+develop = tk.task("Develop", days=10)
+test = tk.task("Test", days=3)
+review = tk.task("Review", days=2)
+deploy = tk.task("Deploy", days=1)
+docs = tk.task("Docs", days=8)
+d.add(design, develop, test, review, deploy, docs)
+
 d.connect(
     dep.after(develop, design),
     dep.after(test, develop),
     dep.after(deploy, [test, review]),
     dep.starts_with(docs, develop),
 )
+
+print(render(d))
 ```
 
 Lists returned by `dep.after(..., [list])` are flattened automatically by `d.connect()`.
@@ -197,53 +377,128 @@ Lists returned by `dep.after(..., [list])` are flattened automatically by `d.con
 
 ### Closed Days (Weekends)
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
 d.close_days("saturday", "sunday")
+
+task = tk.task("Weekdays only", days=10)
+d.add(task)
+
+print(render(d))
 ```
 
 Valid day names: `"monday"`, `"tuesday"`, `"wednesday"`, `"thursday"`, `"friday"`, `"saturday"`, `"sunday"`
 
 ### Closed Dates (Holidays)
 
-```text
-d.close_dates(date(2026, 12, 25), date(2026, 1, 1))
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+d.close_dates(date(2026, 4, 8), date(2026, 4, 9))
+
+task = tk.task("Work around holidays", days=7)
+d.add(task)
+
+print(render(d))
 ```
 
 ### Closed Date Range
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 12, 15))
+tk = d.tasks
+
 d.close_date_range(date(2026, 12, 24), date(2026, 12, 31))
+
+task = tk.task("Year-end project", days=14)
+d.add(task)
+
+print(render(d))
 ```
 
 ### Open Date (Override)
 
 Reopen a specific date that falls within a closed range:
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
 d.close_days("saturday", "sunday")
 d.open_date(date(2026, 4, 11))  # this Saturday is a working day
+
+task = tk.task("Includes a Saturday", days=7)
+d.add(task)
+
+print(render(d))
 ```
 
 ### Colored Dates
 
 Highlight specific dates with a background color:
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
 d.color_date(date(2026, 4, 15), "LightYellow")
+
+task = tk.task("Watch the 15th", days=14)
+d.add(task)
+
+print(render(d))
 ```
 
 ### Colored Date Ranges
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
 d.color_date_range(date(2026, 4, 20), date(2026, 4, 24), "LightGreen")
+
+task = tk.task("Sprint", days=21)
+d.add(task)
+
+print(render(d))
 ```
 
 ### Today Marker
 
-```text
-d.today()                                        # default marker
-d.today(date(2026, 4, 10))                       # explicit date
-d.today(date(2026, 4, 10), color="LightCoral")   # with color
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+d.today(date(2026, 4, 10), color="LightCoral")
+
+task = tk.task("Ongoing work", days=10)
+d.add(task)
+
+print(render(d))
 ```
 
 ## Separators
@@ -252,12 +507,26 @@ d.today(date(2026, 4, 10), color="LightCoral")   # with color
 
 Visual dividers between task groups:
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+design = tk.task("Design", days=5)
+develop = tk.task("Develop", days=10)
+test = tk.task("Test", days=3)
+deploy = tk.task("Deploy", days=2)
+monitor = tk.task("Monitor", days=5)
+
 d.add(design, develop)
-d.separator("Phase 2")        # labeled separator
+d.separator("Phase 2")
 d.add(test, deploy)
-d.separator()                 # unlabeled separator
+d.separator("Phase 3")
 d.add(monitor)
+
+print(render(d))
 ```
 
 Separators interleave with `d.add()` calls in order.
@@ -266,39 +535,73 @@ Separators interleave with `d.add()` calls in order.
 
 Vertical lines after a specific task:
 
-```text
-d.add(phase1_task)
-d.vertical_separator(phase1_task)
-d.add(phase2_task)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+phase1 = tk.task("Phase 1", days=5)
+phase2 = tk.task("Phase 2", days=5)
+
+d.add(phase1)
+d.vertical_separator(phase1)
+d.add(phase2)
+
+print(render(d))
 ```
 
 ## Resources
 
 ### Assigning Resources
 
-```text
-tk.task("Design", days=5, resources=("Alice",))
-tk.task("Develop", days=10, resources=("Bob", "Carol"))
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+design = tk.task("Design", days=5, resources=("Alice",))
+develop = tk.task("Develop", days=10, resources=("Bob", "Carol"))
+d.add(design, develop)
+
+print(render(d))
 ```
 
 ### Resource Off (Unavailable Dates)
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+design = tk.task("Design", days=10, resources=("Alice",))
+build = tk.task("Build", days=10, resources=("Bob",))
+d.add(design, build)
+
 d.resource_off("Alice", date(2026, 4, 15), date(2026, 4, 16))
 d.resource_off("Bob", date(2026, 5, 1))
+
+print(render(d))
 ```
 
 ### Hiding Resources
 
-```text
-# Hide resource names from task bars
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
 d = gantt_diagram(start=date(2026, 4, 6), hide_resource_names=True)
+tk = d.tasks
 
-# Hide the resource usage footbox
-d = gantt_diagram(start=date(2026, 4, 6), hide_resource_footbox=True)
+task = tk.task("Design", days=5, resources=("Alice",))
+d.add(task)
 
-# Hide the entire footbox (dates)
-d = gantt_diagram(start=date(2026, 4, 6), hide_footbox=True)
+print(render(d))
 ```
 
 ## Scale & Time Options
@@ -307,75 +610,141 @@ d = gantt_diagram(start=date(2026, 4, 6), hide_footbox=True)
 
 Control the time granularity:
 
-```text
-d = gantt_diagram(start=date(2026, 4, 6), scale="daily")
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
 d = gantt_diagram(start=date(2026, 4, 6), scale="weekly")
-d = gantt_diagram(start=date(2026, 4, 6), scale="monthly")
-d = gantt_diagram(start=date(2026, 4, 6), scale="quarterly")
-d = gantt_diagram(start=date(2026, 4, 6), scale="yearly")
+tk = d.tasks
+
+task = tk.task("Long project", days=30)
+d.add(task)
+
+print(render(d))
 ```
+
+Valid values: `"daily"`, `"weekly"`, `"monthly"`, `"quarterly"`, `"yearly"`
 
 ### Scale Zoom
 
 Zoom the time axis:
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
 d = gantt_diagram(start=date(2026, 4, 6), scale="weekly", scale_zoom=2)
+tk = d.tasks
+
+task = tk.task("Zoomed project", days=30)
+d.add(task)
+
+print(render(d))
 ```
 
 ### Week Numbering
 
 Display ISO week numbers:
 
-```text
-d = gantt_diagram(start=date(2026, 4, 6), week_numbering=True)
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
 
-# Or start from a specific week number
-d = gantt_diagram(start=date(2026, 4, 6), week_numbering=14)
+d = gantt_diagram(start=date(2026, 4, 6), week_numbering=True)
+tk = d.tasks
+
+task = tk.task("Tracked by week", days=14)
+d.add(task)
+
+print(render(d))
 ```
 
 ### Calendar Date Display
 
 Show calendar dates on the header:
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
 d = gantt_diagram(start=date(2026, 4, 6), show_calendar_date=True)
+tk = d.tasks
+
+task = tk.task("Date-labeled task", days=7)
+d.add(task)
+
+print(render(d))
 ```
 
 ### Week Starts On
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
 d = gantt_diagram(start=date(2026, 4, 6), week_starts_on="monday")
+tk = d.tasks
+
+task = tk.task("Monday start", days=10)
+d.add(task)
+
+print(render(d))
 ```
 
 ### Language
 
 Change day/month names to a different locale:
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
 d = gantt_diagram(start=date(2026, 4, 6), language="de")
-d = gantt_diagram(start=date(2026, 4, 6), language="fr")
+tk = d.tasks
+
+task = tk.task("Aufgabe", days=7)
+d.add(task)
+
+print(render(d))
 ```
 
 ### Print Range
 
 Limit the rendered date range:
 
-```text
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
 d = gantt_diagram(
     start=date(2026, 4, 6),
     print_range=(date(2026, 4, 6), date(2026, 5, 31)),
 )
+tk = d.tasks
+
+task = tk.task("Visible range", days=60)
+d.add(task)
+
+print(render(d))
 ```
 
 ## Styling
 
 ### Task-Level Coloring
 
-```text
-tk.task("Critical", days=5, color="#FFCDD2")
-tk.task("Normal", days=3, color="LightBlue")
-tk.milestone("Done", color="Gold")
+```python
+from datetime import date
+from plantuml_compose import gantt_diagram, render
+
+d = gantt_diagram(start=date(2026, 4, 6))
+tk = d.tasks
+
+critical = tk.task("Critical", days=5, color="#FFCDD2")
+normal = tk.task("Normal", days=3, color="LightBlue")
+done = tk.milestone("Done", on=date(2026, 4, 15), color="Gold")
+d.add(critical, normal, done)
+
+print(render(d))
 ```
 
 ### diagram_style

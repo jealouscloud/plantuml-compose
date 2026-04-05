@@ -134,11 +134,23 @@ el.node(  # or any element type
 
 Any element can show descriptive text below its name:
 
-```text
+```python
+from plantuml_compose import deployment_diagram, render
+
+d = deployment_diagram()
+el = d.elements
+
 server = el.node("app-server-01",
     description="8 cores, 32GB RAM\nUbuntu 22.04",
 )
+
+d.add(server)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuShBJqbLK4eiAD0jJYqgIotIDJ2CoRDGICulIYtMKJ0sSdTI27BqZSaBJIhDAobLC3BICp1Hud98pKi1wWO0)
+
+
 
 ### Stereotypes
 
@@ -157,7 +169,12 @@ lb = el.node("Load Balancer", stereotype="nginx")
 primary = el.database("Primary", stereotype=Stereotype("master", Spot("M", "DodgerBlue")))
 
 d.add(lb, primary)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/3Sn12e0m30NHlQS8kb7m2295N2fuXQy9HMXJI2lexUrw7kDoWPKdXaOJ2xLR0jE20Bt4MfeczRU-yzmm2avaeSFk2FjgeduVkpMn5rl28mD5v296LJjHhjCV)
+
+
 
 ### Deep Nesting
 
@@ -246,63 +263,158 @@ Every connection method supports:
 
 Override the default arrowheads on `arrow()` and `line()` with `left_head=` and `right_head=`:
 
-```text
-c.arrow(a, b, left_head="<|", right_head="*")
-c.arrow(a, b, left_head="o", right_head="|>")
-c.line(a, b, left_head="0", right_head="0")
+```python
+from plantuml_compose import deployment_diagram, render
+
+d = deployment_diagram()
+el = d.elements
+c = d.connections
+
+a = el.node("Server A")
+b = el.node("Server B")
+d.add(a, b)
+
+d.connect(
+    c.arrow(a, b, "custom", left_head="<|", right_head="*"),
+)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuShBJqbLK0fEBIfBBL9mL4BbEobnGLZnZWesDRgwMWfGhfE2bK9oQN59VYwNGsfU2j0W0000)
+
+
 
 ### Line Style
 
 The `style=` parameter accepts a string shorthand, a dict, or a `LineStyle` object:
 
-```text
-# String shorthand
-c.arrow(server, db, style="dashed")
+```python
+from plantuml_compose import deployment_diagram, render
 
-# Dict form
-c.arrow(server, db, style={"pattern": "dotted", "color": "gray", "thickness": 2})
+d = deployment_diagram()
+el = d.elements
+c = d.connections
+
+server = el.node("Server")
+db = el.database("DB")
+d.add(server, db)
+
+d.connect(
+    c.arrow(server, db, "dashed style", style="dashed"),
+)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuShBJqbL24ujAaijuaf9B4bCIYnELN1nue88AUX6foGMPwIcnEhQ0KKLh1GWN8NYaigSL2w7rBmKe240)
+
+
 
 ### Bulk Connection Helpers
 
 #### arrows() -- multiple arrows from tuples
 
-```text
+```python
+from plantuml_compose import deployment_diagram, render
+
+d = deployment_diagram()
+el = d.elements
+c = d.connections
+
+server = el.node("Server")
+db = el.database("DB")
+cache = el.node("Cache")
+backup = el.database("Backup")
+d.add(server, db, cache, backup)
+
 d.connect(c.arrows(
     (server, db),
-    (server, cache, "reads"),     # optional label
+    (server, cache, "reads"),
     (db, backup),
 ))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuShBJqbL24ujAaijuaf9B4bCIYnELN1nWeWx9oPdf2A4dHAJiqiBk22g5NHrxK0AaNXWvGfM2aMfYId5N2vEO46e9eVKl1IWVG00)
+
+
 
 #### arrows_from() -- fan-out from one source
 
-```text
+```python
+from plantuml_compose import deployment_diagram, render
+
+d = deployment_diagram()
+el = d.elements
+c = d.connections
+
+switch = el.node("Switch")
+server1 = el.node("Server 1")
+server2 = el.node("Server 2")
+storage = el.storage("SAN")
+d.add(switch, server1, server2, storage)
+
 d.connect(c.arrows_from(switch,
     server1,
     server2,
-    (storage, "iSCSI"),           # mix bare targets and (target, label) tuples
+    (storage, "iSCSI"),
     style="dashed",
     direction="down",
     length=3,
 ))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuShBJqbL22xFB4dEWB2LWbEBobAB50oLKFb6Ibp59Vb5YUb0vOv-N10j2hhHAOd56QafiIcwkdOA4ANnXdXbZN38ElefM2ba1Zi7Ut8vfEQb01q70000)
+
+
 
 #### lines() -- multiple undirected links from tuples
 
-```text
+```python
+from plantuml_compose import deployment_diagram, render
+
+d = deployment_diagram()
+el = d.elements
+c = d.connections
+
+switch_a = el.node("Switch A")
+switch_b = el.node("Switch B")
+switch_c = el.node("Switch C")
+d.add(switch_a, switch_b, switch_c)
+
 d.connect(c.lines(
     (switch_a, switch_b),
     (switch_b, switch_c),
 ))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuShBJqbLK0ekpon9pb1mL4BbEw7ndPMu8AnuHmLTNGKesmacw8GawCpba9gN0hG10000)
+
+
 
 #### lines_from() -- fan-out undirected links from one source
 
-```text
+```python
+from plantuml_compose import deployment_diagram, render
+
+d = deployment_diagram()
+el = d.elements
+c = d.connections
+
+tor_switch = el.node("ToR Switch")
+host1 = el.node("Host 1")
+host2 = el.node("Host 2")
+host3 = el.node("Host 3")
+d.add(tor_switch, host1, host2, host3)
+
 d.connect(c.lines_from(tor_switch, host1, host2, host3))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuShBJqbLK0h93r88BiyiISvGWefuv1UNA1YYy8nGUCPAN41TyH1T2hgw2Y3HU4DiWaRO18sv75BpKe1E0000)
+
+
 
 All bulk helpers return lists that `d.connect()` flattens automatically.
 
@@ -357,13 +469,25 @@ print(render(d))
 
 Any element accepts `style=` as a `StyleLike` dict:
 
-```text
+```python
+from plantuml_compose import deployment_diagram, render
+
+d = deployment_diagram()
+el = d.elements
+
 server = el.node("Server", style={
     "background": "#E3F2FD",
     "line": {"color": "#1976D2"},
     "text_color": "navy",
 })
+
+d.add(server)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuShBJqbL24ujAaijKb1sDNOpSdFXSaZDIm7A0G00)
+
+
 
 ### Diagram-Wide Styling with diagram_style=
 
@@ -454,9 +578,24 @@ print(render(d))
 
 You can use raw strings instead of `EntityRef` objects for connections:
 
-```text
+```python
+from plantuml_compose import deployment_diagram, render
+
+d = deployment_diagram()
+el = d.elements
+c = d.connections
+
+server = el.node("Server")
+db = el.database("Database")
+d.add(server, db)
+
 d.connect(c.arrow("Server", "Database", "JDBC"))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuShBJqbL24ujAaijuaf9B4bCIYnELN21ChWW4WgwkdPmCGKh1IyN9sSkXzIy5A010000)
+
+
 
 ### Full Topology Example
 
@@ -496,7 +635,12 @@ d.connect(
     c.arrow(cluster["Worker 2"].wrk, db, "SQL"),
     c.arrow(cluster["Control Plane"].api, cluster["Control Plane"].etcd, "state"),
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/XLAnJWCn3Dtp5TRj7NeJwe0ANK1qE7H5pBd4TpqrZK-E3mRKVyS954HLYIM9ttj-jfEiarYM-HYCZ18GdcuIRCAS1Da4x0M4WCTXB-17HYSZHTEpFQfoxf0Z2YRuC02HF4AreIXC0PfW8rQ5071qd2XY5AZkcaTeaT-GAx09x3HUA52Slu1QjqS_1-ISaNAWWjDFoLVYWtBBSpKTP-ojqs8D-HMyOrTAwRwynciBvrQMrtph_tthgtn9_vBmeJYVZ0iqUwYsP3tSMxqZzoq9dV5MR6SJGaD91iRsUPkPQJ1gIWmlIPyaBx1Ot6e2hE1XjsjQeyUCb05_pxN94vLe6bIhTaOR-Gkef03vrXNIlo1erXYzVeXF)
+
+
 
 ## Quick Reference
 

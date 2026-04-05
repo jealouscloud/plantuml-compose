@@ -152,7 +152,12 @@ svc = el.class_("OrderService", stereotype="service")
 ent = el.class_("User", stereotype=Stereotype("entity", Spot("E", "DodgerBlue")))
 
 d.add(svc, ent)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEIImkLl0lIaaj2aujAijCJbMmiIc6iEpieDAXG06Wi8A6guwoItvAUcgHKqvfggP2Qbv9Pacb0b2TGsfU2j0u0000)
+
+
 
 ### Members: Fields, Methods, Separators
 
@@ -263,11 +268,30 @@ print(render(d))
 
 Access nested children via attribute or bracket notation:
 
-```text
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+pkg = el.package("domain",
+    el.class_("User"),
+    el.class_("Order"),
+)
+infra = el.package("infrastructure",
+    el.class_("PostgresRepo"),
+    style="database",
+)
+
+d.add(pkg, infra)
 d.connect(r.uses(pkg.User, infra.PostgresRepo))
-# or bracket access for names with spaces/symbols:
-# d.connect(r.uses(pkg["User"], infra["PostgresRepo"]))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LOun3eCm40HxNd4lu0N8eg0FYfG7REm3eM0RtPshYB_ZD5OePxKxsb4DOYNktG7_mSeKSiIMwDiH-Hsgz5AM1Wy9bSxMtj8YK9FYhGZJC4mmlA7it9zYpcghi3xvo7NyCrBVkti-SWhro0K0)
+
+
 
 ## Relationships / Connections
 
@@ -349,21 +373,54 @@ Every relationship method supports:
 
 `source_label=` and `target_label=` add multiplicity text at each end:
 
-```text
-r.association(order, product,
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+order = el.class_("Order")
+product = el.class_("Product")
+d.add(order, product)
+
+d.connect(r.association(order, product,
     label="contains",
     source_label="1",
     target_label="*",
-)
+))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEIImkLl0lIaajWh83Yl9JIfDBkC1Y2ag6IWgwkdOAIbfAC1a5AuNa_BoInCoyOYw7rBmKe340)
+
+
 
 The `has()`, `contains()`, `aggregation()`, and `composition()` methods use semantic naming:
 
-```text
-r.has(order, item, part_label="*")
-r.contains(order, item, whole_label="1", part_label="*")
-r.aggregation(fleet, car, part_label="*")
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+order = el.class_("Order")
+item = el.class_("LineItem")
+fleet = el.class_("Fleet")
+car = el.class_("Car")
+d.add(order, item, fleet, car)
+
+d.connect(
+    r.contains(order, item, whole_label="1", part_label="*"),
+    r.aggregation(fleet, car, part_label="*"),
+)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEIImkLl0lIaajWh9zClDIFKjISw5SjvpKr18espcnY0kiL479K4b1IrTNGKbB2Q41h5GX7oeCKkoGcfS2j0K0)
+
+
 
 ### IE (Crow's Foot) Notation
 
@@ -429,76 +486,180 @@ print(render(d))
 
 `r.relationship()` gives full control over all parameters when the convenience methods don't fit:
 
-```text
-r.relationship(a, b,
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+a = el.class_("Company")
+b = el.class_("Department")
+d.add(a, b)
+
+d.connect(r.relationship(a, b,
     type="composition",
     label="owns",
     source_label="1",
     target_label="*",
-    style="dashed",
     direction="down",
-    length=3,
-    left_head="<|",
-    right_head="*",
-)
+))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEIImkLd3Epor8pAk4ybnI2u2okQbv9LnG2GKbGoK5BTqKNGKbBIKaUGKhXVpol68kXzIy5A1f0000)
+
+
 
 ### Custom Arrow Heads
 
 Override the default arrowheads with `left_head=` and `right_head=`:
 
-```text
-r.relationship(a, b, left_head="<|", right_head="*")
-r.relationship(a, b, left_head="o", right_head="|>")
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+a = el.class_("Source")
+b = el.class_("Target")
+d.add(a, b)
+
+d.connect(r.relationship(a, b, left_head="o", right_head="|>"))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEIImkLWZEBorAJeLoGXABqbDBk21Y2lcwkZLsC367rBmKe2u0)
+
+
 
 ### Line Style
 
 The `style=` parameter accepts a string shorthand, a dict, or a `LineStyle` object:
 
-```text
-# String shorthand
-r.extends(child, parent, style="dashed")
+```python
+from plantuml_compose import class_diagram, render
 
-# Dict form
-r.uses(a, b, style={"pattern": "dotted", "color": "gray", "thickness": 2})
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+parent = el.abstract("Animal")
+child = el.class_("Dog")
+d.add(parent, child)
+
+d.connect(r.extends(child, parent, style="dashed"))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKfCAYufIamkKKZEIImkLd3CoynDpE62S5poqxaW0WesDRhHAOd56QafiRfWSOVKl1IWVW00)
+
+
 
 ### Bulk Relationship Helpers
 
 #### arrows() -- multiple arrows from tuples
 
-```text
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+a = el.class_("Controller")
+b = el.class_("Service")
+c = el.class_("Repository")
+d_cls = el.class_("Database")
+d.add(a, b, c, d_cls)
+
 d.connect(r.arrows(
     (a, b),
-    (b, c, "uses"),     # optional label as third element
-    (c, d),
+    (b, c, "uses"),
+    (c, d_cls),
 ))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEIImkLd3Epoifoi_9IIs22WId5fLb9gT2UK6f1Vd5cINvHPLG0PV4aiIanE9KBeH61LrTExWsA0qMGsXMi58eBKujva8I0Ic06-QGcfS2T1C0)
+
+
 
 #### arrows_from() -- fan-out from one source
 
-```text
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+controller = el.class_("Controller")
+model = el.class_("Model")
+view = el.class_("View")
+service = el.class_("Service")
+d.add(controller, model, view, service)
+
 d.connect(r.arrows_from(controller,
     model,
-    (view, "renders"),   # mix bare targets and (target, label) tuples
+    (view, "renders"),
     service,
     style="dashed",
     direction="down",
 ))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEIImkLd3Epoifoi_9IIs22lZcfwJ29CCoKykXpE3KehBCv5GkX7e5tUYKnEACr9JO55qxg3PSiY235AmKYbBpKbABYd4gWrdY05G7T280)
+
+
 
 #### extends_from() -- multiple children, one parent
 
-```text
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+animal = el.abstract("Animal")
+dog = el.class_("Dog")
+cat = el.class_("Cat")
+bird = el.class_("Bird")
+d.add(animal, dog, cat, bird)
+
 d.connect(r.extends_from([dog, cat, bird], animal))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKfCAYufIamkKKZEIImkLd3CoynDpE62S5poqw4ivyGIACifioY52w9AmQP6LnUi29aFKehC1sjmICrB0Te60000)
+
+
 
 #### compositions_from() -- one whole, many parts
 
-```text
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+car = el.class_("Car")
+engine = el.class_("Engine")
+wheel = el.class_("Wheel")
+frame = el.class_("Frame")
+d.add(car, engine, wheel, frame)
+
 d.connect(r.compositions_from(car, [engine, wheel, frame]))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEIImkLd1EB8AoNFFIC_DIePpmZDHKc1AteiJSL2wWGWKjNLsOCXWNeX36WoXrICrB0Te00000)
+
+
 
 All bulk helpers return lists that `d.connect()` flattens automatically.
 
@@ -536,30 +697,48 @@ print(render(d))
 
 Group elements for layout proximity (placed adjacent to each other):
 
-```text
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+
+user = el.class_("User")
+order = el.class_("Order")
+product = el.class_("Product")
+d.add(user, order, product)
 d.together(user, order, product)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEIImkLWWjJYs2ClsBKk3iWABybDBa4gwI_FJKaepK8eLgBWK591qm3aGFZ0VJLSlba9gN0hG40000)
+
+
 
 ### hide() / show() / remove() / restore()
 
 Control element visibility at the diagram level:
 
-```text
-# Hide all empty member compartments
-d.hide("empty members")
+```python
+from plantuml_compose import class_diagram, render
 
-# Hide the circle icon on class names
+d = class_diagram()
+el = d.elements
+
+user = el.class_("User", members=(
+    el.field("name", "str"),
+))
+order = el.class_("Order")
+d.add(user, order)
+
+d.hide("empty members")
 d.hide("circle")
 
-# Show methods compartment
-d.show("methods")
-
-# Remove elements entirely (reclaims space unlike hide)
-d.remove("empty members")
-
-# Restore previously removed/hidden elements
-d.restore("methods")
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/BSp12O0m44JH-rOnTNXA1vui82O31h91TjU3YBqhwFK_-CaZMnpQfVJiZiLfk0GOMOa97YRtRxDLccoj4jGzJYXrfVcNIhFIAOcZlhi7)
+
+
 
 ### Diagram-level options
 
@@ -585,13 +764,24 @@ print(render(d))
 
 Any class-type element accepts `style=` as a `StyleLike` dict:
 
-```text
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+
 user = el.class_("User", style={
     "background": "#E3F2FD",
     "line": {"color": "#1976D2"},
-    "text_color": "navy",
 })
+
+d.add(user)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEIImkLWWjJYrIK4vAJCwsSZLsCt9piSx9p4krChGqDtCnud98pKi1gWK0)
+
+
 
 ### Diagram-Wide Styling with diagram_style=
 
@@ -704,9 +894,24 @@ print(render(d))
 
 You can use raw strings instead of `EntityRef` objects for relationships when referring to elements defined elsewhere:
 
-```text
+```python
+from plantuml_compose import class_diagram, render
+
+d = class_diagram()
+el = d.elements
+r = d.relationships
+
+parent = el.class_("Parent")
+child = el.class_("Child")
+d.add(parent, child)
+
 d.connect(r.extends("Child", "Parent"))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEIImkLWX8B4hDAu5od3CoSrAu848ADZMwkb0HXzIy5A0M0000)
+
+
 
 ## Quick Reference
 

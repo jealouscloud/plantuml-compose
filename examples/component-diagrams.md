@@ -166,21 +166,39 @@ el.package(  # or database, cloud, node, folder, frame, rectangle
 
 #### components() -- multiple components at once
 
-```text
+```python
+from plantuml_compose import component_diagram, render
+
+d = component_diagram()
+el = d.elements
+
 api, db, cache = el.components("API", "Database", "Cache")
 
-# With shared stereotype/style
-svcs = el.components("Auth", "Billing", "Notify",
-    stereotype="service",
-    style={"background": "#E3F2FD"},
-)
+d.add(api, db, cache)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr5m3F14uhaabYGc9HQd8Wav9oPdf78vfEQb03K20000)
+
+
 
 #### interfaces() -- multiple interfaces at once
 
-```text
+```python
+from plantuml_compose import component_diagram, render
+
+d = component_diagram()
+el = d.elements
+
 rest, graphql, grpc = el.interfaces("REST", "GraphQL", "gRPC")
+
+d.add(rest, graphql, grpc)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuShCAqajIajCJbK8SWqEGUAw5oKMP0Jw88ca1mKuSpcavgK0zG40)
+
+
 
 ### Service Helper
 
@@ -273,67 +291,147 @@ Every connection method supports:
 
 Override the default arrowheads on `arrow()` with `left_head=` and `right_head=`:
 
-```text
-c.arrow(a, b, left_head="<|", right_head="*")
-c.arrow(a, b, left_head="o", right_head="|>")
+```python
+from plantuml_compose import component_diagram, render
+
+d = component_diagram()
+el = d.elements
+c = d.connections
+
+a, b = el.components("A", "B")
+d.add(a, b)
+
+d.connect(
+    c.arrow(a, b, "custom", left_head="<|", right_head="*"),
+)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr5mH68xSJagsDJewcefE2bOAIIN5fVavt8vfEQb0BK00000)
+
+
 
 ### Bulk Connection Helpers
 
 #### arrows() -- multiple arrows from tuples
 
-```text
+```python
+from plantuml_compose import component_diagram, render
+
+d = component_diagram()
+el = d.elements
+c = d.connections
+
+api, db, cache, logger = el.components("API", "Database", "Cache", "Logger")
+d.add(api, db, cache, logger)
+
 d.connect(c.arrows(
     (api, db),
-    (api, cache, "reads"),     # optional label as third element
+    (api, cache, "reads"),
     (db, logger),
 ))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr5m3F14uhaabYGc9HQd8Wav9oPd8FDzyjFJKukuWFeKT7Nj43fW0c3r2bOAHQc9ASLSC6cm55IhGsfU2j0H0000)
+
+
 
 #### arrows_from() -- fan-out from one source
 
-```text
+```python
+from plantuml_compose import component_diagram, render
+
+d = component_diagram()
+el = d.elements
+c = d.connections
+
+api, db, cache, queue = el.components("API", "Database", "Cache", "Queue")
+d.add(api, db, cache, queue)
+
 d.connect(c.arrows_from(api,
     db,
-    (cache, "reads"),          # mix bare targets and (target, label) tuples
+    (cache, "reads"),
     (queue, "publishes"),
     style="dashed",
     direction="down",
     length=3,
 ))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr5m3F14uhaabYGc9HQd8Wav9oPd8FC3IrDBKxc0sXHqerCIYpDIKs9JT7Nj45enfS16A5Wf5AKcfXHZaGSR2PGlA4tAoGGA5tCvfEQb0Dq90000)
+
+
 
 #### lines() -- multiple undirected links from tuples
 
-```text
+```python
+from plantuml_compose import component_diagram, render
+
+d = component_diagram()
+el = d.elements
+c = d.connections
+
+logger, monitor, dashboard = el.components("Logger", "Monitor", "Dashboard")
+d.add(logger, monitor, dashboard)
+
 d.connect(c.lines(
     (logger, monitor),
     (monitor, dashboard),
 ))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr7moKzFJor24l3DpyiioKSMSKaipaZAJonAuO8eLj3LXQk2qY0XX3A7rBmKe2q0)
+
+
 
 #### lines_from() -- fan-out undirected links from one source
 
-```text
+```python
+from plantuml_compose import component_diagram, render
+
+d = component_diagram()
+el = d.elements
+c = d.connections
+
+bus, worker1, worker2, worker3 = el.components("Bus", "Worker 1", "Worker 2", "Worker 3")
+d.add(bus, worker1, worker2, worker3)
+
 d.connect(c.lines_from(bus, worker1, worker2, worker3))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr5mAYr6uYc5vnTbfnOf62ef91OhG3ZnXbWK624hCCAYm1XPWJ4Nq1e5NLs4YQXy8pI-CPT3QbuAqA40)
+
+
 
 #### chain() -- sequential connection pipeline
 
 Creates arrows between consecutive components. Strings between `EntityRef` objects become labels:
 
-```text
+```python
+from plantuml_compose import component_diagram, render
+
+d = component_diagram()
+el = d.elements
+c = d.connections
+
+ui = el.component("UI")
+api = el.component("API")
+db = el.component("Database")
+
+d.add(ui, api, db)
+
+# Labeled chain: ui --HTTP--> api --SQL--> db
 d.connect(c.chain(ui, "HTTP", api, "SQL", db))
-# Creates: ui --HTTP--> api --SQL--> db
 
-# Unlabeled chain
-d.connect(c.chain(a, b, c, d))
-# Creates: a --> b --> c --> d
-
-# Mixed labeled and unlabeled
-d.connect(c.chain(a, "call", b, c, "store", d))
-# Creates: a --call--> b --> c --store--> d
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr48zKJYE0OWyrmIInAJ4ejJkK8z5NHrxK2o2bOA7Y4X0LmW9aW8fWGe7Xpem-MGcfS2D1u0)
+
+
 
 `chain()` accepts `style=`, `direction=`, and `length=` applied to all arrows.
 
@@ -393,13 +491,25 @@ print(render(d))
 
 Components and containers accept `style=` as a `StyleLike` dict:
 
-```text
+```python
+from plantuml_compose import component_diagram, render
+
+d = component_diagram()
+el = d.elements
+
 api = el.component("API", style={
     "background": "#E3F2FD",
     "line": {"color": "#1976D2"},
     "text_color": "navy",
 })
+
+d.add(api)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr5m3F1KK7OrTZDoSx7EoSnBjJAqD3TpCR8kIQqeiSfBBAlaSaZDIm7g0G00)
+
+
 
 ### Diagram-Wide Styling with diagram_style=
 
@@ -513,9 +623,24 @@ print(render(d))
 
 You can use raw strings instead of `EntityRef` objects for connections:
 
-```text
-d.connect(c.arrow("API", "Database", "queries"))
+```python
+from plantuml_compose import component_diagram, render
+
+d = component_diagram()
+el = d.elements
+c = d.connections
+
+api = el.component("API")
+db = el.database("PostgreSQL")
+d.add(api, db)
+
+d.connect(c.arrow("API", "PostgreSQL", "queries"))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKhEpot8pqlDAr5m3F3aIaaiIKnAB4vL2CWlBaalIWqEz56evghb0iefwEhQ8GjRAHIMfXPbfXPpEQJcfG2D0W00)
+
+
 
 ## Quick Reference
 

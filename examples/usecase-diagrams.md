@@ -34,7 +34,7 @@ The pattern: create a diagram, get the `el` (elements) and `r` (relationships) n
 ### Actors
 
 ```python
-from plantuml_compose import usecase_diagram
+from plantuml_compose import usecase_diagram, render
 
 d = usecase_diagram()
 el = d.elements
@@ -55,14 +55,19 @@ partner = el.actor("Partner", business=True)
 api = el.actor("External API", ref="ext_api")
 
 d.add(user, admin, guest, partner, api)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/FOtH2a1044NVVSN41_W1YIGf3_v0avsOsbsQdHL_Jv77UqwTMmL5qUXiWhDk0aqCkZcIRzR6iOUYs8KFjhIGASjFTP62GZRmicedUBquX_7f-J-GjgUIUBHGZtqA681EdN3df29ldjyR)
+
+
 
 Parameters: `name`, `ref=`, `stereotype=`, `style=`, `business=`
 
 ### Use Cases
 
 ```python
-from plantuml_compose import usecase_diagram
+from plantuml_compose import usecase_diagram, render
 
 d = usecase_diagram()
 el = d.elements
@@ -80,7 +85,12 @@ reports = el.usecase("Admin Panel", style={"background": "LightBlue"})
 audit = el.usecase("Audit Trail", business=True)
 
 d.add(login, checkout, reports, audit)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/HSun2iCm38NXFQSGwL9FlO09QR9cw90z25iaeeuDjdJ_DWQJKP_uuOr5C8kUeTD23Wl1SqaxHtFVyq7kcrGCMEio2piCmt3_-xS_ES878uNU01Qei5M0nyBx8LDGQiNhIjIpm9gHMtB1Lg4RAVh_eXy0)
+
+
 
 Parameters: `name`, `ref=`, `stereotype=`, `style=`, `business=`
 
@@ -122,7 +132,14 @@ print(render(d))
 
 Packages work the same way:
 
-```text
+```python
+from plantuml_compose import usecase_diagram, render
+
+d = usecase_diagram()
+el = d.elements
+r = d.relationships
+
+customer = el.actor("Customer")
 shopping = el.package("Shopping",
     el.usecase("Browse", ref="browse"),
     el.usecase("Search", ref="search"),
@@ -130,9 +147,17 @@ shopping = el.package("Shopping",
     style={"background": "#F5F5F5"},
 )
 
-# Access children by name with bracket syntax
-shopping["Browse"]   # equivalent to shopping.browse
+d.add(customer, shopping)
+d.connect(
+    r.arrow(customer, shopping.browse),
+    r.arrow(customer, shopping["Search"]),  # bracket access by name
+)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LKxB2i8m4BplLmnuqKEFtaee2lv0ls0RrrQqITXDy23-kpLOKEOop8EPpZ9hBlETsEUeE1RBSHQbnFx6ew2VOahNCA9jBnf3bd1s3flJ_WCy2IWcdasmFMXycEp0Xg7INxCNLZzLqogb5wrZQ1gtLlwqRx9RHfUBRm00)
+
+
 
 Both `package()` and `rectangle()` accept `stereotype=` and `style=`.
 
@@ -142,14 +167,26 @@ Both `package()` and `rectangle()` accept `stereotype=` and `style=`.
 
 A directed association between two elements. The most common relationship type.
 
-```text
-r.arrow(customer, login)
-r.arrow(customer, login, "authenticates")  # with label
-r.arrow(customer, login, direction="right")  # layout hint
-r.arrow(customer, login, length=2)  # longer arrow
-r.arrow(customer, login, style="dashed")  # line style
-r.arrow(customer, login, style={"color": "red", "pattern": "dashed"})
+```python
+from plantuml_compose import usecase_diagram, render
+
+d = usecase_diagram()
+el = d.elements
+r = d.relationships
+
+customer = el.actor("Customer")
+login = el.usecase("Login")
+d.add(customer, login)
+
+d.connect(
+    r.arrow(customer, login, "authenticates"),
+)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKfCBialKd0kBIx9pqqjuYejJarEB4vLqF39Jy_Cq-I2IIZewjefWCKKh1GIIqioKlDACfCJIrABkHnIyrA09W40)
+
+
 
 Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `length=`, `left_head=`, `right_head=`
 
@@ -157,11 +194,28 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `length=`, `le
 
 Inheritance: child is-a parent. Renders as a triangle-headed arrow.
 
-```text
-# Admin inherits from User
-r.generalizes(admin, user)
-r.generalizes(admin, user, direction="up")
+```python
+from plantuml_compose import usecase_diagram, render
+
+d = usecase_diagram()
+el = d.elements
+r = d.relationships
+
+user = el.actor("User")
+admin = el.actor("Admin")
+login = el.usecase("Login")
+d.add(user, admin, login)
+
+d.connect(
+    r.generalizes(admin, user),
+    r.arrow(user, login),
+)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKfCBialKWWjJYs2CXrJSZFpk4gBKvCJYrCLD7poqpFpDBb02XHiQdHreV9WlgwkdG9OdiiXDIy5Q1e0)
+
+
 
 Parameters: `child`, `parent`, `style=`, `direction=`, `length=`
 
@@ -169,10 +223,28 @@ Parameters: `child`, `parent`, `style=`, `direction=`, `length=`
 
 The base use case always invokes the required use case. Renders with `<<include>>` label.
 
-```text
-# Checkout always validates the cart
-r.include(checkout, validate_cart)
+```python
+from plantuml_compose import usecase_diagram, render
+
+d = usecase_diagram()
+el = d.elements
+r = d.relationships
+
+customer = el.actor("Customer")
+checkout = el.usecase("Checkout")
+validate_cart = el.usecase("Validate Cart")
+d.add(customer, checkout, validate_cart)
+
+d.connect(
+    r.arrow(customer, checkout),
+    r.include(checkout, validate_cart),
+)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/LOun2iCm40JxUyNYAYwS1mGZ3Fg3st181p6MBT3T_Jzs8KAwPTWTTb7ZPduKucIr8RfQFQIHgoHMmID-9EtLRVoXOUMoPJP1lCR325PqzBuHTGscAQ0Rg0SymtyVByppTgRYMKAWHSvyNVe2)
+
+
 
 Parameters: `base`, `required`, `style=`, `direction=`, `length=`
 
@@ -180,10 +252,28 @@ Parameters: `base`, `required`, `style=`, `direction=`, `length=`
 
 The extension optionally extends the base use case. Renders with `<<extends>>` label.
 
-```text
-# Apply Coupon optionally extends Checkout
-r.extends(apply_coupon, checkout)
+```python
+from plantuml_compose import usecase_diagram, render
+
+d = usecase_diagram()
+el = d.elements
+r = d.relationships
+
+customer = el.actor("Customer")
+checkout = el.usecase("Checkout")
+apply_coupon = el.usecase("Apply Coupon")
+d.add(customer, checkout, apply_coupon)
+
+d.connect(
+    r.arrow(customer, checkout),
+    r.extends(apply_coupon, checkout),
+)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKfCBialKd0kBIx9pqqjuYejJarEB4vLq73EI4tEpYyjqKG8AJaM5EHKAZZdbnRavobfAYGMAu15uY4YN31357HrxHHW-hcGbIZe8IGKh1HiR58hIbBpKehjxBWSW3JGFG00)
+
+
 
 Parameters: `extension`, `base`, `style=`, `direction=`, `length=`
 
@@ -191,11 +281,26 @@ Parameters: `extension`, `base`, `style=`, `direction=`, `length=`
 
 An undirected line between two elements (no arrowhead by default).
 
-```text
-r.link(actor_a, actor_b)
-r.link(actor_a, actor_b, "collaborates")  # with label
-r.link(actor_a, actor_b, left_head="|>", right_head="*")  # custom heads
+```python
+from plantuml_compose import usecase_diagram, render
+
+d = usecase_diagram()
+el = d.elements
+r = d.relationships
+
+actor_a = el.actor("Developer")
+actor_b = el.actor("Tester")
+d.add(actor_a, actor_b)
+
+d.connect(
+    r.link(actor_a, actor_b, "collaborates"),
+)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKfCBialKd19BKlDoIz8BOBoGrABIu0SkB22hYvKJC5A8Ja_9oSnARyeiIIrcCiXDIy5Q0u0)
+
+
 
 Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `length=`, `left_head=`, `right_head=`
 
@@ -203,10 +308,26 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `length=`, `le
 
 Both `arrow()` and `link()` support `left_head=` and `right_head=` for custom arrowhead shapes. Common PlantUML head values include `|>`, `*`, `o`, `#`, `x`, `+`, `^`, `>>`.
 
-```text
-r.arrow(a, b, left_head="|>", right_head="*")
-r.link(a, b, left_head="o", right_head="#")
+```python
+from plantuml_compose import usecase_diagram, render
+
+d = usecase_diagram()
+el = d.elements
+r = d.relationships
+
+a = el.actor("Client")
+b = el.usecase("Service")
+d.add(a, b)
+
+d.connect(
+    r.arrow(a, b, right_head="|>"),
+)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKfCBialKd3EoKpDA-4gBKvDJYnELT08JYqgoqnErUI2I2ZewjROAK05kHnIyrA0MW40)
+
+
 
 ### Bulk Methods
 
@@ -214,29 +335,63 @@ r.link(a, b, left_head="o", right_head="#")
 
 Multiple independent arrows from `(source, target)` or `(source, target, label)` tuples:
 
-```text
+```python
+from plantuml_compose import usecase_diagram, render
+
+d = usecase_diagram()
+el = d.elements
+r = d.relationships
+
+customer = el.actor("Customer")
+admin = el.actor("Admin")
+browse = el.usecase("Browse")
+search = el.usecase("Search")
+checkout = el.usecase("Checkout")
+manage = el.usecase("Manage")
+d.add(customer, admin, browse, search, checkout, manage)
+
 d.connect(r.arrows(
     (customer, browse),
     (customer, search),
     (customer, checkout, "buys"),
     (admin, manage),
 ))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKfCBialKd0kBIx9pqqjWd8TKt8pyxXAYrEJ4ujJ5JISYlBBYrCr4GB1gOb5oHb80iuPgSdP-QKbI4A-YNc9wK1DCACLT7Nj520ceOf134CLWvcdOAMGL5fPp0Ls45W6OYoNGsfU2j3v0000)
+
+
 
 #### arrows_from()
 
 Fan-out from one source to many targets. Targets can be bare refs or `(target, label)` tuples:
 
-```text
+```python
+from plantuml_compose import usecase_diagram, render
+
+d = usecase_diagram()
+el = d.elements
+r = d.relationships
+
+customer = el.actor("Customer")
+browse = el.usecase("Browse")
+search = el.usecase("Search")
+checkout = el.usecase("Checkout")
+d.add(customer, browse, search, checkout)
+
 d.connect(r.arrows_from(customer,
     browse,
     search,
     (checkout, "buys"),
-    style="dashed",
     direction="right",
-    length=2,
 ))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKfCBialKd0kBIx9pqqjuYejJarEB4vLq70goYylJjL420Id9XObPo09E6Ua9cVdbvPeSi5qA-WMwTefG7IY2K9qemd2J52mKaWghIpcSaZDIm6w2G00)
+
+
 
 Parameters: `source`, `*targets`, `style=`, `direction=`, `length=`
 
@@ -244,13 +399,30 @@ Parameters: `source`, `*targets`, `style=`, `direction=`, `length=`
 
 Multiple children inherit from one parent:
 
-```text
+```python
+from plantuml_compose import usecase_diagram, render
+
+d = usecase_diagram()
+el = d.elements
+r = d.relationships
+
+engineer = el.actor("Engineer")
+oncall_eng = el.actor("On-Call Eng")
+platform_eng = el.actor("Platform Eng")
+network_eng = el.actor("Network Eng")
+d.add(engineer, oncall_eng, platform_eng, network_eng)
+
 d.connect(r.generalizes_from(
     [oncall_eng, platform_eng, network_eng],
     engineer,
     direction="up",
 ))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKfCBialKd3DIy_CIqqjWdAL_FDqdHDpSa3YIWg9nGh-UI1kF90BKn6GarYIbb-K2rS24q1Mv9TQKfvVb0rN0-M3bS2iLB2fqItLHRO1JGR5O3GvP0CTKlDIW3u20000)
+
+
 
 Parameters: `children`, `parent`, `style=`, `direction=`, `length=`
 
@@ -295,11 +467,23 @@ Parameters: `content`, `target=`, `position=` (left/right/top/bottom), `color=`
 Set the overall diagram flow direction:
 
 ```python
-from plantuml_compose import usecase_diagram
+from plantuml_compose import usecase_diagram, render
 
-# Default is top to bottom
 d = usecase_diagram(layout="left_to_right")
+el = d.elements
+r = d.relationships
+
+user = el.actor("User")
+login = el.usecase("Login")
+browse = el.usecase("Browse")
+d.add(user, login, browse)
+d.connect(r.arrow(user, login), r.arrow(user, browse))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/HOqx2e0m343td2AZ3hs256TN3r3QM0lQG9BYzVqD7H_lmVDgGQoT1noq6HgZbBmRfY8KhN2548q5LoM1fXI34WuBvrB7phFmfJJ2Mw5p4tv1nz-3fvgUrGq0)
+
+
 
 Valid values: `"left_to_right"`, `"top_to_bottom"`
 
@@ -307,23 +491,55 @@ Valid values: `"left_to_right"`, `"top_to_bottom"`
 
 Fine-tune individual connection placement:
 
-```text
+```python
+from plantuml_compose import usecase_diagram, render
+
+d = usecase_diagram()
+el = d.elements
+r = d.relationships
+
+user = el.actor("User")
+top_uc = el.usecase("Reports")
+bottom_uc = el.usecase("Settings")
+left_uc = el.usecase("Help")
+right_uc = el.usecase("Dashboard")
+d.add(user, top_uc, bottom_uc, left_uc, right_uc)
+
 d.connect(
     r.arrow(user, top_uc, direction="up"),
     r.arrow(user, bottom_uc, direction="down"),
     r.arrow(user, left_uc, direction="left"),
     r.arrow(user, right_uc, direction="right"),
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/JSun3e0W38NXdLCmwk0L38E3iyO3L6ZK18MqvVvYWihulk7FCon0aawlm4eWlJ2IIemM67KpOGmatFuoeyXnRJMDw6Cr1-1z3K2kLKzCTwdhTGaLSLdUK26VwGcLINb-8MNmSldY3G00)
+
+
 
 ### Arrow Length
 
 Increase arrow length to push elements apart:
 
-```text
-r.arrow(a, b, length=2)   # longer than default
-r.arrow(a, b, length=3)   # even longer
+```python
+from plantuml_compose import usecase_diagram, render
+
+d = usecase_diagram()
+el = d.elements
+r = d.relationships
+
+a = el.actor("User")
+b = el.usecase("Feature")
+d.add(a, b)
+
+d.connect(r.arrow(a, b, length=2))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKfCBialKWWjJYtYAYrEJKuiJbNGS4jDB2ajIjNa0WahwEhQAK15k1nIyrA0kW00)
+
+
 
 ## Styling
 
@@ -332,45 +548,71 @@ r.arrow(a, b, length=3)   # even longer
 Change the visual representation of all actors:
 
 ```python
-from plantuml_compose import usecase_diagram
+from plantuml_compose import usecase_diagram, render
 
-# Stick figure (default)
-d = usecase_diagram(actor_style="default")
-
-# Awesome (person icon)
 d = usecase_diagram(actor_style="awesome")
+el = d.elements
+r = d.relationships
 
-# Hollow (outline only)
-d = usecase_diagram(actor_style="hollow")
+user = el.actor("User")
+login = el.usecase("Login")
+d.add(user, login)
+d.connect(r.arrow(user, login))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuIhEpimhI2nAp5L8J2x9BmekgSn9LKWiJotEpqtb0WifX1Qd5d6L5gSc9nQdAcZuvATdvcboWGGLT7Nj5C1yBeVKl1IWSG00)
+
+
 
 ### Element-Level Styles
 
 Use `style={"background": "..."}` on individual elements:
 
-```text
-el.actor("VIP", style={"background": "Gold"})
-el.usecase("Critical Path", style={"background": "#FFCDD2"})
-el.package("Core", el.usecase("X", ref="x"), style={"background": "LightCyan"})
+```python
+from plantuml_compose import usecase_diagram, render
+
+d = usecase_diagram()
+el = d.elements
+
+vip = el.actor("VIP", style={"background": "Gold"})
+critical = el.usecase("Critical Path", style={"background": "#FFCDD2"})
+core = el.package("Core", el.usecase("X", ref="x"), style={"background": "LightCyan"})
+d.add(vip, critical, core)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKfCBialKWZp351GTi_FIU4gBKvDJYnELT1GSYxABCbCJinH24WioL3IL4WiLe09nOE459JTt9nTN8ou2XAJinFJKnMSyujI5PHzCjCpIfmh4_CKghaK5E36HO0DgE2gvN98pKi1sWm0)
+
+
 
 ### Line Styles on Relationships
 
-```text
-# String shorthand
-r.arrow(a, b, style="dashed")
-r.arrow(a, b, style="dotted")
+```python
+from plantuml_compose import usecase_diagram, render
 
-# Dict form with full control
-r.arrow(a, b, style={"color": "red", "pattern": "dashed", "bold": True})
+d = usecase_diagram()
+el = d.elements
+r = d.relationships
+
+a = el.actor("User")
+b = el.usecase("Feature")
+d.add(a, b)
+
+d.connect(r.arrow(a, b, style="dashed"))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKfCBialKWWjJYtYAYrEJKuiJbNGS4jDB2ajIjNa0Wahw4Qd91PdfAR4wjefG6Mu75BpKe2w0G00)
+
+
 
 ### diagram_style
 
 Theme the entire diagram with a `<style>` block. Pass a dict with element selectors:
 
 ```python
-from plantuml_compose import usecase_diagram
+from plantuml_compose import usecase_diagram, render
 
 d = usecase_diagram(
     title="Styled Diagram",
@@ -392,7 +634,19 @@ d = usecase_diagram(
         },
     },
 )
+el = d.elements
+r = d.relationships
+
+user = el.actor("User")
+checkout = el.usecase("Checkout", stereotype="critical")
+d.add(user, checkout)
+d.connect(r.arrow(user, checkout))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/VPBBRi8m44Nt_WfBRDe5hO1IY1H5G89NLJTLFs3gZ8A5OrVEHFGX_hrsS2YYIZFAmZFtdl5ZLWs1exRMB6teKsF6sWObD5Weg1pK_9jnlW6vhvnjJPbRRHq_x1IXpmjhw1bgv6kdGCV4Y_f2Ffd5rSamcdMVpu4almxGlzZHTYQcekXgJyfWp4wInMCnzTcZ_-FkXWX2Y2H_k2Q8PBsSpYFXtNkW6YRCGqIjGqbWAZsiNeUuxhSfGaI6iVJVTfVRIHI2S_OGbHUmnJn4rDn9fqX9qCF4lEWkApv6U5F-PdNP0_23q9apuA9HiWrnPLK4MidEV6IbbMsDXZelAJhVo--xBuTQ7rbw7oVivEpg9Ozpnaw3yTgWwoUGt-Gxb7lRqYrFq_xWMSQ2Y8_76U_hR8Mcz3Fy0m00)
+
+
 
 Available selectors: `actor`, `usecase`, `package`, `rectangle`, `arrow`, `note`, `title`, `stereotypes`
 
@@ -410,7 +664,7 @@ The `stereotypes` key maps stereotype names to `ElementStyleDict` values, stylin
 
 ```python
 from plantuml_compose import usecase_diagram, render
-from plantuml_compose.primitives.common import Header, Footer, Legend
+from plantuml_compose.primitives.common import Scale
 
 d = usecase_diagram(
     title="My System",
@@ -419,10 +673,14 @@ d = usecase_diagram(
     header="Draft v0.3",
     footer="Confidential",
     legend="Arrows = interactions",
-    scale=1.5,
-    theme="plain",
+    scale=Scale(factor=1.5),
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/DKxB2i903BplL-GBYY9U1A6YU9CUn0y8ssmDx4EoQKl_tXJQoqp8J6RILaNHCKMNa7CGJ0JlfIebw2QIYMbsrMCaE3PdfwmslPRDuZnb9O4lOM_q40mAqw4vxK8ePQLxoO5xMp56v_6dN38yUHZ5OY_mgGGU3ShU66cWt3k0cqYPAro1rppqwsLrfcsEri2U_mC0)
+
+
 
 ### Complete Example
 

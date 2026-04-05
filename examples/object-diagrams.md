@@ -144,14 +144,24 @@ print(render(d))
 
 A directed association.
 
-```text
-r.arrow(user, order, "placed")
-r.arrow(user, order, direction="down")
-r.arrow(user, order, length=2)
-r.arrow(user, order, style="dashed")
-r.arrow(user, order, style={"color": "red", "pattern": "dashed"})
-r.arrow(user, order, note="see ticket #42")  # inline note on the arrow
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram()
+el = d.elements
+r = d.relationships
+
+user = el.object("alice : User")
+order = el.object("order1 : Order")
+d.add(user, order)
+
+d.connect(r.arrow(user, order, "placed", style="dashed"))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSfFoafDBb5GIip9J4vLi588BKujKb98B5O02yJ7W_XmHVb5AQb5Xa1L_Y06M1b4A3uUBCA5f4b1DpebiJWZDILMrmvL5L1_GKvYSceAbqDgNWhG4G00)
+
+
 
 Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `length=`, `left_head=`, `right_head=`
 
@@ -159,9 +169,24 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `leng
 
 Strong ownership -- the child cannot exist without the parent. Renders with a filled diamond.
 
-```text
-r.composition(order, line_item, "contains")
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram()
+el = d.elements
+r = d.relationships
+
+order = el.object("order1 : Order")
+line_item = el.object("item1 : LineItem")
+d.add(order, line_item)
+
+d.connect(r.composition(order, line_item, "contains"))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSfFoafDBb5GoYzAIIqoLB1Iy0Snb1GIYnKWGl7nO16umioIr5oGEf_Cl5HF81ki52mO7myJuqBHgg2bgukk0cX0SdvUIM9cNZ6NGsfU2j0f0000)
+
+
 
 Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `length=`
 
@@ -169,9 +194,24 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `leng
 
 Weak ownership -- the child can exist independently. Renders with an open diamond.
 
-```text
-r.aggregation(department, employee, "has")
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram()
+el = d.elements
+r = d.relationships
+
+department = el.object("eng : Department")
+employee = el.object("alice : Employee")
+d.add(department, employee)
+
+d.connect(r.aggregation(department, employee, "has"))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSfFoafDBb5GIirBLx1IS4aj08hdfkQLA2aa5Yi01UFZ4M9mnOavcScfGEMkkGKv-PMfgM35OC7uU9WO5vfcXNnTNNGrG2Co4ekv75BpKe1k0G00)
+
+
 
 Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `length=`
 
@@ -179,9 +219,24 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `leng
 
 A plain directed connection (single arrowhead).
 
-```text
-r.association(user, config, "reads")
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram()
+el = d.elements
+r = d.relationships
+
+user = el.object("alice : User")
+config = el.object("appConfig")
+d.add(user, config)
+
+d.connect(r.association(user, config, "reads"))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSfFoafDBb5GIip9J4vLi588BKujKb98B5O02yJ7W_WmHOa51SxvUMcPwLn8aWgwkWW9e055gOafnLmEgNafGEC1)
+
+
 
 Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `length=`
 
@@ -189,10 +244,24 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `leng
 
 An undirected line (no arrowheads by default).
 
-```text
-r.link(a, b, "collaborates")
-r.link(a, b, left_head="|>", right_head="*")  # custom heads
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram()
+el = d.elements
+r = d.relationships
+
+a = el.object("server1 : Server")
+b = el.object("server2 : Server")
+d.add(a, b)
+
+d.connect(r.link(a, b, "replicates"))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSfFoafDBb5GAaujAaijCbImKWW6ivGK4eiLe8BnyH0nDCL6s1GRmHMZQLRGrKLN0jHVb5gGavcSM99QpEMGcfS2T140)
+
+
 
 Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `length=`, `left_head=`, `right_head=`
 
@@ -200,9 +269,24 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `leng
 
 Inheritance arrow (triangle head).
 
-```text
-r.extension(child_obj, parent_obj, "extends")
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram()
+el = d.elements
+r = d.relationships
+
+parent_obj = el.object("base : Config")
+child_obj = el.object("prod : ProdConfig")
+d.add(parent_obj, child_obj)
+
+d.connect(r.extension(child_obj, parent_obj, "extends"))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSfFoafDBb5GIaeiJbMmKd3EpqlBJ5TII2nM08d4nqC4uCeAYl9JWCe2W1IIKf1eV3n2a0jTGC6cHbSNnKIW8QaL9QbvASLS3a0Iw1G0)
+
+
 
 Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `length=`
 
@@ -210,9 +294,24 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `leng
 
 Implementation arrow (dashed line, triangle head).
 
-```text
-r.implementation(concrete, interface_obj, "implements")
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram()
+el = d.elements
+r = d.relationships
+
+interface_obj = el.object("iCache : Cache")
+concrete = el.object("redis1 : RedisCache")
+d.add(interface_obj, concrete)
+
+d.connect(r.implementation(concrete, interface_obj, "implements"))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSfFoafDBb5GodHEJCv8LR1I0DDA2ed52X2X-7Wm1LTOb9gIMMm8L1W4OY1KGyJZun72N9X22ZOrUdge1WDDoimjo4dDJSqhAUPoICrB0JeB0000)
+
+
 
 Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `length=`
 
@@ -220,20 +319,51 @@ Parameters: `source`, `target`, `label=`, `style=`, `direction=`, `note=`, `leng
 
 Both `arrow()` and `link()` support `left_head=` and `right_head=` for custom arrowhead shapes. Common values: `|>`, `*`, `o`, `#`, `x`, `+`, `^`, `>>`.
 
-```text
-r.arrow(a, b, left_head="o", right_head="|>")
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram()
+el = d.elements
+r = d.relationships
+
+a = el.object("nodeA : Node")
+b = el.object("nodeB : Node")
+d.add(a, b)
+
+d.connect(r.arrow(a, b, left_head="o", right_head="|>"))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSfFoafDBb5GoijFINLKi5Bm0z9A2ed52c21-7WG7qMH4xeY9wWY90qA-RgwDNOeiWwfUIb0-m00)
+
+
 
 ### Inline Notes on Relationships
 
 Every relationship type supports a `note=` parameter that renders a note attached to the connection line.
 
-```text
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram()
+el = d.elements
+r = d.relationships
+
+order = el.object("order1 : Order")
+item = el.object("item1 : LineItem")
+product = el.object("widget : Product")
+d.add(order, item, product)
+
 d.connect(
     r.composition(order, item, note="1..*"),
     r.arrow(item, product, "refs", note="by product ID"),
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/PP3B2eCm44Nt-Oh1fH31hOlYeXkXqFx1e6OiQJKfoKZftpV61pJTNSwSkGDJUsuTpzCeRFUWdY6pJf4heOBh4Z9eFQm8CP93r4pJubsqeIRag4Q8kBD3Vcjr9mxspLarznpb5I9kJFpSWLpAlpfZcS0Q6BLvLb0MHIuI1QGyfSNXhAF19zlT1rxRl3cBcemAR_W2)
+
+
 
 ### Bulk Methods
 
@@ -241,28 +371,60 @@ d.connect(
 
 Multiple arrows from `(source, target)` or `(source, target, label)` tuples:
 
-```text
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram()
+el = d.elements
+r = d.relationships
+
+user = el.object("alice : User")
+order = el.object("order1 : Order")
+cart = el.object("cart1 : Cart")
+address = el.object("addr1 : Address")
+d.add(user, order, cart, address)
+
 d.connect(r.arrows(
     (user, order),
     (user, cart, "owns"),
     (order, address),
 ))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NP0z3iCW34PtJc5bpz2rGvMe1yZKsQBW8LKI94pLwzTselmm6JyU_YmwBZwNxpovzFvGAD3uQGm4TtWnvGOyWm54xNSfvKZv9jQW1zDMX6Xa5uDCL-yfrJG3YDeVaJ7Qi5ugCQ-foX0tv4vBGDi-ghJwzXGYOzDlONTvO5ALqD4IvH_-)
+
+
 
 #### arrows_from()
 
 Fan-out from one source to many targets. Targets can be bare refs or `(target, label)` tuples:
 
-```text
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram()
+el = d.elements
+r = d.relationships
+
+user = el.object("alice : User")
+order = el.object("order1 : Order")
+cart = el.object("cart1 : Cart")
+address = el.object("addr1 : Address")
+d.add(user, order, cart, address)
+
 d.connect(r.arrows_from(user,
     order,
     cart,
     (address, "lives at"),
-    style="dashed",
     direction="down",
-    length=2,
 ))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/PP0n3i8m34NtdCBgtg4h0ohY09sOhH1xA4fRAGwS7zj5fT39yVUJdvLUQYprEUMmt1-SAZGnZudX13VXqa0Ky03H-WrQ2d7fb1hiuTWQ8NgoWKct6tVLwfW7YDP_bKI-xAALHLQhPOYVAEoEW9RQyv_kCDvh3iFVtIhEuujLMKFFC-bdl040)
+
+
 
 Parameters: `source`, `*targets`, `style=`, `direction=`, `length=`
 
@@ -270,13 +432,30 @@ Parameters: `source`, `*targets`, `style=`, `direction=`, `length=`
 
 One parent composes many children:
 
-```text
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram()
+el = d.elements
+r = d.relationships
+
+node = el.object("vz-node-01 : Node")
+ct101 = el.object("CT-101 : Container")
+ct102 = el.object("CT-102 : Container")
+ct103 = el.object("CT-103 : Container")
+d.add(node, ct101, ct102, ct103)
+
 d.connect(r.compositions_from(
     node, [ct101, ct102, ct103],
     label="hosts",
     direction="down",
 ))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSfFoafDBb5GAglIpSjFITKrC5ImKl03ifGK4eiLogf0WWQ6yV4W8RXYvn1TGx12v_oyaiJClDGYi6hd44EGKhWWgdeZhEgDSAetnghU65azglCKj7HJT34S0JGb8x-uf1YdOYDI51jZK-oGcfS234i0)
+
+
 
 Parameters: `parent`, `children`, `label=`, `style=`, `direction=`, `length=`
 
@@ -360,50 +539,102 @@ Valid values: `"left_to_right"`, `"top_to_bottom"`
 
 ### Direction Hints on Relationships
 
-```text
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram()
+el = d.elements
+r = d.relationships
+
+center = el.object("hub : Router")
+top_node = el.object("web : Server")
+bottom_node = el.object("db : Database")
+left_node = el.object("cache : Redis")
+right_node = el.object("queue : RabbitMQ")
+d.add(center, top_node, bottom_node, left_node, right_node)
+
 d.connect(
     r.arrow(center, top_node, direction="up"),
     r.arrow(center, bottom_node, direction="down"),
     r.arrow(center, left_node, direction="left"),
     r.arrow(center, right_node, direction="right"),
 )
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/NP0n3i8m34NtdiBgtWime0wi3C018gUnrA92HMBJw-Eu9IACVlz9_yjzOemiZxbP_9q6XdOK3mUuBi8KMy042fpRxYAjbAKRnVSkAN1kkuiKidD2He-9p0egVK7H1Xn6ofKKfcIQ4UtCe6Wl8J4DlP_uV37Je9exQtwsGYVTiTfLXK73QawLpffMAweqQlhVtDCpw1i_)
+
+
 
 ### Arrow Length
 
-```text
-r.arrow(a, b, length=2)   # longer than default
-r.arrow(a, b, length=3)   # even longer
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram()
+el = d.elements
+r = d.relationships
+
+a = el.object("nodeA : Node")
+b = el.object("nodeB : Node")
+d.add(a, b)
+
+d.connect(r.arrow(a, b, length=2))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSfFoafDBb5GoijFINLKi5Bm0z9A2ed52c21-7WG7qMH4xeY9wWY90qAkhfsA78EgNafGDi0)
+
+
 
 ## Styling
 
 ### Element-Level Styles
 
-```text
-el.object("active : Order",
+```python
+from plantuml_compose import object_diagram, render
+
+d = object_diagram()
+el = d.elements
+
+active = el.object("active : Order",
     fields={"status": '"processing"'},
     style={"background": "LightGreen"},
 )
-
-el.object("failed : Order",
+failed = el.object("failed : Order",
     fields={"status": '"failed"'},
     style={"background": "LightCoral"},
 )
+config = el.map("config", entries={"k": "v"}, style={"background": "#E8F5E9"})
 
-el.map("config", entries={"k": "v"}, style={"background": "#E8F5E9"})
+d.add(active, failed, config)
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/RSz12u9048RX-_wA3prs4I6eI172kWITEiksZhQckxAxUed-U-9I97HzP-Q1oQpZnWrTo_Ij8U4GSE7aIDZXOaeo0RY5JqKn5uHdMT_ToH0fF1am2MwmIB2_hg8eZjFUQ47MIbL_2djz-OhBbie5xzEIFsZ3s_-yN_-XEzv3Q5N96c6-EQxpxNpuG99YdEOPgNBwy0q0)
+
+
 
 ### Line Styles on Relationships
 
-```text
-# String shorthand
-r.arrow(a, b, style="dashed")
-r.arrow(a, b, style="dotted")
+```python
+from plantuml_compose import object_diagram, render
 
-# Dict form
-r.composition(a, b, style={"color": "red", "pattern": "dashed", "bold": True})
+d = object_diagram()
+el = d.elements
+r = d.relationships
+
+a = el.object("nodeA : Node")
+b = el.object("nodeB : Node")
+d.add(a, b)
+
+d.connect(r.arrow(a, b, style="dashed"))
+
+print(render(d))
 ```
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuSfFoafDBb5GoijFINLKi5Bm0z9A2ed52c21-7WG7qMH4xeY9wWY90qAkj4fYSKPgIcnkdOeQXnIyrA0jW80)
+
+
 
 ### diagram_style
 
