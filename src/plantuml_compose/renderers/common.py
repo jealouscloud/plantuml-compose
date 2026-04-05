@@ -723,6 +723,7 @@ def render_diagram_style(
     title_style: ElementStyle | None,
     depths: dict[int, ElementStyle] | None = None,
     stereotypes: dict[str, ElementStyle] | None = None,
+    top_level_selectors: bool = False,
 ) -> list[str]:
     """Render a complete <style> block for any diagram type.
 
@@ -737,6 +738,10 @@ def render_diagram_style(
         title_style: Title element styling (rendered in document block)
         depths: Optional depth-level styles (for mindmap/WBS)
         stereotypes: Optional stereotype styles (for most diagram types)
+        top_level_selectors: If True, emit selectors at the top level of the
+            <style> block instead of nested inside a diagram-type wrapper.
+            Required for deployment diagrams where PlantUML ignores the
+            nested form.
 
     Returns:
         Lines for the complete <style>...</style> block, empty list if no styles set
@@ -790,8 +795,11 @@ def render_diagram_style(
 
     lines: list[str] = ["<style>"]
 
-    # Emit diagram-specific block if it has content
-    if diagram_props:
+    if top_level_selectors:
+        # Emit selectors at top level (required for deployment diagrams)
+        lines.extend(diagram_props)
+    elif diagram_props:
+        # Emit nested inside diagram-type wrapper (most diagram types)
         lines.append(f"{diagram_type} {{")
         lines.extend(diagram_props)
         lines.append("}")

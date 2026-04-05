@@ -112,7 +112,11 @@ def render_deployment_diagram(diagram: DeploymentDiagram) -> str:
 
 
 def _render_deployment_diagram_style(style: DeploymentDiagramStyle) -> list[str]:
-    """Render a DeploymentDiagramStyle to PlantUML <style> block."""
+    """Render a DeploymentDiagramStyle to PlantUML <style> block.
+
+    PlantUML deployment diagrams require style selectors at the top level
+    of the <style> block, not nested inside deploymentDiagram { }.
+    """
     return render_diagram_style(
         diagram_type="deploymentDiagram",
         root_background=style.background,
@@ -137,6 +141,7 @@ def _render_deployment_diagram_style(style: DeploymentDiagramStyle) -> list[str]
         arrow_style=style.arrow,
         title_style=style.title,
         stereotypes=style.stereotypes,
+        top_level_selectors=True,
     )
 
 

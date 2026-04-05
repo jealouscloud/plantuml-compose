@@ -370,7 +370,8 @@ class TestDeploymentDiagramStyle:
             "arrow": {"line_color": "gray"},
         })
         output = render(d)
-        assert "deploymentDiagram" in output
+        # Deployment uses top-level selectors (not nested in deploymentDiagram {})
+        assert "<style>" in output
         assert "node {" in output
 
     def test_deployment_stereotype_style(self):
@@ -394,7 +395,7 @@ class TestDeploymentDiagramStyle:
         d.add(server, db)
         d.connect(c.arrow(server, db))
         output = render(d)
-        assert "deploymentDiagram" in output
+        assert "<style>" in output
         assert "node {" in output
         assert "database {" in output
         assert "cloud {" in output
@@ -415,7 +416,7 @@ class TestDeploymentDiagramStyle:
             "stack": {"background": "#CFD8DC"},
         })
         output = render(d)
-        assert "deploymentDiagram" in output
+        assert "<style>" in output
         assert "node {" in output
         assert "artifact {" in output
         assert "storage {" in output
