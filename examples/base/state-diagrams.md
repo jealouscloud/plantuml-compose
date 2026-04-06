@@ -128,13 +128,13 @@ t = d.transitions
 processing = el.state("Processing")
 success = el.state("Success")
 failure = el.state("Failure")
-check = el.choice("valid?")
+check = el.choice()  # diamond — text goes on the incoming arrow, not the diamond
 
 d.add(processing, success, failure, check)
 
 d.connect(
     t.transition(el.initial(), processing),
-    t.transition(processing, check),
+    t.transition(processing, check, label="valid?"),
     t.transition(check, success, label="yes"),
     t.transition(check, failure, label="no"),
 )
@@ -158,8 +158,8 @@ ready = el.state("Ready")
 pack = el.state("Packing")
 label_task = el.state("Labeling")
 
-split = el.fork("split")
-sync = el.join("sync")
+split = el.fork()
+sync = el.join()
 
 d.add(received, ready, pack, label_task, split, sync)
 
@@ -330,9 +330,9 @@ print(render(d))
 |--------|-------------|
 | `el.initial()` | Start marker `[*]` (returns string) |
 | `el.final()` | End marker `[*]` (returns string) |
-| `el.choice(name)` | Decision diamond |
-| `el.fork(name)` | Fork bar (split into parallel) |
-| `el.join(name)` | Join bar (merge parallel) |
+| `el.choice()` | Decision diamond (ref only, not displayed) |
+| `el.fork()` | Fork bar (ref only, not displayed) |
+| `el.join()` | Join bar (ref only, not displayed) |
 | `el.history()` | Shallow history `[H]` |
 | `el.deep_history()` | Deep history `[H*]` |
 | `el.entry_point(name)` | Named entry point on composite boundary |
@@ -915,9 +915,9 @@ state_diagram(
 | `el.state(name, *children, ref=, description=, style=, note=, note_position=)` | `EntityRef` | State (or composite if children given) |
 | `el.initial()` | `str` | Initial pseudo-state `[*]` |
 | `el.final()` | `str` | Final pseudo-state `[*]` |
-| `el.choice(name, ref=, style=)` | `EntityRef` | Decision diamond |
-| `el.fork(name, ref=, style=)` | `EntityRef` | Fork bar |
-| `el.join(name, ref=, style=)` | `EntityRef` | Join bar |
+| `el.choice(ref=, style=)` | `EntityRef` | Decision diamond (ref not displayed) |
+| `el.fork(ref=, style=)` | `EntityRef` | Fork bar (ref not displayed) |
+| `el.join(ref=, style=)` | `EntityRef` | Join bar (ref not displayed) |
 | `el.history(ref=)` | `EntityRef` | Shallow history `[H]` |
 | `el.deep_history(ref=)` | `EntityRef` | Deep history `[H*]` |
 | `el.entry_point(name, ref=, style=)` | `EntityRef` | Named entry point |

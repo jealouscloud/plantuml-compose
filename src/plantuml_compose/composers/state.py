@@ -135,24 +135,48 @@ class StateElementNamespace:
         """Final pseudo-state [*]. Use in transitions as target."""
         return "[*]"
 
-    def choice(self, name: str, *, ref: str | None = None,
+    _pseudo_counter: int = 0
+
+    def _next_pseudo_ref(self, prefix: str) -> str:
+        self._pseudo_counter += 1
+        return f"{prefix}_{self._pseudo_counter}"
+
+    def choice(self, ref: str | None = None, *,
                style: StyleLike | None = None) -> EntityRef:
-        """Decision point (rendered as diamond)."""
-        return EntityRef(name, ref=ref, data={
+        """Decision point (rendered as diamond).
+
+        The ref is an internal identifier for use in transitions — it is
+        NOT displayed on the diagram. PlantUML choice diamonds are always
+        blank. Put your condition text on the incoming transition label:
+
+            check = el.choice()
+            t.transition(processing, check, label="valid?")
+            t.transition(check, success, label="yes")
+        """
+        ref = ref or self._next_pseudo_ref("choice")
+        return EntityRef(ref, ref=ref, data={
             "_type": "pseudo", "_kind": PseudoStateKind.CHOICE, "style": style,
         })
 
-    def fork(self, name: str, *, ref: str | None = None,
+    def fork(self, ref: str | None = None, *,
              style: StyleLike | None = None) -> EntityRef:
-        """Fork bar — splits into parallel paths."""
-        return EntityRef(name, ref=ref, data={
+        """Fork bar — splits into parallel paths.
+
+        The ref is an internal identifier for transitions, not displayed.
+        """
+        ref = ref or self._next_pseudo_ref("fork")
+        return EntityRef(ref, ref=ref, data={
             "_type": "pseudo", "_kind": PseudoStateKind.FORK, "style": style,
         })
 
-    def join(self, name: str, *, ref: str | None = None,
+    def join(self, ref: str | None = None, *,
              style: StyleLike | None = None) -> EntityRef:
-        """Join bar — merges parallel paths."""
-        return EntityRef(name, ref=ref, data={
+        """Join bar — merges parallel paths.
+
+        The ref is an internal identifier for transitions, not displayed.
+        """
+        ref = ref or self._next_pseudo_ref("join")
+        return EntityRef(ref, ref=ref, data={
             "_type": "pseudo", "_kind": PseudoStateKind.JOIN, "style": style,
         })
 

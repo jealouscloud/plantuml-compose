@@ -137,20 +137,20 @@ t = d.transitions
 processing = el.state("Processing")
 success = el.state("Success")
 failure = el.state("Failure")
-check = el.choice("valid?")
+check = el.choice()  # diamond — text goes on the incoming arrow, not the diamond
 
 d.add(processing, success, failure, check)
 
 d.connect(
     t.transition(el.initial(), processing),
-    t.transition(processing, check),
+    t.transition(processing, check, label="valid?"),
     t.transition(check, success, label="yes"),
     t.transition(check, failure, label="no"),
 )
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8L0ehoarEBYpFpqg42mQN9804epoqnCwUqA1NAKofBpCbCiLTII2nM03CLR6oIC_8parFjxBYYjM8LT7Nja4r4CC4oO2rS48qWFjGg1Ik5ojHY976efK3nl7mkXzIy5A1p0G00)
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8L0ehoarEBYpFpqg42mQN9804epoqnCwUqA1NAKqhEoCzCJeqtL598B5Q0SHHiR21CEpkkQArO1LrTEsHZ4Kom35oNbK9POavcYZqNN0Ga3RKUA5kPMemg1NKBK2eldyiXDIy5w0i0)
 
 
 
@@ -170,8 +170,8 @@ ready = el.state("Ready")
 pack = el.state("Packing")
 label_task = el.state("Labeling")
 
-split = el.fork("split")
-sync = el.join("sync")
+split = el.fork()
+sync = el.join()
 
 d.add(received, ready, pack, label_task, split, sync)
 
@@ -188,7 +188,7 @@ d.connect(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8LWbAJKpFBKbFWtCIKIYWx834vEpCl7ShpIKnApK5mbOeBSZ9Bb1GIYnN0B0KRcxJyecmxExXyPLuoH1h80CfcvMVc0MMZjM8LT7Nj4FR2661Hi55S40D1VBWJu29mPq2b8Dg0Ld31P10YO9iXbe5y1IR1VA0Zk1nIyrA0mG00)
+![Diagram](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuG8oIb8LWbAJKpFBKbFWtCIKIYWx834vEpCl7ShpIKnApK5mbTBoYxBZ3PKK4eiL84m56niGmyuEfY8hFpCltWYi0i84gW0nW2gYjM8LT7Nj4BR3661HY7bSK6D18Z2d80d1tGEL0mj2xE62oI6BGPq0iHNaIJ09vWDTm-MGcfS231K0)
 
 
 
@@ -357,9 +357,9 @@ print(render(d))
 |--------|-------------|
 | `el.initial()` | Start marker `[*]` (returns string) |
 | `el.final()` | End marker `[*]` (returns string) |
-| `el.choice(name)` | Decision diamond |
-| `el.fork(name)` | Fork bar (split into parallel) |
-| `el.join(name)` | Join bar (merge parallel) |
+| `el.choice()` | Decision diamond (ref only, not displayed) |
+| `el.fork()` | Fork bar (ref only, not displayed) |
+| `el.join()` | Join bar (ref only, not displayed) |
 | `el.history()` | Shallow history `[H]` |
 | `el.deep_history()` | Deep history `[H*]` |
 | `el.entry_point(name)` | Named entry point on composite boundary |
@@ -990,9 +990,9 @@ state_diagram(
 | `el.state(name, *children, ref=, description=, style=, note=, note_position=)` | `EntityRef` | State (or composite if children given) |
 | `el.initial()` | `str` | Initial pseudo-state `[*]` |
 | `el.final()` | `str` | Final pseudo-state `[*]` |
-| `el.choice(name, ref=, style=)` | `EntityRef` | Decision diamond |
-| `el.fork(name, ref=, style=)` | `EntityRef` | Fork bar |
-| `el.join(name, ref=, style=)` | `EntityRef` | Join bar |
+| `el.choice(ref=, style=)` | `EntityRef` | Decision diamond (ref not displayed) |
+| `el.fork(ref=, style=)` | `EntityRef` | Fork bar (ref not displayed) |
+| `el.join(ref=, style=)` | `EntityRef` | Join bar (ref not displayed) |
 | `el.history(ref=)` | `EntityRef` | Shallow history `[H]` |
 | `el.deep_history(ref=)` | `EntityRef` | Deep history `[H*]` |
 | `el.entry_point(name, ref=, style=)` | `EntityRef` | Named entry point |
