@@ -28,6 +28,11 @@ from .common import (
 )
 
 
+def _escape_newlines(text: str) -> str:
+    """Escape newlines for nwdiag quoted strings."""
+    return text.replace("\n", "\\n")
+
+
 def render_network_diagram(diagram: NetworkDiagram) -> str:
     """Render a complete network diagram to PlantUML text."""
     lines: list[str] = ["@startnwdiag"]
@@ -134,7 +139,7 @@ def _render_network(network: Network) -> list[str]:
 
     # Description
     if network.description:
-        lines.append(f'    description = "{network.description}";')
+        lines.append(f'    description = "{_escape_newlines(network.description)}";')
 
     # Width
     if network.width:
@@ -157,7 +162,7 @@ def _render_network_node(node: NetworkNode) -> str:
     if node.shape:
         parts.append(f"shape = {node.shape}")
     if node.description:
-        parts.append(f'description = "{node.description}"')
+        parts.append(f'description = "{_escape_newlines(node.description)}"')
     if node.color:
         parts.append(f'color = "{render_color(node.color)}"')
 
@@ -175,7 +180,7 @@ def _render_standalone_node(node: StandaloneNode) -> str:
     if node.shape:
         parts.append(f"shape = {node.shape}")
     if node.description:
-        parts.append(f'description = "{node.description}"')
+        parts.append(f'description = "{_escape_newlines(node.description)}"')
     if node.color:
         parts.append(f'color = "{render_color(node.color)}"')
 
@@ -191,7 +196,7 @@ def _render_group(group: NetworkGroup) -> list[str]:
     if group.color:
         lines.append(f'    color = "{render_color(group.color)}";')
     if group.description:
-        lines.append(f'    description = "{group.description}";')
+        lines.append(f'    description = "{_escape_newlines(group.description)}";')
 
     for node_name in group.nodes:
         lines.append(f"    {node_name};")

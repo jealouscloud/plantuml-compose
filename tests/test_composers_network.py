@@ -208,3 +208,103 @@ class TestNetworkPlantUMLValidation:
             capture_output=True, text=True, timeout=30,
         )
         assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+
+class TestNetworkNewlineEscaping:
+    """Verify that newlines in nwdiag descriptions are escaped properly.
+
+    Raw newlines inside quoted nwdiag attributes produce syntax errors.
+    The renderer must escape them. Both \\n and %n() are valid in PlantUML;
+    we use \\n to match the convention used by other renderers.
+    """
+
+    def test_raw_newline_in_node_description_is_invalid(self, tmp_path):
+        """Prove that a raw newline inside a description breaks nwdiag."""
+        puml = (
+            '@startnwdiag\n'
+            'nwdiag {\n'
+            '  network lan {\n'
+            '    srv [description = "line1\nline2"];\n'
+            '  }\n'
+            '}\n'
+            '@endnwdiag'
+        )
+        puml_file = tmp_path / "raw_newline.puml"
+        puml_file.write_text(puml)
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode != 0
+
+    def test_escaped_newline_in_node_description_is_valid(self, tmp_path):
+        """Prove that \\n in a description is accepted by nwdiag."""
+        puml = (
+            '@startnwdiag\n'
+            'nwdiag {\n'
+            '  network lan {\n'
+            '    srv [description = "line1\\nline2"];\n'
+            '  }\n'
+            '}\n'
+            '@endnwdiag'
+        )
+        puml_file = tmp_path / "escaped_newline.puml"
+        puml_file.write_text(puml)
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+    def test_node_description_newline_escaped_in_render(self):
+        """The renderer must escape newlines in network node descriptions."""
+        d = network_diagram()
+        n = d.networks
+        d.add(n.network("lan", n.node("srv", description="line1\nline2")))
+        output = render(d)
+        assert r"line1\nline2" in output
+        assert "line1\nline2" not in output.replace(r"\n", "")
+
+    def test_standalone_node_description_newline_escaped(self):
+        """The renderer must escape newlines in standalone node descriptions."""
+        d = network_diagram()
+        n = d.networks
+        d.add(n.node("srv", description="line1\nline2"))
+        output = render(d)
+        assert r"line1\nline2" in output
+
+    def test_network_description_newline_escaped(self):
+        """The renderer must escape newlines in network descriptions."""
+        d = network_diagram()
+        n = d.networks
+        d.add(n.network("lan", n.node("srv"), description="net line1\nnet line2"))
+        output = render(d)
+        assert r"net line1\nnet line2" in output
+
+    def test_group_description_newline_escaped(self):
+        """The renderer must escape newlines in group descriptions."""
+        d = network_diagram()
+        n = d.networks
+        d.add(
+            n.network("lan", n.node("a"), n.node("b")),
+            n.group("a", "b", description="grp1\ngrp2"),
+        )
+        output = render(d)
+        assert r"grp1\ngrp2" in output
+
+    def test_rendered_multiline_description_valid_plantuml(self, tmp_path):
+        """End-to-end: rendered diagram with newlines passes plantuml check."""
+        d = network_diagram()
+        n = d.networks
+        d.add(
+            n.network("lan",
+                n.node("srv", description="dnsmasq\nFastAPI"),
+            ),
+        )
+        puml_file = tmp_path / "multiline_desc.puml"
+        puml_file.write_text(render(d))
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"
