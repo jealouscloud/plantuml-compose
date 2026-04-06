@@ -308,3 +308,50 @@ class TestNetworkNewlineEscaping:
             capture_output=True, text=True, timeout=30,
         )
         assert result.returncode == 0, f"PlantUML error: {result.stderr}"
+
+
+class TestNetworkNameValidation:
+    """nwdiag identifiers don't support spaces or special characters.
+
+    The composer must reject invalid names at build time rather than
+    producing broken PlantUML output.
+    """
+
+    def test_network_name_with_space_rejected(self):
+        d = network_diagram()
+        n = d.networks
+        d.add(n.network("Datacenter L2", n.node("srv")))
+        with pytest.raises(ValueError, match="nwdiag network name"):
+            render(d)
+
+    def test_node_name_with_space_rejected(self):
+        d = network_diagram()
+        n = d.networks
+        d.add(n.network("lan", n.node("my server")))
+        with pytest.raises(ValueError, match="nwdiag node name"):
+            render(d)
+
+    def test_standalone_node_name_with_space_rejected(self):
+        d = network_diagram()
+        n = d.networks
+        d.add(n.node("my server"))
+        with pytest.raises(ValueError, match="nwdiag node name"):
+            render(d)
+
+    def test_valid_names_accepted(self):
+        """Underscores, hyphens, dots are fine in nwdiag identifiers."""
+        d = network_diagram()
+        n = d.networks
+        d.add(n.network("dc_l2", n.node("srv-01"), n.node("web.prod")))
+        output = render(d)
+        assert "dc_l2" in output
+        assert "srv-01" in output
+        assert "web.prod" in output
+
+    def test_anonymous_network_accepted(self):
+        """name=None networks should not be validated."""
+        d = network_diagram()
+        n = d.networks
+        d.add(n.network(None, n.node("srv")))
+        output = render(d)
+        assert "srv" in output

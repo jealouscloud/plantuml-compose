@@ -50,6 +50,27 @@ from ..primitives.network import (
 from .base import BaseComposer, EntityRef
 
 
+import re
+
+_NWDIAG_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_.\-]*$")
+
+
+def _validate_nwdiag_name(name: str, kind: str) -> None:
+    """Validate that a name is a valid nwdiag identifier.
+
+    nwdiag does not support quoting or escaping in identifiers —
+    network and node names must be alphanumeric with underscores,
+    dots, or hyphens.
+    """
+    if not _NWDIAG_IDENTIFIER_RE.match(name):
+        raise ValueError(
+            f"Invalid nwdiag {kind} name: {name!r}. "
+            f"Names must match [A-Za-z_][A-Za-z0-9_.\\-]* "
+            f"(nwdiag does not support spaces or special characters in identifiers). "
+            f"Use the description parameter for display text with spaces."
+        )
+
+
 def _resolve_ref(item: EntityRef | str) -> str:
     """Resolve an EntityRef or raw string to a node name."""
     if isinstance(item, EntityRef):
@@ -231,6 +252,7 @@ class NetworkComposer(BaseComposer):
                 elem_type = data.get("_type")
 
                 if elem_type == "node":
+                    _validate_nwdiag_name(item._name, "node")
                     standalone.append(StandaloneNode(
                         name=item._name,
                         address=data.get("address"),
@@ -240,11 +262,15 @@ class NetworkComposer(BaseComposer):
                     ))
 
                 elif elem_type == "network":
+                    network_name = data.get("_network_name", item._name)
+                    if network_name:
+                        _validate_nwdiag_name(network_name, "network")
                     children = data.get("children", ())
                     nodes: list[NetworkNode] = []
                     for child in children:
                         if isinstance(child, EntityRef):
                             child_data = child._data
+                            _validate_nwdiag_name(child._name, "node")
                             nodes.append(NetworkNode(
                                 name=child._name,
                                 address=child_data.get("address"),
@@ -252,7 +278,6 @@ class NetworkComposer(BaseComposer):
                                 description=child_data.get("description"),
                                 color=child_data.get("color"),
                             ))
-                    network_name = data.get("_network_name", item._name)
                     networks.append(Network(
                         name=network_name,
                         address=data.get("address"),
