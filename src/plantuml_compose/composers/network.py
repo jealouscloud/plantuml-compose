@@ -215,7 +215,15 @@ class NetworkComposer(BaseComposer):
         ))
 
     def build(self) -> NetworkDiagram:
-        elements: list[NetworkElement] = []
+        # nwdiag layout is top-to-bottom by declaration order.
+        # Standalone nodes and peer links go first (external elements),
+        # then networks, then groups — matching the natural nwdiag pattern:
+        #   inet [shape = cloud];
+        #   inet -- router;
+        #   network { router; web01; }
+        standalone: list[NetworkElement] = []
+        networks: list[NetworkElement] = []
+        groups: list[NetworkElement] = []
 
         for item in self._elements:
             if isinstance(item, EntityRef):
@@ -223,8 +231,7 @@ class NetworkComposer(BaseComposer):
                 elem_type = data.get("_type")
 
                 if elem_type == "node":
-                    # Standalone node
-                    elements.append(StandaloneNode(
+                    standalone.append(StandaloneNode(
                         name=item._name,
                         address=data.get("address"),
                         shape=data.get("shape"),
@@ -233,7 +240,6 @@ class NetworkComposer(BaseComposer):
                     ))
 
                 elif elem_type == "network":
-                    # Network with children
                     children = data.get("children", ())
                     nodes: list[NetworkNode] = []
                     for child in children:
@@ -247,7 +253,7 @@ class NetworkComposer(BaseComposer):
                                 color=child_data.get("color"),
                             ))
                     network_name = data.get("_network_name", item._name)
-                    elements.append(Network(
+                    networks.append(Network(
                         name=network_name,
                         address=data.get("address"),
                         description=data.get("description"),
@@ -257,15 +263,16 @@ class NetworkComposer(BaseComposer):
                     ))
 
                 elif elem_type == "group":
-                    elements.append(NetworkGroup(
+                    groups.append(NetworkGroup(
                         color=data.get("color"),
                         description=data.get("description"),
                         nodes=data.get("node_names", ()),
                     ))
 
-        # Peer links
-        for peer_link in self._links:
-            elements.append(peer_link)
+        # Peer links after standalone nodes, before networks
+        peer_links: list[NetworkElement] = list(self._links)
+
+        elements: list[NetworkElement] = standalone + peer_links + networks + groups
 
         return NetworkDiagram(
             elements=tuple(elements),
