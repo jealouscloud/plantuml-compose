@@ -864,7 +864,7 @@ d = class_diagram(
     mainframe="System Overview",
     caption="Generated 2025-01-15",
     header=Header("Draft", position="right"),
-    footer="Page %page%",
+    footer="Architecture v2.1",
     legend=Legend("Green = stable\nRed = experimental", position="bottom"),
     scale=Scale(factor=1.5),  # or Scale(width=800)
     theme="plain",            # PlantUML built-in theme name
@@ -872,7 +872,7 @@ d = class_diagram(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/9KzB2i9G3Dpd577XKh52buA2u5BH4yJNQVlWVKeQVxStucQI6MP8PZ-Rg3roeYonz2ePVFlCXipd9_GPyQA5ZN1vIkwWEKW2D-kMB9fl1mrZD0HxA4ZZC1gFa0xAHvNUAA2OaxxMtxZ805vEZaiACbciXKyeK35qlDriszMcMJKj9Gme7T-hMSt4V5AWy8xztNk22rVtxnZl2Hgptv147lZ7QE_WdRu0)
+![Diagram](https://www.plantuml.com/plantuml/svg/JOzD2i9G38JtEKKyW68BNGeAWaj1Jn1Vf_R1-obfh7fx8sxSv6VuXadsiudQ8oVA4ikWai7Nzsp8V5wWIyIJLZR2vIavGNEG16us7LaqdmuQncW8zb2GnljeF49wA1zL1gE0OhuCjNxRFyrBksaeo6In5ZwXGCNGSxjjk_MsMJST9TnHUhvLivg9-QH0uHtxqRS45oxExnYl2Hgp9qaYD_nijFVYdtq0)
 
 
 

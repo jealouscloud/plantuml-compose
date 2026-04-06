@@ -528,7 +528,7 @@ d = deployment_diagram(
     mainframe="US-East-1",
     caption="Generated 2025-01-15",
     header=Header("Confidential", position="right"),
-    footer="Page %page%",
+    footer="Infrastructure v3.0",
     legend=Legend("Blue = compute\nOrange = storage", position="bottom"),
     scale=Scale(factor=1.5),
     theme="plain",

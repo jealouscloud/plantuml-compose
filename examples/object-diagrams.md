@@ -647,22 +647,24 @@ d = object_diagram(
     title="Styled Diagram",
     diagram_style={
         "background": "white",
-        "font_name": "Arial",
-        "font_size": 13,
-        "font_color": "#333333",
         "object": {"background": "#E3F2FD", "line_color": "#1976D2"},
-        "map": {"background": "#C8E6C9", "line_color": "#388E3C"},
-        "title": {"font_size": 18, "font_style": "bold"},
+        "map": {"background": "#C8E6C9"},
         "stereotypes": {
-            "config": {"background": "#FFF9C4"},
             "critical": {"background": "#FFCDD2", "font_style": "bold"},
         },
     },
 )
+el = d.elements
+r = d.relationships
+
+server = el.object("server : Node", ref="srv", fields={"ram": "64GB"}, stereotype="critical")
+config = el.map("config", entries={"env": "prod", "region": "us-east"})
+d.add(server, config)
+d.connect(r.arrow(server, config, "reads"))
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/TP7TIWCn48NlynG3lLVQbBeBHMgpcolnfa-G9d4TpO-aiuYMlhjfDYWe6yZ5V9bpo9pPdKWb6hrZXEGi7EZJMGCTgY4fpxQdQttFul7LQgeKpWnWh_JRaE8OZ8Wk9lXuGRAPonZeINaB3mcLg-20NnQMl5QJOC7BoMmoBwx_VHSzbolPbRT73BRIPNktwLQPNlBrwdrEBPf-8zg_QjuqFHTLVQDZUCPXpa5AsOhrJsz2GgtSVBVeoh_guDVuu1YTAGONPg8UlGtJj5Favz_k4bCphzxUrdtiR31vQTy0)
+![Diagram](https://www.plantuml.com/plantuml/svg/TP51JiCm44NtFiMeNGT4GO5MgLKrgTaWDfp0ZQV1nV5KjXE4KE-ERT85GbruuJzl_f-nDpv85uRUiA23GNWBNmOLD5fsJlQiykdE6UsFs8P9XMy6i9NjH-TeiAecGmu-ttN0gF-I6VaFpNVtOY6QN7lH5YVrRlbODekedkFfvUbQT_sqA-lbnDsqJWVTIdED5g9kiYk081loPh0dexB1cLMtVvQ3cKSteeCLl9B26KWFterGLPSWpdDKUe4rb0_FssYIfct97dINQsX7M7CuEKef3ZjDDWc3Br3w41kIPL7mIzCgGb9vja6huY_y0000)
 
 
 

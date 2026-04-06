@@ -783,7 +783,7 @@ d = class_diagram(
     mainframe="System Overview",
     caption="Generated 2025-01-15",
     header=Header("Draft", position="right"),
-    footer="Page %page%",
+    footer="Architecture v2.1",
     legend=Legend("Green = stable\nRed = experimental", position="bottom"),
     scale=Scale(factor=1.5),  # or Scale(width=800)
     theme="plain",            # PlantUML built-in theme name

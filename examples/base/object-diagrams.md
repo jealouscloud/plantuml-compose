@@ -578,18 +578,20 @@ d = object_diagram(
     title="Styled Diagram",
     diagram_style={
         "background": "white",
-        "font_name": "Arial",
-        "font_size": 13,
-        "font_color": "#333333",
         "object": {"background": "#E3F2FD", "line_color": "#1976D2"},
-        "map": {"background": "#C8E6C9", "line_color": "#388E3C"},
-        "title": {"font_size": 18, "font_style": "bold"},
+        "map": {"background": "#C8E6C9"},
         "stereotypes": {
-            "config": {"background": "#FFF9C4"},
             "critical": {"background": "#FFCDD2", "font_style": "bold"},
         },
     },
 )
+el = d.elements
+r = d.relationships
+
+server = el.object("server : Node", ref="srv", fields={"ram": "64GB"}, stereotype="critical")
+config = el.map("config", entries={"env": "prod", "region": "us-east"})
+d.add(server, config)
+d.connect(r.arrow(server, config, "reads"))
 
 print(render(d))
 ```

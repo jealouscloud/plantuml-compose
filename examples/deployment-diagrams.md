@@ -582,7 +582,7 @@ d = deployment_diagram(
     mainframe="US-East-1",
     caption="Generated 2025-01-15",
     header=Header("Confidential", position="right"),
-    footer="Page %page%",
+    footer="Infrastructure v3.0",
     legend=Legend("Blue = compute\nOrange = storage", position="bottom"),
     scale=Scale(factor=1.5),
     theme="plain",
@@ -590,7 +590,7 @@ d = deployment_diagram(
 
 print(render(d))
 ```
-![Diagram](https://www.plantuml.com/plantuml/svg/9O_12i9034Jl-Ofuy5Xf2pqAOXMF2k87nDsqNTZTb6ts_urwcGalcO6SDgMYDKL85F9KA36-disLDcqwsEd21jPeEzWSHSRkC806jUbHn5UdGJ9UHYXXNXGN9iy5HybJy9mrK0HdRcmI-Tg3PiRzQhe7H-ilVkFCXPGzzcq_D6tNT0D4dZbxV8kg940ynyfuH2TfhSe6xeNo_4MRIh4-iFD_24uczjC7)
+![Diagram](https://www.plantuml.com/plantuml/svg/9Oz1QiGm34NtEeLwW0p935aMXaw7qjKKIW-WsafYiAqWopr_bNQZBvxqlz2r6Qdrag5GgejIOVpw7ExKR9ZWoJPsi6UVGGkK6QVJ39RCkm-Ls8CbgVXw0qthPhWnHLQyILrIv6g9CWHNPul88U_7aMRgpgwCFvVJ287slvWthgna7F4ydkTXd8PfXimhruZVOYO545zoPtp686NlnWuUIdKzK3DHMXby_Ty4Lo_-soy0)
 
 
 
