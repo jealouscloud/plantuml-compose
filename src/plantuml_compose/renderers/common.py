@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import zlib
 
 from ..primitives.common import (
     Color,
@@ -168,6 +169,60 @@ def link(url: str, *, label: str | None = None, tooltip: str | None = None) -> s
         result += f" {label}"
     result += "]]"
     return result
+
+
+# PlantUML server encoding alphabet (custom base64)
+_PLANTUML_ALPHABET = (
+    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
+)
+
+DEFAULT_PLANTUML_SERVER = "https://www.plantuml.com/plantuml"
+
+
+def _encode_plantuml(text: str) -> str:
+    """Encode PlantUML text for server URL embedding.
+
+    Uses deflate compression followed by PlantUML's custom base64 encoding.
+    """
+    data = text.encode("utf-8")
+    # Deflate compress (raw, no zlib header/checksum)
+    compressed = zlib.compress(data, 9)[2:-4]
+
+    result = []
+    for i in range(0, len(compressed), 3):
+        chunk = compressed[i : i + 3]
+        b1 = chunk[0]
+        b2 = chunk[1] if len(chunk) > 1 else 0
+        b3 = chunk[2] if len(chunk) > 2 else 0
+
+        result.append(_PLANTUML_ALPHABET[b1 >> 2])
+        result.append(_PLANTUML_ALPHABET[((b1 & 0x3) << 4) | (b2 >> 4)])
+        result.append(_PLANTUML_ALPHABET[((b2 & 0xF) << 2) | (b3 >> 6)])
+        result.append(_PLANTUML_ALPHABET[b3 & 0x3F])
+
+    return "".join(result)
+
+
+def render_url(
+    diagram_or_text: str,
+    *,
+    format: str = "svg",
+    server: str = DEFAULT_PLANTUML_SERVER,
+) -> str:
+    """
+    Generate a PlantUML server URL for a diagram.
+
+    Args:
+        diagram_or_text: Rendered PlantUML text (output of render())
+        format: Output format — "svg", "png", "txt", etc.
+        server: PlantUML server base URL
+
+    Returns:
+        Full URL to render the diagram on the server
+    """
+    encoded = _encode_plantuml(diagram_or_text)
+    base = server.rstrip("/")
+    return f"{base}/{format}/{encoded}"
 
 
 # Pattern for valid hex color codes: #RGB, #ARGB, #RRGGBB, #AARRGGBB

@@ -167,7 +167,7 @@ from .primitives import (
     YamlDiagramStyle,
     YamlDiagramStyleLike,
 )
-from .renderers import link, render
+from .renderers import link, render, render_url
 
 __all__ = [
     # Composers
@@ -192,6 +192,7 @@ __all__ = [
     # Renderers
     "link",
     "render",
+    "render_url",
     # Common primitives
     "ArrowHead",
     "ArrowHeadLike",

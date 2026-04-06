@@ -38,11 +38,11 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import zlib
 from dataclasses import dataclass
 from io import StringIO
 from pathlib import Path
 
+from plantuml_compose import render_url
 from svg_utils import check_svg_for_subdiagram_errors
 
 
@@ -232,34 +232,6 @@ def batch_verify_plantuml(diagrams: list[DiagramInfo]) -> dict[int, str]:
     return errors
 
 
-def encode_plantuml(text: str) -> str:
-    """Encode PlantUML text for URL embedding."""
-    # 1. UTF-8 encode
-    data = text.encode("utf-8")
-
-    # 2. Deflate compress (raw, no header)
-    compressed = zlib.compress(data, 9)[2:-4]  # strip zlib header/checksum
-
-    # 3. PlantUML's custom base64 encoding
-    alphabet = (
-        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
-    )
-    result = []
-
-    for i in range(0, len(compressed), 3):
-        chunk = compressed[i : i + 3]
-        b1 = chunk[0]
-        b2 = chunk[1] if len(chunk) > 1 else 0
-        b3 = chunk[2] if len(chunk) > 2 else 0
-
-        result.append(alphabet[b1 >> 2])
-        result.append(alphabet[((b1 & 0x3) << 4) | (b2 >> 4)])
-        result.append(alphabet[((b2 & 0xF) << 2) | (b3 >> 6)])
-        result.append(alphabet[b3 & 0x3F])
-
-    return "".join(result)
-
-
 def extract_python_blocks(content: str) -> list[tuple[int, int, str]]:
     """
     Extract Python code blocks from markdown content.
@@ -384,8 +356,7 @@ def generate_markdown_with_diagrams(
                 )
 
             # Insert diagram URL
-            encoded = encode_plantuml(diagram.output)
-            url = f"https://www.plantuml.com/plantuml/svg/{encoded}"
+            url = render_url(diagram.output)
             plantuml_block = f"\n![Diagram]({url})\n\n"
             content = (
                 content[: diagram.end_pos]
