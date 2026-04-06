@@ -913,3 +913,75 @@ stop
         assert validate_plantuml(puml), (
             "Gradient in activity <style> block stopped working!"
         )
+
+
+class TestNwdiagIdentifierLimitations:
+    """nwdiag does not support spaces in network or node names.
+
+    No quoting, %chr(), or escaping mechanism works in identifiers.
+    If these tests fail, PlantUML has added support and we can relax
+    the ValueError in the network composer.
+    """
+
+    def test_network_name_with_space_is_invalid(self, tmp_path):
+        puml = """\
+@startnwdiag
+nwdiag {
+  network Datacenter L2 {
+    srv;
+  }
+}
+@endnwdiag
+"""
+        puml_file = tmp_path / "nw_space.puml"
+        puml_file.write_text(puml)
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode != 0, (
+            "PlantUML now supports spaces in nwdiag network names! "
+            "We can relax the ValueError in the network composer."
+        )
+
+    def test_quoted_network_name_is_invalid(self, tmp_path):
+        puml = """\
+@startnwdiag
+nwdiag {
+  network "Datacenter L2" {
+    srv;
+  }
+}
+@endnwdiag
+"""
+        puml_file = tmp_path / "nw_quoted.puml"
+        puml_file.write_text(puml)
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode != 0, (
+            "PlantUML now supports quoted nwdiag network names! "
+            "We can add quoting support in the network renderer."
+        )
+
+    def test_node_name_with_space_is_invalid(self, tmp_path):
+        puml = """\
+@startnwdiag
+nwdiag {
+  network lan {
+    my server;
+  }
+}
+@endnwdiag
+"""
+        puml_file = tmp_path / "nw_node_space.puml"
+        puml_file.write_text(puml)
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode != 0, (
+            "PlantUML now supports spaces in nwdiag node names! "
+            "We can relax the ValueError in the network composer."
+        )
