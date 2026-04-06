@@ -173,6 +173,54 @@ Every element property is documented in `ElementStyleDict` — hover over it in 
 |---------|-------|
 | [**Sub-diagrams**](examples/subdiagrams.md) | Embed diagrams inside notes and messages |
 
+## CLI: Markdown Processing
+
+`puml-md` (also available as `plantuml-compose md`) processes markdown files, executing Python code blocks that import `plantuml_compose` and inserting rendered diagram images.
+
+Given a markdown file containing:
+
+````markdown
+```python
+from plantuml_compose import state_diagram, render
+
+d = state_diagram(title="Example")
+d.add(d.elements.state("Active"))
+print(render(d))
+```
+````
+
+Running `puml-md doc.md` produces the same file with a diagram image appended after the code block:
+
+````markdown
+```python
+from plantuml_compose import state_diagram, render
+
+d = state_diagram(title="Example")
+d.add(d.elements.state("Active"))
+print(render(d))
+```
+
+![Diagram](https://www.plantuml.com/plantuml/svg/...)
+````
+
+Re-running replaces existing diagram URLs rather than duplicating them.
+
+```bash
+puml-md doc.md            # file → stdout
+puml-md -i doc.md         # in-place update
+puml-md -id doc.md        # in-place + wrap code in <details>
+puml-md --validate doc.md # check diagrams against the server
+cat doc.md | puml-md      # stdin → stdout
+```
+
+| Flag | Description |
+|------|-------------|
+| `-i`, `--in-place` | Modify file in place |
+| `-d`, `--details` | Wrap code blocks in collapsible `<details><summary>` |
+| `--validate` | Check generated diagrams against the PlantUML server; exits non-zero on errors |
+| `--server URL` | Custom PlantUML server (default: public server) |
+| `--format FMT` | Output format: `svg`, `png`, `txt` (default: `svg`) |
+
 ## Installation
 
 ```bash

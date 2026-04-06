@@ -1,6 +1,6 @@
 [project]
 name = "plantuml-compose"
-version = "0.1.0"
+version = "1.0.0"
 description = "A Python library that makes creating PlantUML diagrams intuitive via type hints"
 readme = "README.md"
 authors = [
@@ -12,7 +12,8 @@ dependencies = [
 ]
 
 [project.scripts]
-plantuml-compose = "plantuml_compose:main"
+puml-md = "plantuml_compose.cli:markdown"
+plantuml-compose = "plantuml_compose.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.9.13,<0.10.0"]

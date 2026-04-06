@@ -291,8 +291,3 @@ __all__ = [
     "SaltDiagram",
     "SaltWidget",
 ]
-
-
-def main() -> None:
-    """CLI entry point."""
-    print("Hello from plantuml-compose!")
