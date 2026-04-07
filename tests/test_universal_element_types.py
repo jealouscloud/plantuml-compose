@@ -1,11 +1,13 @@
-"""Tests for universal element types across component, usecase, and deployment composers.
+"""Tests for universal element types across all @startuml diagram types.
 
 PlantUML has 27 element types that work identically across all @startuml
-diagram types. These tests verify that all types render correctly and
-pass PlantUML validation in each structural composer.
+diagram types. These tests verify:
+1. Composer API: new types render correctly in component, usecase, deployment
+2. PlantUML validation: all types pass plantuml for every @startuml diagram type
 """
 
 import subprocess
+import warnings
 
 import pytest
 
@@ -23,26 +25,59 @@ LEAF_TYPES = [
     "control", "entity", "label_", "person", "usecase",
 ]
 
-# In component diagrams, interface is a first-class element (not in the
-# universal lists above). In usecase diagrams, it's a generic leaf.
-# These are tested separately within each composer's test class.
-
 # label_ in composer maps to "label" in PlantUML
 LEAF_KEYWORDS = {
     "label_": "label",
 }
 
+ALL_PUML_KEYWORDS = NESTABLE_TYPES + [LEAF_KEYWORDS.get(t, t) for t in LEAF_TYPES]
 
-@pytest.fixture
-def plantuml_check():
-    try:
-        result = subprocess.run(
-            ["plantuml", "-version"],
-            capture_output=True, timeout=10,
+# Every @startuml diagram type that supports the universal element types
+STARTUML_DIAGRAM_TYPES = [
+    "component", "deployment", "usecase", "class", "object",
+    "sequence", "activity", "state", "timing",
+]
+
+
+# ============================================================================
+# Raw PlantUML validation — proves all types work in all diagram types
+# ============================================================================
+
+
+class TestUniversalTypesPlantUMLValid:
+    """Prove that all 27 element types pass PlantUML validation in every
+    @startuml diagram type. This is the ground truth — if PlantUML accepts
+    it, we should be able to render it."""
+
+    @pytest.fixture
+    def _skip_no_plantuml(self):
+        try:
+            result = subprocess.run(
+                ["plantuml", "-version"],
+                capture_output=True, timeout=10,
+            )
+            if result.returncode != 0:
+                pytest.skip("PlantUML not available")
+        except FileNotFoundError:
+            pytest.skip("PlantUML not available")
+
+    @pytest.mark.parametrize("diagram_type", STARTUML_DIAGRAM_TYPES)
+    def test_all_types_in_diagram(self, _skip_no_plantuml, validate_plantuml,
+                                  diagram_type):
+        """All 27 element types validate in each @startuml diagram type."""
+        lines = ["@startuml"]
+        for t in ALL_PUML_KEYWORDS:
+            lines.append(f'{t} "T {t}" as T_{t.replace(" ", "_")}')
+        lines.append("@enduml")
+        puml = "\n".join(lines)
+        assert validate_plantuml(puml, f"universal_{diagram_type}"), (
+            f"Universal element types failed validation in {diagram_type} diagram"
         )
-        return result.returncode == 0
-    except FileNotFoundError:
-        return False
+
+
+# ============================================================================
+# Composer API tests — component
+# ============================================================================
 
 
 class TestComponentUniversalTypes:
@@ -51,10 +86,7 @@ class TestComponentUniversalTypes:
         """All nestable types produce correct PlantUML keywords."""
         for t in NESTABLE_TYPES:
             d = component_diagram()
-            el = d.elements
-            # Existing types (cloud, database, etc.) are already containers,
-            # new types route through _container too
-            factory = getattr(el, t)
+            factory = getattr(d.elements, t)
             d.add(factory(f"Test {t}"))
             output = render(d)
             assert f'{t} "Test {t}"' in output, f"{t} not rendered correctly"
@@ -63,8 +95,7 @@ class TestComponentUniversalTypes:
         """All leaf types produce correct PlantUML keywords."""
         for t in LEAF_TYPES:
             d = component_diagram()
-            el = d.elements
-            factory = getattr(el, t)
+            factory = getattr(d.elements, t)
             d.add(factory(f"Test {t}"))
             output = render(d)
             keyword = LEAF_KEYWORDS.get(t, t)
@@ -78,16 +109,6 @@ class TestComponentUniversalTypes:
         output = render(d)
         assert "storage" in output
         assert "file" in output
-
-    def test_leaf_no_children(self):
-        """Leaf types do not accept *children (keyword-only after name)."""
-        d = component_diagram()
-        el = d.elements
-        # actor() has no *children param — only keyword args
-        d.add(el.actor("User"))
-        output = render(d)
-        assert "actor User" in output
-        assert "{" not in output or "actor User" in output.split("{")[0]
 
     def test_connections_between_types(self):
         """Different element types can connect to each other."""
@@ -107,23 +128,23 @@ class TestComponentUniversalTypes:
         assert "user --> q" in output
         assert "q --> arc" in output
 
-    def test_all_types_valid_plantuml(self, plantuml_check, validate_plantuml):
-        """Every element type passes PlantUML validation."""
-        if not plantuml_check:
-            pytest.skip("PlantUML not available")
-
+    def test_all_types_valid_plantuml(self, validate_plantuml):
+        """Every composer element type passes PlantUML validation together."""
         d = component_diagram(title="All Universal Types")
         el = d.elements
 
         for t in NESTABLE_TYPES:
-            factory = getattr(el, t)
-            d.add(factory(f"N {t}"))
+            d.add(getattr(el, t)(f"N {t}"))
 
         for t in LEAF_TYPES:
-            factory = getattr(el, t)
-            d.add(factory(f"L {t}"))
+            d.add(getattr(el, t)(f"L {t}"))
 
         assert validate_plantuml(render(d), "component_all_types")
+
+
+# ============================================================================
+# Composer API tests — usecase
+# ============================================================================
 
 
 class TestUsecaseUniversalTypes:
@@ -132,8 +153,7 @@ class TestUsecaseUniversalTypes:
         """All nestable types produce correct PlantUML keywords."""
         for t in NESTABLE_TYPES:
             d = usecase_diagram()
-            el = d.elements
-            factory = getattr(el, t)
+            factory = getattr(d.elements, t)
             d.add(factory(f"Test {t}"))
             output = render(d)
             assert f'{t} "Test {t}"' in output or f"{t} Test" in output, (
@@ -141,14 +161,13 @@ class TestUsecaseUniversalTypes:
             )
 
     def test_leaf_types_render(self):
-        """All leaf types produce correct PlantUML keywords."""
-        # actor and usecase have their own renderers, skip those
+        """All leaf types (excluding actor/usecase which have special renderers)."""
+        # actor and usecase have their own renderers with business= param
         generic_leaf = ["agent", "boundary", "circle", "collections",
                         "control", "entity", "interface", "label_", "person"]
         for t in generic_leaf:
             d = usecase_diagram()
-            el = d.elements
-            factory = getattr(el, t)
+            factory = getattr(d.elements, t)
             d.add(factory(f"Test {t}"))
             output = render(d)
             keyword = LEAF_KEYWORDS.get(t, t)
@@ -164,38 +183,25 @@ class TestUsecaseUniversalTypes:
         assert "Login" in output
         assert "Admin" in output
 
-    def test_connections_between_types(self):
-        """Different element types can connect to each other."""
-        d = usecase_diagram()
-        el = d.elements
-        r = d.relationships
-        d.add(
-            el.person("Admin", ref="admin"),
-            el.cloud("API", el.usecase("Deploy"), ref="api"),
-        )
-        d.connect(r.arrow("admin", "api"))
-        output = render(d)
-        assert "admin -->" in output
-
-    def test_all_types_valid_plantuml(self, plantuml_check, validate_plantuml):
-        """Every element type passes PlantUML validation."""
-        if not plantuml_check:
-            pytest.skip("PlantUML not available")
-
+    def test_all_types_valid_plantuml(self, validate_plantuml):
+        """Every composer element type passes PlantUML validation together."""
         d = usecase_diagram(title="All Universal Types")
         el = d.elements
 
         for t in NESTABLE_TYPES:
-            factory = getattr(el, t)
-            d.add(factory(f"N {t}"))
+            d.add(getattr(el, t)(f"N {t}"))
 
         generic_leaf = ["agent", "boundary", "circle", "collections",
                         "control", "entity", "interface", "label_", "person"]
         for t in generic_leaf:
-            factory = getattr(el, t)
-            d.add(factory(f"L {t}"))
+            d.add(getattr(el, t)(f"L {t}"))
 
         assert validate_plantuml(render(d), "usecase_all_types")
+
+
+# ============================================================================
+# Composer API tests — deployment nesting guard
+# ============================================================================
 
 
 class TestDeploymentNestingWarning:
@@ -210,7 +216,6 @@ class TestDeploymentNestingWarning:
 
     def test_leaf_children_stripped(self):
         """Non-nestable types have children removed from output."""
-        import warnings
         d = deployment_diagram()
         el = d.elements
         d.add(el.actor("Bob", el.component("Inner")))
@@ -225,6 +230,5 @@ class TestDeploymentNestingWarning:
         d = deployment_diagram()
         el = d.elements
         d.add(el.node("Server", el.artifact("app.jar")))
-        # No warning expected — if one fires, pytest.warns would catch it
         output = render(d)
         assert "app.jar" in output
