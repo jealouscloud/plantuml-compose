@@ -59,8 +59,8 @@ RelationType = Literal[
     "line",  # --
 ]
 ContainerType = Literal[
-    "artifact", "card", "cloud", "component", "database", "entity",
-    "file", "folder", "frame", "hexagon", "interface", "node",
+    "artifact", "card", "cloud", "component", "database",
+    "file", "folder", "frame", "hexagon", "node",
     "package", "process", "queue", "rectangle", "stack", "storage",
 ]
 
@@ -113,7 +113,7 @@ class UseCase:
 
 GenericElementType = Literal[
     "agent", "boundary", "circle", "collections",
-    "control", "label", "person",
+    "control", "entity", "interface", "label", "person",
 ]
 
 

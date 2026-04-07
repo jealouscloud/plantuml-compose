@@ -195,11 +195,6 @@ class UseCaseElementNamespace:
                  style: StyleLike | None = None) -> EntityRef:
         return self._container(name, "database", *children, ref=ref, stereotype=stereotype, style=style)
 
-    def entity(self, name: str, *children: EntityRef, ref: str | None = None,
-               stereotype: str | Stereotype | None = None,
-               style: StyleLike | None = None) -> EntityRef:
-        return self._container(name, "entity", *children, ref=ref, stereotype=stereotype, style=style)
-
     def file(self, name: str, *children: EntityRef, ref: str | None = None,
              stereotype: str | Stereotype | None = None,
              style: StyleLike | None = None) -> EntityRef:
@@ -220,10 +215,10 @@ class UseCaseElementNamespace:
                 style: StyleLike | None = None) -> EntityRef:
         return self._container(name, "hexagon", *children, ref=ref, stereotype=stereotype, style=style)
 
-    def interface(self, name: str, *children: EntityRef, ref: str | None = None,
+    def interface(self, name: str, *, ref: str | None = None,
                   stereotype: str | Stereotype | None = None,
                   style: StyleLike | None = None) -> EntityRef:
-        return self._container(name, "interface", *children, ref=ref, stereotype=stereotype, style=style)
+        return self._leaf(name, "interface", ref=ref, stereotype=stereotype, style=style)
 
     def node(self, name: str, *children: EntityRef, ref: str | None = None,
              stereotype: str | Stereotype | None = None,
@@ -288,6 +283,11 @@ class UseCaseElementNamespace:
                 stereotype: str | Stereotype | None = None,
                 style: StyleLike | None = None) -> EntityRef:
         return self._leaf(name, "control", ref=ref, stereotype=stereotype, style=style)
+
+    def entity(self, name: str, *, ref: str | None = None,
+               stereotype: str | Stereotype | None = None,
+               style: StyleLike | None = None) -> EntityRef:
+        return self._leaf(name, "entity", ref=ref, stereotype=stereotype, style=style)
 
     def label_(self, name: str, *, ref: str | None = None,
                stereotype: str | Stereotype | None = None,
@@ -529,7 +529,7 @@ def _build_element(ref: EntityRef) -> UseCaseDiagramElement:
         )
 
     if element_type in ("agent", "boundary", "circle", "collections",
-                        "control", "label", "person"):
+                        "control", "entity", "interface", "label", "person"):
         alias = ref._ref if ref._ref != sanitize_ref(ref._name) else None
         return GenericElement(
             name=ref._name,

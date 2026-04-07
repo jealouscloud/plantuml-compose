@@ -185,14 +185,14 @@ LineType = Literal["ortho", "polyline"]
 # contain children via { }, leaf types cannot.
 
 NestableElementType = Literal[
-    "artifact", "card", "cloud", "component", "database", "entity",
-    "file", "folder", "frame", "hexagon", "interface", "node",
+    "artifact", "card", "cloud", "component", "database",
+    "file", "folder", "frame", "hexagon", "node",
     "package", "process", "queue", "rectangle", "stack", "storage",
 ]
 
 LeafElementType = Literal[
     "actor", "agent", "boundary", "circle", "collections",
-    "control", "label", "person", "usecase",
+    "control", "entity", "interface", "label", "person", "usecase",
 ]
 
 LEAF_ELEMENT_TYPES: frozenset[str] = frozenset(

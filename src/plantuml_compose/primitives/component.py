@@ -52,13 +52,13 @@ ComponentType = Literal[
     "port", "portin", "portout",
     # Universal leaf types
     "actor", "agent", "boundary", "circle", "collections",
-    "control", "label", "person", "usecase",
+    "control", "entity", "label", "person", "usecase",
 ]
 
 # Container types — elements that can contain children via { }
 ContainerType = Literal[
-    "artifact", "card", "cloud", "component", "database", "entity",
-    "file", "folder", "frame", "hexagon", "interface", "node",
+    "artifact", "card", "cloud", "component", "database",
+    "file", "folder", "frame", "hexagon", "node",
     "package", "process", "queue", "rectangle", "stack", "storage",
 ]
 

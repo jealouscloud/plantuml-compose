@@ -293,14 +293,6 @@ class ComponentElementNamespace:
         return self._container(name, "card", *children, ref=ref,
                                stereotype=stereotype, style=style, description=description)
 
-    def entity(
-        self, name: str, *children: EntityRef, ref: str | None = None,
-        stereotype: str | Stereotype | None = None, style: StyleLike | None = None,
-        description: str | None = None,
-    ) -> EntityRef:
-        return self._container(name, "entity", *children, ref=ref,
-                               stereotype=stereotype, style=style, description=description)
-
     def file(
         self, name: str, *children: EntityRef, ref: str | None = None,
         stereotype: str | Stereotype | None = None, style: StyleLike | None = None,
@@ -395,6 +387,11 @@ class ComponentElementNamespace:
                 stereotype: str | Stereotype | None = None,
                 style: StyleLike | None = None) -> EntityRef:
         return self._leaf(name, "control", ref=ref, stereotype=stereotype, style=style)
+
+    def entity(self, name: str, *, ref: str | None = None,
+               stereotype: str | Stereotype | None = None,
+               style: StyleLike | None = None) -> EntityRef:
+        return self._leaf(name, "entity", ref=ref, stereotype=stereotype, style=style)
 
     def label_(self, name: str, *, ref: str | None = None,
                stereotype: str | Stereotype | None = None,
