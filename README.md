@@ -110,7 +110,7 @@ r.arrow(a, b, length=1)   # short: ->
 r.arrow(a, b, length=3)   # long:  --->
 
 # Custom arrow heads
-r.arrow(a, b, left_head="o", right_head=">>")  # o-->>
+r.arrow(a, b, left_head="hollow_diamond", right_head="thin_arrow")  # o-->>
 ```
 
 **Diagram-wide styling** via `diagram_style=`:
