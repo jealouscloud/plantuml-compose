@@ -1,6 +1,6 @@
 [project]
 name = "plantuml-compose"
-version = "1.0.1"
+version = "1.0.2"
 description = "A Python library that makes creating PlantUML diagrams intuitive via type hints"
 readme = "README.md"
 authors = [

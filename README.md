@@ -2,6 +2,8 @@
 
 A Python library that makes creating PlantUML diagrams intuitive and type-safe.
 
+https://github.com/jealouscloud/plantuml-compose
+
 ## Why plantuml-compose?
 
 PlantUML is powerful but its text syntax can be cryptic. What does `A -[#red,dashed]-> B` mean? What options are available for a state transition?
