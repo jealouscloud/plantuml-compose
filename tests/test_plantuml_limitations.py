@@ -985,3 +985,34 @@ nwdiag {
             "PlantUML now supports spaces in nwdiag node names! "
             "We can relax the ValueError in the network composer."
         )
+
+
+class TestSequenceDescriptionLimitations:
+    """Sequence participant descriptions don't work with quoted names or aliases.
+
+    If these tests fail, PlantUML has added support and we can render
+    descriptions alongside quoted names.
+    """
+
+    def test_description_with_alias_fails(self, tmp_path):
+        puml = '@startuml\nparticipant "Auth Service" as auth [\n  =Auth\n]\nauth -> Bob\n@enduml'
+        puml_file = tmp_path / "seq_desc_alias.puml"
+        puml_file.write_text(puml)
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode != 0, (
+            "PlantUML now supports description + alias on sequence participants! "
+            "We can remove the simple-name-only restriction."
+        )
+
+    def test_description_with_simple_name_works(self, tmp_path):
+        puml = '@startuml\nparticipant Auth [\n  =Title\n  ----\n  Subtitle\n]\nAuth -> Bob\n@enduml'
+        puml_file = tmp_path / "seq_desc_simple.puml"
+        puml_file.write_text(puml)
+        result = subprocess.run(
+            ["plantuml", "-checkonly", str(puml_file)],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0, f"PlantUML error: {result.stderr}"

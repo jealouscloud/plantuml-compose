@@ -192,45 +192,64 @@ class SequenceParticipantNamespace:
         ref: str | None = None,
         style: Style | None = None,
         order: int | None = None,
+        description: str | Label | None = None,
     ) -> EntityRef:
         data: dict[str, Any] = {"_type": type_}
         if style is not None:
             data["_style"] = style
         if order is not None:
             data["_order"] = order
+        if description is not None:
+            data["_description"] = description
         return EntityRef(name, ref=ref, data=data)
 
     def participant(self, name: str, *, ref: str | None = None,
-                    style: Style | None = None, order: int | None = None) -> EntityRef:
-        return self._make(name, "participant", ref=ref, style=style, order=order)
+                    style: Style | None = None, order: int | None = None,
+                    description: str | Label | None = None) -> EntityRef:
+        return self._make(name, "participant", ref=ref, style=style, order=order,
+                          description=description)
 
     def actor(self, name: str, *, ref: str | None = None,
-              style: Style | None = None, order: int | None = None) -> EntityRef:
-        return self._make(name, "actor", ref=ref, style=style, order=order)
+              style: Style | None = None, order: int | None = None,
+              description: str | Label | None = None) -> EntityRef:
+        return self._make(name, "actor", ref=ref, style=style, order=order,
+                          description=description)
 
     def boundary(self, name: str, *, ref: str | None = None,
-                 style: Style | None = None, order: int | None = None) -> EntityRef:
-        return self._make(name, "boundary", ref=ref, style=style, order=order)
+                 style: Style | None = None, order: int | None = None,
+                 description: str | Label | None = None) -> EntityRef:
+        return self._make(name, "boundary", ref=ref, style=style, order=order,
+                          description=description)
 
     def control(self, name: str, *, ref: str | None = None,
-                style: Style | None = None, order: int | None = None) -> EntityRef:
-        return self._make(name, "control", ref=ref, style=style, order=order)
+                style: Style | None = None, order: int | None = None,
+                description: str | Label | None = None) -> EntityRef:
+        return self._make(name, "control", ref=ref, style=style, order=order,
+                          description=description)
 
     def entity(self, name: str, *, ref: str | None = None,
-               style: Style | None = None, order: int | None = None) -> EntityRef:
-        return self._make(name, "entity", ref=ref, style=style, order=order)
+               style: Style | None = None, order: int | None = None,
+               description: str | Label | None = None) -> EntityRef:
+        return self._make(name, "entity", ref=ref, style=style, order=order,
+                          description=description)
 
     def database(self, name: str, *, ref: str | None = None,
-                 style: Style | None = None, order: int | None = None) -> EntityRef:
-        return self._make(name, "database", ref=ref, style=style, order=order)
+                 style: Style | None = None, order: int | None = None,
+                 description: str | Label | None = None) -> EntityRef:
+        return self._make(name, "database", ref=ref, style=style, order=order,
+                          description=description)
 
     def collections(self, name: str, *, ref: str | None = None,
-                    style: Style | None = None, order: int | None = None) -> EntityRef:
-        return self._make(name, "collections", ref=ref, style=style, order=order)
+                    style: Style | None = None, order: int | None = None,
+                    description: str | Label | None = None) -> EntityRef:
+        return self._make(name, "collections", ref=ref, style=style, order=order,
+                          description=description)
 
     def queue(self, name: str, *, ref: str | None = None,
-              style: Style | None = None, order: int | None = None) -> EntityRef:
-        return self._make(name, "queue", ref=ref, style=style, order=order)
+              style: Style | None = None, order: int | None = None,
+              description: str | Label | None = None) -> EntityRef:
+        return self._make(name, "queue", ref=ref, style=style, order=order,
+                          description=description)
 
 
 class SequenceEventNamespace:
@@ -396,6 +415,7 @@ def _build_participant(entity_ref: EntityRef) -> Participant:
         type=entity_ref._data.get("_type", "participant"),
         style=entity_ref._data.get("_style"),
         order=entity_ref._data.get("_order"),
+        description=entity_ref._data.get("_description"),
     )
 
 

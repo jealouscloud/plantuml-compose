@@ -151,17 +151,17 @@ def _render_participant(p: Participant) -> str:
     if p.style and p.style.background:
         parts.append(render_color_hash(p.style.background))
 
-    # Multiline description - appended after all other parts
-    if p.description:
+    # Description bracket syntax — only works with simple (unquoted) names.
+    # PlantUML rejects description blocks on quoted names or names with aliases.
+    uses_simple_name = not p.alias and p.name.isidentifier() and "\n" not in p.name
+    if p.description and uses_simple_name:
         desc = render_label(p.description)
-        if "\n" in desc:
-            # Multiline participant - use all parts, then add description block
-            base = " ".join(parts)
-            lines = [f"{base} ["]
-            for line in desc.split("\n"):
-                lines.append(f"  {line}")
-            lines.append("]")
-            return "\n".join(lines)
+        base = " ".join(parts)
+        lines = [f"{base} ["]
+        for line in desc.split("\n"):
+            lines.append(f"  {line}")
+        lines.append("]")
+        return "\n".join(lines)
 
     return " ".join(parts)
 
