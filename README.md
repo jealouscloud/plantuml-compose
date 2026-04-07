@@ -173,6 +173,16 @@ Every element property is documented in `ElementStyleDict` — hover over it in 
 |---------|-------|
 | [**Sub-diagrams**](examples/subdiagrams.md) | Embed diagrams inside notes and messages |
 
+## Server URLs
+
+```python
+from plantuml_compose import render, render_url
+
+render_url(render(d))                            # https://www.plantuml.com/plantuml/svg/...
+render_url(render(d), format="png")              # PNG format
+render_url(render(d), server="http://my-server") # custom server
+```
+
 ## CLI: Markdown Processing
 
 `puml-md` (also available as `plantuml-compose md`) processes markdown files, executing Python code blocks that import `plantuml_compose` and inserting rendered diagram images.
