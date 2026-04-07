@@ -178,6 +178,29 @@ LineType = Literal["ortho", "polyline"]
 
 
 # =============================================================================
+# Universal Element Types
+# =============================================================================
+# PlantUML has 27 element types that work identically across all @startuml
+# diagram types. These are split by nesting capability — nestable types can
+# contain children via { }, leaf types cannot.
+
+NestableElementType = Literal[
+    "artifact", "card", "cloud", "component", "database", "entity",
+    "file", "folder", "frame", "hexagon", "interface", "node",
+    "package", "process", "queue", "rectangle", "stack", "storage",
+]
+
+LeafElementType = Literal[
+    "actor", "agent", "boundary", "circle", "collections",
+    "control", "label", "person", "usecase",
+]
+
+LEAF_ELEMENT_TYPES: frozenset[str] = frozenset(
+    get_args(LeafElementType)
+)
+
+
+# =============================================================================
 # Validation Helpers
 # =============================================================================
 

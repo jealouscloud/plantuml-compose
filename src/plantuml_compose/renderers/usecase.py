@@ -5,11 +5,12 @@ Pure functions that transform use case diagram primitives to PlantUML text.
 
 from __future__ import annotations
 
-from ..primitives.common import mirror_arrow_head
+from ..primitives.common import mirror_arrow_head, sanitize_ref
 from ..primitives.styles import UseCaseDiagramStyle
 from ..primitives.usecase import (
     Actor,
     Container,
+    GenericElement,
     Relationship,
     UseCase,
     UseCaseDiagram,
@@ -145,6 +146,8 @@ def _render_element(elem: UseCaseDiagramElement, indent: int = 0) -> list[str]:
         return [f"{prefix}{_render_actor(elem)}"]
     if isinstance(elem, UseCase):
         return [f"{prefix}{_render_usecase(elem)}"]
+    if isinstance(elem, GenericElement):
+        return [f"{prefix}{_render_generic_element(elem)}"]
     if isinstance(elem, Container):
         return _render_container(elem, indent)
     if isinstance(elem, Relationship):
@@ -218,6 +221,31 @@ def _render_usecase(usecase: UseCase) -> str:
     return " ".join(parts)
 
 
+def _render_generic_element(elem: GenericElement) -> str:
+    """Render a generic leaf element (agent, boundary, circle, etc.)."""
+    parts: list[str] = [elem.type]
+
+    escaped_name = elem.name.replace("\r", "").replace("\n", "\\n")
+    if needs_quotes(elem.name) or "\n" in elem.name:
+        name = f'"{escape_quotes(escaped_name)}"'
+    else:
+        name = escaped_name
+    parts.append(name)
+
+    if elem.alias:
+        parts.append(f"as {elem.alias}")
+    elif elem._ref != elem.name:
+        parts.append(f"as {elem._ref}")
+
+    if elem.stereotype:
+        parts.append(render_stereotype(elem.stereotype))
+
+    if elem.style and elem.style.background:
+        parts.append(render_color_hash(elem.style.background))
+
+    return " ".join(parts)
+
+
 def _render_container(container: Container, indent: int = 0) -> list[str]:
     """Render a container (rectangle/package)."""
     prefix = "  " * indent
@@ -231,6 +259,11 @@ def _render_container(container: Container, indent: int = 0) -> list[str]:
         else container.name
     )
     parts.append(name)
+
+    if container.alias:
+        parts.append(f"as {container.alias}")
+    elif needs_quotes(container.name):
+        parts.append(f"as {sanitize_ref(container.name)}")
 
     if container.stereotype:
         parts.append(render_stereotype(container.stereotype))

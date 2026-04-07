@@ -46,18 +46,20 @@ if TYPE_CHECKING:
     pass
 
 
-# Component element types
-ComponentType = Literal["component", "interface", "port", "portin", "portout"]
+# Component element types — leaf elements that cannot contain children
+ComponentType = Literal[
+    "component", "interface",
+    "port", "portin", "portout",
+    # Universal leaf types
+    "actor", "agent", "boundary", "circle", "collections",
+    "control", "label", "person", "usecase",
+]
 
-# Container visual styles
+# Container types — elements that can contain children via { }
 ContainerType = Literal[
-    "package",  # Tab folder (default)
-    "node",  # 3D box
-    "folder",  # Folder icon
-    "frame",  # Frame with title bar
-    "cloud",  # Cloud shape
-    "database",  # Cylinder
-    "rectangle",  # Plain rectangle
+    "artifact", "card", "cloud", "component", "database", "entity",
+    "file", "folder", "frame", "hexagon", "interface", "node",
+    "package", "process", "queue", "rectangle", "stack", "storage",
 ]
 
 # Relationship types - determine the arrow/connector style

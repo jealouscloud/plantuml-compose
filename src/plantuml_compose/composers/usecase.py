@@ -60,6 +60,7 @@ from ..primitives.usecase import (
     ActorStyle,
     Container,
     ContainerType,
+    GenericElement,
     Relationship,
     RelationType,
     UseCase,
@@ -166,6 +167,139 @@ class UseCaseElementNamespace:
             name, "rectangle", *children,
             ref=ref, stereotype=stereotype, style=style,
         )
+
+    # --- Universal nestable types ---
+
+    def artifact(self, name: str, *children: EntityRef, ref: str | None = None,
+                 stereotype: str | Stereotype | None = None,
+                 style: StyleLike | None = None) -> EntityRef:
+        return self._container(name, "artifact", *children, ref=ref, stereotype=stereotype, style=style)
+
+    def card(self, name: str, *children: EntityRef, ref: str | None = None,
+             stereotype: str | Stereotype | None = None,
+             style: StyleLike | None = None) -> EntityRef:
+        return self._container(name, "card", *children, ref=ref, stereotype=stereotype, style=style)
+
+    def cloud(self, name: str, *children: EntityRef, ref: str | None = None,
+              stereotype: str | Stereotype | None = None,
+              style: StyleLike | None = None) -> EntityRef:
+        return self._container(name, "cloud", *children, ref=ref, stereotype=stereotype, style=style)
+
+    def component(self, name: str, *children: EntityRef, ref: str | None = None,
+                  stereotype: str | Stereotype | None = None,
+                  style: StyleLike | None = None) -> EntityRef:
+        return self._container(name, "component", *children, ref=ref, stereotype=stereotype, style=style)
+
+    def database(self, name: str, *children: EntityRef, ref: str | None = None,
+                 stereotype: str | Stereotype | None = None,
+                 style: StyleLike | None = None) -> EntityRef:
+        return self._container(name, "database", *children, ref=ref, stereotype=stereotype, style=style)
+
+    def entity(self, name: str, *children: EntityRef, ref: str | None = None,
+               stereotype: str | Stereotype | None = None,
+               style: StyleLike | None = None) -> EntityRef:
+        return self._container(name, "entity", *children, ref=ref, stereotype=stereotype, style=style)
+
+    def file(self, name: str, *children: EntityRef, ref: str | None = None,
+             stereotype: str | Stereotype | None = None,
+             style: StyleLike | None = None) -> EntityRef:
+        return self._container(name, "file", *children, ref=ref, stereotype=stereotype, style=style)
+
+    def folder(self, name: str, *children: EntityRef, ref: str | None = None,
+               stereotype: str | Stereotype | None = None,
+               style: StyleLike | None = None) -> EntityRef:
+        return self._container(name, "folder", *children, ref=ref, stereotype=stereotype, style=style)
+
+    def frame(self, name: str, *children: EntityRef, ref: str | None = None,
+              stereotype: str | Stereotype | None = None,
+              style: StyleLike | None = None) -> EntityRef:
+        return self._container(name, "frame", *children, ref=ref, stereotype=stereotype, style=style)
+
+    def hexagon(self, name: str, *children: EntityRef, ref: str | None = None,
+                stereotype: str | Stereotype | None = None,
+                style: StyleLike | None = None) -> EntityRef:
+        return self._container(name, "hexagon", *children, ref=ref, stereotype=stereotype, style=style)
+
+    def interface(self, name: str, *children: EntityRef, ref: str | None = None,
+                  stereotype: str | Stereotype | None = None,
+                  style: StyleLike | None = None) -> EntityRef:
+        return self._container(name, "interface", *children, ref=ref, stereotype=stereotype, style=style)
+
+    def node(self, name: str, *children: EntityRef, ref: str | None = None,
+             stereotype: str | Stereotype | None = None,
+             style: StyleLike | None = None) -> EntityRef:
+        return self._container(name, "node", *children, ref=ref, stereotype=stereotype, style=style)
+
+    def process(self, name: str, *children: EntityRef, ref: str | None = None,
+                stereotype: str | Stereotype | None = None,
+                style: StyleLike | None = None) -> EntityRef:
+        return self._container(name, "process", *children, ref=ref, stereotype=stereotype, style=style)
+
+    def queue(self, name: str, *children: EntityRef, ref: str | None = None,
+              stereotype: str | Stereotype | None = None,
+              style: StyleLike | None = None) -> EntityRef:
+        return self._container(name, "queue", *children, ref=ref, stereotype=stereotype, style=style)
+
+    def stack(self, name: str, *children: EntityRef, ref: str | None = None,
+              stereotype: str | Stereotype | None = None,
+              style: StyleLike | None = None) -> EntityRef:
+        return self._container(name, "stack", *children, ref=ref, stereotype=stereotype, style=style)
+
+    def storage(self, name: str, *children: EntityRef, ref: str | None = None,
+                stereotype: str | Stereotype | None = None,
+                style: StyleLike | None = None) -> EntityRef:
+        return self._container(name, "storage", *children, ref=ref, stereotype=stereotype, style=style)
+
+    # --- Universal leaf types ---
+
+    def _leaf(self, name: str, element_type: str, *, ref: str | None = None,
+              stereotype: str | Stereotype | None = None,
+              style: StyleLike | None = None) -> EntityRef:
+        return EntityRef(
+            name, ref=ref,
+            data={
+                "_type": element_type,
+                "stereotype": stereotype,
+                "style": style,
+            },
+        )
+
+    def agent(self, name: str, *, ref: str | None = None,
+              stereotype: str | Stereotype | None = None,
+              style: StyleLike | None = None) -> EntityRef:
+        return self._leaf(name, "agent", ref=ref, stereotype=stereotype, style=style)
+
+    def boundary(self, name: str, *, ref: str | None = None,
+                 stereotype: str | Stereotype | None = None,
+                 style: StyleLike | None = None) -> EntityRef:
+        return self._leaf(name, "boundary", ref=ref, stereotype=stereotype, style=style)
+
+    def circle(self, name: str, *, ref: str | None = None,
+               stereotype: str | Stereotype | None = None,
+               style: StyleLike | None = None) -> EntityRef:
+        return self._leaf(name, "circle", ref=ref, stereotype=stereotype, style=style)
+
+    def collections(self, name: str, *, ref: str | None = None,
+                    stereotype: str | Stereotype | None = None,
+                    style: StyleLike | None = None) -> EntityRef:
+        return self._leaf(name, "collections", ref=ref, stereotype=stereotype, style=style)
+
+    def control(self, name: str, *, ref: str | None = None,
+                stereotype: str | Stereotype | None = None,
+                style: StyleLike | None = None) -> EntityRef:
+        return self._leaf(name, "control", ref=ref, stereotype=stereotype, style=style)
+
+    def label_(self, name: str, *, ref: str | None = None,
+               stereotype: str | Stereotype | None = None,
+               style: StyleLike | None = None) -> EntityRef:
+        return self._leaf(name, "label", ref=ref, stereotype=stereotype, style=style)
+
+    def person(self, name: str, *, ref: str | None = None,
+               stereotype: str | Stereotype | None = None,
+               style: StyleLike | None = None) -> EntityRef:
+        return self._leaf(name, "person", ref=ref, stereotype=stereotype, style=style)
+
+    # --- Helpers ---
 
     def _container(
         self,
@@ -384,11 +518,23 @@ def _build_element(ref: EntityRef) -> UseCaseDiagramElement:
 
     if element_type == "container":
         children = tuple(_build_element(c) for c in ref._children.values())
-        alias = None  # Containers don't use alias in usecase primitives
+        alias = ref._ref if ref._ref != sanitize_ref(ref._name) else None
         return Container(
             name=ref._name,
             type=data.get("_container_type", "package"),
             elements=children,
+            alias=alias,
+            stereotype=_coerce_stereotype(data.get("stereotype")),
+            style=_coerce_style(data.get("style")),
+        )
+
+    if element_type in ("agent", "boundary", "circle", "collections",
+                        "control", "label", "person"):
+        alias = ref._ref if ref._ref != sanitize_ref(ref._name) else None
+        return GenericElement(
+            name=ref._name,
+            type=element_type,
+            alias=alias,
             stereotype=_coerce_stereotype(data.get("stereotype")),
             style=_coerce_style(data.get("style")),
         )

@@ -429,12 +429,26 @@ def _resolve_ref(item: EntityRef | str) -> str:
 
 def _build_element(ref: EntityRef) -> DeploymentElement:
     """Recursively convert EntityRef tree to DeploymentElement."""
+    import warnings
+
+    from ..primitives.common import LEAF_ELEMENT_TYPES
+
     data = ref._data
+    element_type = data.get("_type", "node")
     children = tuple(_build_element(c) for c in ref._children.values())
+
+    if children and element_type in LEAF_ELEMENT_TYPES:
+        warnings.warn(
+            f"{element_type} elements cannot contain children in PlantUML. "
+            f"Children of {ref._name!r} will be ignored.",
+            stacklevel=2,
+        )
+        children = ()
+
     alias = ref._ref if ref._ref != sanitize_ref(ref._name) else None
     return DeploymentElement(
         name=ref._name,
-        type=data.get("_type", "node"),
+        type=element_type,
         alias=alias,
         stereotype=_coerce_stereotype(data.get("stereotype")),
         style=_coerce_style(data.get("style")),

@@ -181,8 +181,8 @@ def _render_component(comp: Component, indent: int = 0) -> list[str]:
         # Port syntax
         return [f"{prefix}{comp.type} {comp.name}"]
 
-    # Regular component/interface
-    parts.append("component")
+    # Element type keyword (component, actor, agent, etc.)
+    parts.append(comp.type)
 
     # Name with possible alias
     # When names need quotes, we must add an implicit alias so notes/relationships

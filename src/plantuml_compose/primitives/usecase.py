@@ -58,7 +58,11 @@ RelationType = Literal[
     "dependency",  # ..>
     "line",  # --
 ]
-ContainerType = Literal["rectangle", "package"]
+ContainerType = Literal[
+    "artifact", "card", "cloud", "component", "database", "entity",
+    "file", "folder", "frame", "hexagon", "interface", "node",
+    "package", "process", "queue", "rectangle", "stack", "storage",
+]
 
 
 @dataclass(frozen=True)
@@ -107,15 +111,45 @@ class UseCase:
         return sanitize_ref(self.name)
 
 
+GenericElementType = Literal[
+    "agent", "boundary", "circle", "collections",
+    "control", "label", "person",
+]
+
+
+@dataclass(frozen=True)
+class GenericElement:
+    """A universal leaf element (agent, boundary, circle, etc.)."""
+
+    name: str
+    type: GenericElementType = "agent"
+    alias: str | None = None
+    stereotype: Stereotype | None = None
+    style: Style | None = None
+
+    @property
+    def _ref(self) -> str:
+        if self.alias:
+            return self.alias
+        return sanitize_ref(self.name)
+
+
 @dataclass(frozen=True)
 class Container:
-    """A container (rectangle/package) grouping elements."""
+    """A container grouping elements."""
 
     name: str
     type: ContainerType = "rectangle"
     elements: tuple["UseCaseDiagramElement", ...] = field(default_factory=tuple)
+    alias: str | None = None
     stereotype: Stereotype | None = None
     style: Style | None = None
+
+    @property
+    def _ref(self) -> str:
+        if self.alias:
+            return self.alias
+        return sanitize_ref(self.name)
 
 
 @dataclass(frozen=True)
@@ -149,6 +183,7 @@ class UseCaseNote:
 UseCaseDiagramElement = Union[
     Actor,
     UseCase,
+    GenericElement,
     Container,
     Relationship,
     UseCaseNote,
