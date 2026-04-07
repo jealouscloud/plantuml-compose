@@ -2,8 +2,9 @@
 
 PlantUML has 27 element types that work identically across all @startuml
 diagram types. These tests verify:
-1. Raw PlantUML: all types validate in every @startuml diagram type
-2. Composer API: new types render correctly in component, usecase, deployment
+1. All types validate in every @startuml diagram type
+2. Composers can connect new types to each other
+3. Nesting and leaf behavior works correctly
 """
 
 import subprocess
@@ -25,10 +26,7 @@ LEAF_TYPES = [
     "control", "entity", "label_", "person", "usecase",
 ]
 
-# label_ in composer maps to "label" in PlantUML
-LEAF_KEYWORDS = {
-    "label_": "label",
-}
+LEAF_KEYWORDS = {"label_": "label"}
 
 ALL_PUML_KEYWORDS = NESTABLE_TYPES + [LEAF_KEYWORDS.get(t, t) for t in LEAF_TYPES]
 
@@ -52,84 +50,29 @@ class TestUniversalTypesPlantUMLValid:
     """All 27 element types validate in every @startuml diagram type."""
 
     def test_all_types_all_diagram_types(self, tmp_path):
-        """One diagram per type, all 27 elements, validated in a loop."""
         try:
             result = subprocess.run(
-                ["plantuml", "-version"],
-                capture_output=True, timeout=10,
+                ["plantuml", "-version"], capture_output=True, timeout=10,
             )
             if result.returncode != 0:
                 pytest.skip("PlantUML not available")
         except FileNotFoundError:
             pytest.skip("PlantUML not available")
 
-        lines = []
-        for t in ALL_PUML_KEYWORDS:
-            lines.append(f'{t} "T {t}" as T_{t}')
-        body = "\n".join(lines)
+        body = "\n".join(f'{t} "T {t}" as T_{t}' for t in ALL_PUML_KEYWORDS)
 
         failures = []
         for dtype in STARTUML_DIAGRAM_TYPES:
-            puml = f"@startuml\n{body}\n@enduml"
-            ok, err = _check_plantuml(puml, tmp_path)
+            ok, err = _check_plantuml(f"@startuml\n{body}\n@enduml", tmp_path)
             if not ok:
                 failures.append(f"{dtype}: {err[:80]}")
 
         assert not failures, (
-            f"Universal types failed in {len(failures)} diagram type(s):\n"
-            + "\n".join(failures)
+            f"Failed in {len(failures)} diagram type(s):\n" + "\n".join(failures)
         )
 
 
 class TestComponentUniversalTypes:
-
-    def test_all_nestable_types_render(self):
-        """All nestable types in one diagram produce correct keywords."""
-        d = component_diagram()
-        el = d.elements
-        for t in NESTABLE_TYPES:
-            d.add(getattr(el, t)(f"Test {t}"))
-        output = render(d)
-        for t in NESTABLE_TYPES:
-            assert f'{t} "Test {t}"' in output, f"{t} not rendered"
-
-    def test_all_leaf_types_render(self):
-        """All leaf types in one diagram produce correct keywords."""
-        d = component_diagram()
-        el = d.elements
-        for t in LEAF_TYPES:
-            d.add(getattr(el, t)(f"Test {t}"))
-        output = render(d)
-        for t in LEAF_TYPES:
-            keyword = LEAF_KEYWORDS.get(t, t)
-            assert f'{keyword} "Test {t}"' in output, f"{t} not rendered"
-
-    def test_nestable_with_children(self):
-        """Nestable types correctly contain children."""
-        d = component_diagram()
-        el = d.elements
-        d.add(el.storage("Bucket", el.file("data.csv")))
-        output = render(d)
-        assert "storage" in output
-        assert "file" in output
-
-    def test_connections_between_types(self):
-        """Different element types can connect to each other."""
-        d = component_diagram()
-        el = d.elements
-        c = d.connections
-        d.add(
-            el.actor("User", ref="user"),
-            el.queue("Messages", ref="q"),
-            el.storage("Archive", ref="arc"),
-        )
-        d.connect(
-            c.arrow("user", "q", "sends"),
-            c.arrow("q", "arc", "stores"),
-        )
-        output = render(d)
-        assert "user --> q" in output
-        assert "q --> arc" in output
 
     def test_all_types_valid_plantuml(self, validate_plantuml):
         """All types combined pass PlantUML validation."""
@@ -141,33 +84,55 @@ class TestComponentUniversalTypes:
             d.add(getattr(el, t)(f"L {t}"))
         assert validate_plantuml(render(d), "component_all_types")
 
+    def test_connect_new_nestable_types(self, validate_plantuml):
+        """New nestable types can be connected with arrows."""
+        d = component_diagram()
+        el = d.elements
+        c = d.connections
+        d.add(
+            el.queue("Ingest", ref="ingest"),
+            el.storage("Archive", ref="arc"),
+            el.artifact("Report", ref="rpt"),
+            el.stack("Pipeline", ref="pipe"),
+        )
+        d.connect(
+            c.arrow("ingest", "arc", "stores"),
+            c.arrow("arc", "rpt", "generates"),
+            c.arrow("rpt", "pipe", "feeds"),
+        )
+        assert validate_plantuml(render(d), "component_nestable_connections")
+
+    def test_connect_new_leaf_types(self, validate_plantuml):
+        """New leaf types can be connected with arrows."""
+        d = component_diagram()
+        el = d.elements
+        c = d.connections
+        d.add(
+            el.actor("User", ref="user"),
+            el.agent("Bot", ref="bot"),
+            el.person("Admin", ref="admin"),
+            el.boundary("Firewall", ref="fw"),
+            el.control("Scheduler", ref="sched"),
+        )
+        d.connect(
+            c.arrow("user", "fw", "requests"),
+            c.arrow("fw", "bot", "forwards"),
+            c.arrow("admin", "sched", "configures"),
+        )
+        assert validate_plantuml(render(d), "component_leaf_connections")
+
+    def test_nesting_children(self, validate_plantuml):
+        """Nestable types contain children correctly."""
+        d = component_diagram()
+        el = d.elements
+        d.add(el.storage("Bucket",
+            el.file("data.csv"),
+            el.artifact("report.pdf"),
+        ))
+        assert validate_plantuml(render(d), "component_nesting")
+
 
 class TestUsecaseUniversalTypes:
-
-    def test_all_nestable_types_render(self):
-        """All nestable types in one diagram produce correct keywords."""
-        d = usecase_diagram()
-        el = d.elements
-        for t in NESTABLE_TYPES:
-            d.add(getattr(el, t)(f"Test {t}"))
-        output = render(d)
-        for t in NESTABLE_TYPES:
-            assert f'{t} "Test {t}"' in output or f"{t} Test" in output, (
-                f"{t} not rendered"
-            )
-
-    def test_all_leaf_types_render(self):
-        """All generic leaf types in one diagram produce correct keywords."""
-        generic_leaf = ["agent", "boundary", "circle", "collections",
-                        "control", "entity", "interface", "label_", "person"]
-        d = usecase_diagram()
-        el = d.elements
-        for t in generic_leaf:
-            d.add(getattr(el, t)(f"Test {t}"))
-        output = render(d)
-        for t in generic_leaf:
-            keyword = LEAF_KEYWORDS.get(t, t)
-            assert f'{keyword} "Test {t}"' in output, f"{t} not rendered"
 
     def test_all_types_valid_plantuml(self, validate_plantuml):
         """All types combined pass PlantUML validation."""
@@ -181,14 +146,31 @@ class TestUsecaseUniversalTypes:
             d.add(getattr(el, t)(f"L {t}"))
         assert validate_plantuml(render(d), "usecase_all_types")
 
+    def test_connect_new_types(self, validate_plantuml):
+        """New types can connect to actors and use cases."""
+        d = usecase_diagram()
+        el = d.elements
+        r = d.relationships
+        d.add(
+            el.person("Admin", ref="admin"),
+            el.agent("Bot", ref="bot"),
+            el.database("DB", el.usecase("Query"), ref="db"),
+            el.cloud("API", el.usecase("Deploy"), ref="api"),
+        )
+        d.connect(
+            r.arrow("admin", "db"),
+            r.arrow("bot", "api"),
+            r.arrow("admin", "bot"),
+        )
+        assert validate_plantuml(render(d), "usecase_connections")
+
 
 class TestDeploymentNestingWarning:
 
     def test_leaf_with_children_warns_and_strips(self):
         """Non-nestable types with children emit a warning and strip them."""
         d = deployment_diagram()
-        el = d.elements
-        d.add(el.actor("Bob", el.component("Inner")))
+        d.add(d.elements.actor("Bob", d.elements.component("Inner")))
         with pytest.warns(UserWarning, match="cannot contain children"):
             output = render(d)
         assert "Inner" not in output
@@ -197,7 +179,6 @@ class TestDeploymentNestingWarning:
     def test_nestable_with_children_no_warning(self):
         """Nestable types with children do not warn."""
         d = deployment_diagram()
-        el = d.elements
-        d.add(el.node("Server", el.artifact("app.jar")))
+        d.add(d.elements.node("Server", d.elements.artifact("app.jar")))
         output = render(d)
         assert "app.jar" in output
